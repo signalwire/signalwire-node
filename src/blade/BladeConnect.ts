@@ -15,7 +15,7 @@ export default class BladeConnect extends BaseMessage implements IBladeConnectRe
     }
     // TODO: Add 'authentication' if i'm not certified
     if (true) {
-      this.params.authentication = {}
+      this.params.authentication = { project: "06f784c6-6bd5-47fb-9897-407d66551333", token: "PT2eddbccd77832e761d191513df8945d4e1bf70e8f3f74aaa" }
     }
   }
 }

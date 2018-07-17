@@ -180,6 +180,6 @@ export default class NodeStore {
       nodeXProtocols: this.nodeXProtocols,
       protocolXNodes: this.protocolXNodes
     }
-    // logger.info(':::NodeStore Stats:::', JSON.stringify(stats))
+    logger.info(':::NodeStore Stats:::', stats)
   }
 }

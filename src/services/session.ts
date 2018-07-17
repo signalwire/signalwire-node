@@ -16,10 +16,6 @@ export default class Session {
   nodeStore: NodeStore
 
   constructor(public cbReady?: () => void) {
-    // process.on('beforeExit', (): void => {
-    //   logger.info('Process is in closing state..Wait 1s and retry')
-    //   setTimeout(() => this.connect(), 1000)
-    // })
     this.connect()
   }
 
@@ -27,7 +23,8 @@ export default class Session {
     const callbacks: ConnectionCallbacks = {
       onOpen: this.onSocketOpen.bind(this),
       onClose: (): void => {
-        logger.info('Session::onClose')
+        logger.info('Session is closed.. try again!')
+        setTimeout(() => this.connect(), 1000)
       },
       onMessage: this.onInboundMessage.bind(this),
       onError: (error: any): void => {

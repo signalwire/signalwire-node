@@ -11,6 +11,7 @@
   "license": "ISC",
   "scripts": {
     "build-dev": "webpack -p --mode development --watch",
+    "build": "webpack -p",
     "test": "jest --forceExit --coverage --verbose",
     "watch-test": "npm run test -- --watchAll",
     "build-ts": "tsc",

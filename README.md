@@ -8,7 +8,7 @@ To build and run this app locally you will need a few things:
 - Clone the repository
 - Install dependencies
 ```
-cd signalwire-client-nodejs
+cd signalwire-client-js
 npm install
 ```
 

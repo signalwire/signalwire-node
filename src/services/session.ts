@@ -1,3 +1,4 @@
+import SignalWire from '../SignalWire'
 import { IBladeConnectResult } from '../interfaces'
 import logger from '../util/logger'
 import BladeConnect from '../blade/BladeConnect'
@@ -15,7 +16,7 @@ export default class Session {
   master_nodeid: string
   nodeStore: NodeStore
 
-  constructor(public cbReady?: () => void) {
+  constructor(private SW: SignalWire, public cbReady?: () => void) {
     this.connect()
   }
 
@@ -35,18 +36,22 @@ export default class Session {
   }
 
   onSocketOpen(): void {
-    let bc = new BladeConnect(this.sessionid)
+    let bc = new BladeConnect(this.SW.authentication, this.sessionid)
     this.conn.send(bc)
       .then(this._onBladeConnect.bind(this))
       .catch(logger.error)
   }
 
-  private _onBladeConnect(response: IBladeConnectResult): void {
-    logger.info('Session::onBladeConnect', response)
-    this.sessionid = response.result.sessionid
-    this.nodeid = response.result.nodeid
-    this.master_nodeid  = response.result.master_nodeid
-    this.nodeStore = new NodeStore(response)
+  private _onBladeConnect(bladeConnect: BladeConnect): void {
+    if (!bladeConnect.hasOwnProperty('response')) {
+      logger.error('BladeConnect without response?!', bladeConnect)
+      return
+    }
+    logger.info('Session::onBladeConnect', bladeConnect)
+    this.sessionid = bladeConnect.response.result.sessionid
+    this.nodeid = bladeConnect.response.result.nodeid
+    this.master_nodeid  = bladeConnect.response.result.master_nodeid
+    this.nodeStore = new NodeStore(bladeConnect.response)
 
     if (typeof this.cbReady === 'function') {
       this.cbReady()
@@ -57,7 +62,7 @@ export default class Session {
     logger.info('%s :: %s', this.nodeid, response.method, response)
     switch (response.method) {
       case BLADE_NETCAST:
-        this.nodeStore.netcastUpdate(response.params)
+        // this.nodeStore.netcastUpdate(response.params)
       break
       case BLADE_BROADCAST:
         logger.info(BLADE_BROADCAST, "What should i do?")

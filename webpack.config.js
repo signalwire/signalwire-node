@@ -3,8 +3,8 @@ module.exports = {
   output: {
     path: __dirname + '/dist',
     filename: 'bundle.js',
-    library: 'SignalWire'
-    // libraryTarget: 'umd'
+    // library: 'SignalWire',
+    libraryTarget: 'this'
   },
   resolve: {
     extensions: ['.ts', '.js']

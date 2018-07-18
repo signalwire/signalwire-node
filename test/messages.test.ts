@@ -2,6 +2,7 @@ import BladeConnect from '../src/blade/BladeConnect'
 import { BladeExecuteRequest, BladeExecuteResponse } from '../src/blade/BladeExecute'
 import { ProviderAdd, ProviderRemove } from '../src/blade/BladeProtocol'
 import { BladeAuthorityAdd } from '../src/blade/BladeAuthority'
+import BladeSubscription from '../src/blade/BladeSubscription'
 
 describe('Messages', function () {
   describe('BladeConnect', function () {
@@ -78,6 +79,21 @@ describe('Messages', function () {
       it('should match struct', function () {
         const message = new BladeAuthorityAdd('S1').request
         const res = JSON.parse(`{"jsonrpc":"2.0","id":"${message.id}","method":"blade.authority","params":{"command":"add","authority_nodeid":"S1"}}`)
+        expect(message).toEqual(res)
+      })
+    })
+  })
+
+  describe('BladeSubscription', function () {
+    describe('Add', function () {
+      it('should match struct', function () {
+        const message = new BladeSubscription({
+          command: 'add',
+          subscriber_nodeid: 'S1',
+          protocol: 'myprotocol',
+          channels: ['myprotocol.channel']
+        }).request
+        const res = JSON.parse(`{"jsonrpc":"2.0","id":"${message.id}","method":"blade.subscription","params":{"command":"add","subscriber_nodeid":"S1","protocol":"myprotocol","channels":["myprotocol.channel"]}}`)
         expect(message).toEqual(res)
       })
     })

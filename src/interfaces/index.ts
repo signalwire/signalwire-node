@@ -112,3 +112,15 @@ export interface IBladeAuthority extends IMessageBase {
     command: string
   }
 }
+
+export interface IBladeSubscriptionRequest extends IMessageBase {
+  method: string
+  params: {
+    command: string
+    protocol: string
+    subscriber_nodeid: string
+    channels: string[]
+    auto_create?: boolean
+    downstream?: boolean
+  }
+}

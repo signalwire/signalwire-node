@@ -4,7 +4,7 @@ import BladeConnect from '../blade/BladeConnect'
 import Connection from './Connection'
 import NodeStore from './NodeStore'
 import { ConnectionCallbacks } from '../types'
-import BladeSubscribe from '../blade/BladeSubscribe'
+import BladeSubscription from '../blade/BladeSubscription'
 import { BLADE_SUBSCRIBE_COMMAND } from '../util/constants'
 
 const BLADE_NETCAST = 'blade.netcast'
@@ -86,7 +86,7 @@ export default class Session {
   }
 
   addSubscription(protocol: string, channels: string[]) {
-    let bs = new BladeSubscribe({
+    let bs = new BladeSubscription({
       command: BLADE_SUBSCRIBE_COMMAND.ADD,
       subscriber_nodeid: this.nodeid,
       protocol,

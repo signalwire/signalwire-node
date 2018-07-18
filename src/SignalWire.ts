@@ -28,17 +28,13 @@ class SignalWire {
     this._session = new Session(this)
   }
 
-  // private _send(bladeObj: any): Promise<any> {
-  //   return this._session.conn.send(bladeObj)
-  // }
-
   subscribe(protocol: string, channels: string[]) {
     this._session.addSubscription(protocol, channels)
       .then(bladeObj => {
         logger.debug('subscribe response?', bladeObj)
-        setTimeout(() => {
-          this.unsubscribe(protocol, channels)
-        }, 4000)
+        // setTimeout(() => { // Testing
+        //   this.unsubscribe(protocol, channels)
+        // }, 4000)
       })
       .catch(error => {
         logger.error('subscribe response?', error)

@@ -5,6 +5,8 @@ export const NETCAST_SUBCOMMAND: { [k: string]: string } = {
   // AUTHENTICATION_ADD: 'authentication.add',
   PROTOCOL_PROVIDER_ADD: 'protocol.provider.add',
   PROTOCOL_PROVIDER_REMOVE: 'protocol.provider.remove',
+  SUBSCRIPTION_ADD: 'subscription.add',
+  SUBSCRIPTION_REMOVE: 'subscription.remove',
 }
 
 export const BLADE_SUBSCRIBE_COMMAND: { [k: string]: string } = {

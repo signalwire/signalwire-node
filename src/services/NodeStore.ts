@@ -26,6 +26,11 @@ export default class NodeStore {
   */
   private protocolXNodes: { [k: string]: string[] } = {}
 
+  /**
+  * Object to map each node with his subscriptions. <nodeid>: ['protocol|channel', 'protocol2|channel2']
+  */
+  private nodeXSubscriptions: { [k: string]: string[] } = {}
+
   constructor(data: IBladeConnectResult) {
     const { routes, protocols, subscriptions, authorities } = data.result
     if (routes) {
@@ -80,6 +85,12 @@ export default class NodeStore {
       case NETCAST_SUBCOMMAND.PROTOCOL_PROVIDER_REMOVE:
         this._protocolProviderRemove(subParams)
         break
+      case NETCAST_SUBCOMMAND.SUBSCRIPTION_ADD:
+        this._addSubscription(subParams)
+        break
+      case NETCAST_SUBCOMMAND.SUBSCRIPTION_REMOVE:
+        this._removeSubscription(subParams)
+        break
       default:
         logger.error("Unknow command %s. What should i do?", params.command)
     }
@@ -111,6 +122,7 @@ export default class NodeStore {
         this._removeRelation(protocols[i], nodeid, 'protocolXNodes')
       }
       delete this.nodeXProtocols[nodeid]
+      delete this.nodeXSubscriptions[nodeid]
     }
     if (this.nodes.hasOwnProperty(nodeid)) {
       delete this.nodes[nodeid]
@@ -140,10 +152,30 @@ export default class NodeStore {
     this._addRelation(protocol, nodeid, 'protocolXNodes')
   }
 
+  /**
+  * Remove both 1:N relations
+  * @param subParams Params from blade.netcast
+  */
   private _protocolProviderRemove(subParams: any): void {
     let { nodeid, protocol } = subParams
     this._removeRelation(nodeid, protocol, 'nodeXProtocols')
     this._removeRelation(protocol, nodeid, 'protocolXNodes')
+  }
+
+  private _addSubscription(subParams: any): void {
+    let { nodeid, channels, protocol } = subParams
+    for (let i = 0; i < channels.length; i++) {
+      let value = `${protocol}|${channels[i]}`
+      this._addRelation(nodeid, value, 'nodeXSubscriptions')
+    }
+  }
+
+  private _removeSubscription(subParams: any): void {
+    let { nodeid, channels, protocol } = subParams
+    for (let i = 0; i < channels.length; i++) {
+      let value = `${protocol}|${channels[i]}`
+      this._removeRelation(nodeid, value, 'nodeXSubscriptions')
+    }
   }
 
   /**
@@ -152,7 +184,7 @@ export default class NodeStore {
   * @param value Value to search into has_many relation
   * @param rel Local variable to work on. Only: 'nodeXProtocols' | 'protocolXNodes'
   */
-  private _addRelation(key: string, value: string, rel: 'nodeXProtocols' | 'protocolXNodes') {
+  private _addRelation(key: string, value: string, rel: 'nodeXProtocols' | 'protocolXNodes' | 'nodeXSubscriptions') {
     if (!this[rel].hasOwnProperty(key)) {
       this[rel][key] = []
     }
@@ -167,7 +199,7 @@ export default class NodeStore {
   * @param value Value to search into has_many relation
   * @param rel Local variable to work on. Only: 'nodeXProtocols' | 'protocolXNodes'
   */
-  private _removeRelation(key: string, value: string, rel: 'nodeXProtocols' | 'protocolXNodes'): void {
+  private _removeRelation(key: string, value: string, rel: 'nodeXProtocols' | 'protocolXNodes' | 'nodeXSubscriptions'): void {
     if (this[rel].hasOwnProperty(key)) {
       this[rel][key] = this[rel][key].filter(t => t !== value)
     }
@@ -181,8 +213,9 @@ export default class NodeStore {
       subscriptions: this.subscriptions,
       authorities: this.authorities,
       nodeXProtocols: this.nodeXProtocols,
-      protocolXNodes: this.protocolXNodes
+      protocolXNodes: this.protocolXNodes,
+      nodeXSubscriptions: this.nodeXSubscriptions
     }
-    logger.info(':::NodeStore Stats:::', stats)
+    logger.debug('NodeStore Updated:', JSON.parse(JSON.stringify(stats)))
   }
 }

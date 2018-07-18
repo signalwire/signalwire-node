@@ -103,6 +103,25 @@ export default class NodeStore {
   }
 
   /**
+  * Return nodeid that support this protocol
+  * @param protocol protocol name to search
+  * @return nodeid | null
+  */
+  getNodeIdByProtocol(protocol: string): string | null {
+    if (!this.protocolXNodes.hasOwnProperty(protocol)) {
+      logger.error('NodeStore Protocol Unknown:', protocol)
+      return null
+    }
+    let nodeIds = this.protocolXNodes[protocol]
+    for (let i = 0; i < nodeIds.length; i++) {
+      if (this.nodes.hasOwnProperty(nodeIds[i])) {
+        return nodeIds[i]
+      }
+    }
+    return null
+  }
+
+  /**
   * Add or Update a Node into 'nodes'
   * @param node INode type
   */

@@ -39,6 +39,7 @@ export default class NodeStore {
         let { providers, name } = protocol
         for (let y = 0; y < providers.length; y++) {
           this._addRelation(name, providers[y].nodeid, 'protocolXNodes')
+          this._addRelation(providers[y].nodeid, name, 'nodeXProtocols')
         }
         delete protocol.providers
         this.protocols[name] = protocol
@@ -155,7 +156,9 @@ export default class NodeStore {
     if (!this[rel].hasOwnProperty(key)) {
       this[rel][key] = []
     }
-    this[rel][key].push(value)
+    if (this[rel][key].indexOf(value) < 0) {
+      this[rel][key].push(value)
+    }
   }
 
   /**

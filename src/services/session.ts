@@ -6,6 +6,7 @@ import NodeStore from './NodeStore'
 import { ConnectionCallbacks } from '../types'
 import BladeSubscription from '../blade/BladeSubscription'
 import { BLADE_SUBSCRIBE_COMMAND } from '../util/constants'
+import { BladeExecuteRequest } from '../blade/BladeExecute'
 
 const BLADE_NETCAST = 'blade.netcast'
 const BLADE_BROADCAST = 'blade.broadcast'
@@ -103,5 +104,24 @@ export default class Session {
       channels
     })
     return this.conn.send(bs)
+  }
+
+  sendSms(body: string, to: string) {
+    let params = {
+      requester_nodeid: this.nodeid,
+      responder_nodeid: "S2",
+      protocol: 'signalwire.messaging',
+      method: 'send',
+      params: {
+        message: {
+          body,
+          from: '+99999999999',
+          media: [ 'https://bit.ly/2N50Ysq', 'https://bit.ly/2Ki36zy' ],
+          to
+        }
+      }
+    }
+    let be = new BladeExecuteRequest(params)
+    return this.conn.send(be)
   }
 }

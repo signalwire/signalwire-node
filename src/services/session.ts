@@ -21,7 +21,7 @@ export default class Session {
   private _options: any
   private socketCallbacks: ConnectionCallbacks = {
     onOpen: () => {
-      let bc = new BladeConnect(this._options.authentication, this.sessionid)
+      let bc = new BladeConnect({ project: this._options.project, token: this._options.token }, this.sessionid)
       this.conn.send(bc)
         .then(this._onBladeConnect.bind(this))
         .catch(logger.error)
@@ -47,7 +47,7 @@ export default class Session {
   }
 
   connect() {
-    this.conn = new Connection(this._options.socket, this.socketCallbacks)
+    this.conn = new Connection(this._options.host, this.socketCallbacks)
   }
 
   private _onBladeConnect(res: BladeConnect): void {

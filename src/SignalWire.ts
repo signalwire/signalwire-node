@@ -2,8 +2,9 @@ import logger from './util/logger'
 import Session from './services/Session'
 
 interface ISignalWireOptions {
-  authentication?: { project: string, token: string }
-  socket: { address: string }
+  host: string
+  project: string
+  token: string
   callbacks: {
     onSocketOpen?: (session: Session) => void
     onSocketClose?: (session: Session) => void
@@ -17,8 +18,8 @@ class SignalWire {
   private _session: Session
 
   constructor(public options: ISignalWireOptions) {
-    if (!options.hasOwnProperty('socket') || !options.socket.hasOwnProperty('address')) {
-      logger.error('socket.address not found.')
+    if (!this._validateOptions(options)) {
+      logger.error('Invalid init params. "host" - "project" - "token" are required')
       return
     }
     this._init()
@@ -26,6 +27,12 @@ class SignalWire {
 
   private _init() {
     this._session = new Session(this)
+  }
+
+  private _validateOptions(options: ISignalWireOptions): boolean {
+    return (options.hasOwnProperty('host') && options.host !== '' &&
+      options.hasOwnProperty('project') && options.project !== '' &&
+      options.hasOwnProperty('token') && options.token !== '')
   }
 
   subscribe(protocol: string, channels: string[]) {

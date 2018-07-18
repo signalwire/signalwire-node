@@ -2,21 +2,18 @@ import logger from '../util/logger'
 import { ConnectionCallbacks } from '../types'
 
 export default class Connection {
-  address: string = 'wss://localhost:2100'
   ws: any
   connected: boolean = false
   cbStore: { [key: string]: { resolve: () => void, reject: () => void, bladeObj: any, time: number } }
 
-  constructor(public options: any, public callbacks: ConnectionCallbacks) {
-    if (options && options.hasOwnProperty('address')) {
-      this.address = options.address
-    }
+  constructor(public host: string = 'localhost', public callbacks: ConnectionCallbacks) {
+    this.host = `wss://${host}/api`
     this.cbStore = {}
     this.connect()
   }
 
   connect() {
-    this.ws = new WebSocket(this.address)
+    this.ws = new WebSocket(this.host)
     this.ws.onopen = (): void => this._callback('onOpen')
     this.ws.onclose = (): void => this._callback('onClose')
     this.ws.onerror = (event: any): void => this._callback('onError', event)

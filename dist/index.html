@@ -5,7 +5,7 @@
     <title>Your Website</title>
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha256-3edrmyuQ0w65f8gfBsqowzjJe2iM6n0nKciPUp8y+7E=" crossorigin="anonymous"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
-    <script src="http://caldwell.github.io/renderjson/renderjson.js" crossorigin="anonymous"></script>
+    <!-- <script src="http://caldwell.github.io/renderjson/renderjson.js" crossorigin="anonymous"></script> -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
   </head>
   <body>
@@ -21,7 +21,21 @@
     <div class="container">
       <div class="row">
         <div class="col-md-6">
-          <button id="connect" type="button" class="btn btn-info">Connect</button>
+          <form id="connectForm">
+            <div class="form-group">
+              <label for="host">Host:</label>
+              <input type="text" class="form-control" id="host" placeholder="example.signalwire.com" value="demo.signalwire.com">
+            </div>
+            <div class="form-group">
+              <label for="project">Project:</label>
+              <input type="text" class="form-control" id="project" placeholder="Enter your project ID" value="">
+            </div>
+            <div class="form-group">
+              <label for="token">Token:</label>
+              <input type="text" class="form-control" id="token" placeholder="Enter your token" value="">
+            </div>
+            <button id="connect" type="button" class="btn btn-info">Connect</button>
+          </form>
           <form id="smsForm" style="display: none;">
             <div class="form-group">
               <label for="msgFrom">From:</label>
@@ -46,10 +60,10 @@
 
     <script>
       var _sw = null
-      var updateJson = function (json) {
-        renderjson.set_icons('[open]', '[close]')
-        $('#json-preview').html(renderjson(json))
-      }
+      // var updateJson = function (json) {
+      //   renderjson.set_icons('[open]', '[close]')
+      //   $('#json-preview').html(renderjson(json))
+      // }
 
       var _appendNotif = function (text, btClass) {
         $('#json-preview').append('<div class="alert alert-info" role="alert">'+text+'</div>')
@@ -60,21 +74,20 @@
         }
       }
       window.onload = function () {
-        var project = token = null
-        var _checkParams = function () {
+        var _fillValuesFromUrl = function () {
           var params = new URLSearchParams(window.location.search.substring(1))
-          project = params.get('p')
-          token = params.get('t')
+          $('#host').val(params.get('u') || 'demo.signalwire.com')
+          $('#project').val(params.get('p') || '')
+          $('#token').val(params.get('t') || '')
         }
         var _pollSmsStatus = function (smsResultParams) {
-          console.debug('_pollSmsStatus', smsResultParams)
+          console.debug('Poll SmsStatus:', smsResultParams)
           if (smsResultParams.status !== 'queued') {
             _appendNotif('SMS status is: "' + smsResultParams.status + '"!')
             return
           }
           _sw.statusSms(smsResultParams.id)
             .then(function (bladeObj) {
-              console.debug('statusSms success', bladeObj, 'SMS id:', bladeObj.response.result.result.id)
               _pollSmsStatus(bladeObj.response.result.result)
             })
             .catch(function (error) {
@@ -104,14 +117,17 @@
         })
 
         $('#connect').on('click', function () {
-          _checkParams()
-          if (!project || !token) {
-            alert('You are missing GET params!')
+          var host = $.trim($('#host').val())
+          var project = $.trim($('#project').val())
+          var token = $.trim($('#token').val())
+          if (!host || !project || !token) {
+            alert('Host - Project - Token are required!')
             return
           }
           _sw = new SignalWire({
-            authentication: { project, token },
-            socket: { address: 'wss://demo.signalwire.com/api/' },
+            host,
+            project,
+            token,
             callbacks: {
               // onSocketOpen: function (session) {
               //   console.log('onSocketOpen ???', session)
@@ -126,7 +142,7 @@
               //   console.log('onMessageInbound ???', session, result)
               // },
               onSessionReady: async function (session) {
-                $('#connect').hide()
+                $('#connect, #connectForm').hide()
                 $('#smsForm').show()
                 $('#json-preview').html('')
                 _appendNotif('Compose your message and send it!')
@@ -134,6 +150,8 @@
             }
           })
         })
+
+        _fillValuesFromUrl()
       }
     </script>
 

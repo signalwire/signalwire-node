@@ -22,6 +22,21 @@
       <div class="row">
         <div class="col-md-6">
           <button id="connect" type="button" class="btn btn-info">Connect</button>
+          <form id="smsForm" style="display: none;">
+            <div class="form-group">
+              <label for="msgFrom">From:</label>
+              <input type="text" class="form-control" id="msgFrom" placeholder="+12622081318" value="+12622081318">
+            </div>
+            <div class="form-group">
+              <label for="msgTo">To:</label>
+              <input type="text" class="form-control" id="msgTo" placeholder="+15559999999" value="+15559999999">
+            </div>
+            <div class="form-group">
+              <label for="msgText">Message:</label>
+              <textarea class="form-control" id="msgText" rows="3"></textarea>
+            </div>
+            <button type="button" class="btn btn-success sendMessage">Send</button>
+          </form>
         </div>
         <div id="json-preview" class="col-md-6">
           <div class="alert alert-success" role="alert">
@@ -43,11 +58,45 @@
         }
       }
       window.onload = function () {
-        document.getElementById('connect').onclick = function () {
-          updateJson({ test: 'json preview' })
+        var _pollSmsStatus = function (smsResultParams) {
+          console.debug('_pollSmsStatus', smsResultParams)
+          if (smsResultParams.status !== 'queued') {
+            return
+          }
+          _sw.statusSms(smsResultParams.id)
+            .then(function (bladeObj) {
+              console.debug('statusSms success', bladeObj, 'SMS id:', bladeObj.response.result.result.id)
+              _pollSmsStatus(bladeObj.response.result.result)
+            })
+            .catch(function (error) {
+              console.error('statusSms error', error)
+            })
+        }
+        $('#smsForm .sendMessage').on('click', function () {
+          if (_sw) {
+            var text = $.trim($('#msgText').val())
+            var from = $.trim($('#msgFrom').val())
+            var to = $.trim($('#msgTo').val())
+            if (!text || !from || !to) {
+              alert('All fields are required!')
+              return
+            }
+            _sw.sendSms(text, from, to)
+              .then(function (bladeObj) {
+                console.debug('sendSms success', bladeObj, 'SMS id:', bladeObj.response.result.result.id)
+                _pollSmsStatus(bladeObj.response.result.result)
+              })
+              .catch(function (error) {
+                console.error('sendSms error', error)
+              })
+          }
+        })
+
+        $('#connect').on('click', function () {
+          // updateJson({ test: 'json preview' })
           _sw = new SignalWire({
             authentication: { project: '06f784c6-6bd5-47fb-9897-407d66551333', token: 'PT2eddbccd77832e761d191513df8945d4e1bf70e8f3f74aaa' },
-            socket: { address: 'wss://localhost:2100' },
+            socket: { address: 'wss://demo.signalwire.com/api/' },
             callbacks: {
               // onSocketOpen: function (session) {
               //   console.log('onSocketOpen ???', session)
@@ -61,13 +110,18 @@
               // onMessageInbound: function (session, result) {
               //   console.log('onMessageInbound ???', session, result)
               // },
-              onSessionReady: function (session, error) {
-                console.log('onSessionReady ???', session, error)
-                _sw.subscribe('bench', ['swbench', 'swbench2'])
+              onSessionReady: async function (session) {
+                $('#connect').hide()
+                $('#smsForm').show()
+                // console.log('onSessionReady ???', session)
+                // const subRes = await _sw.subscribe('signalwire.messaging', ['notifications'])
+                // console.debug('subRes ???', subRes)
+                // const smsRes = await _sw.sendSms('Hey Joe!', '+12622081318', '+15559999999')
+                // console.debug('smsRes ???', subRes)
               }
             }
           })
-        }
+        })
       }
     </script>
 

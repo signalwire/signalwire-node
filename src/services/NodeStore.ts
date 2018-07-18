@@ -50,10 +50,14 @@ export default class NodeStore {
         this.protocols[name] = protocol
       }
     }
-    if (subscriptions) { // TODO:
-      // for (let i = 0; i < subscriptions.length; i++) {
-      //   this.subscriptions[subscriptions[i].nodeid] = subscriptions[i]
-      // }
+    if (subscriptions) {
+      for (let i = 0; i < subscriptions.length; i++) {
+        let { subscribers, channel, protocol } = subscriptions[i]
+        let value = `${protocol}|${channel}`
+        for (let y = 0; y < subscribers.length; y++) {
+          this._removeRelation(subscribers[y], value, 'nodeXSubscriptions')
+        }
+      }
     }
     if (authorities) { // TODO: check authorities response from Blade
       // for (let i = 0; i < authorities.length; i++) {

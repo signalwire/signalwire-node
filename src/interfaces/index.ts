@@ -27,7 +27,12 @@ export interface IProtocol {
   }
 }
 
-export interface ISubscription { } // TODO
+export interface ISubscription {
+  channel: string
+  protocol: string
+  subscribers: string[]
+}
+
 export interface IAuthority { nodeid: string }
 
 export interface IBladeResultError extends IMessageBase {

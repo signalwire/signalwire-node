@@ -39,9 +39,7 @@
           </form>
         </div>
         <div id="json-preview" class="col-md-6">
-          <div class="alert alert-success" role="alert">
-            Click "Connect" to start!
-          </div>
+          <div class="alert alert-success" role="alert">Click "Connect" to start!</div>
         </div>
       </div>
     </div>
@@ -52,15 +50,26 @@
         renderjson.set_icons('[open]', '[close]')
         $('#json-preview').html(renderjson(json))
       }
+
+      var _appendNotif = function (text, btClass) {
+        $('#json-preview').append('<div class="alert alert-info" role="alert">'+text+'</div>')
+      }
       window.onunload = function () {
         if (_sw) {
           // _sw.disconnect() // TODO
         }
       }
       window.onload = function () {
+        var project = token = null
+        var _checkParams = function () {
+          var params = new URLSearchParams(window.location.search.substring(1))
+          project = params.get('p')
+          token = params.get('t')
+        }
         var _pollSmsStatus = function (smsResultParams) {
           console.debug('_pollSmsStatus', smsResultParams)
           if (smsResultParams.status !== 'queued') {
+            _appendNotif('SMS status is: "' + smsResultParams.status + '"!')
             return
           }
           _sw.statusSms(smsResultParams.id)
@@ -81,6 +90,8 @@
               alert('All fields are required!')
               return
             }
+            $('#json-preview').html('')
+            _appendNotif('Sending...')
             _sw.sendSms(text, from, to)
               .then(function (bladeObj) {
                 console.debug('sendSms success', bladeObj, 'SMS id:', bladeObj.response.result.result.id)
@@ -93,9 +104,13 @@
         })
 
         $('#connect').on('click', function () {
-          // updateJson({ test: 'json preview' })
+          _checkParams()
+          if (!project || !token) {
+            alert('You are missing GET params!')
+            return
+          }
           _sw = new SignalWire({
-            authentication: { project: '06f784c6-6bd5-47fb-9897-407d66551333', token: 'PT2eddbccd77832e761d191513df8945d4e1bf70e8f3f74aaa' },
+            authentication: { project, token },
             socket: { address: 'wss://demo.signalwire.com/api/' },
             callbacks: {
               // onSocketOpen: function (session) {
@@ -113,11 +128,8 @@
               onSessionReady: async function (session) {
                 $('#connect').hide()
                 $('#smsForm').show()
-                // console.log('onSessionReady ???', session)
-                // const subRes = await _sw.subscribe('signalwire.messaging', ['notifications'])
-                // console.debug('subRes ???', subRes)
-                // const smsRes = await _sw.sendSms('Hey Joe!', '+12622081318', '+15559999999')
-                // console.debug('smsRes ???', subRes)
+                $('#json-preview').html('')
+                _appendNotif('Compose your message and send it!')
               }
             }
           })

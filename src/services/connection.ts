@@ -1,20 +1,22 @@
 import logger from '../util/logger'
 import { ConnectionCallbacks } from '../types'
-import { IBladeConnectResult } from '../interfaces'
 
 export default class Connection {
-  endpoint: string = 'wss://localhost:2100'
+  address: string = 'wss://localhost:2100'
   ws: any
   connected: boolean = false
   cbStore: { [key: string]: { resolve: () => void, reject: () => void, bladeObj: any, time: number } }
 
-  constructor(public callbacks: ConnectionCallbacks) {
+  constructor(public options: any, public callbacks: ConnectionCallbacks) {
+    if (options && options.hasOwnProperty('address')) {
+      this.address = options.address
+    }
     this.cbStore = {}
     this.connect()
   }
 
   connect() {
-    this.ws = new WebSocket(this.endpoint)
+    this.ws = new WebSocket(this.address)
     this.ws.onopen = (): void => this._callback('onOpen')
     this.ws.onclose = (): void => this._callback('onClose')
     this.ws.onmessage = (event: any): void => {

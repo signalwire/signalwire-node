@@ -19,6 +19,27 @@ export default class Session {
   master_nodeid: string
   nodeStore: NodeStore
   private _options: any
+  private socketCallbacks: ConnectionCallbacks = {
+    onOpen: () => {
+      let bc = new BladeConnect(this._options.authentication, this.sessionid)
+      this.conn.send(bc)
+        .then(this._onBladeConnect.bind(this))
+        .catch(logger.error)
+      this._callback('onSocketOpen')
+    },
+    onClose: (): void => {
+      setTimeout(() => this.connect(), 1000)
+      this._callback('onSocketClose')
+    },
+    onMessage: (response: any) => {
+      this._onMessageInbound(response)
+      this._callback('onMessageInbound', response)
+    },
+    onError: (error: any): void => {
+      logger.error('Session Socket Error', error)
+      this._callback('onSocketError', error)
+    }
+  }
 
   constructor(private SW: SignalWire) {
     this._options = SW.options
@@ -26,47 +47,22 @@ export default class Session {
   }
 
   connect() {
-    const callbacks: ConnectionCallbacks = {
-      onOpen: () => {
-        let bc = new BladeConnect(this._options.authentication, this.sessionid)
-        this.conn.send(bc)
-          .then(this._onBladeConnect.bind(this))
-          .catch(logger.error)
-        this._callback('onSocketOpen')
-      },
-      onClose: (): void => {
-        logger.error('Session is closed.. try again!')
-        setTimeout(() => this.connect(), 1000)
-        this._callback('onSocketClose')
-      },
-      onMessage: (response: any) => {
-        this._onMessageInbound(response)
-        this._callback('onMessageInbound', response)
-      },
-      onError: (error: any): void => {
-        logger.error('Session::onError', error)
-        this._callback('onSocketError', error)
-      }
-    }
-    this.conn = new Connection(this._options.socket, callbacks)
+    this.conn = new Connection(this._options.socket, this.socketCallbacks)
   }
 
-  private _onBladeConnect(bladeConnect: BladeConnect): void {
-    if (!bladeConnect.hasOwnProperty('response')) {
-      logger.error('BladeConnect without response?!', bladeConnect)
-      return
-    }
-    logger.info('Session::onBladeConnect', bladeConnect)
-    this.sessionid = bladeConnect.response.result.sessionid
-    this.nodeid = bladeConnect.response.result.nodeid
-    this.master_nodeid  = bladeConnect.response.result.master_nodeid
-    this.nodeStore = new NodeStore(bladeConnect.response)
+  private _onBladeConnect(res: BladeConnect): void {
+    // logger.info('Session::onBladeConnect', res)
+    // TODO: resume all old subscriptions (in case of a recon)
+    this.sessionid = res.response.result.sessionid
+    this.nodeid = res.response.result.nodeid
+    this.master_nodeid  = res.response.result.master_nodeid
+    this.nodeStore = new NodeStore(res.response)
 
     this._callback('onSessionReady')
   }
 
   private _onMessageInbound(response: any) {
-    logger.info('%s :: %s', this.nodeid, response.method, response)
+    logger.info('Inbound Message', response.method, this.nodeid, response)
     switch (response.method) {
       case BLADE_NETCAST:
         this.nodeStore.netcastUpdate(response.params)
@@ -110,7 +106,6 @@ export default class Session {
   async sendSms(body: string, from: string, to: string) {
     let protocol = 'signalwire.messaging'
     let responder_nodeid = this.nodeStore.getNodeIdByProtocol(protocol)
-    logger.log('responder_nodeid found', responder_nodeid)
     // if (responder_nodeid === null) {
     //   // responder_nodeid unknow so we've to do a blade.locate request.
     //   responder_nodeid = await new LocateService(this).protocol(protocol)
@@ -132,7 +127,6 @@ export default class Session {
   statusSms(id: string) {
     let protocol = 'signalwire.messaging'
     let responder_nodeid = this.nodeStore.getNodeIdByProtocol(protocol)
-    logger.log('responder_nodeid found', responder_nodeid)
     let params = { requester_nodeid: this.nodeid, responder_nodeid, protocol, method: 'status', params: { id } }
     let be = new BladeExecuteRequest(params)
     return this.conn.send(be)

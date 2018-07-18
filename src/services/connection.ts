@@ -19,8 +19,9 @@ export default class Connection {
     this.ws = new WebSocket(this.address)
     this.ws.onopen = (): void => this._callback('onOpen')
     this.ws.onclose = (): void => this._callback('onClose')
+    this.ws.onerror = (event: any): void => this._callback('onError', event)
     this.ws.onmessage = (event: any): void => {
-      logger.debug("RECV:", event.data)
+      logger.debug("RECV: \n", event.data, "\n")
       let msg: any = JSON.parse(event.data)
       const stored = this._pullFromStore(msg.id)
       if (stored) {
@@ -30,7 +31,6 @@ export default class Connection {
       }
       this._callback('onMessage', msg)
     }
-    this.ws.onerror = (event: any): void => this._callback('onError', event)
 
     // setTimeout(() => {
     //   logger.info('Going to close..!!!')
@@ -47,7 +47,7 @@ export default class Connection {
       this._pushInStore(bladeObj, resolve, reject)
     })
     let json = JSON.stringify(bladeObj.request)
-    logger.debug("SEND:", json)
+    logger.debug("SEND: \n", json, "\n")
     this.ws.send(json)
     return promise
   }
@@ -70,8 +70,6 @@ export default class Connection {
   }
 
   private _callback(name: string, ...args: any[]) {
-    // logger.debug("Socket =>", name, ...args)
-    // this.connected = name !== 'onClose'
     if (this.callbacks && this.callbacks.hasOwnProperty(name)) {
       this.callbacks[name](...args)
     }

@@ -20,6 +20,7 @@ export default class Connection {
     this.ws.onopen = (): void => this._callback('onOpen')
     this.ws.onclose = (): void => this._callback('onClose')
     this.ws.onmessage = (event: any): void => {
+      logger.debug("RECV:", event.data)
       let msg: any = JSON.parse(event.data)
       const stored = this._pullFromStore(msg.id)
       if (stored) {

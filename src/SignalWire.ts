@@ -30,38 +30,18 @@ class SignalWire {
 
   subscribe(protocol: string, channels: string[]) {
     return this._session.addSubscription(protocol, channels)
-      .then(bladeObj => {
-        logger.debug('subscribe response?', bladeObj)
-        return bladeObj
-      })
-      .catch(error => {
-        logger.error('subscribe response?', error)
-        return error
-      })
   }
 
   unsubscribe(protocol: string, channels: string[]) {
     return this._session.removeSubscription(protocol, channels)
-      .then(bladeObj => {
-        logger.debug('unsubscribe response?', bladeObj)
-        return bladeObj
-      })
-      .catch(error => {
-        logger.error('unsubscribe response?', error)
-        return error
-      })
   }
 
   sendSms(msgText: string, from: string, to: string) {
     return this._session.sendSms(msgText, from, to)
-      .then(bladeObj => {
-        logger.debug('sendSms response?', bladeObj)
-        return bladeObj
-      })
-      .catch(error => {
-        logger.error('sendSms response?', error)
-        return error
-      })
+  }
+
+  statusSms(id: string) {
+    return this._session.statusSms(id)
   }
 }
 

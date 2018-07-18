@@ -128,4 +128,13 @@ export default class Session {
     let be = new BladeExecuteRequest(params)
     return this.conn.send(be)
   }
+
+  statusSms(id: string) {
+    let protocol = 'signalwire.messaging'
+    let responder_nodeid = this.nodeStore.getNodeIdByProtocol(protocol)
+    logger.log('responder_nodeid found', responder_nodeid)
+    let params = { requester_nodeid: this.nodeid, responder_nodeid, protocol, method: 'status', params: { id } }
+    let be = new BladeExecuteRequest(params)
+    return this.conn.send(be)
+  }
 }

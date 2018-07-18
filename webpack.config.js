@@ -17,5 +17,10 @@ module.exports = {
         'exclude': [/node_modules/]
       }
     ]
+  },
+  devServer: {
+    contentBase: __dirname + '/dist',
+    compress: true,
+    port: 9000
   }
 }

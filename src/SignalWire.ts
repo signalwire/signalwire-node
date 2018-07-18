@@ -36,9 +36,22 @@ class SignalWire {
     this._session.addSubscription(protocol, channels)
       .then(bladeObj => {
         logger.debug('subscribe response?', bladeObj)
+        setTimeout(() => {
+          this.unsubscribe(protocol, channels)
+        }, 4000)
       })
       .catch(error => {
         logger.error('subscribe response?', error)
+      })
+  }
+
+  unsubscribe(protocol: string, channels: string[]) {
+    this._session.removeSubscription(protocol, channels)
+      .then(bladeObj => {
+        logger.debug('unsubscribe response?', bladeObj)
+      })
+      .catch(error => {
+        logger.error('unsubscribe response?', error)
       })
   }
 }

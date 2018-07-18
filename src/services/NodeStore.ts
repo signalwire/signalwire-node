@@ -90,10 +90,10 @@ export default class NodeStore {
         this._protocolProviderRemove(subParams)
         break
       case NETCAST_SUBCOMMAND.SUBSCRIPTION_ADD:
-        this._addSubscription(subParams)
+        this._addSubscriptions(subParams)
         break
       case NETCAST_SUBCOMMAND.SUBSCRIPTION_REMOVE:
-        this._removeSubscription(subParams)
+        this._removeSubscriptions(subParams)
         break
       default:
         logger.error("Unknow command %s. What should i do?", params.command)
@@ -166,7 +166,7 @@ export default class NodeStore {
     this._removeRelation(protocol, nodeid, 'protocolXNodes')
   }
 
-  private _addSubscription(subParams: any): void {
+  private _addSubscriptions(subParams: any): void {
     let { nodeid, channels, protocol } = subParams
     for (let i = 0; i < channels.length; i++) {
       let value = `${protocol}|${channels[i]}`
@@ -174,7 +174,7 @@ export default class NodeStore {
     }
   }
 
-  private _removeSubscription(subParams: any): void {
+  private _removeSubscriptions(subParams: any): void {
     let { nodeid, channels, protocol } = subParams
     for (let i = 0; i < channels.length; i++) {
       let value = `${protocol}|${channels[i]}`

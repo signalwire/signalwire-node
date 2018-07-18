@@ -94,4 +94,14 @@ export default class Session {
     })
     return this.conn.send(bs)
   }
+
+  removeSubscription(protocol: string, channels: string[]) {
+    let bs = new BladeSubscription({
+      command: BLADE_SUBSCRIBE_COMMAND.REMOVE,
+      subscriber_nodeid: this.nodeid,
+      protocol,
+      channels
+    })
+    return this.conn.send(bs)
+  }
 }

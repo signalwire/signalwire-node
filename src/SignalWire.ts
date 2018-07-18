@@ -52,8 +52,8 @@ class SignalWire {
       })
   }
 
-  sendSms(msgText: string, extension: string) {
-    return this._session.sendSms(msgText, extension)
+  sendSms(msgText: string, from: string, to: string) {
+    return this._session.sendSms(msgText, from, to)
       .then(bladeObj => {
         logger.debug('sendSms response?', bladeObj)
         return bladeObj

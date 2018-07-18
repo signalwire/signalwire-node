@@ -107,7 +107,7 @@ export default class Session {
     return this.conn.send(bs)
   }
 
-  async sendSms(body: string, to: string) {
+  async sendSms(body: string, from: string, to: string) {
     let protocol = 'signalwire.messaging'
     let responder_nodeid = this.nodeStore.getNodeIdByProtocol(protocol)
     logger.log('responder_nodeid found', responder_nodeid)
@@ -116,22 +116,16 @@ export default class Session {
     //   responder_nodeid = await new LocateService(this).protocol(protocol)
     //   logger.log('locService responder_nodeid?', responder_nodeid)
     // }
-    return
-    // let params = {
-    //   requester_nodeid: this.nodeid,
-    //   responder_nodeid: "S2",
-    //   protocol,
-    //   method: 'send',
-    //   params: {
-    //     message: {
-    //       body,
-    //       from: '+99999999999',
-    //       media: [ 'https://bit.ly/2N50Ysq', 'https://bit.ly/2Ki36zy' ],
-    //       to
-    //     }
-    //   }
-    // }
-    // let be = new BladeExecuteRequest(params)
-    // return this.conn.send(be)
+    let params = {
+      requester_nodeid: this.nodeid,
+      responder_nodeid,
+      protocol,
+      method: 'send',
+      params: {
+        message: { body, from, to, media: [ 'https://bit.ly/2N50Ysq', 'https://bit.ly/2Ki36zy' ] }
+      }
+    }
+    let be = new BladeExecuteRequest(params)
+    return this.conn.send(be)
   }
 }

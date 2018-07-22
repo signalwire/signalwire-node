@@ -4,7 +4,7 @@ import BladeLocate from '../blade/BladeLocate'
 export default class LocateService {
   constructor(public session: any) {}
 
-  protocol(protocol: string): Promise<string> {
+  protocol(protocol: string): string | null {
     let params = {
       requester_nodeid: this.session.nodeid,
       responder_nodeid: this.session.master_nodeid,

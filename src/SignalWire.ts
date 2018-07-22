@@ -1,5 +1,7 @@
 import logger from './util/logger'
 import Session from './services/Session'
+import MessagingService from './services/MessagingService'
+import CallingService from './services/CallingService'
 
 interface ISignalWireOptions {
   host: string
@@ -43,12 +45,99 @@ class SignalWire {
     return this._session.removeSubscription(protocol, channels)
   }
 
-  sendSms(msgText: string, from: string, to: string) {
-    return this._session.sendSms(msgText, from, to)
+  async sendSms(params: any) {
+    const setup = await MessagingService.setup(this._session)
+    if (setup === false) {
+      throw new Error('Failed to bootstrapping MessagingService.')
+    }
+    const result = await new MessagingService(this._session).sendSms(params)
+
+    return result
+  }
+
+  async createCall(params: any) {
+    const setup = await CallingService.setup(this._session)
+    if (setup === false) {
+      throw new Error('Failed to bootstrapping CallingService.')
+    }
+    const result = await new CallingService(this._session).call(params)
+
+    return result
+  }
+
+
+  async playFileOnCall(channel: string, url) {
+    const setup = await CallingService.setup(this._session)
+    if (setup === false) {
+      throw new Error('Failed to bootstrapping CallingService.')
+    }
+    const result = await new CallingService(this._session).play(channel, url)
+
+    return result
+  }
+
+  async playDigitsOnCall(channel: string, digits: string, digit_duration: number = 80) {
+    const setup = await CallingService.setup(this._session)
+    if (setup === false) {
+      throw new Error('Failed to bootstrapping CallingService.')
+    }
+    const result = await new CallingService(this._session).playDigits(channel, digits, digit_duration)
+
+    return result
+  }
+
+  async sayOnCall(channel: string, what: string, gender: string) {
+    const setup = await CallingService.setup(this._session)
+    if (setup === false) {
+      throw new Error('Failed to bootstrapping CallingService.')
+    }
+    const result = await new CallingService(this._session).say(channel, what, gender)
+
+    return result
+  }
+
+  async answerCall(channel: string) {
+    const setup = await CallingService.setup(this._session)
+    if (setup === false) {
+      throw new Error('Failed to bootstrapping CallingService.')
+    }
+    const result = await new CallingService(this._session).answer(channel)
+
+    return result
+  }
+
+  async collectDigitsOnCall(channel: string) {
+    const setup = await CallingService.setup(this._session)
+    if (setup === false) {
+      throw new Error('Failed to bootstrapping CallingService.')
+    }
+    const result = await new CallingService(this._session).collectDigits(channel)
+
+    return result
+  }
+
+  async collectSpeechOnCall(channel: string) {
+    const setup = await CallingService.setup(this._session)
+    if (setup === false) {
+      throw new Error('Failed to bootstrapping CallingService.')
+    }
+    const result = await new CallingService(this._session).collectSpeech(channel)
+
+    return result
+  }
+
+  async disconnectCall(channel: string) {
+    const setup = await CallingService.setup(this._session)
+    if (setup === false) {
+      throw new Error('Failed to bootstrapping CallingService.')
+    }
+    const result = await new CallingService(this._session).disconnect(channel)
+
+    return result
   }
 
   statusSms(id: string) {
-    return this._session.statusSms(id)
+    // return this._session.statusSms(id)
   }
 }
 

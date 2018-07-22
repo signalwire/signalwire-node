@@ -6,8 +6,7 @@ import NodeStore from './NodeStore'
 import { ConnectionCallbacks } from '../types'
 import BladeSubscription from '../blade/BladeSubscription'
 import { BLADE_SUBSCRIBE_COMMAND } from '../util/constants'
-import { BladeExecuteRequest } from '../blade/BladeExecute'
-import LocateService from './LocateService'
+import BroadcastService from '../services/BroadcastService'
 
 const BLADE_NETCAST = 'blade.netcast'
 const BLADE_BROADCAST = 'blade.broadcast'
@@ -18,6 +17,9 @@ export default class Session {
   nodeid: string
   master_nodeid: string
   nodeStore: NodeStore
+  services: { [service: string]: string } = {}
+  servicesCallback: { [uuid: string]: any } = {}
+
   private _options: any
   private socketCallbacks: ConnectionCallbacks = {
     onOpen: () => {
@@ -68,7 +70,7 @@ export default class Session {
         this.nodeStore.netcastUpdate(response.params)
       break
       case BLADE_BROADCAST:
-        logger.info(BLADE_BROADCAST, "What should i do?")
+        const x = new BroadcastService(this).handleBroadcast(response.params)
       break
     }
   }
@@ -101,34 +103,5 @@ export default class Session {
       channels
     })
     return this.conn.send(bs)
-  }
-
-  async sendSms(body: string, from: string, to: string) {
-    let protocol = 'signalwire.messaging'
-    let responder_nodeid = this.nodeStore.getNodeIdByProtocol(protocol)
-    // if (responder_nodeid === null) {
-    //   // responder_nodeid unknow so we've to do a blade.locate request.
-    //   responder_nodeid = await new LocateService(this).protocol(protocol)
-    //   logger.log('locService responder_nodeid?', responder_nodeid)
-    // }
-    let params = {
-      requester_nodeid: this.nodeid,
-      responder_nodeid,
-      protocol,
-      method: 'send',
-      params: {
-        message: { body, from, to, media: [ 'https://bit.ly/2N50Ysq', 'https://bit.ly/2Ki36zy' ] }
-      }
-    }
-    let be = new BladeExecuteRequest(params)
-    return this.conn.send(be)
-  }
-
-  statusSms(id: string) {
-    let protocol = 'signalwire.messaging'
-    let responder_nodeid = this.nodeStore.getNodeIdByProtocol(protocol)
-    let params = { requester_nodeid: this.nodeid, responder_nodeid, protocol, method: 'status', params: { id } }
-    let be = new BladeExecuteRequest(params)
-    return this.conn.send(be)
   }
 }

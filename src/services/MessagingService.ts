@@ -57,7 +57,7 @@ export default class MessagingService {
 
   statusSms(id: string) {
     return this._loadResponderNodeId()
-      .then(responder_nodeid => {
+      .then(async responder_nodeid => {
         let be = new BladeExecuteRequest({
           requester_nodeid: this.session.nodeid,
           responder_nodeid,
@@ -65,7 +65,10 @@ export default class MessagingService {
           method: 'status',
           params: { id }
         })
-        return this.session.conn.send(be)
+        const bladeObj = await this.session.conn.send(be)
+        let { result } = bladeObj.response.result // 2 levels of 'result'
+
+        return result
       })
   }
 

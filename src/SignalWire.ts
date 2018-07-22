@@ -55,6 +55,16 @@ class SignalWire {
     return result
   }
 
+  async statusSms(id: string) {
+    const setup = await MessagingService.setup(this._session)
+    if (setup === false) {
+      throw new Error('Failed to bootstrapping MessagingService.')
+    }
+    const result = await new MessagingService(this._session).statusSms(id)
+
+    return result
+  }
+
   async createCall(params: any) {
     const setup = await CallingService.setup(this._session)
     if (setup === false) {
@@ -134,10 +144,6 @@ class SignalWire {
     const result = await new CallingService(this._session).disconnect(channel)
 
     return result
-  }
-
-  statusSms(id: string) {
-    // return this._session.statusSms(id)
   }
 }
 

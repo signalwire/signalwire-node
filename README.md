@@ -32,9 +32,9 @@ var signalwire = new SignalWire({
 })
 ```
 
-> Note: All subsequent methods will use the "signalwire" global variable and they must be used after "onSessionReady" callback.
-
 ## Methods available:
+
+> Note: All subsequent methods will use the "signalwire" global variable and they must be used after "onSessionReady" callback.
 
 ### Messaging:
 

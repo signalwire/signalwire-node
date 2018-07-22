@@ -35,21 +35,27 @@ export default class SetupService {
     logger.debug('Need to subscribe to this protocol', protocol)
     await this.session.addSubscription(protocol, ['notifications']).catch(logger.error) // TODO: Remove logger.error from here
     logger.debug('.. and wait for the right netcast...')
-    await this._pollNodeStore(protocol).catch(logger.error) // TODO: Remove logger.error from here
+    const nodeid = await this._pollNodeStore(protocol)
 
-    this.session.services[this.service] = protocol
-    return true
+    if (nodeid) {
+      this.session.services[this.service] = protocol
+      return true
+    }
+    return false
   }
 
   private _pollNodeStore(protocol: string): Promise<string> {
+    var startTime = new Date().getTime()
+    var waitFor = 10 * 1000
     const loop = (resolve, reject) => {
       logger.debug(':: Looking for a node supporting protocol:', protocol)
       let responder_nodeid = this.session.nodeStore.getNodeIdByProtocol(protocol)
       if (responder_nodeid !== null) {
         resolve(responder_nodeid)
-      } else {
-        // TODO: Add a timeout
+      } else if (waitFor > (new Date().getTime() - startTime)) {
         setTimeout(() => loop(resolve, reject), 100)
+      } else {
+        reject('Timeout')
       }
     }
     return new Promise(loop)

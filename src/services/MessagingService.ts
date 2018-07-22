@@ -25,6 +25,10 @@ export default class MessagingService {
             logger.log('Messaging service has been setupped?', result)
             result ? resolve(true) : reject('Something wrong')
           })
+          .catch(error => {
+            logger.error('SetupService error: ', error)
+            reject('Something wrong')
+          })
       }
     })
   }

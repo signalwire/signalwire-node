@@ -24,6 +24,10 @@ export default class CallingService {
             logger.log('Calling service has been setupped?', result)
             result ? resolve(true) : reject('Something wrong')
           })
+          .catch(error => {
+            logger.error('SetupService error: ', error)
+            reject('Something wrong')
+          })
       }
     })
   }

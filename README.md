@@ -6,9 +6,7 @@ Add a script tag referencing the SignalWire library:
 <script src="./bundle.js"></script>
 ```
 
-### Methods available:
-
-The first thing you need to is to instantiate SignalWire:
+Then instantiate SignalWire:
 > Note: host / project / token are required
 
 ```javascript
@@ -26,7 +24,7 @@ var signalwire = new SignalWire({
     onSocketError: function (session, error) {
       // The socket returns error. Inspect the "error" variable
     },
-    onSessionReady: async function (session) {
+    onSessionReady: function (session) {
       // SignalWire session has established so you can now using all other methods..
       doSomethingAwesome()
     }
@@ -36,15 +34,26 @@ var signalwire = new SignalWire({
 
 > Note: All subsequent methods will use the "signalwire" global variable and they must be used after "onSessionReady" callback.
 
+## Methods available:
+
+### Messaging:
+
 #### sendSms:
 ```javascript
-var text = "Hi Joe!"
-var from = "+12622081318"
-var to = "+15559999999"
-signalwire.sendSms(text, from, to)
-  .then(function (bladeObj) {
-    // The SMS has been queued. You can retrieve the SMS data into "bladeObj.response.result.result"
-    var smsId = bladeObj.response.result.result.id
+var params = {
+  body: 'Hi Joe!',
+  from: '+12622081318',
+  to: '+15559999999',
+  media: ['https://bit.ly/2N50Ysq', 'https://bit.ly/2Ki36zy'],
+  onStatusUpdate: result => {
+    // This callback will be used to notify you on the status of the SMS.
+    // Your SMS status is into "result.status"
+  }
+}
+_sw.sendSms(params)
+  .then(function (result) {
+    // The SMS has been queued.
+    // You can retrieve the SMS data into "result"
   })
   .catch(function (error) {
     // An error occured!
@@ -55,20 +64,89 @@ signalwire.sendSms(text, from, to)
 ```javascript
 var smsId = 'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX' // This value from the previous `sendSms` Promise
 signalwire.statusSms(smsId)
-  .then(function (bladeObj) {
-    // The SMS status is in bladeObj.response.result.result.status variable
-    if (bladeObj.response.result.result.status === 'delivered') {
+  .then(function (result) {
+    // The SMS status is in "result.status"
+    if (result.status === 'delivered') {
       // SMS has been sent! Update the UI properly...
-    } else if (bladeObj.response.result.result.status === 'queued') {
+    } else if (result.status === 'queued') {
       // SMS is still in queue. Check again with another `statusSms`
-    } else if (bladeObj.response.result.result.status === 'failed') {
-      // SMS failed to sent. Inspect the result object for the error message: `bladeObj.response.result.result`
+    } else if (result.status === 'failed') {
+      // SMS failed to sent. Inspect the result object for the error message: `result`
     }
   })
   .catch(function (error) {
     // An error occured!
   })
 ```
+
+### Calling:
+
+#### Start a new call:
+```javascript
+var params = {
+  from: '+12622081318',
+  to: '+15559999999'
+}
+signalwire.createCall(params)
+  .then(function (result) {
+    // Call has started! Retrieve call UUID in "result.channel"
+  })
+  .catch(function (error) {
+    // An error occured!
+  })
+```
+
+#### Play a .wav file into an active call:
+```javascript
+var currentCall = '9027985d-44c2-45f8-917e-8a9bec35398c' // UUID of the current call
+var url = 'http://www.kozco.com/tech/piano2.wav'
+signalwire.playFileOnCall(currentCall, url)
+  .then(function (result) {
+    // File successfully played!
+  })
+  .catch(function (error) {
+    // An error occured!
+  })
+```
+
+#### Play digits into an active call:
+```javascript
+var currentCall = '9027985d-44c2-45f8-917e-8a9bec35398c' // UUID of the current call
+var digits = '12345'
+signalwire.playDigitsOnCall(currentCall, digits)
+  .then(function (result) {
+    // Digits successfully sent!
+  })
+  .catch(function (error) {
+    // An error occured!
+  })
+```
+
+#### Say something into an active call:
+```javascript
+var currentCall = '9027985d-44c2-45f8-917e-8a9bec35398c' // UUID of the current call
+var whatToSay = 'Hello, Welcome to SignalWire!'
+signalwire.sayOnCall(currentCall, whatToSay)
+  .then(function (result) {
+    // Text successfully played!
+  })
+  .catch(function (error) {
+    // An error occured!
+  })
+```
+
+#### Hangup a call:
+```javascript
+var currentCall = '9027985d-44c2-45f8-917e-8a9bec35398c' // UUID of the current call
+signalwire.disconnectCall(currentCall)
+  .then(function (result) {
+    // Call has been hanged up!
+  })
+  .catch(function (error) {
+    // An error occured!
+  })
+```
+
 
 # Development setup
 To build and run this app locally you will need a few things:

@@ -61,6 +61,10 @@
                     <label for="msgText">Message:</label>
                     <textarea class="form-control" id="msgText" rows="3"></textarea>
                   </div>
+                  <div class="form-group">
+                    <label for="msgMedia">Media:</label>
+                    <input type="text" class="form-control" id="msgMedia" placeholder="URL to media" value="https://bit.ly/2N50Ysq">
+                  </div>
                   <button type="button" class="btn btn-success sendMessage">Send</button>
                 </form>
               </div>
@@ -143,12 +147,15 @@
             _appendNotif('SMS status is: "' + smsResultParams.status + '"!')
             return
           }
-          _sw.statusSms(smsResultParams.id)
+          var params = {
+            id: smsResultParams.id
+          }
+          _sw.statusMessage(params)
             .then(function (bladeObj) {
               _pollSmsStatus(bladeObj.response.result.result)
             })
             .catch(function (error) {
-              console.error('statusSms error', error)
+              console.error('statusMessage error', error)
             })
         }
 
@@ -164,6 +171,7 @@
             var body = $.trim($('#msgText').val())
             var from = $.trim($('#msgFrom').val())
             var to = $.trim($('#msgTo').val())
+            var media = $.trim($('#msgMedia').val())
             if (!body || !from || !to) {
               alert('All fields are required!')
               return
@@ -174,20 +182,23 @@
               body,
               from,
               to,
-              media: ['https://bit.ly/2N50Ysq', 'https://bit.ly/2Ki36zy'],
+              media: [],
               onStatusUpdate: result => {
                 console.log('Message Status Update:', result)
                 _appendNotif('SMS Status: ' + result.status)
               }
             }
-            _sw.sendSms(params)
+            if (media) {
+              params.media.push(media)
+            }
+            _sw.sendMessage(params)
               .then(function (result) {
-                console.debug('sendSms success', result, 'SMS id:', result.id)
+                console.debug('sendMessage success', result, 'SMS id:', result.id)
                 // _pollSmsStatus(result)
               })
               .catch(function (error) {
                 _appendNotif('Something goes wrong sending text')
-                console.error('sendSms error', error)
+                console.error('sendMessage error', error)
               })
           }
         })
@@ -221,9 +232,12 @@
 
         $('#callForm .callHangup').on('click', function(){
           if (_currentCall && _sw) {
-            _sw.disconnectCall(_currentCall)
+            var params = {
+              callId: _currentCall
+            }
+            _sw.hangupCall(params)
               .then(function (result) {
-                console.debug('disconnectCall success', result)
+                console.debug('hangupCall success', result)
                 _appendNotif('Call UUID: ' + _currentCall + ' disconnected!')
                 _currentCall = null
                 $('.makeCall').attr('disabled', false)
@@ -246,7 +260,11 @@
               alert('URL is required!')
               return
             }
-            _sw.playFileOnCall(_currentCall, url)
+            var params = {
+              callId: _currentCall,
+              url: url
+            }
+            _sw.playFileOnCall(params)
           } else {
             console.error('No active call or SW not ready')
           }
@@ -254,12 +272,16 @@
 
         $('#callForm .callPlayDigits').on('click', function(){
           if (_currentCall && _sw) {
-            var url = $.trim($('#digitsToPlay').val())
-            if (!url) {
+            var digits = $.trim($('#digitsToPlay').val())
+            if (!digits) {
               alert('Digits are required!')
               return
             }
-            _sw.playDigitsOnCall(_currentCall, url)
+            var params = {
+              callId: _currentCall,
+              digits: digits
+            }
+            _sw.sendDtmf(params)
           } else {
             console.error('No active call or SW not ready')
           }
@@ -272,7 +294,12 @@
               alert('You didn\'t tell me what to say!')
               return
             }
-            _sw.sayOnCall(_currentCall, what)
+            var params = {
+              callId: _currentCall,
+              what: what,
+              gender: gender || 'other'
+            }
+            _sw.sayOnCall(params)
           } else {
             console.error('No active call or SW not ready')
           }

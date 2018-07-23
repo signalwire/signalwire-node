@@ -38,7 +38,7 @@ var signalwire = new SignalWire({
 
 ### Messaging:
 
-#### sendSms:
+#### sendMessage:
 ```javascript
 var params = {
   body: 'Hi Joe!',
@@ -50,7 +50,7 @@ var params = {
     // Your SMS status is into "result.status"
   }
 }
-_sw.sendSms(params)
+_sw.sendMessage(params)
   .then(function (result) {
     // The SMS has been queued.
     // You can retrieve the SMS data into "result"
@@ -60,16 +60,18 @@ _sw.sendSms(params)
   })
 ```
 
-#### statusSms:
+#### statusMessage:
 ```javascript
-var smsId = 'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX' // This value from the previous `sendSms` Promise
-signalwire.statusSms(smsId)
+var params = {
+  smsId: 'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX' // This value from the previous `sendMessage` Promise
+}
+signalwire.statusMessage(params)
   .then(function (result) {
     // The SMS status is in "result.status"
     if (result.status === 'delivered') {
       // SMS has been sent! Update the UI properly...
     } else if (result.status === 'queued') {
-      // SMS is still in queue. Check again with another `statusSms`
+      // SMS is still in queue. Check again with another `statusMessage`
     } else if (result.status === 'failed') {
       // SMS failed to sent. Inspect the result object for the error message: `result`
     }
@@ -96,11 +98,27 @@ signalwire.createCall(params)
   })
 ```
 
+#### Hangup a call:
+```javascript
+var params = {
+  callId: '9027985d-44c2-45f8-917e-8a9bec35398c' // UUID of the current call
+}
+signalwire.hangupCall(params)
+  .then(function (result) {
+    // Call has been hanged up!
+  })
+  .catch(function (error) {
+    // An error occured!
+  })
+```
+
 #### Play a .wav file into an active call:
 ```javascript
-var currentCall = '9027985d-44c2-45f8-917e-8a9bec35398c' // UUID of the current call
-var url = 'http://www.kozco.com/tech/piano2.wav'
-signalwire.playFileOnCall(currentCall, url)
+var params = {
+  callId: '9027985d-44c2-45f8-917e-8a9bec35398c', // UUID of the current call
+  url: 'http://www.kozco.com/tech/piano2.wav'
+}
+signalwire.playFileOnCall(params)
   .then(function (result) {
     // File successfully played!
   })
@@ -111,9 +129,11 @@ signalwire.playFileOnCall(currentCall, url)
 
 #### Play digits into an active call:
 ```javascript
-var currentCall = '9027985d-44c2-45f8-917e-8a9bec35398c' // UUID of the current call
-var digits = '12345'
-signalwire.playDigitsOnCall(currentCall, digits)
+var params = {
+  callId: '9027985d-44c2-45f8-917e-8a9bec35398c', // UUID of the current call
+  digits: '12345'
+}
+signalwire.playDigitsOnCall(params)
   .then(function (result) {
     // Digits successfully sent!
   })
@@ -124,9 +144,12 @@ signalwire.playDigitsOnCall(currentCall, digits)
 
 #### Say something into an active call:
 ```javascript
-var currentCall = '9027985d-44c2-45f8-917e-8a9bec35398c' // UUID of the current call
-var whatToSay = 'Hello, Welcome to SignalWire!'
-signalwire.sayOnCall(currentCall, whatToSay)
+var params = {
+  callId: '9027985d-44c2-45f8-917e-8a9bec35398c', // UUID of the current call
+  whatToSay: 'Hello, Welcome to SignalWire!',
+  gender: 'male' // male || female
+}
+signalwire.sayOnCall(params)
   .then(function (result) {
     // Text successfully played!
   })
@@ -134,19 +157,6 @@ signalwire.sayOnCall(currentCall, whatToSay)
     // An error occured!
   })
 ```
-
-#### Hangup a call:
-```javascript
-var currentCall = '9027985d-44c2-45f8-917e-8a9bec35398c' // UUID of the current call
-signalwire.disconnectCall(currentCall)
-  .then(function (result) {
-    // Call has been hanged up!
-  })
-  .catch(function (error) {
-    // An error occured!
-  })
-```
-
 
 # Development setup
 To build and run this app locally you will need a few things:

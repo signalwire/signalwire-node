@@ -18,10 +18,8 @@ export default class CallingService {
       if (session.services.hasOwnProperty(CallingService.service)) {
         resolve(true)
       } else {
-        logger.log('Must setup the calling service!')
         const setup = new SetupService(session, CallingService.service).start()
           .then(result => {
-            logger.log('Calling service has been setupped?', result)
             result ? resolve(true) : reject('Something wrong')
           })
           .catch(error => {
@@ -35,7 +33,7 @@ export default class CallingService {
   call(params: any) {
     return this._loadResponderNodeId()
       .then(async responder_nodeid => {
-        let { from, to, onStatusUpdate } = params
+        let { from, to } = params
         let be = new BladeExecuteRequest({
           requester_nodeid: this.session.nodeid,
           responder_nodeid,
@@ -49,9 +47,15 @@ export default class CallingService {
       })
   }
 
-  play(channel: string, url: string) {
+  hangup(params: any) {
+    let { callId: channel } = params
+    return this._executeMethodOnChannel('disconnect', channel)
+  }
+
+  play(params: any) {
     return this._loadResponderNodeId()
       .then(async responder_nodeid => {
+        let { callId: channel, url } = params
         let be = new BladeExecuteRequest({
           requester_nodeid: this.session.nodeid,
           responder_nodeid,
@@ -65,9 +69,11 @@ export default class CallingService {
       })
   }
 
-  playDigits(channel: string, digits: string, digit_duration: number) {
+  sendDtmf(params: any) {
     return this._loadResponderNodeId()
       .then(async responder_nodeid => {
+        let { callId: channel, digits, digit_duration } = params
+        digit_duration = digit_duration || 80
         let be = new BladeExecuteRequest({
           requester_nodeid: this.session.nodeid,
           responder_nodeid,
@@ -81,9 +87,11 @@ export default class CallingService {
       })
   }
 
-  say(channel: string, what: string = '', gender: string = 'other') {
+  say(params: any) {
     return this._loadResponderNodeId()
       .then(async responder_nodeid => {
+        let { callId: channel, whatToSay: what, gender } = params
+        gender = gender || 'other'
         let be = new BladeExecuteRequest({
           requester_nodeid: this.session.nodeid,
           responder_nodeid,
@@ -97,20 +105,19 @@ export default class CallingService {
       })
   }
 
-  answer(channel: string) {
+  answer(params: any) {
+    let { callId: channel } = params
     return this._executeMethodOnChannel('answer', channel)
   }
 
-  collectDigits(channel: string) {
+  collectDigits(params: any) {
+    let { callId: channel } = params
     return this._executeMethodOnChannel('collect_digits', channel)
   }
 
-  collectSpeech(channel: string) {
+  collectSpeech(params: any) {
+    let { callId: channel } = params
     return this._executeMethodOnChannel('collect_speech', channel)
-  }
-
-  disconnect(channel: string) {
-    return this._executeMethodOnChannel('disconnect', channel)
   }
 
   private _executeMethodOnChannel(method: string, channel: string) {

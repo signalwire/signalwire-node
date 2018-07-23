@@ -64,7 +64,7 @@ export default class Session {
   }
 
   private _onMessageInbound(response: any) {
-    logger.info('Inbound Message', response.method, this.nodeid, response)
+    // logger.info('Inbound Message', response.method, this.nodeid, response)
     switch (response.method) {
       case BLADE_NETCAST:
         this.nodeStore.netcastUpdate(response.params)

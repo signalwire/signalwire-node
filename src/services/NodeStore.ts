@@ -70,7 +70,7 @@ export default class NodeStore {
   }
 
   netcastUpdate(params: any) { // TODO: specify params type
-    // logger.info('NET UPDATE: %s', params.command, params)
+    logger.info('NETCAST: %s', params.command, params)
     const { params: subParams }: any = params // TODO: specify params type
     switch (params.command) {
       case NETCAST_SUBCOMMAND.ROUTE_ADD:
@@ -239,6 +239,6 @@ export default class NodeStore {
       protocolXNodes: this.protocolXNodes,
       nodeXSubscriptions: this.nodeXSubscriptions
     }
-    logger.debug('NodeStore Updated:', JSON.parse(JSON.stringify(stats)))
+    // logger.debug('NodeStore Updated:', JSON.parse(JSON.stringify(stats)))
   }
 }

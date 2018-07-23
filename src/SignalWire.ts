@@ -45,7 +45,7 @@ class SignalWire {
     return this._session.removeSubscription(protocol, channels)
   }
 
-  async sendSms(params: any) {
+  async sendMessage(params: any) {
     const setup = await MessagingService.setup(this._session)
     if (setup === false) {
       throw new Error('Failed to bootstrapping MessagingService.')
@@ -55,12 +55,13 @@ class SignalWire {
     return result
   }
 
-  async statusSms(id: string) {
+  async statusMessage(params: any) {
     const setup = await MessagingService.setup(this._session)
     if (setup === false) {
       throw new Error('Failed to bootstrapping MessagingService.')
     }
-    const result = await new MessagingService(this._session).statusSms(id)
+    let { smsId } = params
+    const result = await new MessagingService(this._session).statusSms(smsId)
 
     return result
   }
@@ -75,73 +76,73 @@ class SignalWire {
     return result
   }
 
-
-  async playFileOnCall(channel: string, url) {
+  async hangupCall(params: any) {
     const setup = await CallingService.setup(this._session)
     if (setup === false) {
       throw new Error('Failed to bootstrapping CallingService.')
     }
-    const result = await new CallingService(this._session).play(channel, url)
+    const result = await new CallingService(this._session).hangup(params)
 
     return result
   }
 
-  async playDigitsOnCall(channel: string, digits: string, digit_duration: number = 80) {
+  async playFileOnCall(params: any) {
     const setup = await CallingService.setup(this._session)
     if (setup === false) {
       throw new Error('Failed to bootstrapping CallingService.')
     }
-    const result = await new CallingService(this._session).playDigits(channel, digits, digit_duration)
+    const result = await new CallingService(this._session).play(params)
 
     return result
   }
 
-  async sayOnCall(channel: string, what: string, gender: string) {
+  async sendDtmf(params: any) {
     const setup = await CallingService.setup(this._session)
     if (setup === false) {
       throw new Error('Failed to bootstrapping CallingService.')
     }
-    const result = await new CallingService(this._session).say(channel, what, gender)
+    const result = await new CallingService(this._session).sendDtmf(params)
 
     return result
   }
 
-  async answerCall(channel: string) {
+  async sayOnCall(params: any) {
     const setup = await CallingService.setup(this._session)
     if (setup === false) {
       throw new Error('Failed to bootstrapping CallingService.')
     }
-    const result = await new CallingService(this._session).answer(channel)
+    let { channel, whatToSay, gender } = params
+    const result = await new CallingService(this._session).say(params)
 
     return result
   }
 
-  async collectDigitsOnCall(channel: string) {
+  async answerCall(params: any) {
     const setup = await CallingService.setup(this._session)
     if (setup === false) {
       throw new Error('Failed to bootstrapping CallingService.')
     }
-    const result = await new CallingService(this._session).collectDigits(channel)
+    const result = await new CallingService(this._session).answer(params)
 
     return result
   }
 
-  async collectSpeechOnCall(channel: string) {
+  async collectDigitsOnCall(params: any) {
     const setup = await CallingService.setup(this._session)
     if (setup === false) {
       throw new Error('Failed to bootstrapping CallingService.')
     }
-    const result = await new CallingService(this._session).collectSpeech(channel)
+    const result = await new CallingService(this._session).collectDigits(params)
 
     return result
   }
 
-  async disconnectCall(channel: string) {
+  async collectSpeechOnCall(params: any) {
     const setup = await CallingService.setup(this._session)
     if (setup === false) {
       throw new Error('Failed to bootstrapping CallingService.')
     }
-    const result = await new CallingService(this._session).disconnect(channel)
+    const result = await new CallingService(this._session).collectSpeech(params)
 
     return result
   }

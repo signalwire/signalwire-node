@@ -19,10 +19,8 @@ export default class MessagingService {
       if (session.services.hasOwnProperty(MessagingService.service)) {
         resolve(true)
       } else {
-        logger.log('Must setup the messaging service!')
         const setup = new SetupService(session, MessagingService.service).start()
           .then(result => {
-            logger.log('Messaging service has been setupped?', result)
             result ? resolve(true) : reject('Something wrong')
           })
           .catch(error => {

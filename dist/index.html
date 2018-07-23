@@ -148,9 +148,9 @@
             return
           }
           var params = {
-            id: smsResultParams.id
+            messageId: smsResultParams.id
           }
-          _sw.statusMessage(params)
+          _sw.getMessage(params)
             .then(function (bladeObj) {
               _pollSmsStatus(bladeObj.response.result.result)
             })

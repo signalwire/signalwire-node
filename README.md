@@ -63,7 +63,7 @@ _sw.sendMessage(params)
 #### getMessage:
 ```javascript
 var params = {
-  smsId: 'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX' // This value from the previous `sendMessage` Promise
+  messageId: 'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX' // This value from the previous `sendMessage` Promise
 }
 signalwire.getMessage(params)
   .then(function (result) {

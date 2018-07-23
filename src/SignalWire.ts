@@ -60,8 +60,8 @@ class SignalWire {
     if (setup === false) {
       throw new Error('Failed to bootstrapping MessagingService.')
     }
-    let { smsId } = params
-    const result = await new MessagingService(this._session).getMessage(smsId)
+    let { messageId } = params
+    const result = await new MessagingService(this._session).getMessage(messageId)
 
     return result
   }

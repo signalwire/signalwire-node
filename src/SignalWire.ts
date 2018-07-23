@@ -55,13 +55,13 @@ class SignalWire {
     return result
   }
 
-  async statusMessage(params: any) {
+  async getMessage(params: any) {
     const setup = await MessagingService.setup(this._session)
     if (setup === false) {
       throw new Error('Failed to bootstrapping MessagingService.')
     }
     let { smsId } = params
-    const result = await new MessagingService(this._session).statusSms(smsId)
+    const result = await new MessagingService(this._session).getMessage(smsId)
 
     return result
   }

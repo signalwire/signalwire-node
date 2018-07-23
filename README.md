@@ -60,18 +60,18 @@ _sw.sendMessage(params)
   })
 ```
 
-#### statusMessage:
+#### getMessage:
 ```javascript
 var params = {
   smsId: 'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX' // This value from the previous `sendMessage` Promise
 }
-signalwire.statusMessage(params)
+signalwire.getMessage(params)
   .then(function (result) {
     // The SMS status is in "result.status"
     if (result.status === 'delivered') {
       // SMS has been sent! Update the UI properly...
     } else if (result.status === 'queued') {
-      // SMS is still in queue. Check again with another `statusMessage`
+      // SMS is still in queue. Check again with another `getMessage`
     } else if (result.status === 'failed') {
       // SMS failed to sent. Inspect the result object for the error message: `result`
     }

@@ -53,7 +53,7 @@ export default class MessagingService {
       })
   }
 
-  statusSms(id: string) {
+  getMessage(id: string) {
     return this._loadResponderNodeId()
       .then(async responder_nodeid => {
         let be = new BladeExecuteRequest({

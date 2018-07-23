@@ -90,7 +90,7 @@ export default class CallingService {
   say(params: any) {
     return this._loadResponderNodeId()
       .then(async responder_nodeid => {
-        let { callId: channel, whatToSay: what, gender } = params
+        let { callId: channel, what: what, gender } = params
         gender = gender || 'other'
         let be = new BladeExecuteRequest({
           requester_nodeid: this.session.nodeid,

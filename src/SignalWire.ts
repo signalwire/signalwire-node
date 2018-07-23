@@ -111,7 +111,7 @@ class SignalWire {
     if (setup === false) {
       throw new Error('Failed to bootstrapping CallingService.')
     }
-    let { channel, whatToSay, gender } = params
+    let { channel, what, gender } = params
     const result = await new CallingService(this._session).say(params)
 
     return result

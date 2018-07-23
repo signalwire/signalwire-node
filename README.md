@@ -146,7 +146,7 @@ signalwire.playDigitsOnCall(params)
 ```javascript
 var params = {
   callId: '9027985d-44c2-45f8-917e-8a9bec35398c', // UUID of the current call
-  whatToSay: 'Hello, Welcome to SignalWire!',
+  what: 'Hello, Welcome to SignalWire!',
   gender: 'male' // male || female
 }
 signalwire.sayOnCall(params)

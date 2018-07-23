@@ -79,30 +79,32 @@
                     <button type="button" class="btn btn-danger callHangup" style="display: none;">Hangup</button>
                   </div>
                   <hr>
-                  <div class="form-group">
-                    <label for="callTo">Play an audio file:</label>
-                    <div class="input-group">
-                      <input type="text" class="form-control" id="wavToPlay" placeholder="URL to a .wav file" value="http://www.kozco.com/tech/piano2.wav">
-                      <div class="input-group-append">
-                        <button type="button" class="btn btn-info callPlayAudio">Play It!</button>
+                  <div id="cmdCallWrapper" style="display: none;">
+                    <div class="form-group">
+                      <label for="callTo">Play an audio file:</label>
+                      <div class="input-group">
+                        <input type="text" class="form-control" id="wavToPlay" placeholder="URL to a .wav file" value="http://www.kozco.com/tech/piano2.wav">
+                        <div class="input-group-append">
+                          <button type="button" class="btn btn-info callPlayAudio">Play It!</button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div class="form-group">
-                    <label for="digitsToPlay">Play some digits:</label>
-                    <div class="input-group">
-                      <input type="text" class="form-control" id="digitsToPlay" placeholder="12345" value="12345">
-                      <div class="input-group-append">
-                        <button type="button" class="btn btn-info callPlayDigits">Play It!</button>
+                    <div class="form-group">
+                      <label for="digitsToPlay">Play some digits:</label>
+                      <div class="input-group">
+                        <input type="text" class="form-control" id="digitsToPlay" placeholder="12345" value="12345">
+                        <div class="input-group-append">
+                          <button type="button" class="btn btn-info callPlayDigits">Play It!</button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div class="form-group">
-                    <label for="whatToSay">Say something:</label>
-                    <div class="input-group">
-                      <input type="text" class="form-control" id="whatToSay" placeholder="Hi there, welcome to SignalWire!" value="Hi there, welcome to SignalWire!">
-                      <div class="input-group-append">
-                        <button type="button" class="btn btn-info callSay">Say It!</button>
+                    <div class="form-group">
+                      <label for="whatToSay">Say something:</label>
+                      <div class="input-group">
+                        <input type="text" class="form-control" id="whatToSay" placeholder="Hi there, welcome to SignalWire!" value="Hi there, welcome to SignalWire!">
+                        <div class="input-group-append">
+                          <button type="button" class="btn btn-info callSay">Say It!</button>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -205,9 +207,10 @@
               .then(function (result) {
                 console.debug('createCall success', result)
                 _currentCall = result.channel
-                _appendNotif('Call UUID: ', _currentCall)
+                _appendNotif('Call UUID: ' + _currentCall)
                 $('.makeCall').attr('disabled', true)
                 $('.callHangup').show().attr('disabled', false)
+                $('#cmdCallWrapper').show()
               })
               .catch(function (error) {
                 _appendNotif('Something goes wrong!')
@@ -221,10 +224,11 @@
             _sw.disconnectCall(_currentCall)
               .then(function (result) {
                 console.debug('disconnectCall success', result)
-                _appendNotif('Call UUID: ', _currentCall, ' disconnected!')
+                _appendNotif('Call UUID: ' + _currentCall + ' disconnected!')
                 _currentCall = null
                 $('.makeCall').attr('disabled', false)
                 $('.callHangup').attr('disabled', true).hide()
+                $('#cmdCallWrapper').hide()
               })
               .catch(function (error) {
                 _appendNotif('Something goes wrong during disconnect!')

@@ -18,8 +18,8 @@ export default class Connection {
     this.ws.onclose = (): void => this._callback('onClose')
     this.ws.onerror = (event: any): void => this._callback('onError', event)
     this.ws.onmessage = (event: any): void => {
-      logger.debug("RECV: \n", event.data, "\n")
       let msg: any = JSON.parse(event.data)
+      logger.debug("RECV: \n", JSON.stringify(msg, null, 2), "\n")
       const stored = this._pullFromStore(msg.id)
       if (stored) {
         let method = msg.hasOwnProperty('error') ? 'reject' : 'resolve'
@@ -43,9 +43,8 @@ export default class Connection {
     const promise = new Promise((resolve, reject) => {
       this._pushInStore(bladeObj, resolve, reject)
     })
-    let json = JSON.stringify(bladeObj.request)
-    logger.debug("SEND: \n", json, "\n")
-    this.ws.send(json)
+    logger.debug("SEND: \n", JSON.stringify(bladeObj.request, null, 2), "\n")
+    this.ws.send( JSON.stringify(bladeObj.request) )
     return promise
   }
 

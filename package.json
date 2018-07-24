@@ -10,7 +10,7 @@
   "main": "index.js",
   "license": "ISC",
   "scripts": {
-    "build-dev": "webpack -p --mode development --watch",
+    "build-dev": "webpack",
     "build": "webpack -p",
     "start:dev": "webpack-dev-server --mode development",
     "test": "jest --forceExit --coverage --verbose",

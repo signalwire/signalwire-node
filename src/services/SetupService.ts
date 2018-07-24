@@ -9,12 +9,10 @@ export default class SetupService {
   constructor(public session: any, public service: string) { }
 
   async start() {
-    logger.debug(`Search for a responder supporting "${this._protocol}" protocol`)
     const responder_nodeid = await this._pollNodeStore(this._protocol).catch(logger.error) // TODO: Remove logger.error from here
     if (!responder_nodeid) {
       throw new Error(`Provider for protocol "${this._protocol}" not found!`)
     }
-    logger.debug(`Responder found: "${responder_nodeid}"`)
     let be = new BladeExecuteRequest({
       requester_nodeid: this.session.nodeid,
       responder_nodeid,
@@ -24,20 +22,19 @@ export default class SetupService {
         service: this.service
       }
     })
-    logger.debug('Execute the setup method on this responder', be)
+    logger.debug('Execute the setup method for', this.service)
     const bladeObj = await this.session.conn.send(be).catch(logger.error) // TODO: Remove logger.error from here
-    logger.debug('Setup response:', bladeObj)
     if (bladeObj === undefined) {
       return false
     }
     let { protocol } = bladeObj.response.result.result
 
-    logger.debug('Need to subscribe to this protocol', protocol)
-    await this.session.addSubscription(protocol, ['notifications']).catch(logger.error) // TODO: Remove logger.error from here
-    logger.debug('.. and wait for the right netcast...')
+    logger.debug('Add Subscription to ', protocol)
+    const sub = await this.session.addSubscription(protocol, ['notifications']).catch(logger.error) // TODO: Remove logger.error from here
+    logger.debug('Wait for the right netcast...')
     const nodeid = await this._pollNodeStore(protocol)
 
-    if (nodeid) {
+    if (sub && nodeid) {
       this.session.services[this.service] = protocol
       return true
     }

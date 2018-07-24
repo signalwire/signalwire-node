@@ -85,14 +85,19 @@ export default class Session {
     return this.conn && this.conn.connected
   }
 
-  addSubscription(protocol: string, channels: string[]) {
+  async addSubscription(protocol: string, channels: string[]) {
     let bs = new BladeSubscription({
       command: BLADE_SUBSCRIBE_COMMAND.ADD,
       subscriber_nodeid: this.nodeid,
       protocol,
       channels
     })
-    return this.conn.send(bs)
+    let bladeObj = await this.conn.send(bs)
+    let { result } = bladeObj.response
+    if (result.hasOwnProperty('failed_channels')) {
+      throw new Error(`Failed to subscribe to channels ${result.failed_channels.join(' - ')}`)
+    }
+    return bladeObj
   }
 
   removeSubscription(protocol: string, channels: string[]) {

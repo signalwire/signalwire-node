@@ -13,3 +13,9 @@ export const BLADE_SUBSCRIBE_COMMAND: { [k: string]: string } = {
   ADD: 'add',
   REMOVE: 'remove'
 }
+
+export const SIGNALWIRE_NOTIFICATIONS: { [k: string]: string } = {
+  GLOBAL: 'signalwire',
+  MESSAGES: 'signalwire.messages',
+  CALLS: 'signalwire.calls'
+}

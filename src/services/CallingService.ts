@@ -1,34 +1,9 @@
-import logger from '../util/logger'
+// import logger from '../util/logger'
+import BaseService from './BaseService'
 import { BladeExecuteRequest } from '../blade/BladeExecute'
-import SetupService from './SetupService'
 
-export default class CallingService {
+export default class CallingService extends BaseService {
   static service = 'calling'
-  private _protocol: string = ''
-
-  constructor(public session: any) {
-    if (!session.services.hasOwnProperty(CallingService.service)) {
-      throw new Error('CallingService hasnt been setup. Call static method "setup" first.')
-    }
-    this._protocol = this.session.services[CallingService.service]
-  }
-
-  static async setup(session: any) {
-    return new Promise(function (resolve, reject) {
-      if (session.services.hasOwnProperty(CallingService.service)) {
-        resolve(true)
-      } else {
-        const setup = new SetupService(session, CallingService.service).start()
-          .then(result => {
-            result ? resolve(true) : reject('Something wrong')
-          })
-          .catch(error => {
-            logger.error('SetupService error: ', error)
-            reject('Something wrong')
-          })
-      }
-    })
-  }
 
   call(params: any) {
     return this._loadResponderNodeId()
@@ -134,24 +109,5 @@ export default class CallingService {
         let { result } = bladeObj.response.result // 2 levels of 'result'
         return result === null
       })
-  }
-
-  private _cleanNumber(num: string) {
-    let tmp = num.replace(/\D/g, '')
-    if (!/^1/.test(tmp)) {
-      tmp = `1${tmp}`
-    }
-    return `+${tmp}`
-  }
-
-  private async _loadResponderNodeId(): Promise<any> {
-    let responder_nodeid = this.session.nodeStore.getNodeIdByProtocol(this._protocol)
-    // if (responder_nodeid === null) {
-    //   responder_nodeid = await new LocateService(this.session).protocol(this._protocol)
-    // }
-    if (responder_nodeid === null) {
-      throw new Error(`Provider for protocol "${this._protocol}" not found.`)
-    }
-    return responder_nodeid
   }
 }

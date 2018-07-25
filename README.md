@@ -32,6 +32,31 @@ var signalwire = new SignalWire({
 })
 ```
 
+## Events:
+
+Subscribe to global events to get a notification when a service is updated.
+If you do a subscription to both `signalwire` & `signalwire.calls`, your callbacks will be notify with the same data.
+
+## Subscribe to all notifications from SignalWire:
+```javascript
+signalwire.on('signalwire', function(notificationType, notificationData){
+  // Global notification. Inspect 'notificationType' to see which type of notification is (call || message || ..)
+})
+```
+
+## Subscribe to all call-related events:
+```javascript
+signalwire.on('signalwire.calls', function(notificationType, notificationData){
+  // Call notification. One of the active call has changed!
+})
+```
+
+```javascript
+signalwire.on('signalwire.messages', function(notificationType, notificationData){
+  // Message notification. The state of one of your message has been updated!
+})
+```
+
 ## Methods available:
 
 > Note: All subsequent methods will use the "signalwire" global variable and they must be used after "onSessionReady" callback.
@@ -44,16 +69,17 @@ var params = {
   body: 'Hi Joe!',
   from: '+12622081318',
   to: '+15559999999',
-  media: ['https://bit.ly/2N50Ysq', 'https://bit.ly/2Ki36zy'],
-  onStatusUpdate: result => {
-    // This callback will be used to notify you on the status of the SMS.
-    // Your SMS status is into "result.status"
-  }
+  media: ['https://bit.ly/2N50Ysq', 'https://bit.ly/2Ki36zy']
 }
 _sw.sendMessage(params)
   .then(function (result) {
-    // The SMS has been queued.
-    // You can retrieve the SMS data into "result"
+    // The SMS has been queued. You can retrieve the SMS data into "result"
+
+    // You can also subscribe to this message notifications!
+    result.onNotification(function(notificationType, notificationData){
+      // Handle this notification in a different way of the global ones.
+      // If you set this listener, the global one will not be notified.
+    })
   })
   .catch(function (error) {
     // An error occured!
@@ -92,6 +118,12 @@ var params = {
 signalwire.createCall(params)
   .then(function (result) {
     // Call has started! Retrieve call UUID in "result.channel"
+
+    // You can also subscribe to this call notifications!
+    result.onNotification(function(notificationType, notificationData){
+      // Handle this notification in a different way of the global ones.
+      // If you set this listener, the global one will not be notified.
+    })
   })
   .catch(function (error) {
     // An error occured!

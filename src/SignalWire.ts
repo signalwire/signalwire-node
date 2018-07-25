@@ -1,7 +1,9 @@
+import PubSub from 'pubsub-js'
 import logger from './util/logger'
 import Session from './services/Session'
 import MessagingService from './services/MessagingService'
 import CallingService from './services/CallingService'
+import { SIGNALWIRE_NOTIFICATIONS } from './util/constants'
 
 interface ISignalWireOptions {
   host: string
@@ -52,6 +54,14 @@ class SignalWire {
     }
     const result = await new MessagingService(this._session).sendSms(params)
 
+    Object.defineProperty(result, 'onNotification', {
+      value: callback => {
+        logger.warn('Here to sub this message', result.id)
+        PubSub.subscribe(`message_${result.id}`, callback)
+      },
+      writable: false
+    })
+
     return result
   }
 
@@ -72,6 +82,14 @@ class SignalWire {
       throw new Error('Failed to bootstrapping CallingService.')
     }
     const result = await new CallingService(this._session).call(params)
+
+    Object.defineProperty(result, 'onNotification', {
+      value: callback => {
+        logger.warn('Here to sub this call', result.channel)
+        PubSub.subscribe(`call_${result.channel}`, callback)
+      },
+      writable: false
+    })
 
     return result
   }
@@ -145,6 +163,18 @@ class SignalWire {
     const result = await new CallingService(this._session).collectSpeech(params)
 
     return result
+  }
+
+  on(eventName: string, callback: any) {
+    let found = Object.values(SIGNALWIRE_NOTIFICATIONS).find(v => v === eventName)
+    if (!found) {
+      throw new Error('Invalid event name: ' + eventName)
+    }
+    PubSub.subscribe(eventName, callback)
+  }
+
+  off(eventName: string) {
+    PubSub.unsubscribe(eventName)
   }
 }
 

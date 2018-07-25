@@ -178,22 +178,17 @@
             }
             $('#json-preview').html('')
             _appendNotif('Sending...')
-            var params = {
-              body,
-              from,
-              to,
-              media: [],
-              onStatusUpdate: result => {
-                console.log('Message Status Update:', result)
-                _appendNotif('SMS Status: ' + result.status)
-              }
-            }
+            var params = { body, from, to, media: [] }
             if (media) {
               params.media.push(media)
             }
             _sw.sendMessage(params)
               .then(function (result) {
                 console.debug('sendMessage success', result, 'SMS id:', result.id)
+                result.onNotification((notification, data) => {
+                  console.debug('createCall onNotification', notification, data)
+                  _appendNotif('SMS Status: ' + data.status)
+                })
                 // _pollSmsStatus(result)
               })
               .catch(function (error) {
@@ -217,6 +212,19 @@
             _sw.createCall(params)
               .then(function (result) {
                 console.debug('createCall success', result)
+                result.onNotification((notification, data) => {
+                  console.debug('createCall onNotification', notification, data)
+                  if (data.hasOwnProperty('Application')) {
+                    _appendNotif('Call application: ' + data['Application'])
+                  } else {
+                    _appendNotif('Call state: ' + data['Answer-State'])
+                  }
+
+                  if (data['Answer-State'] === 'hangup') {
+                    $('#callForm .callHangup').trigger('click')
+                  }
+                })
+
                 _currentCall = result.channel
                 _appendNotif('Call UUID: ' + _currentCall)
                 $('.makeCall').attr('disabled', true)
@@ -338,6 +346,18 @@
                 _appendNotif('Compose your message and send it!')
               }
             }
+          })
+
+          // _sw.on('signalwire', (eventName, notification) => {
+          //   console.log('Global notification', eventName, notification)
+          // })
+
+          _sw.on('signalwire.calls', (eventName, notification) => {
+            console.log('Call:', eventName, notification)
+          })
+
+          _sw.on('signalwire.messages', (eventName, notification) => {
+            console.log('Message-related notification', eventName, notification)
           })
         })
 

@@ -24,6 +24,7 @@
     "@types/uuid": "^3.4.3",
     "errorhandler": "^1.5.0",
     "lodash": "^4.17.10",
+    "pubsub-js": "^1.6.0",
     "uuid": "^3.3.2"
   },
   "devDependencies": {

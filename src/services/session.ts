@@ -53,8 +53,6 @@ export default class Session {
   }
 
   private _onBladeConnect(res: BladeConnect): void {
-    // logger.info('Session::onBladeConnect', res)
-    // TODO: resume all old subscriptions (in case of a recon)
     this.sessionid = res.response.result.sessionid
     this.nodeid = res.response.result.nodeid
     this.master_nodeid  = res.response.result.master_nodeid

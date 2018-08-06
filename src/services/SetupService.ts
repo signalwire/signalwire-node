@@ -1,6 +1,5 @@
 import logger from '../util/logger'
 import { BladeExecuteRequest } from '../blade/BladeExecute'
-import LocateService from './LocateService'
 
 export default class SetupService {
   private _protocol = 'signalwire'
@@ -29,10 +28,11 @@ export default class SetupService {
     }
     let { protocol } = bladeObj.response.result.result
 
-    logger.debug('Add Subscription to ', protocol)
-    const sub = await this.session.addSubscription(protocol, ['notifications']).catch(logger.error) // TODO: Remove logger.error from here
     logger.debug('Wait for the right netcast...')
     const nodeid = await this._pollNodeStore(protocol)
+
+    logger.debug('Add Subscription to ', protocol)
+    const sub = await this.session.addSubscription(protocol, ['notifications']).catch(logger.error) // TODO: Remove logger.error from here
 
     if (sub && nodeid) {
       this.session.services[this.service] = protocol

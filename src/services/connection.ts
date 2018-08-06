@@ -7,7 +7,7 @@ export default class Connection {
   cbStore: { [key: string]: { resolve: () => void, reject: () => void, bladeObj: any, time: number } }
 
   constructor(public host: string = 'localhost', public callbacks: ConnectionCallbacks) {
-    this.host = `wss://${host}/api`
+    this.host = `wss://${host}/api-bd-edge`
     this.cbStore = {}
     this.connect()
   }

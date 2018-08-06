@@ -1,4 +1,4 @@
-# SignalWire Client NodeJs
+# SignalWire Client JS
 
 ## Usage
 Add a script tag referencing the SignalWire library:

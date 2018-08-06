@@ -1,5 +1,5 @@
-import logger from '../util/logger'
-import { ConnectionCallbacks } from '../types'
+import logger from './util/logger'
+import { ConnectionCallbacks } from './types'
 
 export default class Connection {
   ws: any

@@ -1,6 +1,6 @@
-import logger from '../util/logger'
-import { IBladeConnectResult, INode, IChannel } from '../interfaces'
-import { NETCAST_SUBCOMMAND } from '../util/constants'
+import logger from './util/logger'
+import { IBladeConnectResult, INode, IChannel } from './interfaces'
+import { NETCAST_SUBCOMMAND } from './util/constants'
 
 interface LocalProtocol {
   name: string

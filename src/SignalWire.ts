@@ -1,6 +1,6 @@
 import PubSub from 'pubsub-js'
 import logger from './util/logger'
-import Session from './services/Session'
+import Session from './Session'
 import MessagingService from './services/MessagingService'
 import CallingService from './services/CallingService'
 import { SIGNALWIRE_NOTIFICATIONS } from './util/constants'

@@ -28,13 +28,6 @@ bower_components
 .idea
 *.iml
 
-# TS Compiler
-tsconfig.json
-tslint.json
-
-# Jest
-jest.config.js
-
 # OS metadata
 .DS_Store
 Thumbs.db

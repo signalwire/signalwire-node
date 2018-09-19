@@ -38,7 +38,3 @@ jest.config.js
 # OS metadata
 .DS_Store
 Thumbs.db
-
-# Ignore src files & test
-src
-test

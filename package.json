@@ -1,12 +1,12 @@
 {
   "name": "signalwire-node",
-  "version": "1.0.0",
+  "version": "1.0.0-rc.1",
   "description": "Client library for connecting to SignalWire.",
   "repository": {
     "type": "git",
     "url": "https://github.com/signalwire/signalwire-node"
   },
-  "author": "Edoardo Gallo <edoardo@signalwire.com>",
+  "author": "SignalWire Team <open.source@signalwire.com>",
   "main": "./dist/index.js",
   "keywords": [
     "signalwire",

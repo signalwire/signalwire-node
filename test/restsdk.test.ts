@@ -8,8 +8,8 @@ describe('RestClient', function () {
 
     client.calls.create({
       url: 'http://demo.signalwire.com/laml/voice.xml',
-      to: '+14043287174',
-      from: '+12083660792'
+      to: '+11111111111',
+      from: process.env.SIGNALWIRE_TEST_NUMBER
     }).then(call => {
       expect(call).toHaveProperty('sid')
     });
@@ -17,7 +17,8 @@ describe('RestClient', function () {
 
   it('should generate LaML', function () {
     const response = new RestClient.LaML.VoiceResponse()
-    response.dial({ callerId: '+1 (208) 366-0792' }, '+14043287174')
-    expect(response.toString()).toEqual('<?xml version="1.0" encoding="UTF-8"?><Response><Dial callerId="+1 (208) 366-0792">+14043287174</Dial></Response>')
+    const from = process.env.SIGNALWIRE_TEST_NUMBER
+    response.dial({ callerId: from }, '+11111111111')
+    expect(response.toString()).toEqual(`<?xml version="1.0" encoding="UTF-8"?><Response><Dial callerId="${from}">+11111111111</Dial></Response>`)
   })
 })

@@ -8,7 +8,7 @@ It allows you to create calls, send messages, and generate LAML responses.
 
 Install the package using [NPM](https://www.npmjs.com/):
 ```bash
-npm install signalwire-node
+npm install signalwire
 ```
 
 # Usage
@@ -25,7 +25,7 @@ SIGNALWIRE_API_TOKEN=PTXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 ### Setup Client
 ```javascript
 // Here we are using Project and Token from ENV
-const RestClient = require('signalwire-node').RestClient
+const RestClient = require('signalwire').RestClient
 const client = new RestClient(process.env.SIGNALWIRE_API_PROJECT, process.env.SIGNALWIRE_API_TOKEN)
 ```
 
@@ -57,7 +57,7 @@ client.messages.create({
 
 ### Generating LaML
 ```javascript
-const RestClient = require('signalwire-node').RestClient
+const RestClient = require('signalwire').RestClient
 const response = new RestClient.LaML.VoiceResponse()
 response.dial({ callerId: '+18888888888' }, '+19999999999')
 response.say("Welcome to SignalWire!")
@@ -86,7 +86,7 @@ const twilio = require('twilio')
 const client = new twilio(sid, token)
 
 // With ...
-const signalwire = require('signalwire-node')
+const signalwire = require('signalwire')
 const client = new signalwire.RestClient(project, token)
 
 // Now use client variable like you did before!
@@ -101,7 +101,7 @@ const twilio = require('twilio')
 const response = new twilio.twiml.VoiceResponse()
 
 // With ..
-const signalwire = require('signalwire-node')
+const signalwire = require('signalwire')
 const response = new signalwire.RestClient.LaML.VoiceResponse()
 
 // Now use response like you did before!
@@ -110,5 +110,5 @@ response.say('Hey, Welcome at SignalWire!')
 
 # Copyright
 
-Copyright (c) 2018 SignalWire Inc. See [LICENSE](https://github.com/signalwire/signalwire-node/blob/master/LICENSE) for
+Copyright (c) 2018 SignalWire Inc. See [LICENSE](https://github.com/signalwire/signalwire/blob/master/LICENSE) for
 further details.

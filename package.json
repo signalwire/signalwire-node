@@ -1,5 +1,5 @@
 {
-  "name": "signalwire-node",
+  "name": "signalwire",
   "version": "1.0.0-rc.1",
   "description": "Client library for connecting to SignalWire.",
   "repository": {

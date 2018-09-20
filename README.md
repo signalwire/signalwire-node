@@ -110,5 +110,4 @@ response.say('Hey, Welcome at SignalWire!')
 
 # Copyright
 
-Copyright (c) 2018 SignalWire Inc. See [LICENSE](https://github.com/signalwire/signalwire/blob/master/LICENSE) for
-further details.
+Copyright (c) 2018 SignalWire Inc. See [LICENSE](https://github.com/signalwire/signalwire-node/blob/master/LICENSE) for further details.

@@ -1,110 +1,89 @@
 import SignalWire from './SignalWire'
 import logger from './util/logger'
-import BladeConnect from './blade/BladeConnect'
+import { Connect, Subscription } from './blade/Blade'
 import Connection from './Connection'
-import NodeStore from './NodeStore'
-import { ConnectionCallbacks } from './types'
-import BladeSubscription from './blade/BladeSubscription'
-import { BLADE_SUBSCRIBE_COMMAND } from './util/constants'
+import Cache from './Cache'
+import { BLADE_SUBSCRIBE_COMMAND, EVENTS } from './util/constants'
 import BroadcastService from './services/BroadcastService'
-
-const BLADE_NETCAST = 'blade.netcast'
-const BLADE_BROADCAST = 'blade.broadcast'
+import { IBladeConnectResult } from './interfaces'
 
 export default class Session {
-  conn: Connection
   sessionid: string = ''
   nodeid: string
   master_nodeid: string
-  nodeStore: NodeStore
   services: { [service: string]: string } = {}
-  servicesCallback: { [uuid: string]: any } = {}
 
   private _options: any
-  private socketCallbacks: ConnectionCallbacks = {
-    onOpen: () => {
-      let bc = new BladeConnect({ project: this._options.project, token: this._options.token }, this.sessionid)
-      this.conn.send(bc)
-        .then(this._onBladeConnect.bind(this))
-        .catch(logger.error)
-      this._callback('onSocketOpen')
-    },
-    onClose: (): void => {
-      setTimeout(() => this.connect(), 1000)
-      this._callback('onSocketClose')
-    },
-    onMessage: (response: any) => {
-      this._onMessageInbound(response)
-      this._callback('onMessageInbound', response)
-    },
-    onError: (error: any): void => {
-      logger.error('Session Socket Error', error)
-      this._callback('onSocketError', error)
-    }
-  }
+  private _cache: Cache
+  private _connection: Connection
 
   constructor(private SW: SignalWire) {
     this._options = SW.options
-    this.connect()
+    this._registerHandlers()
   }
 
   connect() {
-    this.conn = new Connection(this._options.host, this.socketCallbacks)
+    this._connection = new Connection(this._options.host)
   }
 
-  private _onBladeConnect(res: BladeConnect): void {
-    this.sessionid = res.response.result.sessionid
-    this.nodeid = res.response.result.nodeid
-    this.master_nodeid  = res.response.result.master_nodeid
-    this.nodeStore = new NodeStore(res.response)
-
-    this._callback('onSessionReady')
-  }
-
-  private _onMessageInbound(response: any) {
-    // logger.info('Inbound Message', response.method, this.nodeid, response)
-    switch (response.method) {
-      case BLADE_NETCAST:
-        this.nodeStore.netcastUpdate(response.params)
-      break
-      case BLADE_BROADCAST:
-        const x = new BroadcastService(this).handleBroadcast(response.params)
-      break
+  async execute(msg: any) {
+    const response = await this._connection.send(msg)
+      .catch(msg => logger.error('Execute Error ', msg.error))
+    if (response === undefined) {
+      throw new Error('Internal Error')
     }
-  }
-
-  private _callback(name: string, ...args: any[]) {
-    if (this._options.hasOwnProperty('callbacks') && this._options.callbacks.hasOwnProperty(name)) {
-      this._options.callbacks[name](this, ...args)
-    }
-  }
-
-  get connected() {
-    return this.conn && this.conn.connected
+    return response.result.result
   }
 
   async addSubscription(protocol: string, channels: string[]) {
-    let bs = new BladeSubscription({
-      command: BLADE_SUBSCRIBE_COMMAND.ADD,
-      subscriber_nodeid: this.nodeid,
-      protocol,
-      channels
-    })
-    let bladeObj = await this.conn.send(bs)
-    let { result } = bladeObj.response
-    if (result.hasOwnProperty('failed_channels')) {
-      throw new Error(`Failed to subscribe to channels ${result.failed_channels.join(' - ')}`)
+    const bs = new Subscription({ command: BLADE_SUBSCRIBE_COMMAND.ADD, protocol, channels })
+    const result = await this.execute(bs)
+    if (result.hasOwnProperty('failed_channels') && result.failed_channels.length) {
+      throw new Error(`Failed to subscribe to channels ${result.failed_channels.join(', ')}`)
     }
-    return bladeObj
+    return result
   }
 
-  removeSubscription(protocol: string, channels: string[]) {
-    let bs = new BladeSubscription({
-      command: BLADE_SUBSCRIBE_COMMAND.REMOVE,
-      subscriber_nodeid: this.nodeid,
-      protocol,
-      channels
-    })
-    return this.conn.send(bs)
+  async removeSubscription(protocol: string, channels: string[]) {
+    const bs = new Subscription({ command: BLADE_SUBSCRIBE_COMMAND.REMOVE, protocol, channels })
+    return this.execute(bs)
+  }
+
+  private _registerHandlers() {
+    PubSub.subscribe(EVENTS.WS_OPEN, this._onOpen.bind(this))
+    PubSub.subscribe(EVENTS.WS_CLOSE, this._onClose.bind(this))
+    PubSub.subscribe(EVENTS.WS_MESSAGE, this._onIncomingMessage.bind(this))
+    PubSub.subscribe(EVENTS.WS_ERROR, this._onError.bind(this))
+  }
+
+  private _onOpen = async () => {
+    const bc = new Connect({ project: this._options.project, token: this._options.token }, this.sessionid)
+    const response: IBladeConnectResult = await this.execute(bc)
+    this.sessionid = response.result.sessionid
+    this.nodeid = response.result.nodeid
+    this.master_nodeid = response.result.master_nodeid
+    this._cache.populateFromConnect(response)
+
+    PubSub.publish(EVENTS.READY, this)
+  }
+
+  private _onClose = () => {
+    setTimeout(() => this.connect(), 1000)
+  }
+
+  private _onError = (error) => {
+    logger.error('Socket error', error)
+  }
+
+  private _onIncomingMessage(response: any) {
+    // logger.info('Inbound Message', response.method, this.nodeid, response)
+    switch (response.method) {
+      case 'blade.netcast':
+        this._cache.netcastUpdate(response.params)
+      break
+      case 'blade.broadcast':
+        const x = new BroadcastService(this).handleBroadcast(response.params)
+      break
+    }
   }
 }

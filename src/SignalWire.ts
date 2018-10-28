@@ -1,42 +1,24 @@
 import PubSub from 'pubsub-js'
 import logger from './util/logger'
 import Session from './Session'
-import MessagingService from './services/MessagingService'
-import CallingService from './services/CallingService'
-import { SIGNALWIRE_NOTIFICATIONS } from './util/constants'
+import * as Messaging from './services/Messaging'
+import * as Calling from './services/Calling'
+import { ISignalWireOptions } from './interfaces'
+import { validateOptions, registerHandler, removeHandler } from './util/helpers'
 
-interface ISignalWireOptions {
-  host: string
-  project: string
-  token: string
-  callbacks: {
-    onSocketOpen?: (session: Session) => void
-    onSocketClose?: (session: Session) => void
-    onSocketError?: (session: Session) => void
-    onMessageInbound?: (session: Session, result: any) => void
-    onSessionReady?: (session: Session, error: any) => void
-  }
-}
-
-class SignalWire {
+export default class SignalWire {
   private _session: Session
 
   constructor(public options: ISignalWireOptions) {
-    if (!this._validateOptions(options)) {
-      logger.error('Invalid init params. "host" - "project" - "token" are required')
-      return
+    if (!validateOptions(options)) {
+      throw new Error('Invalid init params. "host" - "project" - "token" are required')
     }
-    this._init()
-  }
 
-  private _init() {
     this._session = new Session(this)
   }
 
-  private _validateOptions(options: ISignalWireOptions): boolean {
-    return (options.hasOwnProperty('host') && options.host !== '' &&
-      options.hasOwnProperty('project') && options.project !== '' &&
-      options.hasOwnProperty('token') && options.token !== '')
+  connect() {
+    return this._session.connect()
   }
 
   subscribe(protocol: string, channels: string[]) {
@@ -48,134 +30,79 @@ class SignalWire {
   }
 
   async sendMessage(params: any) {
-    const setup = await MessagingService.setup(this._session)
-    if (setup === false) {
-      throw new Error('Failed to bootstrapping MessagingService.')
-    }
-    const result = await new MessagingService(this._session).sendSms(params)
+    const result = await Messaging.sendMessage(this._session, params)
 
     Object.defineProperty(result, 'onNotification', {
+      writable: false,
       value: callback => {
         logger.warn('Here to sub this message', result.id)
-        PubSub.subscribe(`message_${result.id}`, callback)
-      },
-      writable: false
+        PubSub.subscribe(result.id, callback)
+      }
     })
 
     return result
   }
 
-  async getMessage(params: any) {
-    const setup = await MessagingService.setup(this._session)
-    if (setup === false) {
-      throw new Error('Failed to bootstrapping MessagingService.')
-    }
-    let { messageId } = params
-    const result = await new MessagingService(this._session).getMessage(messageId)
-
-    return result
+  getMessage(params: any) {
+    const { messageId } = params
+    return Messaging.getMessage(this._session, messageId)
   }
 
   async createCall(params: any) {
-    const setup = await CallingService.setup(this._session)
-    if (setup === false) {
-      throw new Error('Failed to bootstrapping CallingService.')
-    }
-    const result = await new CallingService(this._session).call(params)
+    const result = await Calling.newCall(this._session, params)
 
     Object.defineProperty(result, 'onNotification', {
+      writable: false,
       value: callback => {
         logger.warn('Here to sub this call', result.channel)
-        PubSub.subscribe(`call_${result.channel}`, callback)
-      },
-      writable: false
+        PubSub.subscribe(result.channel, callback)
+      }
     })
 
     return result
   }
 
-  async hangupCall(params: any) {
-    const setup = await CallingService.setup(this._session)
-    if (setup === false) {
-      throw new Error('Failed to bootstrapping CallingService.')
-    }
-    const result = await new CallingService(this._session).hangup(params)
-
-    return result
+  hangupCall(params: any) {
+    return Calling.hangup(this._session, params)
   }
 
-  async playFileOnCall(params: any) {
-    const setup = await CallingService.setup(this._session)
-    if (setup === false) {
-      throw new Error('Failed to bootstrapping CallingService.')
-    }
-    const result = await new CallingService(this._session).play(params)
-
-    return result
+  playFileOnCall(params: any) {
+    return Calling.play(this._session, params)
   }
 
-  async sendDtmf(params: any) {
-    const setup = await CallingService.setup(this._session)
-    if (setup === false) {
-      throw new Error('Failed to bootstrapping CallingService.')
-    }
-    const result = await new CallingService(this._session).sendDtmf(params)
-
-    return result
+  sendDtmf(params: any) {
+    return Calling.sendDtmf(this._session, params)
   }
 
-  async sayOnCall(params: any) {
-    const setup = await CallingService.setup(this._session)
-    if (setup === false) {
-      throw new Error('Failed to bootstrapping CallingService.')
-    }
-    let { channel, what, gender } = params
-    const result = await new CallingService(this._session).say(params)
-
-    return result
+  sayOnCall(params: any) {
+    return Calling.say(this._session, params)
   }
 
-  async answerCall(params: any) {
-    const setup = await CallingService.setup(this._session)
-    if (setup === false) {
-      throw new Error('Failed to bootstrapping CallingService.')
-    }
-    const result = await new CallingService(this._session).answer(params)
-
-    return result
+  answerCall(params: any) {
+    return Calling.answer(this._session, params)
   }
 
-  async collectDigitsOnCall(params: any) {
-    const setup = await CallingService.setup(this._session)
-    if (setup === false) {
-      throw new Error('Failed to bootstrapping CallingService.')
-    }
-    const result = await new CallingService(this._session).collectDigits(params)
-
-    return result
+  collectDigitsOnCall(params: any) {
+    return Calling.collectDigits(this._session, params)
   }
 
-  async collectSpeechOnCall(params: any) {
-    const setup = await CallingService.setup(this._session)
-    if (setup === false) {
-      throw new Error('Failed to bootstrapping CallingService.')
-    }
-    const result = await new CallingService(this._session).collectSpeech(params)
-
-    return result
+  collectSpeechOnCall(params: any) {
+    return Calling.collectSpeech(this._session, params)
   }
 
   on(eventName: string, callback: any) {
-    let found = Object.values(SIGNALWIRE_NOTIFICATIONS).find(v => v === eventName)
-    if (!found) {
-      throw new Error('Invalid event name: ' + eventName)
-    }
-    PubSub.subscribe(eventName, callback)
+    registerHandler(eventName, callback, this._session.sessionid)
   }
 
   off(eventName: string) {
-    PubSub.unsubscribe(eventName)
+    removeHandler(eventName, this._session.sessionid)
+  }
+
+  static on(eventName: string, callback: any) {
+    registerHandler(eventName, callback)
+  }
+
+  static off(eventName: string) {
+    removeHandler(eventName)
   }
 }
-
-export default SignalWire

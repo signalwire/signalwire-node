@@ -1,12 +1,6 @@
 export const NETCAST_SUBCOMMAND: { [k: string]: string } = {
-  ROUTE_ADD: 'route.add',
-  ROUTE_REMOVE: 'route.remove',
-  // AUTHORITY_ADD: 'authority.add',
-  // AUTHENTICATION_ADD: 'authentication.add',
   PROTOCOL_PROVIDER_ADD: 'protocol.provider.add',
-  PROTOCOL_PROVIDER_REMOVE: 'protocol.provider.remove',
-  SUBSCRIPTION_ADD: 'subscription.add',
-  SUBSCRIPTION_REMOVE: 'subscription.remove',
+  PROTOCOL_PROVIDER_REMOVE: 'protocol.provider.remove'
 }
 
 export const BLADE_SUBSCRIBE_COMMAND: { [k: string]: string } = {
@@ -14,8 +8,16 @@ export const BLADE_SUBSCRIBE_COMMAND: { [k: string]: string } = {
   REMOVE: 'remove'
 }
 
-export const SIGNALWIRE_NOTIFICATIONS: { [k: string]: string } = {
-  GLOBAL: 'signalwire',
+export const EVENTS: { [k: string]: string } = {
+  ALL: 'signalwire',
+  WS: 'signalwire.socket',
+  WS_OPEN: 'signalwire.socket.open',
+  WS_CLOSE: 'signalwire.socket.close',
+  WS_ERROR: 'signalwire.socket.error',
+  WS_MESSAGE: 'signalwire.socket.message',
+
+  READY: 'signalwire.ready',
+
   MESSAGES: 'signalwire.messages',
   CALLS: 'signalwire.calls'
 }

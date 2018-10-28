@@ -322,43 +322,45 @@
             alert('Host - Project - Token are required!')
             return
           }
-          _sw = new SignalWire({
-            host,
-            project,
-            token,
-            callbacks: {
-              // onSocketOpen: function (session) {
-              //   console.log('onSocketOpen ???', session)
-              // },
-              // onSocketClose: function (session) {
-              //   console.log('onSocketClose ???', session)
-              // },
-              // onSocketError: function (session) {
-              //   console.log('onSocketError ???', session)
-              // },
-              // onMessageInbound: function (session, result) {
-              //   console.log('onMessageInbound ???', session, result)
-              // },
-              onSessionReady: async function (session) {
-                $('#connect, #connectForm').hide()
-                $('#demoContent').show()
-                $('#json-preview').html('')
-                _appendNotif('Compose your message and send it!')
-              }
-            }
+
+          SignalWire.on('signalwire.ready', (eventName, session) => {
+            // $('#connect, #connectForm').hide()
+            // $('#demoContent').show()
+            // $('#json-preview').html('')
+            // _appendNotif('Compose your message and send it!')
+            console.log('SW READY ?', eventName, session)
           })
 
-          // _sw.on('signalwire', (eventName, notification) => {
+          // SignalWire.on('signalwire.socket.open', (eventName, event) => {
+          //   console.log('signalwire.socket.open', eventName, event)
+          // })
+
+          // SignalWire.on('signalwire.socket.close', (eventName, event) => {
+          //   console.warn('signalwire.socket.close', eventName, event)
+          // })
+
+          // SignalWire.on('signalwire.socket.error', (eventName, event) => {
+          //   console.warn('signalwire.socket.error', eventName, event)
+          // })
+
+          // SignalWire.on('signalwire.socket.message', (eventName, event) => {
+          //   console.log('signalwire.socket.message', eventName, event)
+          // })
+
+          // SignalWire.on('signalwire', (eventName, notification) => { // GLOBAL EVENTS
           //   console.log('Global notification', eventName, notification)
           // })
 
-          _sw.on('signalwire.calls', (eventName, notification) => {
-            console.log('Call:', eventName, notification)
-          })
+          // SignalWire.on('signalwire.calls', (eventName, notification) => {
+          //   console.log('Call:', eventName, notification)
+          // })
 
-          _sw.on('signalwire.messages', (eventName, notification) => {
-            console.log('Message-related notification', eventName, notification)
-          })
+          // SignalWire.on('signalwire.messages', (eventName, notification) => {
+          //   console.log('Message-related notification', eventName, notification)
+          // })
+
+          _sw = new SignalWire({ host, project, token })
+          _sw.connect()
         })
 
         _fillValuesFromUrl()

@@ -21,6 +21,7 @@
     "debug": "npm run build && npm run watch-debug"
   },
   "dependencies": {
+    "@types/pubsub-js": "^1.5.18",
     "@types/uuid": "^3.4.3",
     "errorhandler": "^1.5.0",
     "lodash": "^4.17.10",

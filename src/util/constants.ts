@@ -35,6 +35,7 @@ export enum SwEvent {
   Track = 'signalwire.rtc.ontrack',
   LocalStream = 'signalwire.rtc.localStream',
   RemoteStream = 'signalwire.rtc.remoteStream',
+  MediaError = 'signalwire.rtc.mediaError',
 }
 
 export enum DialogState {

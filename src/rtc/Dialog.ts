@@ -42,7 +42,9 @@ export default class Dialog {
   private _liveArray: VertoLiveArray = null
 
   constructor(private session: BaseSession, opts?: DialogOptions) {
-    this.options = Object.assign(DEFAULT_OPTIONS, opts)
+    this.options = Object.assign({}, DEFAULT_OPTIONS, opts)
+
+    this._onNotification = this._onNotification.bind(this)
     this._init()
   }
 
@@ -237,16 +239,7 @@ export default class Dialog {
       return
     }
     this.options.remoteStream = stream
-    trigger(SwEvent.RemoteStream, this.options.remoteStream, this.session.uuid)
-  }
-
-  private _onLocalStream(stream: MediaStream) {
-    // const { localStream = null } = this.options
-    // if (streamIsValid(localStream) && localStream.id === stream.id) {
-    //   return
-    // }
-    this.options.localStream = stream
-    trigger(SwEvent.RemoteStream, this.options.localStream, this.session.uuid)
+    trigger(SwEvent.RemoteStream, this.options.remoteStream, this.callID)
   }
 
   private _registerPeerEvents() {
@@ -274,14 +267,19 @@ export default class Dialog {
   }
 
   private _onNotification(pvtData: any) {
-    switch (pvtData.action) {
+    const { action, laChannel = '', laName } = pvtData
+    if (laChannel.indexOf(this.options.destination_number) === -1) {
+      logger.warn('Invalid liveArray: it doesnt belong to this Dialog!')
+      return
+    }
+    switch (action) {
       case 'conference-liveArray-join':
         const config = {
           onChange: this.options.onNotification.bind(this),
           onError: error => logger.error('LiveArray error', error),
           subParams: { callID: this.callID }
         }
-        this._liveArray = new VertoLiveArray(this.session, pvtData.laChannel, pvtData.laName, config)
+        this._liveArray = new VertoLiveArray(this.session, laChannel, laName, config)
         break
       case 'conference-liveArray-part':
         if (this._liveArray) {
@@ -290,6 +288,10 @@ export default class Dialog {
         }
         break
     }
+  }
+
+  private _validCallback(name: string) {
+    return this.options.hasOwnProperty(name) && this.options[name] instanceof Function
   }
 
   private _init() {
@@ -307,13 +309,21 @@ export default class Dialog {
       }) */
 
     // Register Handlers
-    if (this.options.hasOwnProperty('onChange') && this.options.onChange instanceof Function) {
+    if (this._validCallback('onChange')) {
       register(SwEvent.VertoDialogChange, this.options.onChange.bind(this), this.callID)
     }
-    if (this.options.hasOwnProperty('onNotification') && this.options.onNotification instanceof Function) {
-      register(SwEvent.VertoPvtEvent, this._onNotification.bind(this), this.session.uuid)
+    if (this._validCallback('onLocalStream')) {
+      register(SwEvent.LocalStream, this.options.onLocalStream.bind(this), this.callID)
     }
-    register(SwEvent.LocalStream, this._onLocalStream.bind(this), this.callID)
+    if (this._validCallback('onRemoteStream')) {
+      register(SwEvent.RemoteStream, this.options.onRemoteStream.bind(this), this.callID)
+    }
+    if (this._validCallback('onUserMediaError')) {
+      register(SwEvent.MediaError, this.options.onUserMediaError.bind(this), this.callID)
+    }
+    if (this._validCallback('onNotification')) {
+      register(SwEvent.VertoPvtEvent, this._onNotification, this.session.uuid)
+    }
 
     this.setState(State.New)
     logger.info('New Dialog with Options:', this.options)
@@ -329,7 +339,11 @@ export default class Dialog {
       localStream.getTracks().forEach(t => t.stop())
       this.options.localStream = null
     }
-    deRegister(SwEvent.LocalStream, null)
+    deRegister(SwEvent.VertoDialogChange, null, this.callID)
+    deRegister(SwEvent.LocalStream, null, this.callID)
+    deRegister(SwEvent.RemoteStream, null, this.callID)
+    deRegister(SwEvent.MediaError, null, this.callID)
+    deRegister(SwEvent.VertoPvtEvent, this._onNotification, this.session.uuid)
     this.peer = null
   }
 }

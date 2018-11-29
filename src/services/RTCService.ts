@@ -2,10 +2,12 @@ import logger from '../util/logger'
 import { DialogOptions } from '../interfaces/'
 
 const getUserMedia = async (constraints: MediaStreamConstraints) => {
+  logger.debug('RTCService.getUserMedia', constraints)
   const stream = await navigator.mediaDevices.getUserMedia(constraints).catch(error => error)
   if (streamIsValid(stream)) {
     return stream
   }
+  logger.error('RTCService.getUserMedia', stream)
   throw stream
 }
 

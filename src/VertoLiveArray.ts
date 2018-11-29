@@ -1,4 +1,3 @@
-import Verto from './Verto'
 import BaseSession from './BaseSession'
 import logger from './util/logger'
 

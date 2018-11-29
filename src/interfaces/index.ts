@@ -121,6 +121,9 @@ export interface DialogOptions {
   screenShare?: boolean
   onChange?: Function
   onNotification?: Function
+  onLocalStream?: Function
+  onRemoteStream?: Function
+  onUserMediaError?: Function
 }
 
 export interface SubscribeParams {

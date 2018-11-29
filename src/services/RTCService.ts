@@ -1,5 +1,5 @@
 import logger from '../util/logger'
-import { DialogOptions } from '../interfaces/'
+import { DialogOptions, ICacheDevices, ICacheResolution } from '../interfaces/'
 
 const getUserMedia = async (constraints: MediaStreamConstraints) => {
   logger.debug('RTCService.getUserMedia', constraints)
@@ -13,32 +13,40 @@ const getUserMedia = async (constraints: MediaStreamConstraints) => {
 
 const streamIsValid = stream => stream instanceof MediaStream
 
-const getDevices = () => {
-  // TODO: cache the devices in localStorage if available!
-  return navigator.mediaDevices.enumerateDevices()
-    // .catch(error => { logger.error('enumerateDevices Error', error) })
+// TODO: cache the devices in localStorage if available!
+const getDevices = async (): Promise<ICacheDevices> => {
+  const devices = await navigator.mediaDevices.enumerateDevices()
+    .catch(error => { logger.error('enumerateDevices Error', error) })
+  const cache = {}
+  if (devices) {
+    devices.forEach(t => {
+      if (!cache.hasOwnProperty(t.kind)) {
+        cache[t.kind] = {}
+      }
+      if (t.groupId && Object.keys(cache[t.kind]).some(k => cache[t.kind][k].groupId == t.groupId)) {
+        return true
+      }
+      cache[t.kind][t.deviceId] = t
+    })
+  }
+  return cache
 }
 
-const resolutionList = [[160, 120], [320, 180], [320, 240], [640, 360], [640, 480], [1280, 720], [1920, 1080]]
-const getResolutions = () => {
-  resolutionList.forEach(async resolution => {
-    const constraints = { audio: false, video: { width: { exact: resolution[0] }, height: { exact: resolution[1] } }}
-    const stream = await getUserMedia(constraints)
-      .catch(error => {
-        logger.error('getUserMedia error?', error)
-        return null
-      })
+const resolutionList = [[160, 120], [176, 144], [320, 240], [352, 288], [640, 360], [640, 480], [800, 600], [1280, 720], [1600, 1200], [1920, 1080], [3840, 2160]]
+const getResolutions = async (): Promise<ICacheResolution[]> => {
+  const supported = []
+  for (let i = 0; i < resolutionList.length; i++) {
+    const resolution = resolutionList[i]
+    const constraints = { audio: false, video: { width: { exact: resolution[0] }, height: { exact: resolution[1] } } }
+    const stream = await getUserMedia(constraints).catch(error => null)
     if (stream) {
       stream.getVideoTracks().forEach(t => {
+        supported.push(Object.assign({ resolution: `${resolution[0]}x${resolution[1]}` }, t.getSettings()))
         t.stop()
-        const settings = t.getSettings()
-        logger.info('%i x %i - deviceId: %s', resolution[0], resolution[1], settings.deviceId)
-        logger.info('%i x %i - frameRate: %s', resolution[0], resolution[1], settings.frameRate)
-        logger.info('%i x %i - height: %s', resolution[0], resolution[1], settings.height)
-        logger.info('%i x %i - width: %s', resolution[0], resolution[1], settings.width)
       })
     }
-  })
+  }
+  return supported
 }
 
 const getMediaConstraints = (options: DialogOptions): MediaStreamConstraints => {

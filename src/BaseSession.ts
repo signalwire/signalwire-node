@@ -2,10 +2,11 @@ import { v4 as uuidv4 } from 'uuid'
 import logger from './util/logger'
 import Connection from './Connection'
 import Dialog from './rtc/Dialog'
-import { ISignalWireOptions, SubscribeParams, BroadcastParams } from './interfaces'
+import { ISignalWireOptions, SubscribeParams, BroadcastParams, ICacheDevices } from './interfaces'
 import { validateOptions } from './util/helpers'
 import { register, deRegister } from './services/Handler'
 import { SwEvent } from './util/constants'
+import { getDevices, getResolutions } from './services/RTCService'
 
 export default abstract class BaseSession {
   public uuid: string = uuidv4()
@@ -14,12 +15,14 @@ export default abstract class BaseSession {
   public subscriptions: { [channel: string]: Object } = {}
 
   protected _connection: Connection
+  protected _devices: ICacheDevices = {}
 
   constructor(public options: ISignalWireOptions) {
     if (!validateOptions(options, this.constructor.name)) {
       throw new Error('Invalid options for ' + this.constructor.name)
     }
     this._registers()
+    this.refreshDevices()
   }
 
   abstract async subscribe(params: SubscribeParams)
@@ -57,6 +60,26 @@ export default abstract class BaseSession {
 
   execute(msg: any) {
     return this._connection.send(msg)
+  }
+
+  refreshDevices() {
+    getDevices().then(devices => this._devices = devices)
+  }
+
+  get videoDevices() {
+    return this._devices.videoinput || {}
+  }
+
+  get audioInDevices() {
+    return this._devices.audioinput || {}
+  }
+
+  get audioOutDevices() {
+    return this._devices.audiooutput || {}
+  }
+
+  supportedResolutions() {
+    return getResolutions()
   }
 
   private _registers() {

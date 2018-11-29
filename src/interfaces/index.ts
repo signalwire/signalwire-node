@@ -140,3 +140,13 @@ export interface BroadcastParams {
   eventChannel?: string
   data?: object
 }
+
+export interface ICacheDevices {
+  videoinput?: { [deviceId: string]: MediaDeviceInfo }
+  audioinput?: { [deviceId: string]: MediaDeviceInfo }
+  audiooutput?: { [deviceId: string]: MediaDeviceInfo }
+}
+
+export interface ICacheResolution extends MediaTrackSettings {
+  resolution: string
+}

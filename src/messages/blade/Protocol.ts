@@ -1,5 +1,5 @@
-import BaseMessage from './BaseMessage'
-import { IBladeProtocolProviderAdd, IBladeProtocolProviderRemove } from '../interfaces'
+import BaseMessage from '../BaseMessage'
+import { IBladeProtocolProviderAdd, IBladeProtocolProviderRemove } from '../../interfaces'
 
 const method = 'blade.protocol'
 

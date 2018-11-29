@@ -1,13 +1,15 @@
 const webpack = require('webpack')
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin')
 
 module.exports = (env, argv) => {
-  return {
+  const outputDir = __dirname + '/dist/es5'
+  const mode = JSON.stringify(argv.mode)
+  const config = {
     mode: 'development',
     entry: './src/index.ts',
     output: {
-      path: __dirname + '/dist',
+      path: outputDir,
       filename: 'bundle.js',
-      // library: 'SignalWire',
       libraryTarget: 'this'
     },
     resolve: {
@@ -16,21 +18,35 @@ module.exports = (env, argv) => {
     module: {
       rules: [
         {
-          'test': /\.tsx?$/,
-          'loaders': ['babel-loader', 'ts-loader'],
-          'exclude': [/node_modules/]
+          test: /\.tsx?$/,
+          loader: 'babel-loader'
+        },
+        {
+          test: /\.tsx?$/,
+          loader: 'ts-loader',
+          options: {
+            configFile: 'tsconfig.es5.json'
+          }
         }
       ]
     },
+    optimization: {
+      minimizer: [
+        new UglifyJsPlugin({
+          uglifyOptions: { keep_fnames: true }
+        })
+      ]
+    },
     devServer: {
-      contentBase: __dirname + '/dist',
+      contentBase: outputDir,
       compress: true,
-      port: 9000
+      port: 9000,
+      https: true
     },
     plugins: [
-      new webpack.DefinePlugin({
-        ENV: JSON.stringify(argv.mode)
-      })
+      new webpack.DefinePlugin({ ENV: mode })
     ]
   }
+
+  return config
 }

@@ -1,21 +1,13 @@
-import PubSub from 'pubsub-js'
-import { EVENTS } from './constants'
 import { ISignalWireOptions } from '../interfaces'
 
-export const registerHandler = (eventName: string, callback: any, uniqueId: string = '') => {
-  const found = Object.values(EVENTS).find(v => v === eventName)
-  if (!found) {
-    throw new Error('Invalid event name: ' + eventName)
+export const validateOptions = (options: ISignalWireOptions, className: string): boolean => {
+  let check: boolean = false
+  if (className === 'SignalWire') {
+    check = options.hasOwnProperty('project') && options.project != '' && options.hasOwnProperty('token') && options.token != ''
+  } else if (className === 'Verto') {
+    check = options.hasOwnProperty('login') && options.login != '' && options.hasOwnProperty('passwd') && options.passwd != ''
   }
-  PubSub.subscribe(`${uniqueId}${eventName}`, callback)
-}
-
-export const removeHandler = (eventName: string, uniqueId: string = '') => PubSub.unsubscribe(`${uniqueId}${eventName}`)
-
-export const validateOptions = (options: ISignalWireOptions): boolean => {
-  return (options.hasOwnProperty('host') && options.host != '' &&
-    options.hasOwnProperty('project') && options.project != '' &&
-    options.hasOwnProperty('token') && options.token != '')
+  return options.hasOwnProperty('host') && options.host != '' && check
 }
 
 export const cleanNumber = (num: string) => {
@@ -25,3 +17,5 @@ export const cleanNumber = (num: string) => {
   }
   return `+${tmp}`
 }
+
+export const objEmpty = obj => Object.keys(obj).length === 0

@@ -1,12 +1,12 @@
 import logger from './util/logger'
 import { IBladeConnectResult } from './interfaces'
-import { NETCAST_SUBCOMMAND } from './util/constants'
+import { Netcast } from './util/constants'
 
 export default class Cache {
   protocols: string[]
 
   populateFromConnect(data: IBladeConnectResult) {
-    const { protocols_uncertified } = data.result
+    const { protocols_uncertified } = data
     this.protocols = protocols_uncertified
 
     this._printStats()
@@ -16,10 +16,10 @@ export default class Cache {
     logger.info('NETCAST: %s', params.command, params)
     const { params: subParams }: any = params
     switch (params.command) {
-      case NETCAST_SUBCOMMAND.PROTOCOL_PROVIDER_ADD:
+      case Netcast.ProtocolProviderAdd:
         // this._protocolProviderAdd(subParams)
         break
-      case NETCAST_SUBCOMMAND.PROTOCOL_PROVIDER_REMOVE:
+      case Netcast.ProtocolProviderRemove:
         // this._protocolProviderRemove(subParams)
         break
       default:

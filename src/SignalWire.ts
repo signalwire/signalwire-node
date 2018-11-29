@@ -1,42 +1,28 @@
-import PubSub from 'pubsub-js'
 import logger from './util/logger'
-import Session from './Session'
+import BaseSession from './BaseSession'
+import { Connect, Subscription } from './messages/Blade'
+import Cache from './Cache'
+import { IBladeConnectResult, SubscribeParams, BroadcastParams } from './interfaces'
+import { BroadcastHandler } from './services/Broadcast'
 import * as Messaging from './services/Messaging'
 import * as Calling from './services/Calling'
-import { ISignalWireOptions } from './interfaces'
-import { validateOptions, registerHandler, removeHandler } from './util/helpers'
+import { ADD, REMOVE, SwEvent } from './util/constants'
+import { register, trigger } from './services/Handler'
 
-export default class SignalWire {
-  private _session: Session
+export default class SignalWire extends BaseSession {
+  public nodeid: string
+  public master_nodeid: string
+  public services: { [service: string]: string } = {}
 
-  constructor(public options: ISignalWireOptions) {
-    if (!validateOptions(options)) {
-      throw new Error('Invalid init params. "host" - "project" - "token" are required')
-    }
-
-    this._session = new Session(this)
-  }
-
-  connect() {
-    return this._session.connect()
-  }
-
-  subscribe(protocol: string, channels: string[]) {
-    return this._session.addSubscription(protocol, channels)
-  }
-
-  unsubscribe(protocol: string, channels: string[]) {
-    return this._session.removeSubscription(protocol, channels)
-  }
+  private _cache: Cache = new Cache()
 
   async sendMessage(params: any) {
-    const result = await Messaging.sendMessage(this._session, params)
+    const result = await Messaging.sendMessage(this, params)
 
     Object.defineProperty(result, 'onNotification', {
       writable: false,
       value: callback => {
-        logger.warn('Here to sub this message', result.id)
-        PubSub.subscribe(result.id, callback)
+        register(result.id, callback)
       }
     })
 
@@ -45,17 +31,16 @@ export default class SignalWire {
 
   getMessage(params: any) {
     const { messageId } = params
-    return Messaging.getMessage(this._session, messageId)
+    return Messaging.getMessage(this, messageId)
   }
 
   async createCall(params: any) {
-    const result = await Calling.newCall(this._session, params)
+    const result = await Calling.newCall(this, params)
 
     Object.defineProperty(result, 'onNotification', {
       writable: false,
       value: callback => {
-        logger.warn('Here to sub this call', result.channel)
-        PubSub.subscribe(result.channel, callback)
+        register(result.channel, callback)
       }
     })
 
@@ -63,46 +48,84 @@ export default class SignalWire {
   }
 
   hangupCall(params: any) {
-    return Calling.hangup(this._session, params)
+    return Calling.hangup(this, params)
   }
 
   playFileOnCall(params: any) {
-    return Calling.play(this._session, params)
+    return Calling.play(this, params)
   }
 
   sendDtmf(params: any) {
-    return Calling.sendDtmf(this._session, params)
+    return Calling.sendDtmf(this, params)
   }
 
   sayOnCall(params: any) {
-    return Calling.say(this._session, params)
+    return Calling.say(this, params)
   }
 
   answerCall(params: any) {
-    return Calling.answer(this._session, params)
+    return Calling.answer(this, params)
   }
 
   collectDigitsOnCall(params: any) {
-    return Calling.collectDigits(this._session, params)
+    return Calling.collectDigits(this, params)
   }
 
   collectSpeechOnCall(params: any) {
-    return Calling.collectSpeech(this._session, params)
+    return Calling.collectSpeech(this, params)
   }
 
-  on(eventName: string, callback: any) {
-    registerHandler(eventName, callback, this._session.sessionid)
+  broadcast(params: BroadcastParams) {
+    // TODO: to be implemented
   }
 
-  off(eventName: string) {
-    removeHandler(eventName, this._session.sessionid)
+  async subscribe(params: SubscribeParams) {
+    const { protocol, channels } = params
+    const bs = new Subscription({ command: ADD, protocol, channels })
+    const result = await this.execute(bs)
+    if (result.hasOwnProperty('failed_channels') && result.failed_channels.length) {
+      throw new Error(`Failed to subscribe to channels ${result.failed_channels.join(', ')}`)
+    }
+    return result
   }
 
-  static on(eventName: string, callback: any) {
-    registerHandler(eventName, callback)
+  async unsubscribe(params: SubscribeParams) {
+    const { protocol, channels } = params
+    const bs = new Subscription({ command: REMOVE, protocol, channels })
+    return this.execute(bs)
   }
 
-  static off(eventName: string) {
-    removeHandler(eventName)
+  /**
+   * protected methods
+   */
+
+  protected async _onSocketOpen() {
+    const bc = new Connect({ project: this.options.project, token: this.options.token }, this.sessionid)
+    const response: IBladeConnectResult = await this.execute(bc)
+    this.sessionid = response.sessionid
+    this.nodeid = response.nodeid
+    this.master_nodeid = response.master_nodeid
+    this._cache.populateFromConnect(response)
+    trigger(SwEvent.Ready, this, this.uuid)
+  }
+
+  protected _onSocketClose() {
+    setTimeout(() => this.connect(), 1000)
+  }
+
+  protected _onSocketError(error) {
+    logger.error('Socket error', error)
+  }
+
+  protected _onSocketMessage(response: any) {
+    logger.info('Inbound Message', response.method, this.nodeid, response)
+    switch (response.method) {
+      case 'blade.netcast':
+        this._cache.netcastUpdate(response.params)
+      break
+      case 'blade.broadcast':
+        BroadcastHandler(this, response.params)
+      break
+    }
   }
 }

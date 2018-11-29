@@ -1,11 +1,11 @@
-import Session from '../Session'
+import SignalWire from '../SignalWire'
 import { Setup } from './Setup'
-import { Execute } from '../blade/Blade'
+import { Execute } from '../messages/Blade'
 import { cleanNumber } from '../util/helpers'
 
 const SERVICE = 'messaging'
 
-const sendMessage = async (session: Session, params: { body: string, from: string, to: string, media: string[] }) => {
+const sendMessage = async (session: SignalWire, params: { body: string, from: string, to: string, media: string[] }) => {
   await Setup(session, SERVICE)
 
   const { body, from, to, media } = params
@@ -20,7 +20,7 @@ const sendMessage = async (session: Session, params: { body: string, from: strin
   return session.execute(msg)
 }
 
-const getMessage = async (session: Session, id: string) => {
+const getMessage = async (session: SignalWire, id: string) => {
   await Setup(session, SERVICE)
 
   const msg = new Execute({

@@ -1,12 +1,12 @@
 import logger from '../util/logger'
-import Session from '../Session'
-import { Execute } from '../blade/Blade'
+import SignalWire from '../SignalWire'
+import { Execute } from '../messages/Blade'
 
 const SETUP_PROTOCOL = 'signalwire'
 const SETUP_METHOD = 'setup'
 const SETUP_CHANNEL = 'notifications'
 
-export const Setup = async (session: Session, service: string) => {
+export const Setup = async (session: SignalWire, service: string) => {
   // Check if service is ready
   if (session.services.hasOwnProperty(service)) {
     logger.debug(service, ' has already been setup!')
@@ -22,10 +22,10 @@ export const Setup = async (session: Session, service: string) => {
   if (response === undefined) {
     throw new Error('Setup Error: invalid execute!')
   }
-  const { protocol } = response.result.result
+  const { protocol } = response.result
 
   logger.debug('Subscribe to ', protocol)
-  const sub = await session.addSubscription(protocol, [SETUP_CHANNEL])
+  const sub = await session.subscribe({ protocol, channels: [SETUP_CHANNEL] })
     .catch(error => {
       // TODO: The error is already throw by Session but here i want to dispatch a specific error
       logger.error('Setup subscription error', error)

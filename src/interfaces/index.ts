@@ -37,12 +37,10 @@ export interface IBladeConnectRequest extends IMessageBase {
 }
 
 export interface IBladeConnectResult extends IMessageBase {
-  result: {
-    sessionid: string
-    nodeid: string
-    master_nodeid: string
-    protocols_uncertified: string[]
-  }
+  sessionid: string
+  nodeid: string
+  master_nodeid: string
+  protocols_uncertified: string[]
 }
 
 export interface IBladeExecuteRequest extends IMessageBase {
@@ -67,7 +65,7 @@ export interface IBladeProtocolProviderAdd extends IMessageBase {
   method: string
   params: {
     protocol: string
-    command: string
+    command?: string
     params: IProtocol['params']
   }
 }
@@ -75,7 +73,7 @@ export interface IBladeProtocolProviderAdd extends IMessageBase {
 export interface IBladeProtocolProviderRemove extends IMessageBase {
   method: string
   params: {
-    command: string
+    command?: string
     protocol: string
   }
 }
@@ -91,4 +89,51 @@ export interface IBladeSubscriptionRequest extends IMessageBase {
   }
 }
 
-export interface ISignalWireOptions { host: string, project: string, token: string }
+export interface ISignalWireOptions {
+  host: string,
+  project: string,
+  token: string,
+  login?: string,
+  passwd?: string,
+}
+
+export interface DialogOptions {
+  callID?: string
+  remoteSdp?: string
+  localStream?: MediaStream
+  remoteStream?: MediaStream
+  iceServers?: boolean | RTCIceServer[]
+  audio?: boolean | MediaTrackConstraints
+  video?: boolean | MediaTrackConstraints
+  attach?: boolean
+  useStereo?: boolean
+  micId?: string
+  camId?: string
+  speakerId?: string
+  outgoingBandwidth?: string
+  incomingBandwidth?: string
+  remote_caller_id_name: string
+  remote_caller_id_number: string
+  destination_number: string
+  caller_id_name: string
+  caller_id_number: string
+  userVariables?: Object
+  screenShare?: boolean
+  onChange?: Function
+  onNotification?: Function
+}
+
+export interface SubscribeParams {
+  protocol?: string
+  channels?: string[]
+  eventChannel?: string
+  handler?: Function
+  subParams?: object
+}
+
+export interface BroadcastParams {
+  protocol?: string
+  channels?: string[]
+  eventChannel?: string
+  data?: object
+}

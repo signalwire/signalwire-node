@@ -1,5 +1,5 @@
-import BaseMessage from './BaseMessage'
-import { IBladeExecuteRequest, IBladeExecuteResult } from '../interfaces'
+import BaseMessage from '../BaseMessage'
+import { IBladeExecuteRequest, IBladeExecuteResult } from '../../interfaces'
 
 class Execute extends BaseMessage {
   method: string = 'blade.execute'

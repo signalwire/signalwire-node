@@ -1,0 +1,178 @@
+import logger from './util/logger'
+import BaseSession from './BaseSession'
+import { SubscribeParams, BroadcastParams } from './interfaces'
+import { Login, Result, Broadcast, Subscribe, Unsubscribe } from './messages/Verto'
+import Dialog from './rtc/Dialog'
+import { SwEvent, VertoMethod, DialogState } from './util/constants'
+import { trigger, register, deRegister } from './services/Handler'
+
+export default class Verto extends BaseSession {
+
+  newCall(args: any = {}) {
+    const dialog = new Dialog(this, args)
+    dialog.invite()
+    return dialog
+  }
+
+  logout() {
+    logger.warn('Verto logout')
+    this.purge()
+    this.disconnect()
+  }
+
+  purge() {
+    logger.warn('Verto purge')
+    Object.keys(this.dialogs).forEach(k => {
+      this.dialogs[k].setState(DialogState.Purge)
+    })
+  }
+
+  broadcast(params: BroadcastParams) {
+    const { eventChannel, data } = params
+    if (!eventChannel) {
+      throw new Error('Invalid channel for broadcast: ' + eventChannel)
+    }
+    const msg = new Broadcast({ sessid: this.sessionid, eventChannel, data })
+    this.execute(msg)
+  }
+
+  async subscribe(params: SubscribeParams) {
+    const { eventChannel, subParams = undefined, handler = null } = params
+    if (!eventChannel) {
+      throw new Error(`Invalid channel: "${eventChannel}"`)
+    }
+    if (this._alreadySubscribed(eventChannel)) {
+      throw new Error(`Already subscribed to ${eventChannel}!`)
+    }
+    const msg = new Subscribe({ sessid: this.sessionid, eventChannel, subParams })
+    const response = await this.execute(msg)
+    if (response.hasOwnProperty('unauthorizedChannels')) {
+      logger.error(`Unauthorized Channels: ${response.unauthorizedChannels.join(', ')}`)
+      response.unauthorizedChannels.forEach(c => this._removeSubscription(c))
+    }
+    if (response.hasOwnProperty('subscribedChannels')) {
+      response.subscribedChannels.forEach(c => this._addSubscription(c, subParams, handler))
+    }
+    return response
+  }
+
+  async unsubscribe(params: SubscribeParams) {
+    const { eventChannel } = params
+    const msg = new Unsubscribe({ sessid: this.sessionid, eventChannel })
+    const response = await this.execute(msg).catch(error => error)
+    if (response.hasOwnProperty('unsubscribedChannels')) {
+      response.unsubscribedChannels.forEach(c => this._removeSubscription(c))
+    }
+    if (response.hasOwnProperty('notSubscribedChannels')) {
+      logger.error(`You were not subscribed to channels: ${response.notSubscribedChannels.join(', ')}`)
+      response.notSubscribedChannels.forEach(c => this._removeSubscription(c))
+    }
+    return response
+  }
+
+  private _removeSubscription(channel: string) {
+    deRegister(channel)
+    delete this.subscriptions[channel]
+  }
+
+  private _addSubscription(channel: string, obj: Object, handler: Function = null) {
+    const old = this.subscriptions[channel] || {}
+    this.subscriptions[channel] = Object.assign(old, obj)
+    if (handler instanceof Function) {
+      register(channel, handler)
+    }
+  }
+
+  private _alreadySubscribed(channel: string): boolean {
+    return this.subscriptions.hasOwnProperty(channel)
+  }
+
+  protected async _onSocketOpen() {
+    const login = new Login(this.options.login, this.options.passwd)
+    const response = await this.execute(login)
+      .catch(error => {
+        logger.error('Verto login error', error)
+      })
+    if (response) {
+      this.sessionid = response.sessid
+      trigger(SwEvent.Ready, this, this.uuid)
+    }
+  }
+
+  protected _onSocketClose() {
+    logger.info('Verto socket close')
+    setTimeout(() => this.connect(), 1000)
+  }
+
+  protected _onSocketError(error) {
+    logger.error('Verto socket error', error)
+  }
+
+  protected _onSocketMessage(msg: any) {
+    // logger.info('Verto Inbound Message', msg)
+    // TODO: Move this switch in a service to re-use it under Blade!
+    const { id, method, params } = msg
+    const { callID, eventChannel } = params
+    const attach = method === VertoMethod.Attach
+
+    if (callID && this.dialogs.hasOwnProperty(callID)) {
+      if (attach) {
+        this.dialogs[callID].hangup()
+      } else {
+        this.dialogs[callID].handleMessage(msg)
+        this.execute(new Result(id, method))
+        return
+      }
+    }
+
+    switch (method) {
+      case VertoMethod.Punt:
+        this.logout()
+        break
+      case VertoMethod.Invite:
+      case VertoMethod.Attach:
+        const dialog = new Dialog(this, {
+          callID: params.callID,
+          remoteSdp: params.sdp,
+          remote_caller_id_name: params.caller_id_name,
+          remote_caller_id_number: params.caller_id_number,
+          destination_number: params.callee_id_number,
+          caller_id_name: params.callee_id_name,
+          caller_id_number: params.callee_id_number,
+          audio: params.sdp.indexOf('m=audio') > 0,
+          video: params.sdp.indexOf('m=video') > 0,
+          attach
+        })
+        if (attach) {
+          dialog.setState(DialogState.Recovering)
+          dialog.answer()
+        } else {
+          dialog.setState(DialogState.Ringing)
+        }
+        this.execute(new Result(id, method))
+        break
+      case VertoMethod.Event:
+        if (!eventChannel) {
+          logger.error('Verto received an unknown event:', params)
+          return
+        }
+        if (this.sessionid === eventChannel) {
+          trigger(SwEvent.VertoPvtEvent, params.pvtData, this.uuid)
+        } else if (this.subscriptions.hasOwnProperty(eventChannel)) {
+          trigger(eventChannel, params)
+          // FIXME: Verto also controlled subscriptions of "eventChannel.split('.')[0]" but...is it needed?
+        } else {
+          trigger(SwEvent.VertoEvent, params, this.uuid)
+        }
+        break
+      case VertoMethod.Info:
+        trigger(SwEvent.VertoInfo, params, this.uuid)
+        break
+      case VertoMethod.ClientReady:
+        trigger(SwEvent.VertoClientReady, params, this.uuid)
+        break
+      default:
+        logger.warn('Verto message unknown method:', msg)
+    }
+  }
+}

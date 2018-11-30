@@ -52,8 +52,7 @@ export default class Peer {
 
     this.instance.onnegotiationneeded = event => {
       if (this._negotiating) {
-        // Workaround for Chrome: skip nested negotiations
-        logger.warn('Skip twice onnegotiationneeded..')
+        logger.debug('Skip twice onnegotiationneeded..')
         return
       }
       this._negotiating = true

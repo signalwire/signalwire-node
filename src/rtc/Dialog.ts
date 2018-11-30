@@ -82,17 +82,23 @@ export default class Dialog {
 
   hold() {
     const msg = new Modify({ sessid: this.session.sessionid, action: 'hold', dialogParams: this.options })
-    this.session.execute(msg)
+    return this.session.execute(msg)
+      .then(this._handleChangeHoldStateSuccess.bind(this))
+      .catch(this._handleChangeHoldStateError.bind(this))
   }
 
   unhold() {
     const msg = new Modify({ sessid: this.session.sessionid, action: 'unhold', dialogParams: this.options })
-    this.session.execute(msg)
+    return this.session.execute(msg)
+      .then(this._handleChangeHoldStateSuccess.bind(this))
+      .catch(this._handleChangeHoldStateError.bind(this))
   }
 
   toggleHold() {
     const msg = new Modify({ sessid: this.session.sessionid, action: 'toggleHold', dialogParams: this.options })
-    this.session.execute(msg)
+    return this.session.execute(msg)
+      .then(this._handleChangeHoldStateSuccess.bind(this))
+      .catch(this._handleChangeHoldStateError.bind(this))
   }
 
   dtmf(dtmf: string) {
@@ -168,6 +174,16 @@ export default class Dialog {
         this.hangup(params, false)
       break
     }
+  }
+
+  private _handleChangeHoldStateSuccess(response) {
+    response.holdState === 'active' ? this.setState(State.Active) : this.setState(State.Held)
+    return true
+  }
+
+  private _handleChangeHoldStateError(error) {
+    logger.error('Failed to %s dialog %s', error.action, this.callID, error)
+    return false
   }
 
   private _onAnswer(sdp: string) {

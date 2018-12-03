@@ -15,6 +15,7 @@ export enum SwEvent {
 
   // Global Events
   Ready = 'signalwire.ready',
+  Error = 'signalwire.error',
 
   // Blade Events
   Messages = 'signalwire.messages',

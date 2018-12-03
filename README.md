@@ -30,6 +30,7 @@ To be notified of the internal events you need to subscribe to the events you ne
 | Session Events | Description |
 | --- | --- |
 | `signalwire.ready` | The session has been established so all other methods can now be used. |
+| `signalwire.error` | Error dispatch at the session level. |
 
 | Socket Events ||
 | --- | --- |

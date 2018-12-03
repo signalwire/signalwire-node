@@ -4,6 +4,7 @@ import { Result } from './verto/Result'
 
 class Invite extends BaseRequest {}
 class Answer extends BaseRequest {}
+class Attach extends BaseRequest {}
 class Bye extends BaseRequest {}
 class Modify extends BaseRequest {}
 class Info extends BaseRequest {}
@@ -15,6 +16,7 @@ export {
   Login,
   Invite,
   Answer,
+  Attach,
   Bye,
   Modify,
   Info,

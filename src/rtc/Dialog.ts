@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from 'uuid'
 import logger from '../util/logger'
 import BaseSession from '../BaseSession'
 import VertoLiveArray from '../VertoLiveArray'
-import { Invite, Answer, Bye, Modify, Info } from '../messages/Verto'
+import { Invite, Answer, Attach, Bye, Modify, Info } from '../messages/Verto'
 import Peer from './Peer'
 import { DialogState as State, DialogDirection as Direction, PeerType, VertoMethod, SwEvent } from '../util/constants'
 import { trigger, register, deRegister } from '../services/Handler'
@@ -45,6 +45,7 @@ export default class Dialog {
     this.options = Object.assign({}, DEFAULT_OPTIONS, opts)
 
     this._onNotification = this._onNotification.bind(this)
+    this._onMediaError = this._onMediaError.bind(this)
     this._init()
   }
 
@@ -244,11 +245,13 @@ export default class Dialog {
   private _onIceSdp(data: RTCSessionDescription) {
     // TODO: Blade needs a differ wrapper (maybe BladeInvite & BladeAnswer ?!)
     let msg = null
+    const tmpParams = { sessid: this.session.sessionid, sdp: data.sdp, dialogParams: this.options }
     if (data.type === 'offer') {
       this.setState(State.Requesting)
-      msg = new Invite({ sessid: this.session.sessionid, sdp: data.sdp, dialogParams: this.options })
+      msg = new Invite(tmpParams)
     } else if (data.type === 'answer') {
-      msg = new Answer({ sessid: this.session.sessionid, sdp: data.sdp, dialogParams: this.options })
+      this.setState(State.Answering)
+      msg = this.options.attach === true ? new Attach(tmpParams) : new Answer(tmpParams)
     }
     this.session.execute(msg)
       .then(response => {
@@ -308,6 +311,11 @@ export default class Dialog {
     }
   }
 
+  private _onMediaError(error: any) {
+    this.options.onUserMediaError.call(this, error)
+    this.hangup({}, false)
+  }
+
   private _validCallback(name: string) {
     return this.options.hasOwnProperty(name) && this.options[name] instanceof Function
   }
@@ -331,7 +339,7 @@ export default class Dialog {
       register(SwEvent.VertoDialogChange, this.options.onChange.bind(this), this.callID)
     }
     if (this._validCallback('onUserMediaError')) {
-      register(SwEvent.MediaError, this.options.onUserMediaError.bind(this), this.callID)
+      register(SwEvent.MediaError, this._onMediaError, this.callID)
     }
     if (this._validCallback('onNotification')) {
       register(SwEvent.VertoPvtEvent, this._onNotification, this.session.uuid)

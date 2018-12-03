@@ -20,7 +20,8 @@
       "es2017",
       "dom",
       "scripthost"
-    ]
+    ],
+    "removeComments": true
   },
   "include": [
     "src/**/*"

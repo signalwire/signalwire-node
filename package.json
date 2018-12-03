@@ -7,7 +7,8 @@
     "url": ""
   },
   "author": "Edoardo Gallo <egallo@signalwire.com>",
-  "main": "index.js",
+  "main": "dist/es5/index.js",
+  "module": "dist/es6/index.js",
   "license": "ISC",
   "scripts": {
     "build": "npm run build-es5 && npm run build-es6",

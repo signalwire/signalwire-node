@@ -5,7 +5,7 @@ module.exports = (env, argv) => {
   const outputDir = __dirname + '/dist/es5'
   const mode = JSON.stringify(argv.mode)
   const config = {
-    mode: 'development',
+    mode,
     entry: './src/index.ts',
     output: {
       path: outputDir,
@@ -44,7 +44,11 @@ module.exports = (env, argv) => {
       https: true
     },
     plugins: [
-      new webpack.DefinePlugin({ ENV: mode })
+      new webpack.DefinePlugin({
+        'process.env': {
+          NODE_ENV: mode,
+        }
+      })
     ]
   }
 

@@ -33,8 +33,8 @@ export enum SwEvent {
   Ice = 'signalwire.rtc.candidate',
   IceSdp = 'signalwire.rtc.icesdp',
   Track = 'signalwire.rtc.ontrack',
-  LocalStream = 'signalwire.rtc.localStream',
-  RemoteStream = 'signalwire.rtc.remoteStream',
+  // LocalStream = 'signalwire.rtc.localStream',
+  // RemoteStream = 'signalwire.rtc.remoteStream',
   MediaError = 'signalwire.rtc.mediaError',
 }
 

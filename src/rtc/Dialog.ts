@@ -64,14 +64,17 @@ export default class Dialog {
     this.cause = params.cause || 'NORMAL_CLEARING'
     this.causeCode = params.causeCode || 16
     this.setState(State.Hangup)
+    const _close = () => {
+      this.peer ? this.peer.instance.close() : this.setState(State.Destroy)
+    }
 
     if (execute) {
       const bye = new Bye({ sessid: this.session.sessionid, dialogParams: this.options })
       this.session.execute(bye)
-        .then(res => this.peer.instance.close())
+        .then(_close.bind(this))
         .catch(error => logger.error('verto.bye failed!', error))
     } else {
-      this.peer.instance.close()
+      _close()
     }
   }
 
@@ -129,7 +132,16 @@ export default class Dialog {
   }
 
   get clone() {
-    return Object.assign({}, this)
+    // return Object.assign({}, this)
+    return this
+  }
+
+  get localStream() {
+    return this.options.localStream
+  }
+
+  get remoteStream() {
+    return this.options.remoteStream
   }
 
   setState(state: State) {
@@ -145,8 +157,6 @@ export default class Dialog {
     switch (state) {
       case State.Destroy:
         this._finalize()
-        delete this.session.dialogs[this.callID]
-        delete this.constructor
         break
     }
   }
@@ -235,6 +245,7 @@ export default class Dialog {
     // TODO: Blade needs a differ wrapper (maybe BladeInvite & BladeAnswer ?!)
     let msg = null
     if (data.type === 'offer') {
+      this.setState(State.Requesting)
       msg = new Invite({ sessid: this.session.sessionid, sdp: data.sdp, dialogParams: this.options })
     } else if (data.type === 'answer') {
       msg = new Answer({ sessid: this.session.sessionid, sdp: data.sdp, dialogParams: this.options })
@@ -247,15 +258,6 @@ export default class Dialog {
           this.setState(State.Active)
         }
       })
-  }
-
-  private _onRemoteStream(stream: MediaStream) {
-    const { remoteStream = null } = this.options
-    if (streamIsValid(remoteStream) && remoteStream.id === stream.id) {
-      return
-    }
-    this.options.remoteStream = stream
-    trigger(SwEvent.RemoteStream, this.options.remoteStream, this.callID)
   }
 
   private _registerPeerEvents() {
@@ -278,7 +280,7 @@ export default class Dialog {
     }
 
     instance.ontrack = event => {
-      this._onRemoteStream(event.streams[0])
+      this.options.remoteStream = event.streams[0]
     }
   }
 
@@ -328,12 +330,6 @@ export default class Dialog {
     if (this._validCallback('onChange')) {
       register(SwEvent.VertoDialogChange, this.options.onChange.bind(this), this.callID)
     }
-    if (this._validCallback('onLocalStream')) {
-      register(SwEvent.LocalStream, this.options.onLocalStream.bind(this), this.callID)
-    }
-    if (this._validCallback('onRemoteStream')) {
-      register(SwEvent.RemoteStream, this.options.onRemoteStream.bind(this), this.callID)
-    }
     if (this._validCallback('onUserMediaError')) {
       register(SwEvent.MediaError, this.options.onUserMediaError.bind(this), this.callID)
     }
@@ -356,10 +352,10 @@ export default class Dialog {
       this.options.localStream = null
     }
     deRegister(SwEvent.VertoDialogChange, null, this.callID)
-    deRegister(SwEvent.LocalStream, null, this.callID)
-    deRegister(SwEvent.RemoteStream, null, this.callID)
     deRegister(SwEvent.MediaError, null, this.callID)
     deRegister(SwEvent.VertoPvtEvent, this._onNotification, this.session.uuid)
     this.peer = null
+    this.session.dialogs[this.callID] = null
+    delete this.session.dialogs[this.callID]
   }
 }

@@ -1,19 +1,25 @@
 # SignalWire Client JS
 
 ## Usage
-Add a script tag referencing the SignalWire library:
+
+If you are using the ES6 version:
+```javascript
+import { Verto } from 'signalwire-client-js'
+```
+
+Instead, if you are using the ES5 version add a script tag referencing the SignalWire library:
 ```html
 <script src="./bundle.js"></script>
 ```
 
-Then instantiate SignalWire:
-> Note: host / project / token are required
+Then instantiate the client:
+> Note: host / login / passwd are required for Verto
 
 ```javascript
-var signalwire = new SignalWire({
-  host: 'demo.signalwire.com',
-  project: 'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX',
-  token: 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
+const client = new Verto({
+  host: 'freeswitch.example.com:8082',
+  login: '1008@freeswitch.example.com',
+  passwd: 'your-super-password',
   callbacks: {
     onSocketOpen: function (session) {
       // The socket connection is open but you are not yet authenticated with the SignalWire system
@@ -32,172 +38,291 @@ var signalwire = new SignalWire({
 })
 ```
 
-## Events:
+## Subscribe to the client events:
 
-Subscribe to global events to get a notification when a service is updated.
-If you do a subscription to both `signalwire` & `signalwire.calls`, your callbacks will be notify with the same data.
+To be notified of the internal events you need to subscribe to the events you need:
 
-## Subscribe to all notifications from SignalWire:
+#### Session events:
+* `signalwire.ready`:
+
+  The session has been established so all other methods can now be used!
+
+#### WebSocket events:
+* `signalwire.socket.open`:
+
+  Socket is open but you are not yet authenticated!
+
+* `signalwire.socket.close`:
+
+  Socket is closing..
+
+* `signalwire.socket.error`:
+
+  Socket gave an error
+
+
+* `signalwire.socket.message`:
+
+  Client received a message from the socket.
+
+#### mod_verto events:
+* `signalwire.verto.dialogChange`:
+
+  A dialog's state changed. Update the UI accordingly..
+
+* `signalwire.verto.display`:
+
+  Update the dialog UI with the informations received.
+
+* `signalwire.verto.info`:
+
+
+
+* `signalwire.verto.event`:
+
+
+
+* `signalwire.verto.pvtEvent`:
+
+
+
+* `signalwire.verto.clientReady`:
+
+  All previously dialogs have been reattached. Note: FreeSWITCH 1.8+ only.
+
+
+Examples:
+
 ```javascript
-signalwire.on('signalwire', function(notificationType, notificationData){
-  // Global notification. Inspect 'notificationType' to see which type of notification is (call || message || ..)
+client.on('signalwire.socket.open', function(){
+  // Do something when the socket has been opened!
 })
 ```
 
-## Subscribe to all call-related events:
 ```javascript
-signalwire.on('signalwire.calls', function(notificationType, notificationData){
-  // Call notification. One of the active call has changed!
+client.on('signalwire.socket.message', function(message){
+  // Do something with the received message!
 })
 ```
 
 ```javascript
-signalwire.on('signalwire.messages', function(notificationType, notificationData){
-  // Message notification. The state of one of your message has been updated!
+client.on('signalwire.verto.dialogChange', function(dialog){
+  // Update the UI when this dialog's state change:
+  switch (dialog.state) {
+    case 'new':
+      // Setup the UI
+      break
+    case 'trying':
+      // You are calling someone and he's ringing now
+      break
+    case 'ringing':
+      // Someone is calling you
+      break
+    case 'active':
+      // Dialog has become active
+      break
+    case 'hangup':
+      // Dialog is over
+      break
+    case 'destroy':
+      // Dialog has been destroyed
+      break
+  }
 })
 ```
 
-## Methods available:
+## Client methods available:
 
-> Note: All subsequent methods will use the "signalwire" global variable and they must be used after "onSessionReady" callback.
+> Note: All subsequent methods will use the "client" variable and they must be used after `'signalwire.ready'` event.
 
-### Messaging:
-
-#### sendMessage:
+#### connect()
+After setup up all the events on the client do `connect()` to start the session:
 ```javascript
-var params = {
-  body: 'Hi Joe!',
-  from: '+12622081318',
-  to: '+15559999999',
-  media: ['https://bit.ly/2N50Ysq', 'https://bit.ly/2Ki36zy']
-}
-_sw.sendMessage(params)
-  .then(function (result) {
-    // The SMS has been queued. You can retrieve the SMS data into "result"
+client.connect()
+```
 
-    // You can also subscribe to this message notifications!
-    result.onNotification(function(notificationType, notificationData){
-      // Handle this notification in a different way of the global ones.
-      // If you set this listener, the global one will not be notified.
-    })
+#### disconnect()
+Hangup all the dialogs, unsubscribe all channels and close the socket connection:
+```javascript
+client.disconnect()
+```
+
+#### supportedResolutions()
+Returns a promise with all supported resolution:
+```javascript
+client.supportedResolutions()
+  .then(function(resolutions){
+    // ...
   })
-  .catch(function (error) {
-    // An error occured!
+  .catch(function(error){
+    // Error checking resolution
   })
 ```
 
-#### getMessage:
+#### videoDevices
+Property that returns an object with all video devices.
 ```javascript
-var params = {
-  messageId: 'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX' // This value from the previous `sendMessage` Promise
+const videoDevices = client.videoDevices
+```
+> videoDevices is keyed by deviceId.
+
+#### audioInDevices
+Property that returns an object with all audio input devices.
+```javascript
+const audioInDevices = client.audioInDevices
+```
+> The audioInDevices is keyed by deviceId.
+
+#### audioOutDevices
+Property that returns an object with all audio output devices.
+```javascript
+const audioOutDevices = client.audioOutDevices
+```
+> The audioOutDevices is keyed by deviceId.
+
+## Calling:
+
+#### newCall()
+
+The `newCall` method accept an object of parameters:
+```javascript
+const params = {
+  // Required:
+  destination_number: '3599',
+  remote_caller_id_name: 'Joe Example',
+  remote_caller_id_number: 'joe@example.com',
+  caller_id_name: 'J. Smith',
+  caller_id_number: 'smith@example.com',
+
+  // Optional:
+  localStream: MediaStream, // Use this stream instead of retrieving a new one. Useful if you have a stream from a canvas.captureStream() or from a screen share extension.
+  audio: true || false || MediaTrackConstraints, // https://developer.mozilla.org/en-US/docs/Web/API/MediaTrackConstraints#Properties_of_audio_tracks
+  video: true || false || MediaTrackConstraints, // https://developer.mozilla.org/en-US/docs/Web/API/MediaTrackConstraints#Properties_of_video_tracks
+  iceServers: true || false || RTCIceServer[], // https://developer.mozilla.org/en-US/docs/Web/API/RTCIceServer
+  useStereo: true || false,
+  micId: '<deviceUUID>', // Microphone device ID
+  camId: '<deviceUUID>', // Webcam device ID
+  userVariables: {
+    // General user variables.. email/username
+  },
+  onChange: function(dialog) {
+    // Override global "signalwire.verto.dialogChange" callback for this dialog..
+  },
+  onNotification: function(message) {
+    // This callback will automatically subscribe the client to a liveArray for this dialog so here you'll get the liveArray messages like bootObj - add - modify - del for the current conference call.
+  },
+  onUserMediaError: function(error) {
+    // Permission denied or invalid audio/video params
+  }
 }
-signalwire.getMessage(params)
-  .then(function (result) {
-    // The SMS status is in "result.status"
-    if (result.status === 'delivered') {
-      // SMS has been sent! Update the UI properly...
-    } else if (result.status === 'queued') {
-      // SMS is still in queue. Check again with another `getMessage`
-    } else if (result.status === 'failed') {
-      // SMS failed to sent. Inspect the result object for the error message: `result`
-    }
-  })
-  .catch(function (error) {
-    // An error occured!
-  })
+const dialog = client.newCall(params)
 ```
 
-### Calling:
+### Anatomy of a dialog:
 
-#### Start a new call:
+#### dialog.direction
+Can be `inbound` or `outbound`
+
+#### dialog.state
+Possible states are:
+* new
+* requesting
+* trying
+* recovering
+* ringing
+* answering
+* early
+* active
+* held
+* hangup
+* destroy
+* purge
+
+#### dialog.localStream
+Local stream of the dialog. Use it in a video element to display the local peer:
+
 ```javascript
-var params = {
-  from: '+12622081318',
-  to: '+15559999999'
-}
-signalwire.createCall(params)
-  .then(function (result) {
-    // Call has started! Retrieve call UUID in "result.channel"
-
-    // You can also subscribe to this call notifications!
-    result.onNotification(function(notificationType, notificationData){
-      // Handle this notification in a different way of the global ones.
-      // If you set this listener, the global one will not be notified.
-    })
-  })
-  .catch(function (error) {
-    // An error occured!
-  })
+var video = document.getElementById('localVideo')
+video.srcObject = dialog.localStream
 ```
 
-#### Hangup a call:
+#### dialog.remoteStream
+Remote stream of the dialog. Use it in a video element to display the remote peer:
+
 ```javascript
-var params = {
-  callId: '9027985d-44c2-45f8-917e-8a9bec35398c' // UUID of the current call
-}
-signalwire.hangupCall(params)
-  .then(function (result) {
-    // Call has been hanged up!
-  })
-  .catch(function (error) {
-    // An error occured!
-  })
+var video = document.getElementById('remoteVideo')
+video.srcObject = dialog.remoteStream
 ```
 
-#### Play a .wav file into an active call:
+#### getter dialog.audioState
+Return the audio state of the dialog `true` means active (unmuted), `false` means disable (muted).
+
+#### setter dialog.audioState = state
+Set the audio state of the dialog:<br/>
+* `true` or `'on'` means unmute<br/>
+* `false` or `'off'` means mute<br/>
+* `'toggle'` will toggle the current state
+
+#### getter dialog.videoState
+Return the video state of the dialog `true` means active (unmuted), `false` means disable (muted).
+
+#### setter dialog.videoState = state
+Set the video state of the dialog:<br/>
+* `true` or `'on'` means unmute<br/>
+* `false` or `'off'` means mute<br/>
+* `'toggle'` will toggle the current state
+
+
+### Methods:
+> All these methods are available on a Dialog object and permit to interact with the dialog:
+
+#### hangup()
+Hangup the dialog
 ```javascript
-var params = {
-  callId: '9027985d-44c2-45f8-917e-8a9bec35398c', // UUID of the current call
-  url: 'http://www.kozco.com/tech/piano2.wav'
-}
-signalwire.playFileOnCall(params)
-  .then(function (result) {
-    // File successfully played!
-  })
-  .catch(function (error) {
-    // An error occured!
-  })
+dialog.hangup()
 ```
 
-#### Play digits into an active call:
+#### transfer()
+Transfer the dialog to the supplied extension
 ```javascript
-var params = {
-  callId: '9027985d-44c2-45f8-917e-8a9bec35398c', // UUID of the current call
-  digits: '12345'
-}
-signalwire.playDigitsOnCall(params)
-  .then(function (result) {
-    // Digits successfully sent!
-  })
-  .catch(function (error) {
-    // An error occured!
-  })
+dialog.transfer(extension)
 ```
 
-#### Say something into an active call:
+#### hold()
+Hold the dialog
 ```javascript
-var params = {
-  callId: '9027985d-44c2-45f8-917e-8a9bec35398c', // UUID of the current call
-  what: 'Hello, Welcome to SignalWire!',
-  gender: 'male' // male || female
-}
-signalwire.sayOnCall(params)
-  .then(function (result) {
-    // Text successfully played!
-  })
-  .catch(function (error) {
-    // An error occured!
-  })
+dialog.hold()
 ```
+
+#### unhold()
+Unhold the dialog
+```javascript
+dialog.unhold()
+```
+
+#### toggleHold()
+Toggle the hold state for the dialog
+```javascript
+dialog.toggleHold()
+```
+
 
 # Development setup
-To build and run this app locally you will need a few things:
+To start working you need a few things:
 - Install [Node.js](https://nodejs.org/en/)
 - Clone the repository
 - Install dependencies
 ```
 cd signalwire-client-js
 npm install
+```
+
+# Build versions
+This package can build both ES5 and ES6 version of the client.
+
+Run `build` to create them both under `dist/` folder:
+```
+npm run build
 ```
 
 # Tests

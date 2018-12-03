@@ -70,7 +70,6 @@ export default class Peer {
       })
     if (streamIsValid(this.options.localStream)) {
       this.options.localStream.getTracks().forEach(t => this.instance.addTrack(t, this.options.localStream))
-      trigger(SwEvent.LocalStream, this.options.localStream, this.options.callID)
     }
   }
 

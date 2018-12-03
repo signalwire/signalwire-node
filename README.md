@@ -19,22 +19,7 @@ Then instantiate the client:
 const client = new Verto({
   host: 'freeswitch.example.com:8082',
   login: '1008@freeswitch.example.com',
-  passwd: 'your-super-password',
-  callbacks: {
-    onSocketOpen: function (session) {
-      // The socket connection is open but you are not yet authenticated with the SignalWire system
-    },
-    onSocketClose: function (session) {
-      // The socket connection is close
-    },
-    onSocketError: function (session, error) {
-      // The socket returns error. Inspect the "error" variable
-    },
-    onSessionReady: function (session) {
-      // SignalWire session has established so you can now using all other methods..
-      doSomethingAwesome()
-    }
-  }
+  passwd: 'your-super-password'
 })
 ```
 
@@ -42,56 +27,27 @@ const client = new Verto({
 
 To be notified of the internal events you need to subscribe to the events you need:
 
-#### Session events:
-* `signalwire.ready`:
+| Session Events | Description |
+| --- | --- |
+| `signalwire.ready` | The session has been established so all other methods can now be used. |
 
-  The session has been established so all other methods can now be used!
+| Socket Events ||
+| --- | --- |
+| `signalwire.socket.open` | Socket is open but you are not yet authenticated |
+| `signalwire.socket.close` | Socket is closing.. |
+| `signalwire.socket.error` | Socket gave an error! |
+| `signalwire.socket.message` | Client received a message from the socket. |
 
-#### WebSocket events:
-* `signalwire.socket.open`:
+| mod_verto Events ||
+| --- | --- |
+| `signalwire.verto.dialogChange` | A dialog's state changed. Update the UI accordingly.. |
+| `signalwire.verto.display` | Update the dialog UI with the informations received. |
+| `signalwire.verto.info` | Need docs |
+| `signalwire.verto.event` | Need docs |
+| `signalwire.verto.pvtEvent` | Need docs |
+| `signalwire.verto.clientReady` | All previously dialogs have been reattached. Note: FreeSWITCH 1.8+ only. |
 
-  Socket is open but you are not yet authenticated!
-
-* `signalwire.socket.close`:
-
-  Socket is closing..
-
-* `signalwire.socket.error`:
-
-  Socket gave an error
-
-
-* `signalwire.socket.message`:
-
-  Client received a message from the socket.
-
-#### mod_verto events:
-* `signalwire.verto.dialogChange`:
-
-  A dialog's state changed. Update the UI accordingly..
-
-* `signalwire.verto.display`:
-
-  Update the dialog UI with the informations received.
-
-* `signalwire.verto.info`:
-
-
-
-* `signalwire.verto.event`:
-
-
-
-* `signalwire.verto.pvtEvent`:
-
-
-
-* `signalwire.verto.clientReady`:
-
-  All previously dialogs have been reattached. Note: FreeSWITCH 1.8+ only.
-
-
-Examples:
+### Examples:
 
 ```javascript
 client.on('signalwire.socket.open', function(){
@@ -157,6 +113,12 @@ client.supportedResolutions()
   .catch(function(error){
     // Error checking resolution
   })
+```
+
+#### refreshDevices()
+Refresh the cache video/audio devices
+```javascript
+client.refreshDevices()
 ```
 
 #### videoDevices

@@ -3,6 +3,8 @@ export enum Netcast {
   ProtocolProviderRemove = 'protocol.provider.remove'
 }
 
+export const STORAGE_PREFIX = '@signalwire'
+
 export const ADD = 'add'
 export const REMOVE = 'remove'
 

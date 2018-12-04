@@ -5,8 +5,9 @@ import { Login, Result, Broadcast, Subscribe, Unsubscribe } from './messages/Ver
 import Dialog from './rtc/Dialog'
 import { SwEvent, VertoMethod, DialogState } from './util/constants'
 import { trigger, register, deRegister } from './services/Handler'
+import * as Storage from './util/storage'
 
-const SW_SESSID = 'signalwire_sessid'
+const SESSID = 'vertoSessId'
 export default class Verto extends BaseSession {
 
   newCall(args: any = {}) {
@@ -89,7 +90,7 @@ export default class Verto extends BaseSession {
   }
 
   protected async _onSocketOpen() {
-    const sessid = window.localStorage.getItem(SW_SESSID)
+    const sessid = await Storage.getItem(SESSID)
     const login = new Login(this.options.login, this.options.passwd, sessid)
     const response = await this.execute(login)
       .catch(error => {
@@ -97,7 +98,7 @@ export default class Verto extends BaseSession {
       })
     if (response) {
       this.sessionid = response.sessid
-      window.localStorage.setItem(SW_SESSID, this.sessionid)
+      Storage.setItem(SESSID, this.sessionid)
       trigger(SwEvent.Ready, this, this.uuid)
     }
   }

@@ -1,4 +1,5 @@
 import { ISignalWireOptions } from '../interfaces'
+import { STORAGE_PREFIX } from './constants'
 
 export const validateOptions = (options: ISignalWireOptions, className: string): boolean => {
   let check: boolean = false
@@ -19,3 +20,5 @@ export const cleanNumber = (num: string) => {
 }
 
 export const objEmpty = obj => Object.keys(obj).length === 0
+
+export const mutateStorageKey = key => `${STORAGE_PREFIX}${key}`

@@ -3,12 +3,15 @@ import { STORAGE_PREFIX } from './constants'
 
 export const validateOptions = (options: ISignalWireOptions, className: string): boolean => {
   let check: boolean = false
+  const { host, project, token, login, passwd, password } = options
   if (className === 'SignalWire') {
-    check = options.hasOwnProperty('project') && options.project != '' && options.hasOwnProperty('token') && options.token != ''
+    check = Boolean(project && token)
   } else if (className === 'Verto') {
-    check = options.hasOwnProperty('login') && options.login != '' && options.hasOwnProperty('passwd') && options.passwd != ''
+    check = Boolean(login && (passwd || password))
+  } else {
+    return false
   }
-  return options.hasOwnProperty('host') && options.host != '' && check
+  return Boolean(host) && check
 }
 
 export const cleanNumber = (num: string) => {

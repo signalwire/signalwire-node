@@ -13,13 +13,13 @@ Instead, if you are using the ES5 version add a script tag referencing the Signa
 ```
 
 Then instantiate the client:
-> Note: host / login / passwd are required for Verto
+> Note: host / login / password are required for Verto
 
 ```javascript
 const client = new Verto({
   host: 'freeswitch.example.com:8082',
   login: '1008@freeswitch.example.com',
-  passwd: 'your-super-password'
+  password: 'your-super-password'
 })
 ```
 

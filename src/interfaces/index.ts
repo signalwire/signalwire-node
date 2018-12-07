@@ -91,10 +91,11 @@ export interface IBladeSubscriptionRequest extends IMessageBase {
 
 export interface ISignalWireOptions {
   host: string,
-  project: string,
-  token: string,
+  project?: string,
+  token?: string,
   login?: string,
   passwd?: string,
+  password?: string,
 }
 
 export interface DialogOptions {

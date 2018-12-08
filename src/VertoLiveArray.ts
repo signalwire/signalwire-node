@@ -58,32 +58,44 @@ export default class VertoLiveArray {
     this.onChange({ action: 'reorder', data })
   }
 
-  bootObj(data: object) {
+  bootObj(outerData: any) {
     this._clear()
+    const { data } = outerData
+    const participants = []
     for (const i in data) {
-      this._updateCache(data[i][0], data[i][1])
+      const key = data[i][0]
+      const participantData = data[i][1]
+      this._updateCache(key, participantData)
+      const [callerId, callerNumber, callerName, codec, mediaJson, userData] = participantData
+      const media = this._safeJsonParse(mediaJson)
+      participants.push({ key, index: Number(i), callerId, callerNumber, callerName, codec, media, userData})
     }
-    this.onChange({ action: 'bootObj', data, redraw: true })
+    this.onChange({ action: 'bootObj', participants, redraw: true })
   }
 
-  add(data: object, key: string, index: number) {
+  add(data: any, key: string, index: number) {
     if (key === null || key === undefined) {
-      logger.warn('VertoLiveArray ADD without key!')
       key = String(this._lastSerno)
     }
     this._updateCache(key, data)
-    this.onChange({ action: 'add', key, index, data, redraw: !this._isCached(key) })
+    const [callerId, callerNumber, callerName, codec, mediaJson, userData] = data
+    const media = this._safeJsonParse(mediaJson)
+    this.onChange({ action: 'add', key, index, callerId, callerNumber, callerName, codec, media, userData, redraw: !this._isCached(key) })
   }
 
-  modify(data: object, key: string, index: number) {
+  modify(data: any, key: string, index: number) {
     this._updateCache(key, data)
-    this.onChange({ action: 'modify', key, index, data })
+    const [callerId, callerNumber, callerName, codec, mediaJson, userData] = data
+    const media = this._safeJsonParse(mediaJson)
+    this.onChange({ action: 'modify', key, index, callerId, callerNumber, callerName, codec, media, userData })
   }
 
-  del(key: string, index: number) {
+  del(data: any, key: string, index: number) {
     if (this._isCached(key)) {
       delete this._cache[key]
-      this.onChange({ action: 'del', key, index })
+      const [callerId, callerNumber, callerName, codec, mediaJson, userData] = data
+      const media = this._safeJsonParse(mediaJson)
+      this.onChange({ action: 'del', key, index, callerId, callerNumber, callerName, codec, media, userData })
     }
   }
 
@@ -119,7 +131,7 @@ export default class VertoLiveArray {
         break
       case 'del':
         if (hashKey || arrIndex) {
-          this.del(hashKey, arrIndex)
+          this.del(data, hashKey, arrIndex)
         }
         break
       case 'clear':
@@ -167,5 +179,16 @@ export default class VertoLiveArray {
     const context = this.eventChannel
     const name = this.laName
     this.session.broadcast({ eventChannel: context, data: { liveArray: { command, context, name, obj } } })
+  }
+
+  private _safeJsonParse(jsonString: string) {
+    let tmp = {}
+    try {
+      tmp = JSON.parse(jsonString)
+    } catch (error) {
+      logger.warn('VertoLiveArray invalid media JSON string:', jsonString)
+    }
+
+    return tmp
   }
 }

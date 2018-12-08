@@ -297,13 +297,18 @@ export default class Dialog {
         this._liveArray = new VertoLiveArray(this.session, laChannel, laName, config)
         break
       case 'conference-liveArray-part':
-        if (this._liveArray) {
-          this._liveArray.destroy()
-          this._liveArray = null
-        }
+        this._destroyLiveArray()
         break
     }
   }
+
+  private _destroyLiveArray(): void {
+    if (this._liveArray) {
+      this._liveArray.destroy()
+      this._liveArray = null
+    }
+  }
+
 
   private _onMediaError(error: any) {
     this.options.onUserMediaError.call(this, error)
@@ -358,6 +363,7 @@ export default class Dialog {
     deRegister(SwEvent.MediaError, null, this.callID)
     deRegister(SwEvent.Notification, null, this.callID)
     deRegister(SwEvent.Notification, this._initLiveArray, this.session.uuid)
+    this._destroyLiveArray()
     this.peer = null
     this.session.dialogs[this.callID] = null
     delete this.session.dialogs[this.callID]

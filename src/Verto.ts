@@ -3,7 +3,7 @@ import BaseSession from './BaseSession'
 import { SubscribeParams, BroadcastParams } from './interfaces'
 import { Login, Result, Broadcast, Subscribe, Unsubscribe } from './messages/Verto'
 import Dialog from './rtc/Dialog'
-import { SwEvent, VertoMethod, DialogState } from './util/constants'
+import { SwEvent, VertoMethod, DialogState, NOTIFICATION_CONFERENCE_UPDATE } from './util/constants'
 import { trigger, register, deRegister } from './services/Handler'
 import * as Storage from './util/storage'
 
@@ -150,6 +150,7 @@ export default class Verto extends BaseSession {
         if (attach) {
           dialog.setState(DialogState.Recovering)
           dialog.answer()
+          dialog.handleMessage(msg)
         } else {
           dialog.setState(DialogState.Ringing)
           this.execute(new Result(id, method))
@@ -160,17 +161,22 @@ export default class Verto extends BaseSession {
           logger.error('Verto received an unknown event:', params)
           return
         }
+        const firstValue = eventChannel.split('.')[0]
         if (this.sessionid === eventChannel) {
-          trigger(SwEvent.VertoPvtEvent, params.pvtData, this.uuid)
+          params.pvtData.type = NOTIFICATION_CONFERENCE_UPDATE
+          trigger(SwEvent.Notification, params.pvtData, this.uuid)
         } else if (this.subscriptions.hasOwnProperty(eventChannel)) {
           trigger(eventChannel, params)
-          // FIXME: Verto also controlled subscriptions of "eventChannel.split('.')[0]" but...is it needed?
+        } else if (this.subscriptions.hasOwnProperty(firstValue)) {
+          trigger(firstValue, params)
+        } else if (this.dialogs.hasOwnProperty(eventChannel)) {
+          this.dialogs[eventChannel].handleMessage(msg)
         } else {
-          trigger(SwEvent.VertoEvent, params, this.uuid)
+          trigger(SwEvent.Notification, params, this.uuid)
         }
         break
       case VertoMethod.Info:
-        trigger(SwEvent.VertoInfo, params, this.uuid)
+        trigger(SwEvent.Notification, params, this.uuid)
         break
       case VertoMethod.ClientReady:
         trigger(SwEvent.VertoClientReady, params, this.uuid)

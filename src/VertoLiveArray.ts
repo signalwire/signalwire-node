@@ -1,5 +1,6 @@
 import BaseSession from './BaseSession'
 import logger from './util/logger'
+import { NOTIFICATION_CONFERENCE_UPDATE } from './util/constants'
 
 interface ILiveArrayOptions {
   subParams: object
@@ -88,7 +89,7 @@ export default class VertoLiveArray {
 
   onChange(params: object) {
     if (this.options.hasOwnProperty('onChange') && this.options.onChange instanceof Function) {
-      this.options.onChange({ ...params, serno: this._lastSerno })
+      this.options.onChange({ ...params, serno: this._lastSerno, type: NOTIFICATION_CONFERENCE_UPDATE })
     }
   }
 

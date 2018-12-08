@@ -4,6 +4,7 @@ export enum Netcast {
 }
 
 export const STORAGE_PREFIX = '@signalwire'
+export const NOTIFICATION_CONFERENCE_UPDATE = 'conference_update'
 
 export const ADD = 'add'
 export const REMOVE = 'remove'
@@ -18,6 +19,7 @@ export enum SwEvent {
   // Global Events
   Ready = 'signalwire.ready',
   Error = 'signalwire.error',
+  Notification = 'signalwire.notification',
 
   // Blade Events
   Messages = 'signalwire.messages',
@@ -25,17 +27,17 @@ export enum SwEvent {
 
   // Verto Events
   VertoDialogChange = 'signalwire.verto.dialogChange',
-  VertoDisplay = 'signalwire.verto.display',
-  VertoInfo = 'signalwire.verto.info',
-  VertoEvent = 'signalwire.verto.event',
-  VertoPvtEvent = 'signalwire.verto.pvtEvent',
+  // VertoDisplay = 'signalwire.verto.display',
+  // VertoInfo = 'signalwire.verto.info',
+  // VertoEvent = 'signalwire.verto.event',
+  // VertoPvtEvent = 'signalwire.verto.pvtEvent',
   VertoClientReady = 'signalwire.verto.clientReady',
 
   // RTC Events
-  Sdp = 'signalwire.rtc.sdp',
-  Ice = 'signalwire.rtc.candidate',
-  IceSdp = 'signalwire.rtc.icesdp',
-  Track = 'signalwire.rtc.ontrack',
+  // Sdp = 'signalwire.rtc.sdp',
+  // Ice = 'signalwire.rtc.candidate',
+  // IceSdp = 'signalwire.rtc.icesdp',
+  // Track = 'signalwire.rtc.ontrack',
   // LocalStream = 'signalwire.rtc.localStream',
   // RemoteStream = 'signalwire.rtc.remoteStream',
   MediaError = 'signalwire.rtc.mediaError',

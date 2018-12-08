@@ -31,6 +31,7 @@ To be notified of the internal events you need to subscribe to the events you ne
 | --- | --- |
 | `signalwire.ready` | The session has been established so all other methods can now be used. |
 | `signalwire.error` | Error dispatch at the session level. |
+| `signalwire.notification` | A notification from SignalWire. It can refer to a dialog, a conference update or generic events. See the examples below |
 
 | Socket Events ||
 | --- | --- |
@@ -39,16 +40,37 @@ To be notified of the internal events you need to subscribe to the events you ne
 | `signalwire.socket.error` | Socket gave an error! |
 | `signalwire.socket.message` | Client received a message from the socket. |
 
-| mod_verto Events ||
+| Verto Events ||
 | --- | --- |
 | `signalwire.verto.dialogChange` | A dialog's state changed. Update the UI accordingly.. |
-| `signalwire.verto.display` | Update the dialog UI with the informations received. |
-| `signalwire.verto.info` | Need docs |
-| `signalwire.verto.event` | Need docs |
-| `signalwire.verto.pvtEvent` | Need docs |
 | `signalwire.verto.clientReady` | All previously dialogs have been reattached. Note: FreeSWITCH 1.8+ only. |
 
 ### Examples:
+
+```javascript
+client.on('signalwire.ready', function(){
+  // Session is ready!
+})
+```
+
+```javascript
+client.on('signalwire.notification', function(notification){
+  switch (notification.type) {
+    case 'conference_update':
+      // Live notification from the conference: start talking / video floor changed / audio or video state changes / a participant joins or leaves and so on..
+      break
+    case 'caller_data':
+      // Caller's data like name and number to update the UI. In case of a conference call you will get the name of the room and the extension.
+      break
+    case 'info':
+      // Generic info received
+      break
+    case 'event':
+      // Generic event received
+      break
+  }
+})
+```
 
 ```javascript
 client.on('signalwire.socket.open', function(){
@@ -134,14 +156,14 @@ Property that returns an object with all audio input devices.
 ```javascript
 const audioInDevices = client.audioInDevices
 ```
-> The audioInDevices is keyed by deviceId.
+> audioInDevices is keyed by deviceId.
 
 #### audioOutDevices
 Property that returns an object with all audio output devices.
 ```javascript
 const audioOutDevices = client.audioOutDevices
 ```
-> The audioOutDevices is keyed by deviceId.
+> audioOutDevices is keyed by deviceId.
 
 ## Calling:
 

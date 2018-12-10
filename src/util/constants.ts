@@ -4,8 +4,6 @@ export enum Netcast {
 }
 
 export const STORAGE_PREFIX = '@signalwire'
-export const NOTIFICATION_CONFERENCE_UPDATE = 'conference_update'
-
 export const ADD = 'add'
 export const REMOVE = 'remove'
 
@@ -25,21 +23,7 @@ export enum SwEvent {
   Messages = 'signalwire.messages',
   Calls = 'signalwire.calls',
 
-  // Verto Events
-  VertoDialogChange = 'signalwire.verto.dialogChange',
-  // VertoDisplay = 'signalwire.verto.display',
-  // VertoInfo = 'signalwire.verto.info',
-  // VertoEvent = 'signalwire.verto.event',
-  // VertoPvtEvent = 'signalwire.verto.pvtEvent',
-  VertoClientReady = 'signalwire.verto.clientReady',
-
   // RTC Events
-  // Sdp = 'signalwire.rtc.sdp',
-  // Ice = 'signalwire.rtc.candidate',
-  // IceSdp = 'signalwire.rtc.icesdp',
-  // Track = 'signalwire.rtc.ontrack',
-  // LocalStream = 'signalwire.rtc.localStream',
-  // RemoteStream = 'signalwire.rtc.remoteStream',
   MediaError = 'signalwire.rtc.mediaError',
 }
 
@@ -82,4 +66,24 @@ export enum VertoMethod {
   Subscribe = 'verto.subscribe',
   Unsubscribe = 'verto.unsubscribe',
   ClientReady = 'verto.clientReady',
+}
+
+export const NOTIFICATION_TYPE = {
+  generic: 'event',
+  [VertoMethod.Display]: 'participantData',
+  [VertoMethod.Attach]: 'participantData',
+  conferenceUpdate: 'conferenceUpdate',
+  dialogUpdate: 'dialogUpdate',
+  vertoClientReady: 'vertoClientReady',
+  userMediaError: 'userMediaError'
+}
+
+export enum LiveArrayAction {
+  Join = 'join',
+  Leave = 'leave',
+  Bootstrap = 'bootstrap',
+  Add = 'add',
+  Modify = 'modify',
+  Delete = 'delete',
+  Clear = 'clear',
 }

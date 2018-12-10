@@ -120,11 +120,7 @@ export interface DialogOptions {
   caller_id_number: string
   userVariables?: Object
   screenShare?: boolean
-  onChange?: Function
   onNotification?: Function
-  onLocalStream?: Function
-  onRemoteStream?: Function
-  onUserMediaError?: Function
 }
 
 export interface SubscribeParams {

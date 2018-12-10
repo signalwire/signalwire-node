@@ -3,7 +3,7 @@ import BaseSession from './BaseSession'
 import { SubscribeParams, BroadcastParams } from './interfaces'
 import { Login, Result, Broadcast, Subscribe, Unsubscribe } from './messages/Verto'
 import Dialog from './rtc/Dialog'
-import { SwEvent, VertoMethod, DialogState, NOTIFICATION_CONFERENCE_UPDATE } from './util/constants'
+import { SwEvent, VertoMethod, DialogState, NOTIFICATION_TYPE, LiveArrayAction } from './util/constants'
 import { trigger, register, deRegister } from './services/Handler'
 import * as Storage from './util/storage'
 
@@ -27,6 +27,11 @@ export default class Verto extends BaseSession {
     Object.keys(this.dialogs).forEach(k => {
       this.dialogs[k].setState(DialogState.Purge)
     })
+    Object.keys(this.subscriptions).forEach(eventChannel => {
+      this.unsubscribe({ eventChannel })
+    })
+    this.dialogs = {}
+    this.subscriptions = {}
   }
 
   broadcast(params: BroadcastParams) {
@@ -163,8 +168,7 @@ export default class Verto extends BaseSession {
         }
         const firstValue = eventChannel.split('.')[0]
         if (this.sessionid === eventChannel) {
-          params.pvtData.type = NOTIFICATION_CONFERENCE_UPDATE
-          trigger(SwEvent.Notification, params.pvtData, this.uuid)
+          trigger(SwEvent.Notification, this._pvtDataChanges(params.pvtData), this.uuid)
         } else if (this.subscriptions.hasOwnProperty(eventChannel)) {
           trigger(eventChannel, params)
         } else if (this.subscriptions.hasOwnProperty(firstValue)) {
@@ -176,13 +180,27 @@ export default class Verto extends BaseSession {
         }
         break
       case VertoMethod.Info:
+        params.type = NOTIFICATION_TYPE.generic
         trigger(SwEvent.Notification, params, this.uuid)
         break
       case VertoMethod.ClientReady:
-        trigger(SwEvent.VertoClientReady, params, this.uuid)
+        params.type = NOTIFICATION_TYPE.vertoClientReady
+        trigger(SwEvent.Notification, params, this.uuid)
         break
       default:
         logger.warn('Verto message unknown method:', msg)
     }
+  }
+
+  private _pvtDataChanges(pvtData: any) {
+    const { action, canvasCount, chatID, chatChannel, infoChannel, laName: conferenceName, laChannel: conferenceChannel, conferenceMemberID, role } = pvtData
+    let newAction = action
+    if (action === 'conference-liveArray-join') {
+      newAction = LiveArrayAction.Join
+    } else if (action === 'conference-liveArray-part') {
+      newAction = LiveArrayAction.Leave
+    }
+    const type = NOTIFICATION_TYPE.conferenceUpdate
+    return { type, action: newAction, chatChannel, infoChannel, conferenceName, conferenceChannel, participantId: Number(conferenceMemberID), role }
   }
 }

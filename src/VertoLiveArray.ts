@@ -1,6 +1,6 @@
 import BaseSession from './BaseSession'
 import logger from './util/logger'
-import { NOTIFICATION_CONFERENCE_UPDATE } from './util/constants'
+import { NOTIFICATION_TYPE, LiveArrayAction } from './util/constants'
 
 interface ILiveArrayOptions {
   subParams: object
@@ -64,13 +64,11 @@ export default class VertoLiveArray {
     const participants = []
     for (const i in data) {
       const key = data[i][0]
-      const participantData = data[i][1]
-      this._updateCache(key, participantData)
-      const [callerId, callerNumber, callerName, codec, mediaJson, userData] = participantData
-      const media = this._safeJsonParse(mediaJson)
-      participants.push({ key, index: Number(i), callerId, callerNumber, callerName, codec, media, userData})
+      const participantObj = data[i][1]
+      this._updateCache(key, participantObj)
+      participants.push({ key, index: Number(i), ...this._mutateData(participantObj) })
     }
-    this.onChange({ action: 'bootObj', participants, redraw: true })
+    this.onChange({ action: LiveArrayAction.Bootstrap, participants, redraw: true })
   }
 
   add(data: any, key: string, index: number) {
@@ -78,30 +76,30 @@ export default class VertoLiveArray {
       key = String(this._lastSerno)
     }
     this._updateCache(key, data)
-    const [callerId, callerNumber, callerName, codec, mediaJson, userData] = data
-    const media = this._safeJsonParse(mediaJson)
-    this.onChange({ action: 'add', key, index, callerId, callerNumber, callerName, codec, media, userData, redraw: !this._isCached(key) })
+    this.onChange({ action: LiveArrayAction.Add, key, index, redraw: !this._isCached(key), ...this._mutateData(data) })
   }
 
   modify(data: any, key: string, index: number) {
     this._updateCache(key, data)
-    const [callerId, callerNumber, callerName, codec, mediaJson, userData] = data
-    const media = this._safeJsonParse(mediaJson)
-    this.onChange({ action: 'modify', key, index, callerId, callerNumber, callerName, codec, media, userData })
+    this.onChange({ action: LiveArrayAction.Modify, key, index, ...this._mutateData(data) })
   }
 
   del(data: any, key: string, index: number) {
     if (this._isCached(key)) {
       delete this._cache[key]
-      const [callerId, callerNumber, callerName, codec, mediaJson, userData] = data
-      const media = this._safeJsonParse(mediaJson)
-      this.onChange({ action: 'del', key, index, callerId, callerNumber, callerName, codec, media, userData })
+      this.onChange({ action: LiveArrayAction.Delete, key, index, ...this._mutateData(data) })
     }
+  }
+
+  private _mutateData(data: any) {
+    const [participantId, participantNumber, participantName, codec, mediaJson, participantData] = data
+    const media = this._safeJsonParse(mediaJson)
+    return { participantId: Number(participantId), participantNumber, participantName, codec, media, participantData }
   }
 
   onChange(params: object) {
     if (this.options.hasOwnProperty('onChange') && this.options.onChange instanceof Function) {
-      this.options.onChange({ ...params, serno: this._lastSerno, type: NOTIFICATION_CONFERENCE_UPDATE })
+      this.options.onChange({ ...params, serno: this._lastSerno, type: NOTIFICATION_TYPE.conferenceUpdate })
     }
   }
 
@@ -135,7 +133,6 @@ export default class VertoLiveArray {
         }
         break
       case 'clear':
-        this.destroy()
         this.onChange({ action: 'clear' })
         break
       case 'reorder':
@@ -184,7 +181,7 @@ export default class VertoLiveArray {
   private _safeJsonParse(jsonString: string) {
     let tmp = {}
     try {
-      tmp = JSON.parse(jsonString)
+      tmp = JSON.parse(jsonString.replace(/ID"/g, 'Id"'))
     } catch (error) {
       logger.warn('VertoLiveArray invalid media JSON string:', jsonString)
     }

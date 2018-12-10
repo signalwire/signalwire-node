@@ -4,7 +4,7 @@ import BaseSession from '../BaseSession'
 import VertoLiveArray from '../VertoLiveArray'
 import { Invite, Answer, Attach, Bye, Modify, Info } from '../messages/Verto'
 import Peer from './Peer'
-import { DialogState as State, DialogDirection as Direction, PeerType, VertoMethod, SwEvent } from '../util/constants'
+import { DialogState as State, DialogDirection as Direction, PeerType, VertoMethod, SwEvent, NOTIFICATION_TYPE, LiveArrayAction } from '../util/constants'
 import { trigger, register, deRegister } from '../services/Handler'
 import { streamIsValid } from '../services/RTCService'
 import { DialogOptions } from '../interfaces/'
@@ -146,11 +146,12 @@ export default class Dialog {
     this.state = State[this._state].toLowerCase()
     logger.warn('Dialog %s state change from %s to %s', this.callID, State[this._prevState].toLowerCase(), this.state)
 
-    if (!trigger(SwEvent.VertoDialogChange, this, this.callID, false)) {
-      trigger(SwEvent.VertoDialogChange, this, this.session.uuid)
-    }
+    this._dispatchUpdate()
 
     switch (state) {
+      case State.Purge:
+        this.hangup({ cause: 'PURGE_DIALOGS', causeCode: '01' }, false)
+        break
       case State.Destroy:
         this._finalize()
         break
@@ -159,12 +160,6 @@ export default class Dialog {
 
   handleMessage(msg: any) {
     const { method, params } = msg
-    const NOTIFICATION_TYPE = {
-      [VertoMethod.Info]: 'info',
-      [VertoMethod.Display]: 'caller_data',
-      [VertoMethod.Attach]: 'caller_data',
-      [VertoMethod.Event]: 'event'
-    }
     switch (method) {
       case VertoMethod.Answer:
         this._onAnswer(params.sdp)
@@ -176,11 +171,13 @@ export default class Dialog {
       case VertoMethod.Display:
       case VertoMethod.Event:
       case VertoMethod.Attach:
-        params.type = NOTIFICATION_TYPE[method]
-        params.dialog = this
-        delete params.sdp
-        if (!trigger(SwEvent.Notification, params, this.callID)) {
-          trigger(SwEvent.Notification, params, this.session.uuid)
+        const type = NOTIFICATION_TYPE.hasOwnProperty(method) ? NOTIFICATION_TYPE[method] : NOTIFICATION_TYPE.generic
+        const notification = { ...params, type, dialog: this }
+        if (notification.hasOwnProperty('sdp')) {
+          delete notification.sdp
+        }
+        if (!trigger(SwEvent.Notification, notification, this.callID)) {
+          trigger(SwEvent.Notification, notification, this.session.uuid)
         }
         break
       case VertoMethod.Bye:
@@ -282,21 +279,20 @@ export default class Dialog {
   }
 
   private _initLiveArray(pvtData: any) {
-    const { action, laChannel = '', laName } = pvtData
-    if (laChannel.indexOf(this.options.destination_number) === -1) {
-      logger.debug('Invalid liveArray: it doesnt belong to this Dialog!')
+    const { action, conferenceChannel = '', conferenceName } = pvtData
+    if (conferenceChannel.indexOf(this.options.destination_number) === -1) {
       return
     }
     switch (action) {
-      case 'conference-liveArray-join':
+      case LiveArrayAction.Join:
         const config = {
           onChange: this.options.onNotification.bind(this),
           onError: error => logger.error('LiveArray error', error),
           subParams: { callID: this.callID }
         }
-        this._liveArray = new VertoLiveArray(this.session, laChannel, laName, config)
+        this._liveArray = new VertoLiveArray(this.session, conferenceChannel, conferenceName, config)
         break
-      case 'conference-liveArray-part':
+      case LiveArrayAction.Leave:
         this._destroyLiveArray()
         break
     }
@@ -309,14 +305,23 @@ export default class Dialog {
     }
   }
 
-
   private _onMediaError(error: any) {
-    this.options.onUserMediaError.call(this, error)
+    const notification = { type: NOTIFICATION_TYPE.userMediaError, error }
+    if (!trigger(SwEvent.Notification, notification, this.callID, false)) {
+      trigger(SwEvent.Notification, notification, this.session.uuid)
+    }
     this.hangup({}, false)
   }
 
   private _validCallback(name: string) {
     return this.options.hasOwnProperty(name) && this.options[name] instanceof Function
+  }
+
+  private _dispatchUpdate() {
+    const notification = { type: NOTIFICATION_TYPE.dialogUpdate, dialog: this }
+    if (!trigger(SwEvent.Notification, notification, this.callID, false)) {
+      trigger(SwEvent.Notification, notification, this.session.uuid)
+    }
   }
 
   private _init() {
@@ -326,23 +331,11 @@ export default class Dialog {
     this.callID = this.options.callID
     this.session.dialogs[this.callID] = this
 
-    // TODO: setup / execute / subscribe to Blade protocol-channels
-    /*const be = new Execute({ protocol: 'verto', method: 'changeme-setup', params: {} })
-    this.session.execute(be)
-      .catch(error => {
-        logger.error('Verto setup error', error)
-      }) */
-
     // Register Handlers
-    if (this._validCallback('onChange')) {
-      register(SwEvent.VertoDialogChange, this.options.onChange.bind(this), this.callID)
-    }
-    if (this._validCallback('onUserMediaError')) {
-      register(SwEvent.MediaError, this._onMediaError, this.callID)
-    }
+    register(SwEvent.MediaError, this._onMediaError, this.callID)
+    register(SwEvent.Notification, this._initLiveArray, this.session.uuid)
     if (this._validCallback('onNotification')) {
       register(SwEvent.Notification, this.options.onNotification.bind(this), this.callID)
-      register(SwEvent.Notification, this._initLiveArray, this.session.uuid)
     }
 
     this.setState(State.New)
@@ -359,7 +352,6 @@ export default class Dialog {
       localStream.getTracks().forEach(t => t.stop())
       this.options.localStream = null
     }
-    deRegister(SwEvent.VertoDialogChange, null, this.callID)
     deRegister(SwEvent.MediaError, null, this.callID)
     deRegister(SwEvent.Notification, null, this.callID)
     deRegister(SwEvent.Notification, this._initLiveArray, this.session.uuid)

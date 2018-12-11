@@ -66,7 +66,7 @@ export default class Peer {
 
     this.options.localStream = await this._retrieveLocalStream()
       .catch(error => {
-        trigger(SwEvent.MediaError, error, this.options.callID)
+        trigger(SwEvent.MediaError, error, this.options.id)
       })
     if (streamIsValid(this.options.localStream)) {
       this.options.localStream.getTracks().forEach(t => this.instance.addTrack(t, this.options.localStream))

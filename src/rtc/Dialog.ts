@@ -7,27 +7,27 @@ import Peer from './Peer'
 import { DialogState as State, DialogDirection as Direction, PeerType, VertoMethod, SwEvent, NOTIFICATION_TYPE, LiveArrayAction } from '../util/constants'
 import { trigger, register, deRegister } from '../services/Handler'
 import { streamIsValid } from '../services/RTCService'
+import { objEmpty } from '../util/helpers'
 import { DialogOptions } from '../interfaces/'
 
 const DEFAULT_OPTIONS: DialogOptions = {
+  destinationNumber: '',
+  remoteCallerName: 'Outbound Call',
+  remoteCallerNumber: '',
+  callerName: '',
+  callerNumber: '',
   audio: true,
   video: false,
   useStereo: true,
   attach: false,
   screenShare: false,
-  outgoingBandwidth: 'default',
-  incomingBandwidth: 'default',
-  remote_caller_id_name: 'Outbound Call',
-  remote_caller_id_number: '',
-  destination_number: '',
-  caller_id_name: '',
-  caller_id_number: '',
-  userVariables: {},
-  // videoParams: { minWidth: 1280, minHeight: 720, maxWidth: 1920, maxHeight: 1080, minFrameRate: 15 },
+  // outgoingBandwidth: 'default',
+  // incomingBandwidth: 'default',
+  userVariables: {}
 }
 
 export default class Dialog {
-  public callID: string = ''
+  public id: string = ''
   public state: string = State[State.New]
   public direction: Direction
   public peer: Peer
@@ -144,7 +144,7 @@ export default class Dialog {
     this._prevState = this._state
     this._state = state
     this.state = State[this._state].toLowerCase()
-    logger.warn('Dialog %s state change from %s to %s', this.callID, State[this._prevState].toLowerCase(), this.state)
+    logger.warn('Dialog %s state change from %s to %s', this.id, State[this._prevState].toLowerCase(), this.state)
 
     this._dispatchUpdate()
 
@@ -176,7 +176,7 @@ export default class Dialog {
         if (notification.hasOwnProperty('sdp')) {
           delete notification.sdp
         }
-        if (!trigger(SwEvent.Notification, notification, this.callID)) {
+        if (!trigger(SwEvent.Notification, notification, this.id)) {
           trigger(SwEvent.Notification, notification, this.session.uuid)
         }
         break
@@ -192,7 +192,7 @@ export default class Dialog {
   }
 
   private _handleChangeHoldStateError(error) {
-    logger.error('Failed to %s dialog %s', error.action, this.callID, error)
+    logger.error('Failed to %s dialog %s', error.action, this.id, error)
     return false
   }
 
@@ -280,7 +280,7 @@ export default class Dialog {
 
   private _initLiveArray(pvtData: any) {
     const { action, conferenceChannel = '', conferenceName } = pvtData
-    if (conferenceChannel.indexOf(this.options.destination_number) === -1) {
+    if (conferenceChannel.indexOf(this.options.destinationNumber) === -1) {
       return
     }
     switch (action) {
@@ -288,7 +288,7 @@ export default class Dialog {
         const config = {
           onChange: this.options.onNotification.bind(this),
           onError: error => logger.error('LiveArray error', error),
-          subParams: { callID: this.callID }
+          subParams: { callID: this.id }
         }
         this._liveArray = new VertoLiveArray(this.session, conferenceChannel, conferenceName, config)
         break
@@ -307,7 +307,7 @@ export default class Dialog {
 
   private _onMediaError(error: any) {
     const notification = { type: NOTIFICATION_TYPE.userMediaError, error }
-    if (!trigger(SwEvent.Notification, notification, this.callID, false)) {
+    if (!trigger(SwEvent.Notification, notification, this.id, false)) {
       trigger(SwEvent.Notification, notification, this.session.uuid)
     }
     this.hangup({}, false)
@@ -319,23 +319,27 @@ export default class Dialog {
 
   private _dispatchUpdate() {
     const notification = { type: NOTIFICATION_TYPE.dialogUpdate, dialog: this }
-    if (!trigger(SwEvent.Notification, notification, this.callID, false)) {
+    if (!trigger(SwEvent.Notification, notification, this.id, false)) {
       trigger(SwEvent.Notification, notification, this.session.uuid)
     }
   }
 
   private _init() {
-    if (!this.options.hasOwnProperty('callID') || !this.options.callID) {
-      this.options.callID = uuidv4()
+    const { id, userVariables } = this.options
+    if (!id) {
+      this.options.id = uuidv4()
     }
-    this.callID = this.options.callID
-    this.session.dialogs[this.callID] = this
+    if (!userVariables || objEmpty(userVariables)) {
+      this.options.userVariables = this.session.options.userVariables || {}
+    }
+    this.id = this.options.id
+    this.session.dialogs[this.id] = this
 
     // Register Handlers
-    register(SwEvent.MediaError, this._onMediaError, this.callID)
+    register(SwEvent.MediaError, this._onMediaError, this.id)
     register(SwEvent.Notification, this._initLiveArray, this.session.uuid)
     if (this._validCallback('onNotification')) {
-      register(SwEvent.Notification, this.options.onNotification.bind(this), this.callID)
+      register(SwEvent.Notification, this.options.onNotification.bind(this), this.id)
     }
 
     this.setState(State.New)
@@ -352,12 +356,12 @@ export default class Dialog {
       localStream.getTracks().forEach(t => t.stop())
       this.options.localStream = null
     }
-    deRegister(SwEvent.MediaError, null, this.callID)
-    deRegister(SwEvent.Notification, null, this.callID)
+    deRegister(SwEvent.MediaError, null, this.id)
+    deRegister(SwEvent.Notification, null, this.id)
     deRegister(SwEvent.Notification, this._initLiveArray, this.session.uuid)
     this._destroyLiveArray()
     this.peer = null
-    this.session.dialogs[this.callID] = null
-    delete this.session.dialogs[this.callID]
+    this.session.dialogs[this.id] = null
+    delete this.session.dialogs[this.id]
   }
 }

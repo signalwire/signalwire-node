@@ -1,6 +1,6 @@
 import logger from './util/logger'
 import BaseSession from './BaseSession'
-import { SubscribeParams, BroadcastParams } from './interfaces'
+import { SubscribeParams, BroadcastParams, DialogOptions } from './interfaces'
 import { Login, Result, Broadcast, Subscribe, Unsubscribe } from './messages/Verto'
 import Dialog from './rtc/Dialog'
 import { SwEvent, VertoMethod, DialogState, NOTIFICATION_TYPE, LiveArrayAction } from './util/constants'
@@ -10,8 +10,12 @@ import * as Storage from './util/storage'
 const SESSID = 'vertoSessId'
 export default class Verto extends BaseSession {
 
-  newCall(args: any = {}) {
-    const dialog = new Dialog(this, args)
+  newCall(options: DialogOptions) {
+    const { destinationNumber = null } = options
+    if (!destinationNumber) {
+      throw new Error('Verto.newCall() error: destinationNumber is required.')
+    }
+    const dialog = new Dialog(this, options)
     dialog.invite()
     return dialog
   }
@@ -96,7 +100,7 @@ export default class Verto extends BaseSession {
 
   protected async _onSocketOpen() {
     const sessid = await Storage.getItem(SESSID)
-    const login = new Login(this.options.login, this.options.passwd, sessid)
+    const login = new Login(this.options.login, this.options.passwd, sessid, this.options.userVariables)
     const response = await this.execute(login)
       .catch(error => {
         trigger(SwEvent.Error, error, this.uuid)
@@ -118,17 +122,16 @@ export default class Verto extends BaseSession {
   }
 
   protected _onSocketMessage(msg: any) {
-    // logger.info('Verto Inbound Message', msg)
     // TODO: Move this switch in a service to re-use it under Blade!
     const { id, method, params } = msg
-    const { callID, eventChannel } = params
+    const { callID: dialogId, eventChannel } = params
     const attach = method === VertoMethod.Attach
 
-    if (callID && this.dialogs.hasOwnProperty(callID)) {
+    if (dialogId && this.dialogs.hasOwnProperty(dialogId)) {
       if (attach) {
-        this.dialogs[callID].hangup()
+        this.dialogs[dialogId].hangup()
       } else {
-        this.dialogs[callID].handleMessage(msg)
+        this.dialogs[dialogId].handleMessage(msg)
         this.execute(new Result(id, method))
         return
       }
@@ -141,13 +144,13 @@ export default class Verto extends BaseSession {
       case VertoMethod.Invite:
       case VertoMethod.Attach:
         const dialog = new Dialog(this, {
-          callID: params.callID,
+          id: dialogId,
           remoteSdp: params.sdp,
-          remote_caller_id_name: params.caller_id_name,
-          remote_caller_id_number: params.caller_id_number,
-          destination_number: params.callee_id_number,
-          caller_id_name: params.callee_id_name,
-          caller_id_number: params.callee_id_number,
+          destinationNumber: params.callee_id_number,
+          remoteCallerName: params.caller_id_name,
+          remoteCallerNumber: params.caller_id_number,
+          callerName: params.callee_id_name,
+          callerNumber: params.callee_id_number,
           audio: params.sdp.indexOf('m=audio') > 0,
           video: params.sdp.indexOf('m=video') > 0,
           attach

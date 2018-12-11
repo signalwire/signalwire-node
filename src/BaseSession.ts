@@ -11,7 +11,7 @@ import { getDevices, getResolutions } from './services/RTCService'
 export default abstract class BaseSession {
   public uuid: string = uuidv4()
   public sessionid: string = ''
-  public dialogs: { [callID: string]: Dialog } = {}
+  public dialogs: { [dialogId: string]: Dialog } = {}
   public subscriptions: { [channel: string]: Object } = {}
 
   protected _connection: Connection

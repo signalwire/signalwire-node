@@ -19,7 +19,10 @@ Then instantiate the client:
 const client = new Verto({
   host: 'freeswitch.example.com:8082',
   login: '1008@freeswitch.example.com',
-  password: 'your-super-password'
+  password: 'your-super-password',
+  userVariables: {
+    // Custom properties: email/gravatar/userName that will be sent to remote peer on call or conference call.
+  }
 })
 ```
 
@@ -148,11 +151,11 @@ The `newCall` method accept an object of parameters:
 ```javascript
 const params = {
   // Required:
-  destination_number: '3599',
-  remote_caller_id_name: 'Joe Example',
-  remote_caller_id_number: 'joe@example.com',
-  caller_id_name: 'J. Smith',
-  caller_id_number: 'smith@example.com',
+  destinationNumber: '3599',
+  remoteCallerName: 'Joe Example', // Callee name
+  remoteCallerNumber: 'joe@example.com', // Callee number or email
+  callerName: 'J. Smith', // Caller name
+  callerNumber: 'smith@example.com', // Caller number or email
 
   // Optional:
   localStream: MediaStream, // Use this stream instead of retrieving a new one. Useful if you have a stream from a canvas.captureStream() or from a screen share extension.
@@ -163,7 +166,7 @@ const params = {
   micId: '<deviceUUID>', // Microphone device ID
   camId: '<deviceUUID>', // Webcam device ID
   userVariables: {
-    // General user variables.. email/username
+    // Custom properties: email/gravatar/userName that will be sent to remote peer.
   },
   onNotification: function(message) {
     // Overrides the `signalwire.notification` callback for this Dialog so you can have different behaviour for each Dialog.

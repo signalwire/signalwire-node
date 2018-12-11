@@ -91,15 +91,23 @@ export interface IBladeSubscriptionRequest extends IMessageBase {
 
 export interface ISignalWireOptions {
   host: string,
-  project?: string,
-  token?: string,
-  login?: string,
-  passwd?: string,
-  password?: string,
+  project?: string
+  token?: string
+  login?: string
+  passwd?: string
+  password?: string
+  userVariables?: Object
 }
 
 export interface DialogOptions {
-  callID?: string
+  // Required
+  destinationNumber: string
+  remoteCallerName: string
+  remoteCallerNumber: string
+  callerName: string
+  callerNumber: string
+  // Optional
+  id?: string
   remoteSdp?: string
   localStream?: MediaStream
   remoteStream?: MediaStream
@@ -113,11 +121,6 @@ export interface DialogOptions {
   speakerId?: string
   outgoingBandwidth?: string
   incomingBandwidth?: string
-  remote_caller_id_name: string
-  remote_caller_id_number: string
-  destination_number: string
-  caller_id_name: string
-  caller_id_number: string
   userVariables?: Object
   screenShare?: boolean
   onNotification?: Function

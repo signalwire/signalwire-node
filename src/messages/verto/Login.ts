@@ -3,11 +3,11 @@ import BaseMessage from '../BaseMessage'
 class Login extends BaseMessage {
   method: string = 'login'
 
-  constructor(login: string, passwd: string, sessionid?: string) {
+  constructor(login: string, passwd: string, sessionid: string, userVariables: Object = {}) {
     super()
 
     // TODO: handle loginParams && userVariables
-    const params: any = { login, passwd, loginParams: {}, userVariables: {} }
+    const params: any = { login, passwd, userVariables, loginParams: {} }
     if (sessionid) {
       params.sessid = sessionid
     }

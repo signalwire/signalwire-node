@@ -16,6 +16,7 @@ Then instantiate the client:
 > Note: host / login / password are required for Verto
 
 ```javascript
+// Create a new instance
 const client = new Verto({
   host: 'freeswitch.example.com:8082',
   login: '1008@freeswitch.example.com',
@@ -24,6 +25,18 @@ const client = new Verto({
     // Custom properties: email/gravatar/userName that will be sent to remote peer on call or conference call.
   }
 })
+
+// ..add listeners you need
+client.on('signalwire.ready', function(){
+  // ...
+})
+
+client.on('signalwire.notification', function(notification){
+  // ...
+})
+
+// connect the session!
+client.connect()
 ```
 
 ## Subscribe to the client events:
@@ -85,7 +98,7 @@ client.on('signalwire.socket.open', function(){
 ## Client methods:
 
 #### connect()
-After setup up all the events on the client do `connect()` to start the session:
+After setup the events you need on the client do `connect()` to start the session:
 ```javascript
 client.connect()
 ```

@@ -7,6 +7,10 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Added
 - Moderator method on the Dialog object.
 
+## [1.0.0-rc.3] - 2018-12-18
+### Fixed
+- Bugfix to really accept both `passwd` and `password` on Verto client initialization.
+
 ## [1.0.0-rc.2] - 2018-12-11
 ### Added
 - Accept both `passwd` and `password` to setup Verto client.

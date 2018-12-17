@@ -100,8 +100,9 @@ export default class Verto extends BaseSession {
 
   protected async _onSocketOpen() {
     const sessid = await Storage.getItem(SESSID)
-    const login = new Login(this.options.login, this.options.passwd, sessid, this.options.userVariables)
-    const response = await this.execute(login)
+    const { login, password, passwd, userVariables } = this.options
+    const msg = new Login(login, (password || passwd), sessid, userVariables)
+    const response = await this.execute(msg)
       .catch(error => {
         trigger(SwEvent.Error, error, this.uuid)
       })

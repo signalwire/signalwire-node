@@ -8,6 +8,7 @@ import { DialogState as State, DialogDirection as Direction, PeerType, VertoMeth
 import { trigger, register, deRegister } from '../services/Handler'
 import { streamIsValid } from '../services/RTCService'
 import { objEmpty } from '../util/helpers'
+import { attachMediaStream, detachMediaStream } from '../util/webrtc'
 import { DialogOptions } from '../interfaces/'
 
 const DEFAULT_OPTIONS: DialogOptions = {
@@ -275,6 +276,9 @@ export default class Dialog {
 
     instance.ontrack = event => {
       this.options.remoteStream = event.streams[0]
+
+      const { remoteElementId = '', remoteStream } = this.options
+      attachMediaStream(remoteElementId, remoteStream)
     }
   }
 
@@ -347,7 +351,7 @@ export default class Dialog {
   }
 
   private _finalize() {
-    const { remoteStream, localStream } = this.options
+    const { remoteStream, localStream, remoteElementId = '', localElementId = '' } = this.options
     if (streamIsValid(remoteStream)) {
       remoteStream.getTracks().forEach(t => t.stop())
       this.options.remoteStream = null
@@ -356,6 +360,9 @@ export default class Dialog {
       localStream.getTracks().forEach(t => t.stop())
       this.options.localStream = null
     }
+    detachMediaStream(localElementId)
+    detachMediaStream(remoteElementId)
+
     deRegister(SwEvent.MediaError, null, this.id)
     deRegister(SwEvent.Notification, null, this.id)
     deRegister(SwEvent.Notification, this._initLiveArray, this.session.uuid)

@@ -1,6 +1,7 @@
 import logger from '../util/logger'
 import { getUserMedia, getMediaConstraints, streamIsValid } from '../services/RTCService'
 import { PeerType, SwEvent } from '../util/constants'
+import { attachMediaStream } from '../util/webrtc'
 import { DialogOptions } from '../interfaces/'
 import { trigger } from '../services/Handler'
 
@@ -68,8 +69,10 @@ export default class Peer {
       .catch(error => {
         trigger(SwEvent.MediaError, error, this.options.id)
       })
-    if (streamIsValid(this.options.localStream)) {
-      this.options.localStream.getTracks().forEach(t => this.instance.addTrack(t, this.options.localStream))
+    const { localElementId = '', localStream } = this.options
+    if (streamIsValid(localStream)) {
+      localStream.getTracks().forEach(t => this.instance.addTrack(t, localStream))
+      attachMediaStream(localElementId, localStream)
     }
   }
 

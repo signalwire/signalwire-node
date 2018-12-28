@@ -79,8 +79,7 @@ export default class SignalWire extends BaseSession {
     // TODO: to be implemented
   }
 
-  async subscribe(params: SubscribeParams) {
-    const { protocol, channels } = params
+  async subscribe({ channels, protocol }: SubscribeParams) {
     const bs = new Subscription({ command: ADD, protocol, channels })
     const result = await this.execute(bs)
     if (result.hasOwnProperty('failed_channels') && result.failed_channels.length) {
@@ -89,8 +88,7 @@ export default class SignalWire extends BaseSession {
     return result
   }
 
-  async unsubscribe(params: SubscribeParams) {
-    const { protocol, channels } = params
+  async unsubscribe({ channels, protocol }: SubscribeParams) {
     const bs = new Subscription({ command: REMOVE, protocol, channels })
     return this.execute(bs)
   }

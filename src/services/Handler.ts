@@ -1,4 +1,3 @@
-import logger from '../util/logger'
 import { objEmpty } from '../util/helpers'
 
 type QueueMap = {

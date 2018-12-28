@@ -11,7 +11,7 @@ const getUserMedia = async (constraints: MediaStreamConstraints) => {
   throw stream
 }
 
-const streamIsValid = stream => stream instanceof MediaStream
+const streamIsValid = (stream: MediaStream) => stream && stream instanceof MediaStream
 
 // TODO: cache the devices in localStorage if available!
 const getDevices = async (): Promise<ICacheDevices> => {

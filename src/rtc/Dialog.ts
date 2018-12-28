@@ -1,31 +1,14 @@
 import { v4 as uuidv4 } from 'uuid'
 import logger from '../util/logger'
 import BaseSession from '../BaseSession'
-import VertoLiveArray from '../VertoLiveArray'
 import { Invite, Answer, Attach, Bye, Modify, Info } from '../messages/Verto'
 import Peer from './Peer'
-import { DialogState as State, DialogDirection as Direction, PeerType, VertoMethod, SwEvent, NOTIFICATION_TYPE, LiveArrayAction } from '../util/constants'
+import { DialogState as State, DialogDirection as Direction, PeerType, VertoMethod, SwEvent, NOTIFICATION_TYPE, DEFAULT_DIALOG_OPTIONS, ConferenceAction, DialogRole } from '../util/constants'
 import { trigger, register, deRegister } from '../services/Handler'
 import { streamIsValid } from '../services/RTCService'
-import { objEmpty } from '../util/helpers'
+import { objEmpty, mutateLiveArrayData } from '../util/helpers'
 import { attachMediaStream, detachMediaStream } from '../util/webrtc'
 import { DialogOptions } from '../interfaces/'
-
-const DEFAULT_OPTIONS: DialogOptions = {
-  destinationNumber: '',
-  remoteCallerName: 'Outbound Call',
-  remoteCallerNumber: '',
-  callerName: '',
-  callerNumber: '',
-  audio: true,
-  video: false,
-  useStereo: true,
-  attach: false,
-  screenShare: false,
-  // outgoingBandwidth: 'default',
-  // incomingBandwidth: 'default',
-  userVariables: {}
-}
 
 export default class Dialog {
   public id: string = ''
@@ -35,17 +18,18 @@ export default class Dialog {
   public options: DialogOptions
   public cause: string
   public causeCode: number
+  public channels: string[] = []
+  public role: string = DialogRole.Participant
 
   private _state: State = State.New
   private _prevState: State = State.New
   private gotAnswer: boolean = false
   private gotEarly: boolean = false
-  private _liveArray: VertoLiveArray = null
+  private _lastSerno: number = 0
 
   constructor(private session: BaseSession, opts?: DialogOptions) {
-    this.options = Object.assign({}, DEFAULT_OPTIONS, opts)
+    this.options = Object.assign({}, DEFAULT_DIALOG_OPTIONS, opts)
 
-    this._initLiveArray = this._initLiveArray.bind(this)
     this._onMediaError = this._onMediaError.bind(this)
     this._init()
   }
@@ -145,9 +129,9 @@ export default class Dialog {
     this._prevState = this._state
     this._state = state
     this.state = State[this._state].toLowerCase()
-    logger.warn('Dialog %s state change from %s to %s', this.id, State[this._prevState].toLowerCase(), this.state)
+    logger.debug('Dialog %s state change from %s to %s', this.id, State[this._prevState].toLowerCase(), this.state)
 
-    this._dispatchUpdate()
+    this._dispatchDialogUpdate()
 
     switch (state) {
       case State.Purge:
@@ -162,16 +146,31 @@ export default class Dialog {
   handleMessage(msg: any) {
     const { method, params } = msg
     switch (method) {
-      case VertoMethod.Answer:
-        this._onAnswer(params.sdp)
+      case VertoMethod.Answer: {
+        this.gotAnswer = true
+        if (this._state >= State.Active) {
+          return
+        }
+        if (this._state >= State.Early) {
+          this.setState(State.Active)
+        }
+        if (!this.gotEarly) {
+          this._onRemoteSdp(params.sdp)
+        }
         break
-      case VertoMethod.Media:
-        this._onMedia(params.sdp)
+      }
+      case VertoMethod.Media: {
+        if (this._state >= State.Early) {
+          return
+        }
+        this.gotEarly = true
+        this._onRemoteSdp(params.sdp)
         break
+      }
       case VertoMethod.Info:
       case VertoMethod.Display:
       case VertoMethod.Event:
-      case VertoMethod.Attach:
+      case VertoMethod.Attach: {
         const type = NOTIFICATION_TYPE.hasOwnProperty(method) ? NOTIFICATION_TYPE[method] : NOTIFICATION_TYPE.generic
         const notification = { ...params, type, dialog: this }
         if (notification.hasOwnProperty('sdp')) {
@@ -181,9 +180,266 @@ export default class Dialog {
           trigger(SwEvent.Notification, notification, this.session.uuid)
         }
         break
+      }
       case VertoMethod.Bye:
         this.hangup(params, false)
-      break
+        break
+    }
+  }
+
+  async handleConferenceUpdate(packet: any, initialPvtData: any) {
+    // FIXME: 'reorder' - changepage' - 'heartbeat' methods not implemented
+    if (!this._checkConferenceSerno(packet.wireSerno) && packet.name !== initialPvtData.laName) {
+      logger.error('ConferenceUpdate invalid wireSerno or packet name:', packet)
+      return 'INVALID_PACKET'
+    }
+    const { action, data, hashKey: key = String(this._lastSerno), arrIndex: index } = packet
+    switch (action) {
+      case 'bootObj': {
+        this._lastSerno = 0
+        const { chatID, chatChannel, infoChannel, modChannel, laName, conferenceMemberID, role } = initialPvtData
+        this._dispatchConferenceUpdate({ action: ConferenceAction.Join, conferenceName: laName, participantId: Number(conferenceMemberID), role })
+        if (chatChannel) {
+          await this._subscribeConferenceChat(chatChannel)
+        }
+        if (infoChannel) {
+          await this._subscribeConferenceInfo(infoChannel)
+        }
+        if (modChannel && role === DialogRole.Moderator) {
+          await this._subscribeConferenceModerator(modChannel)
+        }
+        const participants = []
+        for (const i in data) {
+          participants.push({ key: data[i][0], index: Number(i), ...mutateLiveArrayData(data[i][1]) })
+        }
+        this._dispatchConferenceUpdate({ action: ConferenceAction.Bootstrap, participants })
+        break
+      }
+      case 'add': {
+        this._dispatchConferenceUpdate({ action: ConferenceAction.Add, key, index, ...mutateLiveArrayData(data) })
+        break
+      }
+      case 'modify':
+        this._dispatchConferenceUpdate({ action: ConferenceAction.Modify, key, index, ...mutateLiveArrayData(data) })
+        break
+      case 'del':
+        this._dispatchConferenceUpdate({ action: ConferenceAction.Delete, key, index, ...mutateLiveArrayData(data) })
+        break
+      case 'clear':
+        this._dispatchConferenceUpdate({ action: ConferenceAction.Clear })
+        break
+      // case 'reorder':
+      //   break
+      default:
+        this._dispatchConferenceUpdate({ action, data, key, index })
+        break
+    }
+  }
+
+  _addChannel(channel: string): void {
+    if (!this.channels.includes(channel)) {
+      this.channels.push(channel)
+    }
+    this.session.subscriptions[channel] = {
+      ...this.session.subscriptions[channel], dialogId: this.id
+    }
+  }
+
+  private async _subscribeConferenceChat(channel: string) {
+    const tmp = {
+      channels: [channel],
+      handler: (params: any) => {
+        logger.debug('_subscribeConferenceChat handler', params)
+        const { direction, from: participantNumber, fromDisplay: participantName, message: messageText, type: messageType } = params.data
+        this._dispatchConferenceUpdate({ action: ConferenceAction.ChatMessage, direction, participantNumber, participantName, messageText, messageType })
+      }
+    }
+    const response = await this.session.subscribe(tmp)
+      .catch((error: any) => error)
+    const { subscribedChannels = [] } = response
+    if (subscribedChannels.includes(channel)) {
+      this._addChannel(channel)
+      Object.defineProperties(this, {
+        sendChatMessage: {
+          value: (message: string, type: string) => {
+            this.session.broadcast({ channel, data: { action: 'send', message, type } })
+          }
+        }
+      })
+    }
+  }
+
+  private async _subscribeConferenceInfo(channel: string) {
+    const tmp = {
+      channels: [channel],
+      handler: (params: any) => {
+        logger.debug('_subscribeConferenceInfo handler', params)
+        const { eventData: data } = params
+        switch (data.contentType) {
+          case 'layout-info':
+            const tmp = JSON.stringify(data.canvasInfo).replace(/ID"/g, 'Id"').replace(/POS"/g, 'Pos"')
+            this._dispatchConferenceUpdate({ action: ConferenceAction.LayoutInfo, data: JSON.parse(tmp) })
+            break
+          default:
+            logger.error('Conference-Info unknown contentType', params)
+        }
+      }
+    }
+    const response = await this.session.subscribe(tmp)
+      .catch((error: any) => error)
+    const { subscribedChannels = [] } = response
+    if (subscribedChannels.includes(channel)) {
+      this._addChannel(channel)
+    }
+  }
+
+  private async _subscribeConferenceModerator(channel: string) {
+    const _modCommand = (command: string, memberID: any = null, value: any = null): void => {
+      const application = 'conf-control'
+      const id = parseInt(memberID) || null
+      this.session.broadcast({ channel, data: { application, command, id, value } })
+    }
+
+    const _videoRequired = (): void => {
+      const { video } = this.options
+      if ((typeof video === 'boolean' && !video) || (typeof video === 'object' && objEmpty(video))) {
+        throw `Conference ${this.id} has no video!`
+      }
+    }
+
+    const tmp = {
+      channels: [channel],
+      handler: (params: any) => {
+        logger.debug('_subscribeConferenceModerator handler', params)
+        const { data } = params
+        switch (data['conf-command']) {
+          case 'list-videoLayouts':
+            if (data.responseData) {
+              const tmp = JSON.stringify(data.responseData).replace(/IDS"/g, 'Ids"')
+              // TODO: revert layouts JSON structure
+              this._dispatchConferenceUpdate({ action: ConferenceAction.LayoutList, layouts: JSON.parse(tmp) })
+            }
+            break
+          default:
+            this._dispatchConferenceUpdate({ action: ConferenceAction.ModCmdResponse, command: data['conf-command'], response: data.response })
+        }
+      }
+    }
+    const response = await this.session.subscribe(tmp)
+      .catch((error: any) => error)
+    const { subscribedChannels = [] } = response
+    if (subscribedChannels.includes(channel)) {
+      this.role = DialogRole.Moderator
+      this._addChannel(channel)
+      Object.defineProperties(this, {
+        listVideoLayouts: {
+          value: () => {
+            _modCommand('list-videoLayouts')
+          }
+        },
+        play: {
+          value: (file: string) => {
+            _modCommand('play', null, file)
+          }
+        },
+        stop: {
+          value: () => {
+            _modCommand('stop', null, 'all')
+          }
+        },
+        deaf: {
+          value: (memberID: number | string) => {
+            _modCommand('deaf', memberID)
+          }
+        },
+        undeaf: {
+          value: (memberID: number | string) => {
+            _modCommand('undeaf', memberID)
+          }
+        },
+        record: {
+          value: (file: string) => {
+            _modCommand('recording', null, ['start', file])
+          }
+        },
+        stopRecord: {
+          value: () => {
+            _modCommand('recording', null, ['stop', 'all'])
+          }
+        },
+        snapshot: {
+          value: (file: string) => {
+            _videoRequired()
+            _modCommand('vid-write-png', null, file)
+          }
+        },
+        setVideoLayout: {
+          value: (layout: string, canvasID: number) => {
+            _videoRequired()
+            const value = canvasID ? [layout, canvasID] : layout
+            _modCommand('vid-layout', null, value)
+          }
+        },
+        kick: {
+          value: (memberID: number | string) => {
+            _modCommand('kick', memberID)
+          }
+        },
+        muteMic: {
+          value: (memberID: number | string) => {
+            _modCommand('tmute', memberID)
+          }
+        },
+        muteVideo: {
+          value: (memberID: number | string) => {
+            _videoRequired()
+            _modCommand('tvmute', memberID)
+          }
+        },
+        presenter: {
+          value: (memberID: number | string) => {
+            _videoRequired()
+            _modCommand('vid-res-id', memberID, 'presenter')
+          }
+        },
+        videoFloor: {
+          value: (memberID: number | string) => {
+            _videoRequired()
+            _modCommand('vid-floor', memberID, 'force')
+          }
+        },
+        banner: {
+          value: (memberID: number | string, text: string) => {
+            _videoRequired()
+            _modCommand('vid-banner', memberID, encodeURI(text))
+          }
+        },
+        volumeDown: {
+          value: (memberID: number | string) => {
+            _modCommand('volume_out', memberID, 'down')
+          }
+        },
+        volumeUp: {
+          value: (memberID: number | string) => {
+            _modCommand('volume_out', memberID, 'up')
+          }
+        },
+        gainDown: {
+          value: (memberID: number | string) => {
+            _modCommand('volume_in', memberID, 'down')
+          }
+        },
+        gainUp: {
+          value: (memberID: number | string) => {
+            _modCommand('volume_in', memberID, 'up')
+          }
+        },
+        transfer: {
+          value: (memberID: number | string, exten: string) => {
+            _modCommand('transfer', memberID, exten)
+          }
+        }
+      })
     }
   }
 
@@ -197,29 +453,8 @@ export default class Dialog {
     return false
   }
 
-  private _onAnswer(sdp: string) {
-    this.gotAnswer = true
-    if (this._state >= State.Active) {
-      return
-    }
-    if (this._state >= State.Early) {
-      this.setState(State.Active)
-    }
-    if (!this.gotEarly) {
-      this._onRemoteSdp(sdp)
-    }
-  }
-
-  private _onMedia(sdp: string) {
-    if (this._state >= State.Early) {
-      return
-    }
-    this.gotEarly = true
-    this._onRemoteSdp(sdp)
-  }
-
   private _onRemoteSdp(sdp: string) {
-    this.peer.instance.setRemoteDescription({ sdp, type: 'answer' })
+    this.peer.instance.setRemoteDescription({ sdp, type: PeerType.Answer })
       .then(() => {
         if (this.gotEarly) {
           this.setState(State.Early)
@@ -238,18 +473,21 @@ export default class Dialog {
     // TODO: Blade needs a differ wrapper (maybe BladeInvite & BladeAnswer ?!)
     let msg = null
     const tmpParams = { sessid: this.session.sessionid, sdp: data.sdp, dialogParams: this.options }
-    if (data.type === 'offer') {
+    if (data.type === PeerType.Offer) {
       this.setState(State.Requesting)
       msg = new Invite(tmpParams)
-    } else if (data.type === 'answer') {
+    } else if (data.type === PeerType.Answer) {
       this.setState(State.Answering)
       msg = this.options.attach === true ? new Attach(tmpParams) : new Answer(tmpParams)
+    } else {
+      logger.warn('Unknown SDP type:', data)
+      return
     }
     this.session.execute(msg)
       .then(response => {
-        if (data.type === 'offer') {
+        if (data.type === PeerType.Offer) {
           this.setState(State.Trying)
-        } else if (data.type === 'answer') {
+        } else if (data.type === PeerType.Answer) {
           this.setState(State.Active)
         }
       })
@@ -282,38 +520,16 @@ export default class Dialog {
     }
   }
 
-  private _initLiveArray(pvtData: any) {
-    const { action, conferenceChannel = '', conferenceName } = pvtData
-    if (conferenceChannel.indexOf(this.options.destinationNumber) === -1) {
-      return
+  private _checkConferenceSerno = (serno: number) => {
+    const check = (serno < 0) || (!this._lastSerno || (this._lastSerno && serno === (this._lastSerno + 1)))
+    if (check && serno >= 0) {
+      this._lastSerno = serno
     }
-    switch (action) {
-      case LiveArrayAction.Join:
-        const config = {
-          onChange: this.options.onNotification.bind(this),
-          onError: error => logger.error('LiveArray error', error),
-          subParams: { callID: this.id }
-        }
-        this._liveArray = new VertoLiveArray(this.session, conferenceChannel, conferenceName, config)
-        break
-      case LiveArrayAction.Leave:
-        this._destroyLiveArray()
-        break
-    }
-  }
-
-  private _destroyLiveArray(): void {
-    if (this._liveArray) {
-      this._liveArray.destroy()
-      this._liveArray = null
-    }
+    return check
   }
 
   private _onMediaError(error: any) {
-    const notification = { type: NOTIFICATION_TYPE.userMediaError, error }
-    if (!trigger(SwEvent.Notification, notification, this.id, false)) {
-      trigger(SwEvent.Notification, notification, this.session.uuid)
-    }
+    this._dispatchNotification({ type: NOTIFICATION_TYPE.userMediaError, error })
     this.hangup({}, false)
   }
 
@@ -321,8 +537,15 @@ export default class Dialog {
     return this.options.hasOwnProperty(name) && this.options[name] instanceof Function
   }
 
-  private _dispatchUpdate() {
-    const notification = { type: NOTIFICATION_TYPE.dialogUpdate, dialog: this }
+  private _dispatchDialogUpdate() {
+    this._dispatchNotification({ type: NOTIFICATION_TYPE.dialogUpdate, dialog: this })
+  }
+
+  private _dispatchConferenceUpdate(params: any) {
+    this._dispatchNotification({ type: NOTIFICATION_TYPE.conferenceUpdate, ...params })
+  }
+
+  private _dispatchNotification(notification: any) {
     if (!trigger(SwEvent.Notification, notification, this.id, false)) {
       trigger(SwEvent.Notification, notification, this.session.uuid)
     }
@@ -341,7 +564,6 @@ export default class Dialog {
 
     // Register Handlers
     register(SwEvent.MediaError, this._onMediaError, this.id)
-    register(SwEvent.Notification, this._initLiveArray, this.session.uuid)
     if (this._validCallback('onNotification')) {
       register(SwEvent.Notification, this.options.onNotification.bind(this), this.id)
     }
@@ -364,9 +586,6 @@ export default class Dialog {
     detachMediaStream(remoteElementId)
 
     deRegister(SwEvent.MediaError, null, this.id)
-    deRegister(SwEvent.Notification, null, this.id)
-    deRegister(SwEvent.Notification, this._initLiveArray, this.session.uuid)
-    this._destroyLiveArray()
     this.peer = null
     this.session.dialogs[this.id] = null
     delete this.session.dialogs[this.id]

@@ -129,17 +129,14 @@ export interface DialogOptions {
 }
 
 export interface SubscribeParams {
-  protocol?: string
   channels?: string[]
-  eventChannel?: string
+  protocol?: string
   handler?: Function
-  subParams?: object
 }
 
 export interface BroadcastParams {
+  channel?: string
   protocol?: string
-  channels?: string[]
-  eventChannel?: string
   data?: object
 }
 

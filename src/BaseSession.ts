@@ -12,7 +12,7 @@ export default abstract class BaseSession {
   public uuid: string = uuidv4()
   public sessionid: string = ''
   public dialogs: { [dialogId: string]: Dialog } = {}
-  public subscriptions: { [channel: string]: Object } = {}
+  public subscriptions: { [channel: string]: any } = {}
 
   protected _connection: Connection
   protected _devices: ICacheDevices = {}
@@ -25,9 +25,9 @@ export default abstract class BaseSession {
     this.refreshDevices()
   }
 
-  abstract async subscribe(params: SubscribeParams)
-  abstract async unsubscribe(params: SubscribeParams)
-  abstract broadcast(params: BroadcastParams)
+  abstract async subscribe(params: SubscribeParams): Promise<any>
+  abstract async unsubscribe(params: SubscribeParams): Promise<any>
+  abstract broadcast(params: BroadcastParams): void
 
   connect() {
     if (this._connection instanceof Connection) {
@@ -63,7 +63,9 @@ export default abstract class BaseSession {
   }
 
   refreshDevices() {
-    getDevices().then(devices => this._devices = devices)
+    getDevices()
+      .then(devices => this._devices = devices)
+      .catch(error => error)
   }
 
   get videoDevices() {

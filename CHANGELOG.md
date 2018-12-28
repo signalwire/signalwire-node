@@ -5,7 +5,9 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 ### Added
-- Moderator method on the Dialog object.
+- Moderator methods on the Dialog object.
+### Removed
+- Conference's channels have been removed from the `conferenceUpdate` join & leave notification type (chatChannel / infoChannel / conferenceChannel).
 
 ## [1.0.0-rc.3] - 2018-12-18
 ### Fixed

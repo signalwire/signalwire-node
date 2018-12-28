@@ -7,13 +7,13 @@ import { trigger } from '../services/Handler'
 
 export default class Peer {
   public instance: RTCPeerConnection
-  private _constraints: { offerToReceiveAudio: number, offerToReceiveVideo: number }
+  private _constraints: { offerToReceiveAudio: boolean, offerToReceiveVideo: boolean }
   private _negotiating: boolean = false
 
   constructor(public type: PeerType, private options: DialogOptions) {
     logger.info('New Peer with type:', this.type, 'Options:', this.options)
 
-    this._constraints = { offerToReceiveAudio: 1, offerToReceiveVideo: 1 }
+    this._constraints = { offerToReceiveAudio: true, offerToReceiveVideo: true }
     this._init()
   }
 

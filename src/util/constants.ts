@@ -1,3 +1,5 @@
+import { DialogOptions } from '../interfaces/'
+
 export enum Netcast {
   ProtocolProviderAdd = 'protocol.provider.add',
   ProtocolProviderRemove = 'protocol.provider.remove'
@@ -78,7 +80,28 @@ export const NOTIFICATION_TYPE = {
   userMediaError: 'userMediaError'
 }
 
-export enum LiveArrayAction {
+export const DEFAULT_DIALOG_OPTIONS: DialogOptions = {
+  destinationNumber: '',
+  remoteCallerName: 'Outbound Call',
+  remoteCallerNumber: '',
+  callerName: '',
+  callerNumber: '',
+  audio: true,
+  video: false,
+  useStereo: true,
+  attach: false,
+  screenShare: false,
+  // outgoingBandwidth: 'default',
+  // incomingBandwidth: 'default',
+  userVariables: {}
+}
+
+export enum DialogRole {
+  Participant = 'participant',
+  Moderator = 'moderator',
+}
+
+export enum ConferenceAction {
   Join = 'join',
   Leave = 'leave',
   Bootstrap = 'bootstrap',
@@ -86,4 +109,8 @@ export enum LiveArrayAction {
   Modify = 'modify',
   Delete = 'delete',
   Clear = 'clear',
+  ChatMessage = 'chatMessage',
+  LayoutInfo = 'layoutInfo',
+  LayoutList = 'layoutList',
+  ModCmdResponse = 'moderatorCommandResponse',
 }

@@ -5,7 +5,7 @@ import { Login, Result, Broadcast, Subscribe, Unsubscribe } from './messages/Ver
 import Dialog from './rtc/Dialog'
 import { SwEvent, VertoMethod, DialogState, NOTIFICATION_TYPE, ConferenceAction } from './util/constants'
 import { trigger, register, deRegister } from './services/Handler'
-import * as Storage from './util/storage'
+import * as Storage from './util/storage/'
 
 const SESSID = 'vertoSessId'
 export default class Verto extends BaseSession {

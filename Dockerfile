@@ -1,11 +1,12 @@
 FROM node:11-alpine
 WORKDIR /home/node/app
-# Install deps
+
 COPY ./package* ./
 RUN npm install && \
-    npm cache clean --force && \
-    npm run build-ts
+    npm cache clean --force
+    
 COPY . .
-# Start the app
+
+RUN npm run build-ts
 CMD npm test
 

@@ -1,5 +1,17 @@
 const twilio = require('twilio')
 
+twilio.twiml.FaxResponse.prototype.reject = function(attributes) {
+  return new Reject(this.response.ele('Reject', attributes))
+}
+
+function Reject(reject) {
+  this.reject = reject
+  this._propertyName = 'reject'
+}
+
+Reject.prototype = Object.create(twilio.twiml.FaxResponse.prototype)
+Reject.prototype.constructor = 'Reject'
+
 const RestClient = function(username, token, opts) {
   if (!process.env.hasOwnProperty('SIGNALWIRE_API_HOSTNAME')) {
     throw new Error('Missing SIGNALWIRE_API_HOSTNAME environment variable.')

@@ -108,6 +108,10 @@ const response = new signalwire.RestClient.LaML.VoiceResponse()
 response.say('Hey, Welcome at SignalWire!')
 ```
 
+## Running tests in Docker
+
+A Dockerfile is provided for testing purposes. Run `docker run -it $(docker build -q .)` to execute the test suite.
+
 # Copyright
 
 Copyright (c) 2018 SignalWire Inc. See [LICENSE](https://github.com/signalwire/signalwire-node/blob/master/LICENSE) for further details.

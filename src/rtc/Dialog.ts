@@ -542,7 +542,7 @@ export default class Dialog {
   }
 
   private _dispatchConferenceUpdate(params: any) {
-    this._dispatchNotification({ type: NOTIFICATION_TYPE.conferenceUpdate, ...params })
+    this._dispatchNotification({ type: NOTIFICATION_TYPE.conferenceUpdate, dialog: this, ...params })
   }
 
   private _dispatchNotification(notification: any) {

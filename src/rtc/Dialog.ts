@@ -251,7 +251,7 @@ export default class Dialog {
       handler: (params: any) => {
         logger.debug('_subscribeConferenceChat handler', params)
         const { direction, from: participantNumber, fromDisplay: participantName, message: messageText, type: messageType } = params.data
-        this._dispatchConferenceUpdate({ action: ConferenceAction.ChatMessage, direction, participantNumber, participantName, messageText, messageType })
+        this._dispatchConferenceUpdate({ action: ConferenceAction.ChatMessage, direction, participantNumber, participantName, messageText, messageType, messageId: params.eventSerno })
       }
     }
     const response = await this.session.subscribe(tmp)

@@ -193,7 +193,7 @@ export default class Dialog {
       logger.error('ConferenceUpdate invalid wireSerno or packet name:', packet)
       return 'INVALID_PACKET'
     }
-    const { action, data, hashKey: key = String(this._lastSerno), arrIndex: index } = packet
+    const { action, data, hashKey: callId = String(this._lastSerno), arrIndex: index } = packet
     switch (action) {
       case 'bootObj': {
         this._lastSerno = 0
@@ -210,20 +210,20 @@ export default class Dialog {
         }
         const participants = []
         for (const i in data) {
-          participants.push({ key: data[i][0], index: Number(i), ...mutateLiveArrayData(data[i][1]) })
+          participants.push({ callId: data[i][0], index: Number(i), ...mutateLiveArrayData(data[i][1]) })
         }
         this._dispatchConferenceUpdate({ action: ConferenceAction.Bootstrap, participants })
         break
       }
       case 'add': {
-        this._dispatchConferenceUpdate({ action: ConferenceAction.Add, key, index, ...mutateLiveArrayData(data) })
+        this._dispatchConferenceUpdate({ action: ConferenceAction.Add, callId, index, ...mutateLiveArrayData(data) })
         break
       }
       case 'modify':
-        this._dispatchConferenceUpdate({ action: ConferenceAction.Modify, key, index, ...mutateLiveArrayData(data) })
+        this._dispatchConferenceUpdate({ action: ConferenceAction.Modify, callId, index, ...mutateLiveArrayData(data) })
         break
       case 'del':
-        this._dispatchConferenceUpdate({ action: ConferenceAction.Delete, key, index, ...mutateLiveArrayData(data) })
+        this._dispatchConferenceUpdate({ action: ConferenceAction.Delete, callId, index, ...mutateLiveArrayData(data) })
         break
       case 'clear':
         this._dispatchConferenceUpdate({ action: ConferenceAction.Clear })
@@ -231,7 +231,7 @@ export default class Dialog {
       // case 'reorder':
       //   break
       default:
-        this._dispatchConferenceUpdate({ action, data, key, index })
+        this._dispatchConferenceUpdate({ action, data, callId, index })
         break
     }
   }

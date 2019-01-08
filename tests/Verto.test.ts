@@ -93,4 +93,11 @@ describe('Verto', () => {
       expect(instance.broadcast.bind(instance, { channel: null })).toThrow()
     })
   })
+
+  describe('static .uuid()', () => {
+    it('generates UUID v4', () => {
+      const pattern = new RegExp(/^[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i)
+      expect(Verto.uuid()).toMatch(pattern)
+    })
+  })
 })

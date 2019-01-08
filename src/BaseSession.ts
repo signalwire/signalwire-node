@@ -107,4 +107,8 @@ export default abstract class BaseSession {
   static off(eventName: string) {
     deRegister(eventName)
   }
+
+  static uuid(): string {
+    return uuidv4()
+  }
 }

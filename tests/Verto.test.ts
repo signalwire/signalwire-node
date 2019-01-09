@@ -2,6 +2,7 @@ import Verto from '../src/Verto'
 import { monitorCallbackQueue } from '../src/services/Handler'
 const Connection = require('../src/Connection')
 jest.mock('../src/Connection')
+jest.mock('../src/services/RTCService')
 
 describe('Verto', () => {
   let instance: Verto
@@ -98,6 +99,58 @@ describe('Verto', () => {
     it('generates UUID v4', () => {
       const pattern = new RegExp(/^[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i)
       expect(Verto.uuid()).toMatch(pattern)
+    })
+  })
+
+  describe('setter defaultRtcDevices', () => {
+    beforeEach(() => {
+      instance.refreshDevices()
+      instance.defaultRtcDevices = {
+        micId: 'micId', micLabel: 'micLabel', camId: 'camId', camLabel: 'camLabel', speakerId: 'speakerId', speakerLabel: 'speakerLabel'
+      }
+    })
+
+    it('set all RTC devices', () => {
+      expect(instance.defaultMicrophone.id).toEqual('micId')
+      expect(instance.defaultMicrophone.label).toEqual('micLabel')
+      expect(instance.defaultWebcam.id).toEqual('camId')
+      expect(instance.defaultWebcam.label).toEqual('camLabel')
+      expect(instance.defaultSpeaker.id).toEqual('speakerId')
+      expect(instance.defaultSpeaker.label).toEqual('speakerLabel')
+    })
+
+    it('set only the devices passed in', () => {
+      instance.defaultRtcDevices = { micId: 'micId-edit', micLabel: 'micLabel-edit' }
+      expect(instance.defaultMicrophone.id).toEqual('micId-edit')
+      expect(instance.defaultMicrophone.label).toEqual('micLabel-edit')
+      expect(instance.defaultWebcam.id).toEqual('camId')
+      expect(instance.defaultSpeaker.id).toEqual('speakerId')
+    })
+  })
+
+  describe('setter defaultMicrophone', () => {
+    it('throw error with invalid microphone', () => {
+      // TODO: validate against enumerated devices
+    })
+  })
+
+  describe('setter defaultWebcam', () => {
+    it('throw error with invalid webcam', () => {
+      // TODO: validate against enumerated devices
+    })
+  })
+
+  describe('setter defaultSpeaker', () => {
+    it('throw error with invalid speaker', () => {
+      // TODO: validate against enumerated devices
+    })
+  })
+
+  describe('getter defaultRtcDevices', () => {
+    it('returns the default client devices', () => {
+      const res = { micId: 'micId', micLabel: 'micLabel', camId: 'camId', camLabel: 'camLabel', speakerId: 'speakerId', speakerLabel: 'speakerLabel' }
+      instance.defaultRtcDevices = res
+      expect(instance.defaultRtcDevices).toEqual(res)
     })
   })
 })

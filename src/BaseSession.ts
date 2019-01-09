@@ -2,11 +2,12 @@ import { v4 as uuidv4 } from 'uuid'
 import logger from './util/logger'
 import Connection from './Connection'
 import Dialog from './rtc/Dialog'
-import { ISignalWireOptions, SubscribeParams, BroadcastParams, ICacheDevices } from './interfaces'
+import { ISignalWireOptions, SubscribeParams, BroadcastParams, ICacheDevices, IDevice, IRtcDevicesParams } from './interfaces'
 import { validateOptions } from './util/helpers'
 import { register, deRegister } from './services/Handler'
 import { SwEvent } from './util/constants'
 import { getDevices, getResolutions } from './services/RTCService'
+
 
 export default abstract class BaseSession {
   public uuid: string = uuidv4()
@@ -16,6 +17,10 @@ export default abstract class BaseSession {
 
   protected _connection: Connection
   protected _devices: ICacheDevices = {}
+
+  protected _microphone: IDevice = {}
+  protected _webcam: IDevice = {}
+  protected _speaker: IDevice = {}
 
   constructor(public options: ISignalWireOptions) {
     if (!validateOptions(options, this.constructor.name)) {
@@ -78,6 +83,64 @@ export default abstract class BaseSession {
 
   get audioOutDevices() {
     return this._devices.audiooutput || {}
+  }
+
+  set defaultRtcDevices(params: IRtcDevicesParams) {
+    const { micId, micLabel = '', camId, camLabel = '', speakerId, speakerLabel = '' } = params
+    if (micId) {
+      this.defaultMicrophone = { id: micId, label: micLabel }
+    }
+    if (camId) {
+      this.defaultWebcam = { id: camId, label: camLabel }
+    }
+    if (speakerId) {
+      this.defaultSpeaker = { id: speakerId, label: speakerLabel }
+    }
+  }
+
+  get defaultRtcDevices() {
+    const {
+      _microphone: { id: micId, label: micLabel },
+      _webcam: { id: camId, label: camLabel },
+      _speaker: { id: speakerId, label: speakerLabel }
+    } = this
+    return { micId, micLabel, camId, camLabel, speakerId, speakerLabel }
+  }
+
+  set defaultMicrophone(device: IDevice) {
+    const { id = null } = device
+    if (!id || !this.audioInDevices.hasOwnProperty(id)) {
+      throw `'${id}' in not a valid deviceId as a microphone.`
+    }
+    this._microphone = { ...this._microphone, ...device }
+  }
+
+  get defaultMicrophone() {
+    return Object.assign({}, this._microphone)
+  }
+
+  set defaultWebcam(device: IDevice) {
+    const { id = null } = device
+    if (!id || !this.videoDevices.hasOwnProperty(id)) {
+      throw `'${id}' in not a valid deviceId as a webcam.`
+    }
+    this._webcam = { ...this._webcam, ...device }
+  }
+
+  get defaultWebcam() {
+    return Object.assign({}, this._webcam)
+  }
+
+  set defaultSpeaker(device: IDevice) {
+    const { id = null } = device
+    if (!id || !this.audioOutDevices.hasOwnProperty(id)) {
+      throw `'${id}' in not a valid deviceId as a speaker.`
+    }
+    this._speaker = { ...this._speaker, ...device }
+  }
+
+  get defaultSpeaker() {
+    return Object.assign({}, this._speaker)
   }
 
   supportedResolutions() {

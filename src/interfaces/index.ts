@@ -149,3 +149,17 @@ export interface ICacheDevices {
 export interface ICacheResolution extends MediaTrackSettings {
   resolution: string
 }
+
+export interface IDevice {
+  id?: string
+  label?: string
+}
+
+export interface IRtcDevicesParams {
+  micId?: string
+  micLabel?: string
+  camId?: string
+  camLabel?: string
+  speakerId?: string
+  speakerLabel?: string
+}

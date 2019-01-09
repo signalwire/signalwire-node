@@ -28,7 +28,7 @@ export default class Dialog {
   private _lastSerno: number = 0
 
   constructor(private session: BaseSession, opts?: DialogOptions) {
-    this.options = Object.assign({}, DEFAULT_DIALOG_OPTIONS, opts)
+    this.options = Object.assign({}, DEFAULT_DIALOG_OPTIONS, session.defaultRtcDevices, opts)
 
     this._onMediaError = this._onMediaError.bind(this)
     this._init()

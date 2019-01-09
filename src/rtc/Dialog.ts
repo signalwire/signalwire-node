@@ -552,12 +552,15 @@ export default class Dialog {
   }
 
   private _init() {
-    const { id, userVariables } = this.options
+    const { id, userVariables, remoteCallerNumber } = this.options
     if (!id) {
       this.options.id = uuidv4()
     }
     if (!userVariables || objEmpty(userVariables)) {
       this.options.userVariables = this.session.options.userVariables || {}
+    }
+    if (!remoteCallerNumber) {
+      this.options.remoteCallerNumber = this.options.destinationNumber
     }
     this.id = this.options.id
     this.session.dialogs[this.id] = this

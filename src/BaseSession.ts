@@ -67,10 +67,12 @@ export default abstract class BaseSession {
     return this._connection.send(msg)
   }
 
-  refreshDevices() {
-    getDevices()
-      .then(devices => this._devices = devices)
-      .catch(error => error)
+  async refreshDevices() {
+    this._devices = await getDevices().catch(error => {
+      logger.error('Refresh Devices error:', error)
+      return {}
+    })
+    return Object.assign({}, this._devices)
   }
 
   get videoDevices() {

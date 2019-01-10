@@ -91,5 +91,33 @@ describe('Handler', () => {
       expect(fnMock).toHaveBeenCalledTimes(3)
       expect(fnMock).toBeCalledWith(null)
     })
+
+    it('should call the global callback when propagation is set to true', () => {
+      fnMock.mockClear()
+      const fnMock2 = jest.fn()
+
+      register(eventName, fnMock)
+      // register(eventName, fnMock2, uniqueId)
+
+      trigger(eventName, null, uniqueId)
+
+      expect(fnMock2).not.toHaveBeenCalled()
+      expect(fnMock).toHaveBeenCalledTimes(1)
+      expect(fnMock).toBeCalledWith(null)
+    })
+
+    it('should not call the global callback when propagation is set to false', () => {
+      fnMock.mockClear()
+      const fnMock2 = jest.fn()
+
+      register(eventName, fnMock)
+      register(eventName, fnMock2, uniqueId)
+
+      trigger(eventName, null, uniqueId, false)
+
+      expect(fnMock).not.toHaveBeenCalled()
+      expect(fnMock2).toHaveBeenCalledTimes(1)
+      expect(fnMock2).toBeCalledWith(null)
+    })
   })
 })

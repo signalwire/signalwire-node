@@ -14,6 +14,8 @@ export default abstract class BaseSession {
   public sessionid: string = ''
   public dialogs: { [dialogId: string]: Dialog } = {}
   public subscriptions: { [channel: string]: any } = {}
+  public defaultAudioConstraints: boolean | MediaTrackConstraints = true
+  public defaultVideoConstraints: boolean | MediaTrackConstraints = false
 
   protected _connection: Connection
   protected _devices: ICacheDevices = {}
@@ -143,6 +145,20 @@ export default abstract class BaseSession {
 
   get defaultSpeaker() {
     return Object.assign({}, this._speaker)
+  }
+
+  set defaultRtcConstraints(constraints: { audio: boolean | MediaTrackConstraints, video: boolean | MediaTrackConstraints }) {
+    const { audio = null, video = null } = constraints
+    if (audio !== null) {
+      this.defaultAudioConstraints = audio
+    }
+    if (video !== null) {
+      this.defaultVideoConstraints = video
+    }
+  }
+
+  get defaultRtcConstraints() {
+    return Object.assign({}, { audio: this.defaultAudioConstraints, video: this.defaultVideoConstraints })
   }
 
   supportedResolutions() {

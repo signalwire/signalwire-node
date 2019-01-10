@@ -3,6 +3,10 @@ import { DialogOptions, ICacheDevices, ICacheResolution } from '../interfaces/'
 
 const getUserMedia = async (constraints: MediaStreamConstraints) => {
   logger.debug('RTCService.getUserMedia', constraints)
+  const { audio, video } = constraints
+  if (!audio && !video) {
+    return null
+  }
   const stream = await navigator.mediaDevices.getUserMedia(constraints).catch(error => error)
   if (streamIsValid(stream)) {
     return stream

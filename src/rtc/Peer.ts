@@ -56,13 +56,7 @@ export default class Peer {
         logger.debug('Skip twice onnegotiationneeded..')
         return
       }
-      this._negotiating = true
-
-      if (this._isOffer()) {
-        this._createOffer()
-      } else {
-        this._createAnswer()
-      }
+      this._startNegotiation()
     }
 
     this.options.localStream = await this._retrieveLocalStream()
@@ -73,6 +67,18 @@ export default class Peer {
     if (streamIsValid(localStream)) {
       localStream.getTracks().forEach(t => this.instance.addTrack(t, localStream))
       attachMediaStream(localElementId, localStream)
+    } else if (localStream === null) {
+      this._startNegotiation()
+    }
+  }
+
+  private _startNegotiation() {
+    this._negotiating = true
+
+    if (this._isOffer()) {
+      this._createOffer()
+    } else {
+      this._createAnswer()
     }
   }
 
@@ -81,7 +87,6 @@ export default class Peer {
       return
     }
     // FIXME: Use https://developer.mozilla.org/en-US/docs/Web/API/RTCRtpTransceiver when available (M71)
-    // this.instance.createOffer()
     this.instance.createOffer(this._constraints)
       .then(offer => this.instance.setLocalDescription(offer))
       .catch(error => logger.error('Peer _createOffer error:', error))

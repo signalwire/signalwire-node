@@ -4,6 +4,7 @@ import { monitorCallbackQueue } from '../src/services/Handler'
 import { DialogState } from '../src/util/constants'
 const Connection = require('../src/Connection')
 jest.mock('../src/Connection')
+jest.mock('../src/services/RTCService')
 
 describe('Dialog', () => {
   let session: Verto

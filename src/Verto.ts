@@ -53,7 +53,7 @@ export default class Verto extends BaseSession {
     const response = await this.execute(msg).catch(error => error)
     const { unauthorizedChannels = [], subscribedChannels = [] } = response
     if (unauthorizedChannels.length) {
-      logger.error(`Unauthorized Channels: ${unauthorizedChannels.join(', ')}`)
+      logger.debug(`Unauthorized Channels: ${unauthorizedChannels.join(', ')}`)
       unauthorizedChannels.forEach((c: string) => this._removeSubscription(c))
     }
     subscribedChannels.forEach((c: string) => this._addSubscription(c, handler))

@@ -118,7 +118,8 @@ export default class Peer {
   }
 
   private _config(): RTCConfiguration {
-    const config: RTCConfiguration = {}
+    // @ts-ignore
+    const config: RTCConfiguration = { sdpSemantics: 'plan-b' }
     if (this.options.hasOwnProperty('iceServers') && this.options.iceServers) {
       if (typeof (this.options.iceServers) === 'boolean') {
         config.iceServers = [{ urls: ['stun:stun.l.google.com:19302'] }]

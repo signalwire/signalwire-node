@@ -15,7 +15,7 @@
     "build-es5": "webpack -p",
     "build-es6": "tsc -p tsconfig.es6.json",
     "watch-es6": "tsc -p tsconfig.es6.json -w",
-    "start:dev": "webpack-dev-server --mode development",
+    "start:dev": "webpack-dev-server --host 0.0.0.0 --mode development",
     "tslint": "npm run tslint-es5 && npm run tslint-es6",
     "tslint-es5": "tslint -c tslint.json -p tsconfig.es5.json",
     "tslint-es6": "tslint -c tslint.json -p tsconfig.es6.json",

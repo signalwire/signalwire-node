@@ -51,7 +51,8 @@ export default class Dialog {
     this.causeCode = params.causeCode || 16
     this.setState(State.Hangup)
     const _close = () => {
-      this.peer ? this.peer.instance.close() : this.setState(State.Destroy)
+      this.peer ? this.peer.instance.close() : null
+      this.setState(State.Destroy)
     }
 
     if (execute) {
@@ -495,14 +496,6 @@ export default class Dialog {
 
   private _registerPeerEvents() {
     const { instance } = this.peer
-
-    instance.oniceconnectionstatechange = event => {
-      switch (instance.iceConnectionState) {
-        case 'closed':
-          this.setState(State.Destroy)
-          break
-      }
-    }
 
     instance.onicecandidate = event => {
       if (event.candidate) {

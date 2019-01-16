@@ -104,13 +104,13 @@ export default abstract class BaseSession {
   async setDefaultRtcDevices(params: IRtcDevicesParams) {
     const { micId, micLabel, camId, camLabel, speakerId, speakerLabel } = params
     if (micId || micLabel) {
-      await this.setDefaultMicrophone(micId, micLabel)
+      await this.setDefaultMicrophone(micId, micLabel).catch(error => logger.warn(error))
     }
     if (camId || camLabel) {
-      await this.setDefaultWebcam(camId, camLabel)
+      await this.setDefaultWebcam(camId, camLabel).catch(error => logger.warn(error))
     }
     if (speakerId || speakerLabel) {
-      await this.setDefaultSpeaker(speakerId, speakerLabel)
+      await this.setDefaultSpeaker(speakerId, speakerLabel).catch(error => logger.warn(error))
     }
     return this.defaultRtcDevices
   }

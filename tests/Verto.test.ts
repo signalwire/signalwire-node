@@ -102,12 +102,12 @@ describe('Verto', () => {
     })
   })
 
-  describe('setter defaultRtcDevices', () => {
-    beforeEach(() => {
-      instance.refreshDevices()
-      instance.defaultRtcDevices = {
-        micId: 'micId', micLabel: 'micLabel', camId: 'camId', camLabel: 'camLabel', speakerId: 'speakerId', speakerLabel: 'speakerLabel'
-      }
+  describe('.setDefaultRtcDevices()', () => {
+    beforeEach(async done => {
+      await instance.refreshDevices()
+      const devices = { micId: 'micId', micLabel: 'micLabel', camId: 'camId', camLabel: 'camLabel', speakerId: 'speakerId', speakerLabel: 'speakerLabel' }
+      await instance.setDefaultRtcDevices(devices)
+      done()
     })
 
     it('set all RTC devices', () => {
@@ -119,12 +119,20 @@ describe('Verto', () => {
       expect(instance.defaultSpeaker.label).toEqual('speakerLabel')
     })
 
-    it('set only the devices passed in', () => {
-      instance.defaultRtcDevices = { micId: 'micId-edit', micLabel: 'micLabel-edit' }
+    it('set only the devices passed in', async done => {
+      await instance.setDefaultRtcDevices({ micId: 'micId-edit', micLabel: 'micLabel-edit' })
       expect(instance.defaultMicrophone.id).toEqual('micId-edit')
       expect(instance.defaultMicrophone.label).toEqual('micLabel-edit')
       expect(instance.defaultWebcam.id).toEqual('camId')
       expect(instance.defaultSpeaker.id).toEqual('speakerId')
+      done()
+    })
+
+    describe('getter defaultRtcDevices', () => {
+      it('returns the default client devices', () => {
+        const res = { micId: 'micId', micLabel: 'micLabel', camId: 'camId', camLabel: 'camLabel', speakerId: 'speakerId', speakerLabel: 'speakerLabel' }
+        expect(instance.defaultRtcDevices).toEqual(res)
+      })
     })
   })
 
@@ -143,14 +151,6 @@ describe('Verto', () => {
   describe('setter defaultSpeaker', () => {
     it('throw error with invalid speaker', () => {
       // TODO: validate against enumerated devices
-    })
-  })
-
-  describe('getter defaultRtcDevices', () => {
-    it('returns the default client devices', () => {
-      const res = { micId: 'micId', micLabel: 'micLabel', camId: 'camId', camLabel: 'camLabel', speakerId: 'speakerId', speakerLabel: 'speakerLabel' }
-      instance.defaultRtcDevices = res
-      expect(instance.defaultRtcDevices).toEqual(res)
     })
   })
 })

@@ -4,10 +4,9 @@ import Connection from './Connection'
 import Dialog from './rtc/Dialog'
 import { ISignalWireOptions, SubscribeParams, BroadcastParams, ICacheDevices, IDevice, IRtcDevicesParams } from './interfaces'
 import { validateOptions } from './util/helpers'
-import { register, deRegister } from './services/Handler'
-import { SwEvent } from './util/constants'
-import { getDevices, getResolutions } from './services/RTCService'
-
+import { register, deRegister, trigger } from './services/Handler'
+import { SwEvent, NOTIFICATION_TYPE } from './util/constants'
+import { getDevices, getResolutions, checkPermissions, assureDeviceId } from './services/RTCService'
 
 export default abstract class BaseSession {
   public uuid: string = uuidv4()
@@ -28,8 +27,20 @@ export default abstract class BaseSession {
     if (!validateOptions(options, this.constructor.name)) {
       throw new Error('Invalid options for ' + this.constructor.name)
     }
-    this._registers()
-    this.refreshDevices()
+    this.on(SwEvent.SocketOpen, this._onSocketOpen.bind(this))
+    this.on(SwEvent.SocketClose, this._onSocketClose.bind(this))
+    this.on(SwEvent.SocketError, this._onSocketError.bind(this))
+    this.on(SwEvent.SocketMessage, this._onSocketMessage.bind(this))
+
+    checkPermissions()
+      .then(success => success)
+      .catch(error => error)
+      .then(final => {
+        this.refreshDevices()
+        if (!final) {
+          trigger(SwEvent.Notification, { type: NOTIFICATION_TYPE.userMediaError, error: 'Permission denied' }, this.uuid)
+        }
+      })
   }
 
   abstract async subscribe(params: SubscribeParams): Promise<any>
@@ -70,10 +81,11 @@ export default abstract class BaseSession {
   }
 
   async refreshDevices() {
-    this._devices = await getDevices().catch(error => {
-      logger.error('Refresh Devices error:', error)
-      return {}
-    })
+    this._devices = await getDevices()
+      .catch(error => {
+        logger.error('Refresh Devices error:', error)
+        return {}
+      })
     return Object.assign({}, this._devices)
   }
 
@@ -89,17 +101,18 @@ export default abstract class BaseSession {
     return this._devices.audiooutput || {}
   }
 
-  set defaultRtcDevices(params: IRtcDevicesParams) {
-    const { micId, micLabel = '', camId, camLabel = '', speakerId, speakerLabel = '' } = params
-    if (micId) {
-      this.defaultMicrophone = { id: micId, label: micLabel }
+  async setDefaultRtcDevices(params: IRtcDevicesParams) {
+    const { micId, micLabel, camId, camLabel, speakerId, speakerLabel } = params
+    if (micId || micLabel) {
+      await this.setDefaultMicrophone(micId, micLabel)
     }
-    if (camId) {
-      this.defaultWebcam = { id: camId, label: camLabel }
+    if (camId || camLabel) {
+      await this.setDefaultWebcam(camId, camLabel)
     }
-    if (speakerId) {
-      this.defaultSpeaker = { id: speakerId, label: speakerLabel }
+    if (speakerId || speakerLabel) {
+      await this.setDefaultSpeaker(speakerId, speakerLabel)
     }
+    return this.defaultRtcDevices
   }
 
   get defaultRtcDevices() {
@@ -111,36 +124,39 @@ export default abstract class BaseSession {
     return { micId, micLabel, camId, camLabel, speakerId, speakerLabel }
   }
 
-  set defaultMicrophone(device: IDevice) {
-    const { id = null } = device
-    if (!id || !this.audioInDevices.hasOwnProperty(id)) {
-      throw `'${id}' in not a valid deviceId as a microphone.`
+  async setDefaultMicrophone(id: string, label: string) {
+    const deviceId = await assureDeviceId(id, label).catch(error => null)
+    if (deviceId) {
+      this._microphone = { ...this._microphone, label, id: deviceId }
+    } else {
+      throw `id: '${id}' - label: '${label}' is not a valid microphone!`
     }
-    this._microphone = { ...this._microphone, ...device }
   }
 
   get defaultMicrophone() {
     return Object.assign({}, this._microphone)
   }
 
-  set defaultWebcam(device: IDevice) {
-    const { id = null } = device
-    if (!id || !this.videoDevices.hasOwnProperty(id)) {
-      throw `'${id}' in not a valid deviceId as a webcam.`
+  async setDefaultWebcam(id: string, label: string) {
+    const deviceId = await assureDeviceId(id, label).catch(error => null)
+    if (deviceId) {
+      this._webcam = { ...this._webcam, label, id: deviceId }
+    } else {
+      throw `id: '${id}' - label: '${label}' is not a valid webcam!`
     }
-    this._webcam = { ...this._webcam, ...device }
   }
 
   get defaultWebcam() {
     return Object.assign({}, this._webcam)
   }
 
-  set defaultSpeaker(device: IDevice) {
-    const { id = null } = device
-    if (!id || !this.audioOutDevices.hasOwnProperty(id)) {
-      throw `'${id}' in not a valid deviceId as a speaker.`
+  async setDefaultSpeaker(id: string, label: string) {
+    const deviceId = await assureDeviceId(id, label).catch(error => null)
+    if (deviceId) {
+      this._speaker = { ...this._speaker, label, id: deviceId }
+    } else {
+      throw `id: '${id}' - label: '${label}' is not a valid speaker!`
     }
-    this._speaker = { ...this._speaker, ...device }
   }
 
   get defaultSpeaker() {
@@ -165,21 +181,10 @@ export default abstract class BaseSession {
     return getResolutions()
   }
 
-  private _registers() {
-    this.on(SwEvent.SocketOpen, this._onSocketOpen.bind(this))
-    this.on(SwEvent.SocketClose, this._onSocketClose.bind(this))
-    this.on(SwEvent.SocketError, this._onSocketError.bind(this))
-    this.on(SwEvent.SocketMessage, this._onSocketMessage.bind(this))
-  }
-
   protected abstract _onSocketOpen(): void
   protected abstract _onSocketClose(): void
   protected abstract _onSocketError(error): void
   protected abstract _onSocketMessage(response): void
-
-  /**
-   * Static Methods
-   */
 
   static on(eventName: string, callback: any) {
     register(eventName, callback)

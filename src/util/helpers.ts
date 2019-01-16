@@ -37,3 +37,14 @@ export const mutateLiveArrayData = (data: any) => {
   }
   return { participantId: Number(participantId), participantNumber, participantName, codec, media, participantData }
 }
+
+export const safeParseJson = (value: string): string | Object => {
+  if (typeof value !== 'string') {
+    return value
+  }
+  try {
+    return JSON.parse(value)
+  } catch (error) {
+    return value
+  }
+}

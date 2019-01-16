@@ -62,6 +62,7 @@ export default class Peer {
     this.options.localStream = await this._retrieveLocalStream()
       .catch(error => {
         trigger(SwEvent.MediaError, error, this.options.id)
+        return null
       })
     const { localElementId = '', localStream } = this.options
     if (streamIsValid(localStream)) {
@@ -118,6 +119,7 @@ export default class Peer {
   }
 
   private _config(): RTCConfiguration {
+    // bundlePolicy = "max-compat";
     // @ts-ignore
     const config: RTCConfiguration = { sdpSemantics: 'plan-b' }
     if (this.options.hasOwnProperty('iceServers') && this.options.iceServers) {

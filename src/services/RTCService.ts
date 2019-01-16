@@ -1,7 +1,8 @@
 import logger from '../util/logger'
+import * as Storage from '../util/storage'
 import { DialogOptions, ICacheDevices, ICacheResolution } from '../interfaces/'
 
-const getUserMedia = async (constraints: MediaStreamConstraints) => {
+const getUserMedia = async (constraints: MediaStreamConstraints): Promise<MediaStream | null> => {
   logger.debug('RTCService.getUserMedia', constraints)
   const { audio, video } = constraints
   if (!audio && !video) {
@@ -11,13 +12,12 @@ const getUserMedia = async (constraints: MediaStreamConstraints) => {
   if (streamIsValid(stream)) {
     return stream
   }
-  logger.error('RTCService.getUserMedia', stream)
+  logger.error('getUserMedia error: ', stream.name, stream.message)
   throw stream
 }
 
 const streamIsValid = (stream: MediaStream) => stream && stream instanceof MediaStream
 
-// TODO: cache the devices in localStorage if available!
 const getDevices = async (): Promise<ICacheDevices> => {
   const devices = await navigator.mediaDevices.enumerateDevices()
     .catch(error => { logger.error('enumerateDevices Error', error) })
@@ -33,6 +33,9 @@ const getDevices = async (): Promise<ICacheDevices> => {
       cache[t.kind][t.deviceId] = t
     })
   }
+
+  Storage.setItem('devices', cache)
+
   return cache
 }
 
@@ -44,7 +47,7 @@ const getResolutions = async (): Promise<ICacheResolution[]> => {
     const constraints = { audio: false, video: { width: { exact: resolution[0] }, height: { exact: resolution[1] } } }
     const stream = await getUserMedia(constraints).catch(error => null)
     if (stream) {
-      stream.getVideoTracks().forEach(t => {
+      stream.getVideoTracks().forEach((t: MediaStreamTrack) => {
         supported.push(Object.assign({ resolution: `${resolution[0]}x${resolution[1]}` }, t.getSettings()))
         t.stop()
       })
@@ -73,10 +76,41 @@ const getMediaConstraints = (options: DialogOptions): MediaStreamConstraints => 
   return { audio, video }
 }
 
+const assureDeviceId = async (id: string, label: string): Promise<string> => {
+  const devices = await navigator.mediaDevices.enumerateDevices()
+    .catch(error => { logger.error('enumerateDevices Error', error) })
+  if (devices) {
+    for (let i = 0; i < devices.length; i++) {
+      const { deviceId, label: deviceLabel } = devices[i]
+      if ((id && id === deviceId) || (label && label === deviceLabel)) {
+        return deviceId
+      }
+    }
+  }
+  return null
+}
+
+const checkPermissions = async (): Promise<boolean> => {
+  const fullStream = await getUserMedia({ audio: true, video: true }).catch(_e => null)
+  if (streamIsValid(fullStream)) {
+    fullStream.getTracks().forEach((t: MediaStreamTrack) => t.stop())
+  } else {
+    const audioStream = await getUserMedia({ audio: true }).catch(_e => null)
+    if (streamIsValid(audioStream)) {
+      audioStream.getTracks().forEach((t: MediaStreamTrack) => t.stop())
+    } else {
+      return false
+    }
+  }
+  return true
+}
+
 export {
   getUserMedia,
   getDevices,
   getResolutions,
   getMediaConstraints,
-  streamIsValid
+  streamIsValid,
+  assureDeviceId,
+  checkPermissions
 }

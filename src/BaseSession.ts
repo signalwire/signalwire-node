@@ -13,8 +13,6 @@ export default abstract class BaseSession {
   public sessionid: string = ''
   public dialogs: { [dialogId: string]: Dialog } = {}
   public subscriptions: { [channel: string]: any } = {}
-  public defaultAudioConstraints: boolean | MediaTrackConstraints = true
-  public defaultVideoConstraints: boolean | MediaTrackConstraints = false
 
   protected _connection: Connection
   protected _devices: ICacheDevices = {}
@@ -22,6 +20,9 @@ export default abstract class BaseSession {
   protected _microphone: IDevice = {}
   protected _webcam: IDevice = {}
   protected _speaker: IDevice = {}
+
+  protected _audioConstraints: boolean | MediaTrackConstraints = true
+  protected _videoConstraints: boolean | MediaTrackConstraints = false
 
   constructor(public options: ISignalWireOptions) {
     if (!validateOptions(options, this.constructor.name)) {
@@ -31,16 +32,6 @@ export default abstract class BaseSession {
     this.on(SwEvent.SocketClose, this._onSocketClose.bind(this))
     this.on(SwEvent.SocketError, this._onSocketError.bind(this))
     this.on(SwEvent.SocketMessage, this._onSocketMessage.bind(this))
-
-    checkPermissions()
-      .then(success => success)
-      .catch(error => error)
-      .then(final => {
-        this.refreshDevices()
-        if (!final) {
-          trigger(SwEvent.Notification, { type: NOTIFICATION_TYPE.userMediaError, error: 'Permission denied' }, this.uuid)
-        }
-      })
   }
 
   abstract async subscribe(params: SubscribeParams): Promise<any>
@@ -56,7 +47,17 @@ export default abstract class BaseSession {
         this.disconnect()
       }
     }
-    this._connection = new Connection(this)
+
+    checkPermissions()
+      .then(success => success)
+      .catch(error => error)
+      .then(async (final: boolean) => {
+        await this.refreshDevices()
+        this._connection = new Connection(this)
+        if (!final) {
+          trigger(SwEvent.Notification, { type: NOTIFICATION_TYPE.userMediaError, error: 'Permission denied' }, this.uuid)
+        }
+      })
   }
 
   disconnect() {
@@ -109,10 +110,6 @@ export default abstract class BaseSession {
 
   async refreshDevices() {
     this._devices = await getDevices()
-      .catch(error => {
-        logger.error('Refresh Devices error:', error)
-        return {}
-      })
     return Object.assign({}, this._devices)
   }
 
@@ -193,15 +190,31 @@ export default abstract class BaseSession {
   set defaultRtcConstraints(constraints: { audio: boolean | MediaTrackConstraints, video: boolean | MediaTrackConstraints }) {
     const { audio = null, video = null } = constraints
     if (audio !== null) {
-      this.defaultAudioConstraints = audio
+      this.setDefaultAudioConstraints(audio)
     }
     if (video !== null) {
-      this.defaultVideoConstraints = video
+      this.setDefaultVideoConstraints(video)
     }
   }
 
   get defaultRtcConstraints() {
     return Object.assign({}, { audio: this.defaultAudioConstraints, video: this.defaultVideoConstraints })
+  }
+
+  setDefaultVideoConstraints(constraints: boolean | MediaTrackConstraints) {
+    this._videoConstraints = constraints
+  }
+
+  get defaultVideoConstraints() {
+    return this._videoConstraints
+  }
+
+  setDefaultAudioConstraints(constraints: boolean | MediaTrackConstraints) {
+    this._audioConstraints = constraints
+  }
+
+  get defaultAudioConstraints() {
+    return this._audioConstraints
   }
 
   supportedResolutions() {

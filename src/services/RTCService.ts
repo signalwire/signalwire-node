@@ -20,12 +20,24 @@ const streamIsValid = (stream: MediaStream) => stream && stream instanceof Media
 
 const getDevices = async (): Promise<ICacheDevices> => {
   const devices = await navigator.mediaDevices.enumerateDevices()
-    .catch(error => { logger.error('enumerateDevices Error', error) })
-  const cache = {}
+    .catch(error => {
+      logger.error('enumerateDevices Error', error)
+      return null
+    })
+  const cache = {};
+  ['videoinput', 'audioinput', 'audiooutput'].map((kind: string) => {
+    cache[kind] = {}
+    Object.defineProperty(cache[kind], 'toArray', {
+      value: function () {
+        return Object.keys(this).map(k => this[k])
+      }
+    })
+  })
   if (devices) {
-    devices.forEach(t => {
+    devices.forEach((t: MediaDeviceInfo) => {
       if (!cache.hasOwnProperty(t.kind)) {
-        cache[t.kind] = {}
+        logger.warn(`Unknown device type: ${t.kind}`, t)
+        return true
       }
       if (t.groupId && Object.keys(cache[t.kind]).some(k => cache[t.kind][k].groupId == t.groupId)) {
         return true

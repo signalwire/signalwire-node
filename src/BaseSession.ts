@@ -90,15 +90,15 @@ export default abstract class BaseSession {
   }
 
   get videoDevices() {
-    return this._devices.videoinput || {}
+    return this._devices.videoinput
   }
 
   get audioInDevices() {
-    return this._devices.audioinput || {}
+    return this._devices.audioinput
   }
 
   get audioOutDevices() {
-    return this._devices.audiooutput || {}
+    return this._devices.audiooutput
   }
 
   async setDefaultRtcDevices(params: IRtcDevicesParams) {

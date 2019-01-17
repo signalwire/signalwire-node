@@ -4,7 +4,7 @@ import Connection from './Connection'
 import Dialog from './rtc/Dialog'
 import { ISignalWireOptions, SubscribeParams, BroadcastParams, ICacheDevices, IDevice, IRtcDevicesParams } from './interfaces'
 import { validateOptions } from './util/helpers'
-import { register, deRegister, trigger } from './services/Handler'
+import { register, deRegister, trigger, registerOnce } from './services/Handler'
 import { SwEvent, NOTIFICATION_TYPE } from './util/constants'
 import { getDevices, getResolutions, checkPermissions, assureDeviceId } from './services/RTCService'
 
@@ -78,6 +78,33 @@ export default abstract class BaseSession {
 
   execute(msg: any) {
     return this._connection.send(msg)
+  }
+
+  speedTest(bytes: number) {
+    return new Promise((resolve, reject) => {
+      registerOnce(SwEvent.SpeedTest, speedTestResult => {
+        const { upDur, downDur } = speedTestResult
+        const upKps = upDur ? (( (bytes * 8) / (upDur / 1000)) / 1024).toFixed(0) : 0
+        const downKps = downDur ? (( (bytes * 8) / (downDur / 1000)) / 1024).toFixed(0) : 0
+        resolve({ upDur, downDur, upKps, downKps })
+      }, this.uuid)
+
+      bytes = Number(bytes)
+      if (!bytes) {
+        return reject(`Invalid parameter 'bytes': ${bytes}`)
+      }
+
+      this._connection.sendRawText(`#SPU ${bytes}`)
+      let loops = bytes / 1024
+      if (bytes % 1024) {
+        loops++
+      }
+      const dots = '.'.repeat(1024)
+      for (let i = 0; i < loops; i++) {
+        this._connection.sendRawText(`#SPB ${dots}`)
+      }
+      this._connection.sendRawText('#SPE')
+    })
   }
 
   async refreshDevices() {

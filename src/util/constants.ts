@@ -16,6 +16,9 @@ export enum SwEvent {
   SocketError = 'signalwire.socket.error',
   SocketMessage = 'signalwire.socket.message',
 
+  // Internal events
+  SpeedTest = 'signalwire.internal.speedtest',
+
   // Global Events
   Ready = 'signalwire.ready',
   Error = 'signalwire.error',

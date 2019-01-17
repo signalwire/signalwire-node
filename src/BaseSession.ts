@@ -84,9 +84,9 @@ export default abstract class BaseSession {
     return new Promise((resolve, reject) => {
       registerOnce(SwEvent.SpeedTest, speedTestResult => {
         const { upDur, downDur } = speedTestResult
-        const upKps = upDur ? (( (bytes * 8) / (upDur / 1000)) / 1024).toFixed(0) : 0
-        const downKps = downDur ? (( (bytes * 8) / (downDur / 1000)) / 1024).toFixed(0) : 0
-        resolve({ upDur, downDur, upKps, downKps })
+        const upKps = upDur ? (( (bytes * 8) / (upDur / 1000)) / 1024) : 0
+        const downKps = downDur ? (( (bytes * 8) / (downDur / 1000)) / 1024) : 0
+        resolve({ upDur, downDur, upKps: upKps.toFixed(0), downKps: downKps.toFixed(0) })
       }, this.uuid)
 
       bytes = Number(bytes)

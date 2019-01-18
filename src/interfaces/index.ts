@@ -155,11 +155,12 @@ export interface IDevice {
   label?: string
 }
 
-export interface IRtcDevicesParams {
-  micId?: string
-  micLabel?: string
-  camId?: string
-  camLabel?: string
-  speakerId?: string
-  speakerLabel?: string
+export interface IAudioSettings extends MediaTrackConstraints {
+  micId: string
+  micLabel: string
+}
+
+export interface IVideoSettings extends MediaTrackConstraints {
+  camId: string
+  camLabel: string
 }

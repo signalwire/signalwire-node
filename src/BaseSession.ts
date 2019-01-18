@@ -2,11 +2,15 @@ import { v4 as uuidv4 } from 'uuid'
 import logger from './util/logger'
 import Connection from './Connection'
 import Dialog from './rtc/Dialog'
-import { ISignalWireOptions, SubscribeParams, BroadcastParams, ICacheDevices, IDevice, IRtcDevicesParams } from './interfaces'
+import {
+  ISignalWireOptions, SubscribeParams, BroadcastParams, ICacheDevices, IDevice, IAudioSettings, IVideoSettings
+} from './interfaces'
 import { validateOptions } from './util/helpers'
 import { register, deRegister, trigger, registerOnce } from './services/Handler'
 import { SwEvent, NOTIFICATION_TYPE } from './util/constants'
-import { getDevices, getResolutions, checkPermissions, assureDeviceId } from './services/RTCService'
+import {
+  getDevices, getResolutions, checkPermissions, removeUnsupportedConstraints, checkDeviceIdConstraints
+} from './services/RTCService'
 
 export default abstract class BaseSession {
   public uuid: string = uuidv4()
@@ -125,96 +129,38 @@ export default abstract class BaseSession {
     return this._devices.audiooutput
   }
 
-  async setDefaultRtcDevices(params: IRtcDevicesParams) {
-    const { micId, micLabel, camId, camLabel, speakerId, speakerLabel } = params
-    if (micId || micLabel) {
-      await this.setDefaultMicrophone(micId, micLabel).catch(error => logger.warn(error))
-    }
-    if (camId || camLabel) {
-      await this.setDefaultWebcam(camId, camLabel).catch(error => logger.warn(error))
-    }
-    if (speakerId || speakerLabel) {
-      await this.setDefaultSpeaker(speakerId, speakerLabel).catch(error => logger.warn(error))
-    }
-    return this.defaultRtcDevices
+  get mediaConstraints() {
+    return { audio: this._audioConstraints, video: this._videoConstraints }
   }
 
-  get defaultRtcDevices() {
-    const {
-      _microphone: { id: micId, label: micLabel },
-      _webcam: { id: camId, label: camLabel },
-      _speaker: { id: speakerId, label: speakerLabel }
-    } = this
-    return { micId, micLabel, camId, camLabel, speakerId, speakerLabel }
+  async setAudioSettings(settings: IAudioSettings) {
+    const { micId, micLabel, ...constraints } = settings
+    removeUnsupportedConstraints(constraints)
+    this._audioConstraints = await checkDeviceIdConstraints(micId, micLabel, 'audioinput', constraints)
+    return this._audioConstraints
   }
 
-  async setDefaultMicrophone(id: string, label: string) {
-    const deviceId = await assureDeviceId(id, label).catch(error => null)
-    if (deviceId) {
-      this._microphone = { ...this._microphone, label, id: deviceId }
-    } else {
-      throw `id: '${id}' - label: '${label}' is not a valid microphone!`
-    }
+  disableMicrophone() {
+    this._audioConstraints = false
   }
 
-  get defaultMicrophone() {
-    return Object.assign({}, this._microphone)
+  enableMicrophone() {
+    this._audioConstraints = true
   }
 
-  async setDefaultWebcam(id: string, label: string) {
-    const deviceId = await assureDeviceId(id, label).catch(error => null)
-    if (deviceId) {
-      this._webcam = { ...this._webcam, label, id: deviceId }
-    } else {
-      throw `id: '${id}' - label: '${label}' is not a valid webcam!`
-    }
-  }
-
-  get defaultWebcam() {
-    return Object.assign({}, this._webcam)
-  }
-
-  async setDefaultSpeaker(id: string, label: string) {
-    const deviceId = await assureDeviceId(id, label).catch(error => null)
-    if (deviceId) {
-      this._speaker = { ...this._speaker, label, id: deviceId }
-    } else {
-      throw `id: '${id}' - label: '${label}' is not a valid speaker!`
-    }
-  }
-
-  get defaultSpeaker() {
-    return Object.assign({}, this._speaker)
-  }
-
-  set defaultRtcConstraints(constraints: { audio: boolean | MediaTrackConstraints, video: boolean | MediaTrackConstraints }) {
-    const { audio = null, video = null } = constraints
-    if (audio !== null) {
-      this.setDefaultAudioConstraints(audio)
-    }
-    if (video !== null) {
-      this.setDefaultVideoConstraints(video)
-    }
-  }
-
-  get defaultRtcConstraints() {
-    return Object.assign({}, { audio: this.defaultAudioConstraints, video: this.defaultVideoConstraints })
-  }
-
-  setDefaultVideoConstraints(constraints: boolean | MediaTrackConstraints) {
-    this._videoConstraints = constraints
-  }
-
-  get defaultVideoConstraints() {
+  async setVideoSettings(settings: IVideoSettings) {
+    const { camId, camLabel, ...constraints } = settings
+    removeUnsupportedConstraints(constraints)
+    this._videoConstraints = await checkDeviceIdConstraints(camId, camLabel, 'videoinput', constraints)
     return this._videoConstraints
   }
 
-  setDefaultAudioConstraints(constraints: boolean | MediaTrackConstraints) {
-    this._audioConstraints = constraints
+  disableWebcam() {
+    this._videoConstraints = false
   }
 
-  get defaultAudioConstraints() {
-    return this._audioConstraints
+  enableWebcam() {
+    this._videoConstraints = true
   }
 
   supportedResolutions() {

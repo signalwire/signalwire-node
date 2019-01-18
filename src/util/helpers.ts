@@ -48,3 +48,5 @@ export const safeParseJson = (value: string): string | Object => {
     return value
   }
 }
+
+export const isDefined = (variable: any): boolean => typeof variable !== 'undefined'

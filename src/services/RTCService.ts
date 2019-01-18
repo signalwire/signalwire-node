@@ -88,12 +88,15 @@ const getMediaConstraints = (options: DialogOptions): MediaStreamConstraints => 
   return { audio, video }
 }
 
-const assureDeviceId = async (id: string, label: string): Promise<string> => {
+const assureDeviceId = async (id: string, label: string, kind: MediaDeviceInfo['kind']): Promise<string> => {
   const devices = await navigator.mediaDevices.enumerateDevices()
     .catch(error => { logger.error('enumerateDevices Error', error) })
   if (devices) {
     for (let i = 0; i < devices.length; i++) {
-      const { deviceId, label: deviceLabel } = devices[i]
+      const { deviceId, label: deviceLabel, kind: deviceKind } = devices[i]
+      if (kind !== deviceKind || !/input$/.test(kind)) {
+        continue
+      }
       if ((id && id === deviceId) || (label && label === deviceLabel)) {
         return deviceId
       }
@@ -117,6 +120,29 @@ const checkPermissions = async (): Promise<boolean> => {
   return true
 }
 
+const removeUnsupportedConstraints = (constraints: MediaTrackConstraints): void => {
+  const supported = navigator.mediaDevices.getSupportedConstraints()
+  Object.keys(constraints).map(key => {
+    if (!supported.hasOwnProperty(key)) {
+      logger.warn(`"${key}" constraint is not supported in this browser!`)
+      delete constraints[key]
+    }
+  })
+}
+
+const checkDeviceIdConstraints = async (id: string, label: string, kind: MediaDeviceInfo['kind'], constraints: MediaTrackConstraints) => {
+  const { deviceId } = constraints
+  if (!isDefined(deviceId) && (id || label)) {
+    const deviceId = await assureDeviceId(id, label, kind).catch(error => null)
+    if (deviceId) {
+      constraints.deviceId = { exact: deviceId }
+    } else {
+      throw `Unknown device with id: '${id}' and label: '${label}'`
+    }
+  }
+  return constraints
+}
+
 export {
   getUserMedia,
   getDevices,
@@ -124,5 +150,7 @@ export {
   getMediaConstraints,
   streamIsValid,
   assureDeviceId,
-  checkPermissions
+  checkPermissions,
+  removeUnsupportedConstraints,
+  checkDeviceIdConstraints
 }

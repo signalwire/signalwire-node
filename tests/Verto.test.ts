@@ -1,19 +1,24 @@
 import Verto from '../src/Verto'
 import { monitorCallbackQueue } from '../src/services/Handler'
+import { mockMediaDevices } from './helpers/mocks'
 const Connection = require('../src/Connection')
 jest.mock('../src/Connection')
-jest.mock('../src/services/RTCService')
 
 describe('Verto', () => {
   let instance: Verto
   const noop = (): void => { }
 
-  beforeEach(() => {
+  beforeAll(() => {
+    mockMediaDevices()
+  })
+
+  beforeEach(async done => {
     Connection.mockSend.mockClear()
     Connection.default.mockClear()
-    instance = new Verto({ host: 'example.fs.edo', login: 'login', passwd: 'passwd' })
+    instance = new Verto({ host: 'example.fs.edo', login: 'login', password: 'passwd' })
     instance.subscriptions = {}
-    instance.connect()
+    await instance.connect()
+    done()
   })
 
   it('should instantiate Verto with default methods', () => {
@@ -25,10 +30,48 @@ describe('Verto', () => {
       expect(Connection.default).toHaveBeenCalledTimes(1)
     })
 
-    it('should register sockets listeners', () => {
+    it('should register socket listeners', () => {
+      const listeners = ['signalwire.socket.close', 'signalwire.socket.open', 'signalwire.socket.error', 'signalwire.socket.message']
       const queue = monitorCallbackQueue()
-      expect(Object.keys(queue).sort()).toEqual(['signalwire.socket.close', 'signalwire.socket.open', 'signalwire.socket.error', 'signalwire.socket.message'].sort())
+      expect(Object.keys(queue).sort()).toEqual(listeners.sort())
     })
+
+    it('should set the devices object', () => {
+      expect(instance.videoDevices).toBeDefined()
+      expect(instance.audioInDevices).toBeDefined()
+      expect(instance.audioOutDevices).toBeDefined()
+    })
+
+    describe('with an already established connection', () => {
+      it('should do nothing', async done => {
+        await instance.connect()
+        expect(Connection.mockClose).not.toHaveBeenCalled()
+        expect(Connection.default).toHaveBeenCalledTimes(1)
+        done()
+      })
+    })
+
+    describe('with an invalid connection (closed/closing state)', () => {
+      it('should close the previous one and create another', async done => {
+        Connection.connected.mockReturnValueOnce(false)
+        await instance.connect()
+        expect(Connection.mockClose).toHaveBeenCalledTimes(1)
+        expect(Connection.default).toHaveBeenCalledTimes(2)
+        done()
+      })
+    })
+  })
+
+  describe('.disconnect()', () => {
+    it('should close the connection', () => {
+      expect(Connection.mockClose).toHaveBeenCalled()
+      expect(instance.dialogs).toMatchObject({})
+      expect(instance.subscriptions).toMatchObject({})
+    })
+  })
+
+  describe('.speedTest()', () => {
+    // TODO:
   })
 
   describe('.subscribe()', () => {
@@ -102,55 +145,87 @@ describe('Verto', () => {
     })
   })
 
-  describe('.setDefaultRtcDevices()', () => {
-    beforeEach(async done => {
-      await instance.refreshDevices()
-      const devices = { micId: 'micId', micLabel: 'micLabel', camId: 'camId', camLabel: 'camLabel', speakerId: 'speakerId', speakerLabel: 'speakerLabel' }
-      await instance.setDefaultRtcDevices(devices)
-      done()
-    })
-
-    it('set all RTC devices', () => {
-      expect(instance.defaultMicrophone.id).toEqual('micId')
-      expect(instance.defaultMicrophone.label).toEqual('micLabel')
-      expect(instance.defaultWebcam.id).toEqual('camId')
-      expect(instance.defaultWebcam.label).toEqual('camLabel')
-      expect(instance.defaultSpeaker.id).toEqual('speakerId')
-      expect(instance.defaultSpeaker.label).toEqual('speakerLabel')
-    })
-
-    it('set only the devices passed in', async done => {
-      await instance.setDefaultRtcDevices({ micId: 'micId-edit', micLabel: 'micLabel-edit' })
-      expect(instance.defaultMicrophone.id).toEqual('micId-edit')
-      expect(instance.defaultMicrophone.label).toEqual('micLabel-edit')
-      expect(instance.defaultWebcam.id).toEqual('camId')
-      expect(instance.defaultSpeaker.id).toEqual('speakerId')
-      done()
-    })
-
-    describe('getter defaultRtcDevices', () => {
-      it('returns the default client devices', () => {
-        const res = { micId: 'micId', micLabel: 'micLabel', camId: 'camId', camLabel: 'camLabel', speakerId: 'speakerId', speakerLabel: 'speakerLabel' }
-        expect(instance.defaultRtcDevices).toEqual(res)
-      })
+  describe('.mediaConstraints', () => {
+    it('should match default constraints', () => {
+      const tmp = instance.mediaConstraints
+      expect(tmp).toMatchObject({ audio: true, video: false })
+      expect(Object.keys(tmp)).toEqual(['audio', 'video'])
     })
   })
 
-  describe('setter defaultMicrophone', () => {
-    it('throw error with invalid microphone', () => {
-      // TODO: validate against enumerated devices
+  describe('.setAudioSettings()', () => {
+    const MIC_ID = 'c3d0a4cb47f5efd7af14c2c3860d12f0199042db6cbdf0c690c38644a24a6ba7'
+    const CAM_ID = '2060bf50ab9c29c12598bf4eafeafa71d4837c667c7c172bb4407ec6c5150206'
+
+    it('should throw an error with invalid micId', () => {
+      expect(
+        instance.setAudioSettings({ micId: CAM_ID, micLabel: 'Random Mic', volume: 1, echoCancellation: false })
+      ).rejects.toMatch(/Unknown\ device\ with/)
+    })
+
+    it('should set deviceId', () => {
+      expect(
+        instance.setAudioSettings({ micId: MIC_ID, micLabel: 'Random Mic', volume: 1, echoCancellation: false })
+      ).resolves.toMatchObject({ deviceId: { exact: MIC_ID }, volume: 1, echoCancellation: false })
+    })
+
+    it('should remove unsupported audio constraints', () => {
+      expect(
+        // @ts-ignore
+        instance.setAudioSettings({ micId: MIC_ID, micLabel: 'Random Mic', volumex: 1, echoCancellationFake: false })
+      ).resolves.toMatchObject({ deviceId: { exact: MIC_ID } })
     })
   })
 
-  describe('setter defaultWebcam', () => {
-    it('throw error with invalid webcam', () => {
-      // TODO: validate against enumerated devices
+  describe('.setVideoSettings()', () => {
+    const MIC_ID = 'c3d0a4cb47f5efd7af14c2c3860d12f0199042db6cbdf0c690c38644a24a6ba7'
+    const CAM_ID = '2060bf50ab9c29c12598bf4eafeafa71d4837c667c7c172bb4407ec6c5150206'
+
+    it('should throw an error with invalid camId', () => {
+      expect(
+        instance.setVideoSettings({ camId: MIC_ID, camLabel: 'Random cam', width: 1280, height: 720 })
+      ).rejects.toMatch(/Unknown\ device\ with/)
+    })
+
+    it('should set deviceId', () => {
+      expect(
+        instance.setVideoSettings({ camId: CAM_ID, camLabel: 'Random cam', width: 1280, height: 720 })
+      ).resolves.toMatchObject({ deviceId: { exact: CAM_ID }, width: 1280, height: 720 })
+    })
+
+    it('should remove unsupported audio constraints', () => {
+      expect(
+        // @ts-ignore
+        instance.setVideoSettings({ camId: CAM_ID, camLabel: 'Random cam', widh: 1280, higt: 720 })
+      ).resolves.toMatchObject({ deviceId: { exact: CAM_ID } })
     })
   })
 
-  describe('setter defaultSpeaker', () => {
-    it('throw error with invalid speaker', () => {
-      // TODO: validate against enumerated devices
+  describe('.disableMicrophone()', () => {
+    it('should set audio constraint to false', () => {
+      instance.disableMicrophone()
+      expect(instance.mediaConstraints.audio).toEqual(false)
+    })
+  })
+
+  describe('.enableMicrophone()', () => {
+    it('should set audio constraint to true', () => {
+      instance.enableMicrophone()
+      expect(instance.mediaConstraints.audio).toEqual(true)
+    })
+  })
+
+  describe('.disableWebcam()', () => {
+    it('should set video constraint to false', () => {
+      instance.disableWebcam()
+      expect(instance.mediaConstraints.video).toEqual(false)
+    })
+  })
+
+  describe('.enableWebcam()', () => {
+    it('should set video constraint to true', () => {
+      instance.enableWebcam()
+      expect(instance.mediaConstraints.video).toEqual(true)
     })
   })
 })

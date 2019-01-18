@@ -12,15 +12,19 @@ export const mockSend = jest.fn((bladeObj: any) => {
   })
 })
 
-export const mockClose = jest.fn(() => {
-  console.warn('Mock socket closing...')
-})
+export const mockClose = jest.fn()
+
+export const connected = jest.fn().mockReturnValue(true)
 
 const mock = jest.fn().mockImplementation(() => {
-  return {
+  const mocked = {
     send: mockSend,
     close: mockClose
   }
+  Object.defineProperty(mocked, 'connected', {
+    get: () => connected()
+  })
+  return mocked
 })
 
 export default mock

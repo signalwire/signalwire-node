@@ -2,9 +2,9 @@ import Verto from '../src/Verto'
 import Dialog from '../src/rtc/Dialog'
 import { monitorCallbackQueue } from '../src/services/Handler'
 import { DialogState } from '../src/util/constants'
+import { mockMediaDevices } from './helpers/mocks'
 const Connection = require('../src/Connection')
 jest.mock('../src/Connection')
-jest.mock('../src/services/RTCService')
 
 describe('Dialog', () => {
   let session: Verto
@@ -18,10 +18,15 @@ describe('Dialog', () => {
   }
   const noop = (): void => {}
 
-  beforeEach(() => {
+  beforeAll(() => {
+    mockMediaDevices()
+  })
+
+  beforeEach(async done => {
     session = new Verto({ host: 'example.fs.edo', login: 'login', passwd: 'passwd' })
-    session.connect()
+    await session.connect()
     dialog = new Dialog(session, defaultParams)
+    done()
   })
 
   describe('with required parameters', () => {
@@ -139,8 +144,8 @@ describe('Dialog', () => {
 
     describe('on bootObj', () => {
       const packet = JSON.parse('{"action":"bootObj","name":"3599","wireSerno":-1,"data":[["ab077699-540b-c370-fc74-62d5a6d4f300",["0067","email@test.com","Jest client JS","opus@48000","{\\"audio\\":{\\"muted\\":false,\\"deaf\\":false,\\"onHold\\":false,\\"talking\\":false,\\"floor\\":true,\\"energyScore\\":16},\\"video\\":{\\"visible\\":true,\\"videoOnly\\":false,\\"avatarPresented\\":false,\\"mediaFlow\\":\\"sendRecv\\",\\"muted\\":false,\\"floor\\":true,\\"reservationID\\":null,\\"roleID\\":null,\\"videoLayerID\\":1},\\"oldStatus\\":\\"FLOOR VIDEO (FLOOR)\\"}",{"email":"email@test.com","avatar":"avatar"},null]],["3327dda8-b7c6-482c-b692-8f0d8c6d911f",["0069","edoardo@signalwire.com","SW JS client","opus@48000","{\\"audio\\":{\\"muted\\":false,\\"deaf\\":false,\\"onHold\\":false,\\"talking\\":false,\\"floor\\":false,\\"energyScore\\":0},\\"video\\":{\\"visible\\":true,\\"videoOnly\\":false,\\"avatarPresented\\":false,\\"mediaFlow\\":\\"sendRecv\\",\\"muted\\":false,\\"floor\\":false,\\"reservationID\\":null,\\"roleID\\":null,\\"videoLayerID\\":0},\\"oldStatus\\":\\"ACTIVE VIDEO\\"}",{},null]]]}')
-      describe('as a moderator', () => {
-        it('should setup liveArray', async () => {
+      describe('as a participant', () => {
+        it('should setup liveArray', async done => {
           _mockResponse()
           const res = await dialog.handleConferenceUpdate(packet, pvtData)
           const channels = ['conference-chat-channel', 'conference-info-channel']
@@ -148,6 +153,7 @@ describe('Dialog', () => {
           expect(dialog.channels.sort()).toEqual(channels.sort())
           expect(dialog).toHaveProperty('hangup')
           expect(dialog).toHaveProperty('sendChatMessage')
+          done()
         })
       })
 

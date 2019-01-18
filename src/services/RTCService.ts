@@ -1,5 +1,6 @@
 import logger from '../util/logger'
 import * as Storage from '../util/storage'
+import { isDefined } from '../util/helpers'
 import { DialogOptions, ICacheDevices, ICacheResolution } from '../interfaces/'
 
 const getUserMedia = async (constraints: MediaStreamConstraints): Promise<MediaStream | null> => {
@@ -74,7 +75,7 @@ const getMediaConstraints = (options: DialogOptions): MediaStreamConstraints => 
     if (typeof audio === 'boolean') {
       audio = {}
     }
-    audio['deviceId'] = { exact: options.micId }
+    audio.deviceId = { exact: options.micId }
   }
 
   let { video = false } = options
@@ -82,7 +83,7 @@ const getMediaConstraints = (options: DialogOptions): MediaStreamConstraints => 
     if (typeof video === 'boolean') {
       video = {}
     }
-    video['deviceId'] = { exact: options.camId }
+    video.deviceId = { exact: options.camId }
   }
 
   return { audio, video }

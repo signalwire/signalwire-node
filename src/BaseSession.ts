@@ -18,7 +18,7 @@ export default abstract class BaseSession {
   public dialogs: { [dialogId: string]: Dialog } = {}
   public subscriptions: { [channel: string]: any } = {}
 
-  protected _connection: Connection
+  protected _connection: Connection = null
   protected _devices: ICacheDevices = {}
 
   protected _microphone: IDevice = {}
@@ -42,26 +42,25 @@ export default abstract class BaseSession {
   abstract async unsubscribe(params: SubscribeParams): Promise<any>
   abstract broadcast(params: BroadcastParams): void
 
-  connect() {
-    if (this._connection instanceof Connection) {
-      if (this._connection.connected) {
-        logger.warn('Session already connected')
-        return
-      } else {
-        this.disconnect()
-      }
+  async connect(): Promise<void> {
+    if (this._connection && this._connection.connected) {
+      logger.warn('Session already connected')
+      return
+    } else {
+      this.disconnect()
     }
 
-    checkPermissions()
-      .then(success => success)
-      .catch(error => error)
-      .then(async (final: boolean) => {
-        await this.refreshDevices()
-        this._connection = new Connection(this)
-        if (!final) {
-          trigger(SwEvent.Notification, { type: NOTIFICATION_TYPE.userMediaError, error: 'Permission denied' }, this.uuid)
-        }
-      })
+    const permissionPromise = checkPermissions()
+    const devicePromise = this.refreshDevices()
+
+    const success = await permissionPromise
+    await devicePromise
+
+    this._connection = new Connection(this)
+
+    if (!success) {
+      trigger(SwEvent.Notification, { type: NOTIFICATION_TYPE.userMediaError, error: 'Permission denied' }, this.uuid)
+    }
   }
 
   disconnect() {

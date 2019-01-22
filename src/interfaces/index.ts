@@ -150,11 +150,6 @@ export interface ICacheResolution extends MediaTrackSettings {
   resolution: string
 }
 
-export interface IDevice {
-  id?: string
-  label?: string
-}
-
 export interface IAudioSettings extends MediaTrackConstraints {
   micId: string
   micLabel: string

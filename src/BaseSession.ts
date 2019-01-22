@@ -3,7 +3,7 @@ import logger from './util/logger'
 import Connection from './Connection'
 import Dialog from './rtc/Dialog'
 import {
-  ISignalWireOptions, SubscribeParams, BroadcastParams, ICacheDevices, IDevice, IAudioSettings, IVideoSettings
+  ISignalWireOptions, SubscribeParams, BroadcastParams, ICacheDevices, IAudioSettings, IVideoSettings
 } from './interfaces'
 import { validateOptions } from './util/helpers'
 import { register, deRegister, trigger, registerOnce } from './services/Handler'
@@ -21,10 +21,6 @@ export default abstract class BaseSession {
 
   protected _connection: Connection = null
   protected _devices: ICacheDevices = {}
-
-  protected _microphone: IDevice = {}
-  protected _webcam: IDevice = {}
-  protected _speaker: IDevice = {}
 
   protected _audioConstraints: boolean | MediaTrackConstraints = true
   protected _videoConstraints: boolean | MediaTrackConstraints = false

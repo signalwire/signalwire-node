@@ -90,7 +90,7 @@ describe('Messages', function () {
   describe('Verto', function () {
     describe('Login', function () {
       it('should match struct', function () {
-        const message = new Login('login', 'password').request
+        const message = new Login('login', 'password', null).request
         const res = JSON.parse(`{"jsonrpc":"2.0","id":"${message.id}","method":"login","params":{"login":"login","passwd":"password","loginParams":{},"userVariables":{}}}`)
         expect(message).toEqual(res)
       })

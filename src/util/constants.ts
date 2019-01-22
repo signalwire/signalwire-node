@@ -1,9 +1,11 @@
+import { DialogOptions } from '../interfaces/'
+
 export enum Netcast {
   ProtocolProviderAdd = 'protocol.provider.add',
   ProtocolProviderRemove = 'protocol.provider.remove'
 }
 
-export const STORAGE_PREFIX = '@signalwire'
+export const STORAGE_PREFIX = '@signalwire:'
 export const ADD = 'add'
 export const REMOVE = 'remove'
 
@@ -13,6 +15,9 @@ export enum SwEvent {
   SocketClose = 'signalwire.socket.close',
   SocketError = 'signalwire.socket.error',
   SocketMessage = 'signalwire.socket.message',
+
+  // Internal events
+  SpeedTest = 'signalwire.internal.speedtest',
 
   // Global Events
   Ready = 'signalwire.ready',
@@ -78,7 +83,28 @@ export const NOTIFICATION_TYPE = {
   userMediaError: 'userMediaError'
 }
 
-export enum LiveArrayAction {
+export const DEFAULT_DIALOG_OPTIONS: DialogOptions = {
+  destinationNumber: '',
+  remoteCallerName: 'Outbound Call',
+  remoteCallerNumber: '',
+  callerName: '',
+  callerNumber: '',
+  audio: true,
+  video: false,
+  useStereo: true,
+  attach: false,
+  screenShare: false,
+  // outgoingBandwidth: 'default',
+  // incomingBandwidth: 'default',
+  userVariables: {}
+}
+
+export enum DialogRole {
+  Participant = 'participant',
+  Moderator = 'moderator',
+}
+
+export enum ConferenceAction {
   Join = 'join',
   Leave = 'leave',
   Bootstrap = 'bootstrap',
@@ -86,4 +112,8 @@ export enum LiveArrayAction {
   Modify = 'modify',
   Delete = 'delete',
   Clear = 'clear',
+  ChatMessage = 'chatMessage',
+  LayoutInfo = 'layoutInfo',
+  LayoutList = 'layoutList',
+  ModCmdResponse = 'moderatorCommandResponse',
 }

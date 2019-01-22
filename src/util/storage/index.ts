@@ -1,8 +1,18 @@
-import { mutateStorageKey } from '../helpers'
+import { mutateStorageKey, safeParseJson } from '../helpers'
 
-const getItem = async (key): Promise<string> => window.localStorage.getItem(mutateStorageKey(key))
-const setItem = async (key, value): Promise<void> => window.localStorage.setItem(mutateStorageKey(key), value)
-const removeItem = async (key): Promise<void> => window.localStorage.removeItem(mutateStorageKey(key))
+const getItem = async (key: string): Promise<any> => {
+  const res = window.localStorage.getItem(mutateStorageKey(key))
+  return safeParseJson(res)
+}
+
+const setItem = async (key: string, value: any): Promise<void> => {
+  if (typeof value === 'object') {
+    value = JSON.stringify(value)
+  }
+  window.localStorage.setItem(mutateStorageKey(key), value)
+}
+
+const removeItem = async (key: string): Promise<void> => window.localStorage.removeItem(mutateStorageKey(key))
 
 export {
   getItem,

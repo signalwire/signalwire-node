@@ -113,7 +113,7 @@ export interface DialogOptions {
   remoteStream?: MediaStream
   localElementId?: string
   remoteElementId?: string
-  iceServers?: boolean | RTCIceServer[]
+  iceServers?: RTCIceServer[]
   audio?: boolean | MediaTrackConstraints
   video?: boolean | MediaTrackConstraints
   attach?: boolean
@@ -129,17 +129,14 @@ export interface DialogOptions {
 }
 
 export interface SubscribeParams {
-  protocol?: string
   channels?: string[]
-  eventChannel?: string
+  protocol?: string
   handler?: Function
-  subParams?: object
 }
 
 export interface BroadcastParams {
+  channel?: string
   protocol?: string
-  channels?: string[]
-  eventChannel?: string
   data?: object
 }
 
@@ -151,4 +148,14 @@ export interface ICacheDevices {
 
 export interface ICacheResolution extends MediaTrackSettings {
   resolution: string
+}
+
+export interface IAudioSettings extends MediaTrackConstraints {
+  micId: string
+  micLabel: string
+}
+
+export interface IVideoSettings extends MediaTrackConstraints {
+  camId: string
+  camLabel: string
 }

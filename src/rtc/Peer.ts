@@ -7,13 +7,13 @@ import { trigger } from '../services/Handler'
 
 export default class Peer {
   public instance: RTCPeerConnection
-  private _constraints: { offerToReceiveAudio: number, offerToReceiveVideo: number }
+  private _constraints: { offerToReceiveAudio: boolean, offerToReceiveVideo: boolean }
   private _negotiating: boolean = false
 
   constructor(public type: PeerType, private options: DialogOptions) {
     logger.info('New Peer with type:', this.type, 'Options:', this.options)
 
-    this._constraints = { offerToReceiveAudio: 1, offerToReceiveVideo: 1 }
+    this._constraints = { offerToReceiveAudio: true, offerToReceiveVideo: true }
     this._init()
   }
 
@@ -56,23 +56,30 @@ export default class Peer {
         logger.debug('Skip twice onnegotiationneeded..')
         return
       }
-      this._negotiating = true
-
-      if (this._isOffer()) {
-        this._createOffer()
-      } else {
-        this._createAnswer()
-      }
+      this._startNegotiation()
     }
 
     this.options.localStream = await this._retrieveLocalStream()
       .catch(error => {
         trigger(SwEvent.MediaError, error, this.options.id)
+        return null
       })
     const { localElementId = '', localStream } = this.options
     if (streamIsValid(localStream)) {
       localStream.getTracks().forEach(t => this.instance.addTrack(t, localStream))
       attachMediaStream(localElementId, localStream)
+    } else if (localStream === null) {
+      this._startNegotiation()
+    }
+  }
+
+  private _startNegotiation() {
+    this._negotiating = true
+
+    if (this._isOffer()) {
+      this._createOffer()
+    } else {
+      this._createAnswer()
     }
   }
 
@@ -81,7 +88,6 @@ export default class Peer {
       return
     }
     // FIXME: Use https://developer.mozilla.org/en-US/docs/Web/API/RTCRtpTransceiver when available (M71)
-    // this.instance.createOffer()
     this.instance.createOffer(this._constraints)
       .then(offer => this.instance.setLocalDescription(offer))
       .catch(error => logger.error('Peer _createOffer error:', error))
@@ -113,14 +119,10 @@ export default class Peer {
   }
 
   private _config(): RTCConfiguration {
-    const config: RTCConfiguration = {}
-    if (this.options.hasOwnProperty('iceServers') && this.options.iceServers) {
-      if (typeof (this.options.iceServers) === 'boolean') {
-        config.iceServers = [{ urls: ['stun:stun.l.google.com:19302'] }]
-      } else {
-        config.iceServers = this.options.iceServers
-      }
-    }
+    const { iceServers = [] } = this.options
+    // bundlePolicy = "max-compat";
+    // @ts-ignore
+    const config: RTCConfiguration = { sdpSemantics: 'plan-b', iceServers }
     logger.info('RTC config', config)
     return config
   }

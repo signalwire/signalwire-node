@@ -1,3 +1,4 @@
+import logger from './logger'
 import { ISignalWireOptions } from '../interfaces'
 import { STORAGE_PREFIX } from './constants'
 
@@ -22,6 +23,30 @@ export const cleanNumber = (num: string) => {
   return `+${tmp}`
 }
 
-export const objEmpty = obj => Object.keys(obj).length === 0
+export const objEmpty = (obj: Object) => Object.keys(obj).length === 0
 
-export const mutateStorageKey = key => `${STORAGE_PREFIX}${key}`
+export const mutateStorageKey = (key: string) => `${STORAGE_PREFIX}${key}`
+
+export const mutateLiveArrayData = (data: any) => {
+  const [participantId, participantNumber, participantName, codec, mediaJson, participantData] = data
+  let media = {}
+  try {
+    media = JSON.parse(mediaJson.replace(/ID"/g, 'Id"'))
+  } catch (error) {
+    logger.warn('Verto LA invalid media JSON string:', mediaJson)
+  }
+  return { participantId: Number(participantId), participantNumber, participantName, codec, media, participantData }
+}
+
+export const safeParseJson = (value: string): string | Object => {
+  if (typeof value !== 'string') {
+    return value
+  }
+  try {
+    return JSON.parse(value)
+  } catch (error) {
+    return value
+  }
+}
+
+export const isDefined = (variable: any): boolean => typeof variable !== 'undefined'

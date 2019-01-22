@@ -82,9 +82,8 @@ export default class Dialog extends Component {
         {dialog.state === 'ringing' && <button onClick={this._answer}>Answer</button>}
         {dialog.remoteStream && <DialogVideo stream={dialog.remoteStream} />}
         <DialogActions dialog={dialog} />
+        {dialog.role === 'moderator' && <DialogModActions dialog={dialog} />}
       </div>
-      // TODO: Add DialogModActions when modCommands will be merged in master
-      // <DialogModActions dialog={dialog} />
     )
   }
 }

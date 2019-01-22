@@ -33,8 +33,6 @@ export default abstract class BaseSession {
     this.on(SwEvent.SocketClose, this._onSocketClose.bind(this))
     this.on(SwEvent.SocketError, this._onSocketError.bind(this))
     this.on(SwEvent.SocketMessage, this._onSocketMessage.bind(this))
-
-    this.iceServers = true
   }
 
   abstract async subscribe(params: SubscribeParams): Promise<any>

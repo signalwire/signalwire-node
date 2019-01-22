@@ -35,77 +35,96 @@ function connect() {
     passwd: password
   });
 
-  client.on('signalwire.socket.open', function() {
-    // Do something when the socket has been opened!
-    console.log("connected");
+  client.on('signalwire.ready', function() {
     document.getElementById('connectStatus').innerHTML = "connected";
   });
 
-  client.on('signalwire.socket.message', function(message){
-    // Do something with the received message!
-    console.log("message", message);
+  client.on('signalwire.socket.open', function() {
+    // Do something when the socket has been opened!
+    console.log("socket connected");
   });
 
-  client.on('signalwire.verto.dialogChange', function(dialog){
-    // Update the UI when this dialog's state change:
+  client.on('signalwire.error', function(error){
+    // Handle error
+    console.warn("SignalWire error", error);
+  });
 
-    console.log("dialog.state", dialog.state);
-
-    cur_call = dialog;
-
-    switch (dialog.state) {
-      case 'New':
-        // Setup the UI
-        break;
-      case 'Trying':
-        // You are calling someone and he's ringing now
-        break;
-      case 'Ringing':
-        // Someone is calling you
-        break;
-      case 'Active':
-        // Dialog has become active
-
-        var video = document.getElementById('remoteVideo');
-        video.srcObject = dialog.remoteStream;
-        video.style.display = "block";
-
-        video = document.getElementById('localVideo')
-        video.srcObject = dialog.localStream;
-        video.style.display = "block";
-
-        break;
-      case 'Hangup':
-        // Dialog is over
-        var video = document.getElementById('remoteVideo');
-        video.style.display = "none";
-        video = document.getElementById('localVideo');
-        video.style.display = "none";
-
-        break;
-      case 'Destroy':
-        // Dialog has been destroyed
-        break;
+  client.on('signalwire.notification', function(notification){
+    console.log("notification", notification.type, notification);
+    switch (notification.type) {
+      case 'dialogUpdate':
+        handleDialogChange(notification.dialog)
+        break
+      case 'conferenceUpdate':
+        // Live notification from the conference: start talking / video floor changed / audio or video state changes / a participant joins or leaves and so on..
+        break
+      case 'participantData':
+        // Caller's data like name and number to update the UI. In case of a conference call you will get the name of the room and the extension.
+        break
+      case 'vertoClientReady':
+        // All previously dialogs have been reattached. Note: FreeSWITCH 1.8+ only.
+        break
+      case 'userMediaError':
+        // Permission denied or invalid audio/video params on `getUserMedia`
+        break
+      case 'event':
+        // Generic notification received
+        break
     }
   });
 
-
+  document.getElementById('connectStatus').innerHTML = "connecting..";
   client.connect();
+}
+
+function handleDialogChange(dialog) {
+  // Update the UI when this dialog's state change:
+
+  console.log("dialog.state", dialog.state);
+
+  cur_call = dialog;
+
+  switch (dialog.state) {
+    case 'New':
+      // Setup the UI
+      break;
+    case 'Trying':
+      // You are calling someone and he's ringing now
+      break;
+    case 'Ringing':
+      // Someone is calling you
+      break;
+    case 'Active':
+      // Dialog has become active
+      document.getElementById('remoteVideo').style.display = "block";
+      document.getElementById('localVideo').style.display = "block";
+
+      break;
+    case 'Hangup':
+      // Dialog is over
+      document.getElementById('remoteVideo').style.display = "none";
+      document.getElementById('localVideo').style.display = "none";
+
+      break;
+    case 'Destroy':
+      // Dialog has been destroyed
+      break;
+  }
 }
 
 function makeCall() {
   const params = {
     // Required:
-    destination_number: document.getElementById('number').value,
-    remote_caller_id_name: 'Joe Example',
-    remote_caller_id_number: 'joe@example.com',
-    caller_id_name: 'J. Smith',
-    caller_id_number: 'smith@example.com',
+    destinationNumber: document.getElementById('number').value,
+    remoteCallerName: 'Joe Example',
+    remoteCallerNumber: 'joe@example.com',
+    callerName: 'J. Smith',
+    callerNumber: 'smith@example.com',
 
     // Optional:
     // localStream: MediaStream, // Use this stream instead of retrieving a new one. Useful if you have a stream from a canvas.captureStream() or from a screen share extension.
-    audio: true || false || MediaTrackConstraints, // https://developer.mozilla.org/en-US/docs/Web/API/MediaTrackConstraints#Properties_of_audio_tracks
-    video: true || false || MediaTrackConstraints, // https://developer.mozilla.org/en-US/docs/Web/API/MediaTrackConstraints#Properties_of_video_tracks
+    audio: true, // Boolean or https://developer.mozilla.org/en-US/docs/Web/API/MediaTrackConstraints#Properties_of_audio_tracks
+    video: true, // Boolean or https://developer.mozilla.org/en-US/docs/Web/API/MediaTrackConstraints#Properties_of_video_tracks
     // iceServers: true || false || RTCIceServer[], // https://developer.mozilla.org/en-US/docs/Web/API/RTCIceServer
     // useStereo: true || false,
     // micId: '<deviceUUID>', // Microphone device ID
@@ -113,14 +132,10 @@ function makeCall() {
     userVariables: {
       // General user variables.. email/username
     },
-    // onChange: function(dialog) {
-      // Override global "signalwire.verto.dialogChange" callback for this dialog..
-    // },
-    onNotification: function(message) {
-      // This callback will automatically subscribe the client to a liveArray for this dialog so here you'll get the liveArray messages like bootObj - add - modify - del for the current conference call.
-    },
-    onUserMediaError: function(error) {
-      // Permission denied or invalid audio/video params
+    localElementId: 'localVideo', // Video element ID to display the localStream
+    remoteElementId: 'remoteVideo', // Video element ID to display the remoteStream
+    onNotification: function (notification) {
+      handleDialogChange(notification.dialog)
     }
   }
 

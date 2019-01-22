@@ -5,13 +5,20 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 ### Added
-- Moderator methods on the Dialog object.
-- Get/Set default RTC devices.
-- Get/Set default RTC constraints.
-- speedTest.
+- Expose moderator methods on the Dialog object.
+- A notification that belongs to a Dialog now contains a reference to the dialog itself.
+- Get/Set default media constraints (audio & video).
+- Expose uuid() helper method.
+- Expose speedTest() method.
+- User can now join conferences without audio & video.
+- Force SDP to use plan-b.
 - Default iceServers.
+### Changed
+- client.connect() is now async to check browser permissions before open the websocket connection.
 ### Removed
-- Conference's channels have been removed from the `conferenceUpdate` join & leave notification type (chatChannel / infoChannel / conferenceChannel).
+- `chatChannel` / `infoChannel` / `conferenceChannel` have been removed from the `conferenceUpdate` notification (**join** & **leave** actions).
+### Security
+- Update dependencies
 
 ## [1.0.0-rc.3] - 2018-12-18
 ### Fixed

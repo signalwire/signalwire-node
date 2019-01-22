@@ -7,6 +7,9 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Added
 - Moderator methods on the Dialog object.
 - Get/Set default RTC devices.
+- Get/Set default RTC constraints.
+- speedTest.
+- Default iceServers.
 ### Removed
 - Conference's channels have been removed from the `conferenceUpdate` join & leave notification type (chatChannel / infoChannel / conferenceChannel).
 

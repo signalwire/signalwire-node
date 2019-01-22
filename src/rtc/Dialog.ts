@@ -28,7 +28,7 @@ export default class Dialog {
   private _lastSerno: number = 0
 
   constructor(private session: BaseSession, opts?: DialogOptions) {
-    this.options = Object.assign({}, DEFAULT_DIALOG_OPTIONS, session.mediaConstraints, opts)
+    this.options = Object.assign({}, DEFAULT_DIALOG_OPTIONS, session.mediaConstraints, { iceServers: session.iceServers }, opts)
 
     this._onMediaError = this._onMediaError.bind(this)
     this._init()

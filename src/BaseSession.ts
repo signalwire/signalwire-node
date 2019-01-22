@@ -17,6 +17,7 @@ export default abstract class BaseSession {
   public sessionid: string = ''
   public dialogs: { [dialogId: string]: Dialog } = {}
   public subscriptions: { [channel: string]: any } = {}
+  private _iceServers: RTCIceServer[] = []
 
   protected _connection: Connection = null
   protected _devices: ICacheDevices = {}
@@ -36,6 +37,8 @@ export default abstract class BaseSession {
     this.on(SwEvent.SocketClose, this._onSocketClose.bind(this))
     this.on(SwEvent.SocketError, this._onSocketError.bind(this))
     this.on(SwEvent.SocketMessage, this._onSocketMessage.bind(this))
+
+    this.iceServers = true
   }
 
   abstract async subscribe(params: SubscribeParams): Promise<any>
@@ -164,6 +167,18 @@ export default abstract class BaseSession {
 
   supportedResolutions() {
     return getResolutions()
+  }
+
+  set iceServers(servers: RTCIceServer[] | boolean) {
+    if (typeof servers === 'boolean') {
+      this._iceServers = servers ? [{ urls: ['stun:stun.l.google.com:19302'] }] : []
+    } else {
+      this._iceServers = servers
+    }
+  }
+
+  get iceServers() {
+    return this._iceServers
   }
 
   protected abstract _onSocketOpen(): void

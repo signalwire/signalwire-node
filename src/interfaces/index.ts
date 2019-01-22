@@ -113,7 +113,7 @@ export interface DialogOptions {
   remoteStream?: MediaStream
   localElementId?: string
   remoteElementId?: string
-  iceServers?: boolean | RTCIceServer[]
+  iceServers?: RTCIceServer[]
   audio?: boolean | MediaTrackConstraints
   video?: boolean | MediaTrackConstraints
   attach?: boolean

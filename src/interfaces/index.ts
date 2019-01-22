@@ -126,6 +126,7 @@ export interface DialogOptions {
   userVariables?: Object
   screenShare?: boolean
   onNotification?: Function
+  mutateLocalStream?: Function
 }
 
 export interface SubscribeParams {

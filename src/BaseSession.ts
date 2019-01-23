@@ -199,6 +199,18 @@ export default abstract class BaseSession {
   protected abstract _onSocketError(error): void
   protected abstract _onSocketMessage(response): void
 
+  protected _removeSubscription(channel: string) {
+    deRegister(channel)
+    delete this.subscriptions[channel]
+  }
+
+  protected _addSubscription(channel: string, handler: Function = null) {
+    this.subscriptions[channel] = {}
+    if (handler instanceof Function) {
+      register(channel, handler)
+    }
+  }
+
   static on(eventName: string, callback: any) {
     register(eventName, callback)
   }

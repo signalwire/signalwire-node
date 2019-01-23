@@ -78,18 +78,6 @@ export default class Verto extends BaseSession {
     return response
   }
 
-  private _removeSubscription(channel: string) {
-    deRegister(channel)
-    delete this.subscriptions[channel]
-  }
-
-  private _addSubscription(channel: string, handler: Function = null) {
-    this.subscriptions[channel] = {}
-    if (handler instanceof Function) {
-      register(channel, handler)
-    }
-  }
-
   protected async _onSocketOpen() {
     const sessid = await Storage.getItem(SESSID)
     const { login, password, passwd, userVariables } = this.options

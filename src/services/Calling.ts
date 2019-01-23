@@ -11,8 +11,13 @@ const newCall = async (session: SignalWire, params: { from: string, to: string }
   const { from, to } = params
   const msg = new Execute({
     protocol: session.services[SERVICE],
-    method: 'call',
-    params: { from: cleanNumber(from), to: cleanNumber(to), retries: 5, sleep_between_retries: 10000 }
+    method: 'call.begin',
+    params: {
+      type: 'phone',
+      params: {
+        from_number: cleanNumber(from), to_number: cleanNumber(to)
+      }
+    }
   })
   return session.execute(msg)
 }

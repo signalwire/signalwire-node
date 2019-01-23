@@ -115,5 +115,5 @@ export enum ConferenceAction {
   ChatMessage = 'chatMessage',
   LayoutInfo = 'layoutInfo',
   LayoutList = 'layoutList',
-  ModCmdResponse = 'moderatorCommandResponse',
+  ModCmdResponse = 'modCommandResponse',
 }

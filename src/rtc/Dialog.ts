@@ -34,13 +34,13 @@ export default class Dialog {
     this._init()
   }
 
-  invite () {
+  invite() {
     this.direction = Direction.Outbound
     this.peer = new Peer(PeerType.Offer, this.options)
     this._registerPeerEvents()
   }
 
-  answer () {
+  answer() {
     this.direction = Direction.Inbound
     this.peer = new Peer(PeerType.Answer, this.options)
     this._registerPeerEvents()
@@ -262,6 +262,7 @@ export default class Dialog {
       this._addChannel(channel)
       Object.defineProperties(this, {
         sendChatMessage: {
+          configurable: true,
           value: (message: string, type: string) => {
             this.session.broadcast({ channel, data: { action: 'send', message, type } })
           }
@@ -334,47 +335,56 @@ export default class Dialog {
       this._addChannel(channel)
       Object.defineProperties(this, {
         listVideoLayouts: {
+          configurable: true,
           value: () => {
             _modCommand('list-videoLayouts')
           }
         },
         play: {
+          configurable: true,
           value: (file: string) => {
             _modCommand('play', null, file)
           }
         },
         stop: {
+          configurable: true,
           value: () => {
             _modCommand('stop', null, 'all')
           }
         },
         deaf: {
+          configurable: true,
           value: (memberID: number | string) => {
             _modCommand('deaf', memberID)
           }
         },
         undeaf: {
+          configurable: true,
           value: (memberID: number | string) => {
             _modCommand('undeaf', memberID)
           }
         },
         record: {
+          configurable: true,
           value: (file: string) => {
             _modCommand('recording', null, ['start', file])
           }
         },
         stopRecord: {
+          configurable: true,
           value: () => {
             _modCommand('recording', null, ['stop', 'all'])
           }
         },
         snapshot: {
+          configurable: true,
           value: (file: string) => {
             _videoRequired()
             _modCommand('vid-write-png', null, file)
           }
         },
         setVideoLayout: {
+          configurable: true,
           value: (layout: string, canvasID: number) => {
             _videoRequired()
             const value = canvasID ? [layout, canvasID] : layout
@@ -382,60 +392,71 @@ export default class Dialog {
           }
         },
         kick: {
+          configurable: true,
           value: (memberID: number | string) => {
             _modCommand('kick', memberID)
           }
         },
         muteMic: {
+          configurable: true,
           value: (memberID: number | string) => {
             _modCommand('tmute', memberID)
           }
         },
         muteVideo: {
+          configurable: true,
           value: (memberID: number | string) => {
             _videoRequired()
             _modCommand('tvmute', memberID)
           }
         },
         presenter: {
+          configurable: true,
           value: (memberID: number | string) => {
             _videoRequired()
             _modCommand('vid-res-id', memberID, 'presenter')
           }
         },
         videoFloor: {
+          configurable: true,
           value: (memberID: number | string) => {
             _videoRequired()
             _modCommand('vid-floor', memberID, 'force')
           }
         },
         banner: {
+          configurable: true,
           value: (memberID: number | string, text: string) => {
             _videoRequired()
             _modCommand('vid-banner', memberID, encodeURI(text))
           }
         },
         volumeDown: {
+          configurable: true,
           value: (memberID: number | string) => {
             _modCommand('volume_out', memberID, 'down')
           }
         },
         volumeUp: {
+          configurable: true,
           value: (memberID: number | string) => {
             _modCommand('volume_out', memberID, 'up')
           }
         },
         gainDown: {
+          configurable: true,
           value: (memberID: number | string) => {
             _modCommand('volume_in', memberID, 'down')
           }
         },
         gainUp: {
+          configurable: true,
           value: (memberID: number | string) => {
             _modCommand('volume_in', memberID, 'up')
           }
         },
         transfer: {
+          configurable: true,
           value: (memberID: number | string, exten: string) => {
             _modCommand('transfer', memberID, exten)
           }

@@ -195,10 +195,10 @@ More info here: [https://webrtchacks.com/guide-to-safari-webrtc/](https://webrtc
 > All subsequent calls will inherit these settings.
 ```javascript
 const settings = {
-	micId: '55504f54e96b72e9a4066811867ac4b1924cb2a659b6e989d34438a3f0dcb912',
-    micLabel: 'Internal Microphone (Built-in)',
-    echoCancellation: true,
-    noiseSuppression: true
+  micId: '55504f54e96b72e9a4066811867ac4b1924cb2a659b6e989d34438a3f0dcb912',
+  micLabel: 'Internal Microphone (Built-in)',
+  echoCancellation: true,
+  noiseSuppression: true
 }
 client.setAudioSettings(settings)
 ```
@@ -234,11 +234,11 @@ More info here: [https://webrtchacks.com/guide-to-safari-webrtc/](https://webrtc
 > All subsequent calls will inherit these settings.
 ```javascript
 const settings = {
-	camId: '745eb13036cd1aaed3566cb63af03e57778d14028c66972d9e12692f8c23f200',
-    camLabel: 'FaceTime HD Camera (x:x)',
-    width: 1280,
-    height: 720,
-    frameRate: 30
+  camId: '745eb13036cd1aaed3566cb63af03e57778d14028c66972d9e12692f8c23f200',
+  camLabel: 'FaceTime HD Camera (x:x)',
+  width: 1280,
+  height: 720,
+  frameRate: 30
 }
 client.setVideoSettings(settings)
 ```
@@ -264,9 +264,9 @@ Set default ICE servers to use. It accepts an array of [RTCIceServer](https://de
 
 ```javascript
 client.iceServers = [{
-	urls: 'stun:stun.services.example.com',
-    username: 'stunUsername',
-    credential: 'stunCredential'
+  urls: 'stun:stun.services.example.com',
+  username: 'stunUsername',
+  credential: 'stunCredential'
 }]
 ```
 
@@ -333,6 +333,15 @@ This package can build both ES5 and ES6 version of the client.
 Run `build` to create them both under `dist/` folder:
 ```
 npm run build
+```
+
+To build only ES5 or ES6 version
+```
+npm run build-es5
+```
+
+```
+npm run build-es6
 ```
 
 # Tests

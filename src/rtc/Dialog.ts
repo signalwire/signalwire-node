@@ -340,13 +340,13 @@ export default class Dialog {
             _modCommand('list-videoLayouts')
           }
         },
-        play: {
+        playMedia: {
           configurable: true,
           value: (file: string) => {
             _modCommand('play', null, file)
           }
         },
-        stop: {
+        stopMedia: {
           configurable: true,
           value: () => {
             _modCommand('stop', null, 'all')
@@ -364,7 +364,7 @@ export default class Dialog {
             _modCommand('undeaf', memberID)
           }
         },
-        record: {
+        startRecord: {
           configurable: true,
           value: (file: string) => {
             _modCommand('recording', null, ['start', file])

@@ -13,6 +13,7 @@ import { DialogOptions } from '../interfaces/'
 export default class Dialog {
   public id: string = ''
   public state: string = State[State.New]
+  public prevState: string = ''
   public direction: Direction
   public peer: Peer
   public options: DialogOptions
@@ -130,7 +131,8 @@ export default class Dialog {
     this._prevState = this._state
     this._state = state
     this.state = State[this._state].toLowerCase()
-    logger.debug('Dialog %s state change from %s to %s', this.id, State[this._prevState].toLowerCase(), this.state)
+    this.prevState = State[this._prevState].toLowerCase()
+    logger.debug('Dialog %s state change from %s to %s', this.id, this.prevState, this.state)
 
     this._dispatchDialogUpdate()
 

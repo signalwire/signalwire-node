@@ -59,7 +59,7 @@ describe('Dialog', () => {
   describe('.setState()', () => {
     beforeEach(() => {
       dialog = new Dialog(session, { ...defaultParams, onNotification: noop })
-      expect(dialog.state).toEqual('new')
+      expect(dialog.prevState).toEqual(dialog.state)
     })
 
     it('set state to Requesting', () => {
@@ -123,6 +123,15 @@ describe('Dialog', () => {
       const queue = monitorCallbackQueue()
       // expect(queue['signalwire.notification']).not.toHaveProperty(dialog.id)
       expect(queue['signalwire.rtc.mediaError']).not.toHaveProperty(dialog.id)
+    })
+
+    it('set prevState', () => {
+      dialog.setState(DialogState.Ringing)
+      expect(dialog.prevState).toEqual('new')
+      dialog.setState(DialogState.Active)
+      expect(dialog.prevState).toEqual('ringing')
+      dialog.setState(DialogState.Hangup)
+      expect(dialog.prevState).toEqual('active')
     })
   })
 

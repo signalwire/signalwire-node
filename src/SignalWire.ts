@@ -16,6 +16,11 @@ export default class SignalWire extends BaseSession {
 
   private _cache: Cache = new Cache()
 
+  protected validateOptions() {
+    const { host, project, token } = this.options
+    return Boolean(host) && Boolean(project && token)
+  }
+
   async sendMessage(params: any) {
     const result = await Messaging.sendMessage(this, params)
 

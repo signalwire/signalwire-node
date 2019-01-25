@@ -5,7 +5,6 @@ import Dialog from './rtc/Dialog'
 import {
   ISignalWireOptions, SubscribeParams, BroadcastParams, ICacheDevices, IAudioSettings, IVideoSettings
 } from './interfaces'
-import { validateOptions } from './util/helpers'
 import { register, deRegister, trigger, registerOnce } from './services/Handler'
 import { SwEvent, NOTIFICATION_TYPE } from './util/constants'
 import {
@@ -26,8 +25,8 @@ export default abstract class BaseSession {
   protected _videoConstraints: boolean | MediaTrackConstraints = false
 
   constructor(public options: ISignalWireOptions) {
-    if (!validateOptions(options, this.constructor.name)) {
-      throw new Error('Invalid options for ' + this.constructor.name)
+    if (!this.validateOptions()) {
+      throw new Error('SignalWire: Invalid init options')
     }
     this.on(SwEvent.SocketOpen, this._onSocketOpen.bind(this))
     this.on(SwEvent.SocketClose, this._onSocketClose.bind(this))
@@ -35,6 +34,7 @@ export default abstract class BaseSession {
     this.on(SwEvent.SocketMessage, this._onSocketMessage.bind(this))
   }
 
+  protected abstract validateOptions(): boolean
   abstract async subscribe(params: SubscribeParams): Promise<any>
   abstract async unsubscribe(params: SubscribeParams): Promise<any>
   abstract broadcast(params: BroadcastParams): void

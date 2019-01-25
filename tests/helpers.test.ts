@@ -1,31 +1,6 @@
-import { validateOptions, cleanNumber, objEmpty, mutateLiveArrayData } from '../src/util/helpers'
-import { ISignalWireOptions } from '../src/interfaces'
+import { cleanNumber, objEmpty, mutateLiveArrayData } from '../src/util/helpers'
 
 describe('Helpers functions', function () {
-  describe('validateOptions', function () {
-    it('should return true with valid SignalWire params', function () {
-      const params: ISignalWireOptions = { host: 'fs.example.com', project: 'project', token: 'token' }
-      expect(validateOptions(params, 'SignalWire')).toEqual(true)
-    })
-
-    it('should return false with invalid SignalWire params', function () {
-      const params: ISignalWireOptions = { host: 'fs.example.com', project: '' }
-      expect(validateOptions(params, 'SignalWire')).toEqual(false)
-    })
-
-    it('should return true with valid Verto params', function () {
-      const params1: ISignalWireOptions = { host: 'fs.example.com', login: 'login', passwd: '1234' }
-      expect(validateOptions(params1, 'Verto')).toEqual(true)
-      const params2: ISignalWireOptions = { host: 'fs.example.com', login: 'login', password: '1234' }
-      expect(validateOptions(params2, 'Verto')).toEqual(true)
-    })
-
-    it('should return false with invalid SignalWire params', function () {
-      const params: ISignalWireOptions = { host: 'fs.example.com', project: '', token: 'token' }
-      expect(validateOptions(params, 'SignalWire')).toEqual(false)
-    })
-  })
-
   describe('cleanNumber', function () {
     it('should clear a number starting with 1', function () {
       const number = '1-650.382.0000'

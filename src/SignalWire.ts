@@ -16,7 +16,7 @@ export default class SignalWire extends BaseSession {
 
   private _cache: Cache = new Cache()
 
-  protected validateOptions() {
+  validateOptions() {
     const { host, project, token } = this.options
     return Boolean(host) && Boolean(project && token)
   }

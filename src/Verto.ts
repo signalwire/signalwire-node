@@ -10,7 +10,7 @@ import * as Storage from './util/storage/'
 const SESSID = 'vertoSessId'
 export default class Verto extends BaseSession {
 
-  protected validateOptions() {
+  validateOptions() {
     const { host, login, passwd, password } = this.options
     return Boolean(host) && Boolean(login && (passwd || password))
   }

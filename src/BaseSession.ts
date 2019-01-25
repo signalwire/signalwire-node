@@ -34,7 +34,7 @@ export default abstract class BaseSession {
     this.on(SwEvent.SocketMessage, this._onSocketMessage.bind(this))
   }
 
-  protected abstract validateOptions(): boolean
+  abstract validateOptions(): boolean
   abstract async subscribe(params: SubscribeParams): Promise<any>
   abstract async unsubscribe(params: SubscribeParams): Promise<any>
   abstract broadcast(params: BroadcastParams): void

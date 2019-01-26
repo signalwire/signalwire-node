@@ -7,7 +7,9 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Added
 - Expose moderator methods on the Dialog object.
 - A notification that belongs to a Dialog now contains a reference to the dialog itself.
-- newCall() method now accepts `localElementId` and `remoteElementId` to automatically attach the streams.
+- Set/Get default `localElement` for the client to handle the localStream for all dialogs.
+- Set/Get default `remoteElement` for the client to handle the remoteStream for all dialogs.
+- newCall() method now accepts `localElement` and `remoteElement` to override the default ones.
 - Set default audio & video settings.
 - Expose speedTest() method.
 - Force SDP to use plan-b.

@@ -29,7 +29,8 @@ export default class Dialog {
   private _lastSerno: number = 0
 
   constructor(private session: BaseSession, opts?: DialogOptions) {
-    this.options = Object.assign({}, DEFAULT_DIALOG_OPTIONS, session.mediaConstraints, { iceServers: session.iceServers }, opts)
+    const { iceServers, localElement, remoteElement, mediaConstraints: { audio, video } } = session
+    this.options = Object.assign({}, DEFAULT_DIALOG_OPTIONS, { audio, video, iceServers, localElement, remoteElement }, opts)
 
     this._onMediaError = this._onMediaError.bind(this)
     this._init()
@@ -531,8 +532,8 @@ export default class Dialog {
     instance.ontrack = event => {
       this.options.remoteStream = event.streams[0]
 
-      const { remoteElementId = '', remoteStream } = this.options
-      attachMediaStream(remoteElementId, remoteStream)
+      const { remoteElement, remoteStream } = this.options
+      attachMediaStream(remoteElement, remoteStream)
     }
   }
 
@@ -592,7 +593,7 @@ export default class Dialog {
   }
 
   private _finalize() {
-    const { remoteStream, localStream, remoteElementId = '', localElementId = '' } = this.options
+    const { remoteStream, localStream, remoteElement, localElement } = this.options
     if (streamIsValid(remoteStream)) {
       remoteStream.getTracks().forEach(t => t.stop())
       this.options.remoteStream = null
@@ -601,8 +602,8 @@ export default class Dialog {
       localStream.getTracks().forEach(t => t.stop())
       this.options.localStream = null
     }
-    detachMediaStream(localElementId)
-    detachMediaStream(remoteElementId)
+    detachMediaStream(localElement)
+    detachMediaStream(remoteElement)
 
     deRegister(SwEvent.MediaError, null, this.id)
     this.peer = null

@@ -50,3 +50,19 @@ export const safeParseJson = (value: string): string | Object => {
 }
 
 export const isDefined = (variable: any): boolean => typeof variable !== 'undefined'
+
+export const findElementByType = (tag: HTMLMediaElement | string | Function): HTMLMediaElement => {
+  if (typeof document !== 'object' || !('getElementById' in document)) {
+    return null
+  }
+  if (typeof tag === 'string') {
+    return <HTMLMediaElement>document.getElementById(tag) || null
+  } else if (typeof tag === 'function') {
+    return tag()
+  } else if (tag instanceof HTMLMediaElement) {
+    return tag
+  } else {
+    logger.warn(`Unknown HTML element for ${tag}.`)
+  }
+  return null
+}

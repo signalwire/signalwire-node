@@ -111,8 +111,8 @@ export interface DialogOptions {
   remoteSdp?: string
   localStream?: MediaStream
   remoteStream?: MediaStream
-  localElementId?: string
-  remoteElementId?: string
+  localElement?: HTMLMediaElement | string | Function
+  remoteElement?: HTMLMediaElement | string | Function
   iceServers?: RTCIceServer[]
   audio?: boolean | MediaTrackConstraints
   video?: boolean | MediaTrackConstraints
@@ -121,8 +121,6 @@ export interface DialogOptions {
   micId?: string
   camId?: string
   speakerId?: string
-  outgoingBandwidth?: string
-  incomingBandwidth?: string
   userVariables?: Object
   screenShare?: boolean
   onNotification?: Function

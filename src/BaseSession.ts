@@ -10,17 +10,20 @@ import { SwEvent, NOTIFICATION_TYPE } from './util/constants'
 import {
   getDevices, getResolutions, checkPermissions, removeUnsupportedConstraints, checkDeviceIdConstraints
 } from './services/RTCService'
+import { findElementByType } from './util/helpers'
 
 export default abstract class BaseSession {
   public uuid: string = uuidv4()
   public sessionid: string = ''
   public dialogs: { [dialogId: string]: Dialog } = {}
   public subscriptions: { [channel: string]: any } = {}
+
   private _iceServers: RTCIceServer[] = []
+  private _localElement: HTMLMediaElement = null
+  private _remoteElement: HTMLMediaElement = null
 
   protected _connection: Connection = null
   protected _devices: ICacheDevices = {}
-
   protected _audioConstraints: boolean | MediaTrackConstraints = true
   protected _videoConstraints: boolean | MediaTrackConstraints = false
 
@@ -173,6 +176,22 @@ export default abstract class BaseSession {
 
   get iceServers() {
     return this._iceServers
+  }
+
+  set localElement(tag: HTMLMediaElement | string | Function) {
+    this._localElement = findElementByType(tag)
+  }
+
+  get localElement() {
+    return this._localElement
+  }
+
+  set remoteElement(tag: HTMLMediaElement | string | Function) {
+    this._remoteElement = findElementByType(tag)
+  }
+
+  get remoteElement() {
+    return this._remoteElement
   }
 
   protected abstract _onSocketOpen(): void

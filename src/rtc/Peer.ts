@@ -64,14 +64,14 @@ export default class Peer {
         trigger(SwEvent.MediaError, error, this.options.id)
         return null
       })
-    const { localElementId = '', mutateLocalStream = null } = this.options
+    const { localElement, mutateLocalStream = null } = this.options
     let { localStream } = this.options
     if (mutateLocalStream && typeof mutateLocalStream === 'function') {
       localStream = mutateLocalStream(localStream)
     }
     if (streamIsValid(localStream)) {
       localStream.getTracks().forEach(t => this.instance.addTrack(t, localStream))
-      attachMediaStream(localElementId, localStream)
+      attachMediaStream(localElement, localStream)
     } else if (localStream === null) {
       this._startNegotiation()
     }

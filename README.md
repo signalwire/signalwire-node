@@ -257,7 +257,7 @@ Enable the webcam for the client.
 client.enableWebcam()
 ```
 
-## Set ICE Servers (STUN/TURN)
+## Configure ICE Servers (STUN/TURN)
 
 #### iceServers
 Set default ICE servers to use. It accepts an array of [RTCIceServer](https://developer.mozilla.org/en-US/docs/Web/API/RTCIceServer).
@@ -277,43 +277,100 @@ Get ICE servers currently used by the client
 const servers = client.iceServers()
 ```
 
+## Configure default DOM elements to attach the MediaStream
+
+### Local
+
+#### localElement
+Set default video/audio element to attach the `localStream`. Possible values are `string` (must be the element's ID), [HTMLMediaElement](https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement), or a `Function` that returns a DOM element.
+
+```javascript
+// Using a string
+client.localElement = 'localVideoId'
+
+// Using a DOM element
+client.localElement = document.getElementById('localVideoId')
+
+// Using a Function
+client.localElement = function() {
+  // Create element or do something and then..
+  return element
+}
+```
+
+#### localElement()
+Get the default element used by the client.
+
+```javascript
+const elem = client.localElement()
+```
+
+### Remote
+
+#### remoteElement
+Set default video/audio element to attach the `remoteStream`. Possible values are `string` (must be the element's ID), [HTMLMediaElement](https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement), or a `Function` that returns a DOM element.
+
+```javascript
+// Using a string
+client.remoteElement = 'remoteVideoId'
+
+// Using a DOM element
+client.remoteElement = document.getElementById('remoteVideoId')
+
+// Using a Function
+client.remoteElement = function() {
+  // Create element or do something and then..
+  return element
+}
+```
+
+#### remoteElement()
+Get the default element used by the client.
+
+```javascript
+const elem = client.remoteElement()
+```
+
 ## Calling:
 
-#### newCall()
+#### newCall(options)
 
-The `newCall` method accept an object of parameters:
+The `newCall` method accept an Object with the following properties:
+
+| property | required | type | default | description |
+| --- | --- | --- | --- | --- |
+| destinationNumber | :heavy_check_mark: | `string` | "" | Extension to call |
+| remoteCallerName | :heavy_check_mark: | `string` | "Outbound Call" | Callee name |
+| remoteCallerNumber | :heavy_check_mark: | `string` | "" | Callee number or email |
+| callerName | :heavy_check_mark: | `string` | "" | Caller name |
+| callerNumber | :heavy_check_mark: | `string` | "" | Caller number or email |
+| localStream | - | `MediaStream` | `null` | Use this stream instead of retrieving a new one. Useful if you have a stream from a canvas.captureStream() or from a screen share extension |
+| localElement | - | `string` | `null` | Overrides client default `localElement` |
+| remoteElement | - | `string` | `null` | Overrides client default `remoteElement` |
+| audio | - | `boolean` or audio [MediaTrackConstraints](https://developer.mozilla.org/en-US/docs/Web/API/MediaTrackConstraints#Properties_of_audio_tracks) | `true` | Overrides client default audio settings |
+| video | - | `boolean` or video [MediaTrackConstraints](https://developer.mozilla.org/en-US/docs/Web/API/MediaTrackConstraints#Properties_of_video_tracks) | `false` | Overrides client default video settings |
+| iceServers | - | Array of [RTCIceServer](https://developer.mozilla.org/en-US/docs/Web/API/RTCIceServer) | [] | Overrides client default iceServers |
+| useStereo | - | `boolean` | true | |
+| camId | - | `string` | `null` | Overrides client default webcam device |
+| micId | - | `string` | `null` | Overrides client default microphone device |
+| userVariables | - | `object` | `{}` | Custom properties like email/gravatar/userName that will be sent to remote peer. |
+| onNotification | - | `Function` | `null` | Overrides the `signalwire.notification` callback for this Dialog so you can have different behaviour for each Dialog |
+
+> Note: with `localElement` and `remoteElement` the lib will attach the related stream to them but doesn't change the style attribute.
+> It's up to you display or hide the HTMLMediaElement following the application logic. Use [dialogUpdate](https://github.com/signalwire/signalwire-client-js/wiki/Notification#dialogupdate) notification to detect dialog state changes and update the UI accordingly.
+
+Example:
 ```javascript
 const params = {
-  // Required:
   destinationNumber: '3599',
-  remoteCallerName: 'Joe Example', // Callee name
-  remoteCallerNumber: 'joe@example.com', // Callee number or email
-  callerName: 'J. Smith', // Caller name
-  callerNumber: 'smith@example.com', // Caller number or email
-
-  // Optional:
-  localStream: MediaStream, // Use this stream instead of retrieving a new one. Useful if you have a stream from a canvas.captureStream() or from a screen share extension.
-  localElementId: 'local-video', // HTMLMediaElement ID to which to attach the localStream
-  remoteElementId: 'remote-video', // HTMLMediaElement ID to which to attach the remoteStream
-  audio: boolean || MediaTrackConstraints, // Overrides client default audio settings. Could be a Boolean or an audio MediaTrackConstraints object.
-  video: boolean || MediaTrackConstraints, // Overrides client default audio settings. Could be a Boolean or a video MediaTrackConstraints object.
-  iceServers: RTCIceServer[], // Overrides client default iceServers
-  useStereo: boolean,
-  micId: '<deviceUUID>', // Overrides client default microphone device
-  camId: '<deviceUUID>', // Overrides client default webcam device
-  userVariables: {
-    // Custom properties: email/gravatar/userName that will be sent to remote peer.
-  },
-  onNotification: function(message) {
-    // Overrides the "signalwire.notification" callback for this Dialog so you can have different behaviour for each Dialog.
-  }
+  remoteCallerName: 'Joe Example',
+  remoteCallerNumber: 'joe@example.com',
+  callerName: 'J. Smith',
+  callerNumber: 'smith@example.com'
 }
 
 const dialog = client.newCall(params)
 ```
-
-> Note: with `localElementId` and `remoteElementId` the lib will attach the related stream to it but doesn't change the style attribute.
-> It's up to you display or hide the HTMLMediaElement following the application logic. Use [dialogUpdate](https://github.com/signalwire/signalwire-client-js/wiki/Notification#dialogupdate) notification to detect dialog state changes and update the UI accordingly.
 
 See [Dialog](https://github.com/signalwire/signalwire-client-js/wiki/Dialog) to discover all the properties and methods available on a Dialog object.
 

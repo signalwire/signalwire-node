@@ -7,12 +7,15 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Added
 - Expose moderator methods on the Dialog object.
 - A notification that belongs to a Dialog now contains a reference to the dialog itself.
-- Get/Set default media constraints (audio & video).
-- Expose uuid() helper method.
+- Set/Get default `localElement` for the client to handle the localStream for all dialogs.
+- Set/Get default `remoteElement` for the client to handle the remoteStream for all dialogs.
+- newCall() method now accepts `localElement` and `remoteElement` to override the default ones.
+- Set default audio & video settings.
 - Expose speedTest() method.
-- User can now join conferences without audio & video.
 - Force SDP to use plan-b.
-- Default iceServers.
+- Set default iceServers.
+- User can now join conferences without audio & video.
+- Expose static method uuid().
 ### Changed
 - client.connect() is now async to check browser permissions before open the websocket connection.
 ### Removed

@@ -32,9 +32,7 @@ module.exports = (env, argv) => {
     },
     optimization: {
       minimizer: [
-        new UglifyJsPlugin({
-          uglifyOptions: { keep_fnames: true }
-        })
+        new UglifyJsPlugin()
       ]
     },
     devServer: {

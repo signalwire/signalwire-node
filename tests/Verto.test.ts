@@ -25,6 +25,21 @@ describe('Verto', () => {
     expect(instance).toBeInstanceOf(Verto)
   })
 
+  describe('.validateOptions()', function () {
+    it('should return false with invalid options', function () {
+      instance.options = { host: 'example.fs.edo', project: 'project', token: 'token' }
+      expect(instance.validateOptions()).toEqual(false)
+    })
+
+    it('should return false with invalid options', function () {
+      instance.options = { host: 'fs.example.com', login: 'login', passwd: '1234' }
+      expect(instance.validateOptions()).toEqual(true)
+
+      instance.options = { host: 'fs.example.com', login: 'login', password: '1234' }
+      expect(instance.validateOptions()).toEqual(true)
+    })
+  })
+
   describe('.connect()', () => {
     it('should instantiate its own connection', () => {
       expect(Connection.default).toHaveBeenCalledTimes(1)

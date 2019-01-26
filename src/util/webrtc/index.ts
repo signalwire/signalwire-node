@@ -1,20 +1,10 @@
 import logger from '../logger'
+import { findElementByType } from '../helpers'
 
-const _getElement = (id: string): HTMLMediaElement => {
-  if (!id || typeof document !== 'object' || !('getElementById' in document)) {
-    return null
-  }
-  const element = <HTMLMediaElement>document.getElementById(id)
-  if (!element) {
-    logger.warn(`Unknown HTML element with id ${id}.`)
-    return null
-  }
-  return element
-}
-
-const attachMediaStream = (htmlElementId: string, stream: MediaStream) => {
-  const element = _getElement(htmlElementId)
+const attachMediaStream = (tag: any, stream: MediaStream) => {
+  const element = findElementByType(tag)
   if (element === null) {
+    logger.warn(`Unknown HTML element for ${tag}.`)
     return
   }
   if (!element.getAttribute('autoplay')) {
@@ -26,12 +16,11 @@ const attachMediaStream = (htmlElementId: string, stream: MediaStream) => {
   element.srcObject = stream
 }
 
-const detachMediaStream = (htmlElementId: string) => {
-  const element = _getElement(htmlElementId)
-  if (element === null) {
-    return
+const detachMediaStream = (tag: any) => {
+  const element = findElementByType(tag)
+  if (element) {
+    element.srcObject = null
   }
-  element.srcObject = null
 }
 
 export {

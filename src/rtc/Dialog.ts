@@ -13,6 +13,7 @@ import { DialogOptions } from '../interfaces/'
 export default class Dialog {
   public id: string = ''
   public state: string = State[State.New]
+  public prevState: string = ''
   public direction: Direction
   public peer: Peer
   public options: DialogOptions
@@ -28,7 +29,8 @@ export default class Dialog {
   private _lastSerno: number = 0
 
   constructor(private session: BaseSession, opts?: DialogOptions) {
-    this.options = Object.assign({}, DEFAULT_DIALOG_OPTIONS, session.mediaConstraints, { iceServers: session.iceServers }, opts)
+    const { iceServers, localElement, remoteElement, mediaConstraints: { audio, video } } = session
+    this.options = Object.assign({}, DEFAULT_DIALOG_OPTIONS, { audio, video, iceServers, localElement, remoteElement }, opts)
 
     this._onMediaError = this._onMediaError.bind(this)
     this._init()
@@ -67,6 +69,11 @@ export default class Dialog {
 
   transfer(destination: string) {
     const msg = new Modify({ sessid: this.session.sessionid, action: 'transfer', destination, dialogParams: this.options })
+    this.session.execute(msg)
+  }
+
+  replace(replaceCallID: string) {
+    const msg = new Modify({ sessid: this.session.sessionid, action: 'replace', replaceCallID, dialogParams: this.options })
     this.session.execute(msg)
   }
 
@@ -130,7 +137,8 @@ export default class Dialog {
     this._prevState = this._state
     this._state = state
     this.state = State[this._state].toLowerCase()
-    logger.debug('Dialog %s state change from %s to %s', this.id, State[this._prevState].toLowerCase(), this.state)
+    this.prevState = State[this._prevState].toLowerCase()
+    logger.debug('Dialog %s state change from %s to %s', this.id, this.prevState, this.state)
 
     this._dispatchDialogUpdate()
 
@@ -340,13 +348,13 @@ export default class Dialog {
             _modCommand('list-videoLayouts')
           }
         },
-        play: {
+        playMedia: {
           configurable: true,
           value: (file: string) => {
             _modCommand('play', null, file)
           }
         },
-        stop: {
+        stopMedia: {
           configurable: true,
           value: () => {
             _modCommand('stop', null, 'all')
@@ -364,7 +372,7 @@ export default class Dialog {
             _modCommand('undeaf', memberID)
           }
         },
-        record: {
+        startRecord: {
           configurable: true,
           value: (file: string) => {
             _modCommand('recording', null, ['start', file])
@@ -529,8 +537,8 @@ export default class Dialog {
     instance.ontrack = event => {
       this.options.remoteStream = event.streams[0]
 
-      const { remoteElementId = '', remoteStream } = this.options
-      attachMediaStream(remoteElementId, remoteStream)
+      const { remoteElement, remoteStream } = this.options
+      attachMediaStream(remoteElement, remoteStream)
     }
   }
 
@@ -590,7 +598,7 @@ export default class Dialog {
   }
 
   private _finalize() {
-    const { remoteStream, localStream, remoteElementId = '', localElementId = '' } = this.options
+    const { remoteStream, localStream, remoteElement, localElement } = this.options
     if (streamIsValid(remoteStream)) {
       remoteStream.getTracks().forEach(t => t.stop())
       this.options.remoteStream = null
@@ -599,8 +607,8 @@ export default class Dialog {
       localStream.getTracks().forEach(t => t.stop())
       this.options.localStream = null
     }
-    detachMediaStream(localElementId)
-    detachMediaStream(remoteElementId)
+    detachMediaStream(localElement)
+    detachMediaStream(remoteElement)
 
     deRegister(SwEvent.MediaError, null, this.id)
     this.peer = null

@@ -5,29 +5,31 @@ import Dialog from './rtc/Dialog'
 import {
   ISignalWireOptions, SubscribeParams, BroadcastParams, ICacheDevices, IAudioSettings, IVideoSettings
 } from './interfaces'
-import { validateOptions } from './util/helpers'
 import { register, deRegister, trigger, registerOnce } from './services/Handler'
 import { SwEvent, NOTIFICATION_TYPE } from './util/constants'
 import {
   getDevices, getResolutions, checkPermissions, removeUnsupportedConstraints, checkDeviceIdConstraints
 } from './services/RTCService'
+import { findElementByType } from './util/helpers'
 
 export default abstract class BaseSession {
   public uuid: string = uuidv4()
   public sessionid: string = ''
   public dialogs: { [dialogId: string]: Dialog } = {}
   public subscriptions: { [channel: string]: any } = {}
+
   private _iceServers: RTCIceServer[] = []
+  private _localElement: HTMLMediaElement = null
+  private _remoteElement: HTMLMediaElement = null
 
   protected _connection: Connection = null
   protected _devices: ICacheDevices = {}
-
   protected _audioConstraints: boolean | MediaTrackConstraints = true
   protected _videoConstraints: boolean | MediaTrackConstraints = false
 
   constructor(public options: ISignalWireOptions) {
-    if (!validateOptions(options, this.constructor.name)) {
-      throw new Error('Invalid options for ' + this.constructor.name)
+    if (!this.validateOptions()) {
+      throw new Error('SignalWire: Invalid init options')
     }
     this.on(SwEvent.SocketOpen, this._onSocketOpen.bind(this))
     this.on(SwEvent.SocketClose, this._onSocketClose.bind(this))
@@ -35,6 +37,7 @@ export default abstract class BaseSession {
     this.on(SwEvent.SocketMessage, this._onSocketMessage.bind(this))
   }
 
+  abstract validateOptions(): boolean
   abstract async subscribe(params: SubscribeParams): Promise<any>
   abstract async unsubscribe(params: SubscribeParams): Promise<any>
   abstract broadcast(params: BroadcastParams): void
@@ -173,6 +176,22 @@ export default abstract class BaseSession {
 
   get iceServers() {
     return this._iceServers
+  }
+
+  set localElement(tag: HTMLMediaElement | string | Function) {
+    this._localElement = findElementByType(tag)
+  }
+
+  get localElement() {
+    return this._localElement
+  }
+
+  set remoteElement(tag: HTMLMediaElement | string | Function) {
+    this._remoteElement = findElementByType(tag)
+  }
+
+  get remoteElement() {
+    return this._remoteElement
   }
 
   protected abstract _onSocketOpen(): void

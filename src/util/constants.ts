@@ -94,8 +94,6 @@ export const DEFAULT_DIALOG_OPTIONS: DialogOptions = {
   useStereo: true,
   attach: false,
   screenShare: false,
-  // outgoingBandwidth: 'default',
-  // incomingBandwidth: 'default',
   userVariables: {}
 }
 

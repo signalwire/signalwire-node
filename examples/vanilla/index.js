@@ -132,8 +132,8 @@ function makeCall() {
     userVariables: {
       // General user variables.. email/username
     },
-    localElementId: 'localVideo', // Video element ID to display the localStream
-    remoteElementId: 'remoteVideo', // Video element ID to display the remoteStream
+    localElement: 'localVideo', // Video element ID to display the localStream
+    remoteElement: 'remoteVideo', // Video element ID to display the remoteStream
     onNotification: function (notification) {
       handleDialogChange(notification.dialog)
     }

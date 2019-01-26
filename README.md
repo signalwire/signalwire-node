@@ -13,7 +13,7 @@ If you are using the ES5 version add a script tag referencing the SignalWire lib
 ```
 
 Then instantiate the client:
-> Note: host / login / password are required for Verto
+> Note: host / login / password are required
 
 ```javascript
 // Create a new instance
@@ -28,7 +28,11 @@ const client = new Verto({
 
 // ..add listeners you need
 client.on('signalwire.ready', function(){
-  // ...
+  // Client is now ready!
+})
+
+client.on('signalwire.error', function(error){
+  // Handle the error!
 })
 
 client.on('signalwire.notification', function(notification){
@@ -98,7 +102,8 @@ client.on('signalwire.socket.open', function(){
 ## Client methods:
 
 #### connect()
-After setup the events you need on the client do `connect()` to start the session:
+After setup the events you need on the client do `connect()` to start the session:\
+Return a **Promise**.
 ```javascript
 client.connect()
 ```
@@ -129,8 +134,25 @@ client.supportedResolutions()
   })
 ```
 
+#### speedTest(bytes)
+Perform a speed test and return upload/download values in Kbps.\
+Return a **Promise**.
+
+```javascript
+client.speedTest(1024)
+	.then(result => {
+    // Print upload/download speed..
+  })
+  .catch(error => {
+    // Error during speedTest!
+  })
+```
+
+## Work with client devices:
+
 #### refreshDevices()
-Refresh the cache video/audio devices
+Refresh the cache video/audio devices.\
+Return a **Promise**.
 ```javascript
 client.refreshDevices()
 ```
@@ -156,35 +178,197 @@ const audioOutDevices = client.audioOutDevices
 ```
 > audioOutDevices is keyed by deviceId.
 
+## Set default audio settings:
+
+#### setAudioSettings(settings)
+Set default audio device and settings.
+`settings` is an object that extends_audio [MediaTrackConstraints](https://developer.mozilla.org/en-US/docs/Web/API/MediaTrackConstraints#Properties_of_audio_tracks) properties with:
+
+| Key ||
+| --- | --- |
+| `micId` | Device ID to use by default |
+| `micLabel` | Device label |
+
+You should set the `micLabel` because Safari change the deviceId on each new page load. The client will try to find out the deviceId mapping the available devices by label.\
+More info here: [https://webrtchacks.com/guide-to-safari-webrtc/](https://webrtchacks.com/guide-to-safari-webrtc/)
+
+> All subsequent calls will inherit these settings.
+```javascript
+const settings = {
+  micId: '55504f54e96b72e9a4066811867ac4b1924cb2a659b6e989d34438a3f0dcb912',
+  micLabel: 'Internal Microphone (Built-in)',
+  echoCancellation: true,
+  noiseSuppression: true
+}
+client.setAudioSettings(settings)
+```
+
+#### disableMicrophone()
+Disable the microphone for the client.
+> All subsequent calls will **not** have outgoing audio by default.
+```javascript
+client.disableMicrophone()
+```
+
+#### enableMicrophone()
+Enable the microphone for the client.
+> All subsequent calls will have outgoing audio by default.
+```javascript
+client.enableMicrophone()
+```
+
+## Set default video settings:
+
+#### setVideoSettings(settings)
+Set default video device and settings.
+`settings` is an object that extends video [MediaTrackConstraints](https://developer.mozilla.org/en-US/docs/Web/API/MediaTrackConstraints#Properties_of_video_tracks) properties with:
+
+| Key ||
+| --- | --- |
+| `camId` | Device ID to use by default |
+| `camLabel` | Device label |
+
+You should set the `camLabel` because Safari change the deviceId on each new page load. The client will try to find out the deviceId mapping the available devices by label.\
+More info here: [https://webrtchacks.com/guide-to-safari-webrtc/](https://webrtchacks.com/guide-to-safari-webrtc/)
+
+> All subsequent calls will inherit these settings.
+```javascript
+const settings = {
+  camId: '745eb13036cd1aaed3566cb63af03e57778d14028c66972d9e12692f8c23f200',
+  camLabel: 'FaceTime HD Camera (x:x)',
+  width: 1280,
+  height: 720,
+  frameRate: 30
+}
+client.setVideoSettings(settings)
+```
+
+#### disableWebcam()
+Disable the webcam for the client.
+> All subsequent calls will **not** have outgoing video by default.
+```javascript
+client.disableWebcam()
+```
+
+#### enableWebcam()
+Enable the webcam for the client.
+> All subsequent calls will have outgoing video by default.
+```javascript
+client.enableWebcam()
+```
+
+## Configure ICE Servers (STUN/TURN)
+
+#### iceServers
+Set default ICE servers to use. It accepts an array of [RTCIceServer](https://developer.mozilla.org/en-US/docs/Web/API/RTCIceServer).
+
+```javascript
+client.iceServers = [{
+  urls: 'stun:stun.services.example.com',
+  username: 'stunUsername',
+  credential: 'stunCredential'
+}]
+```
+
+#### iceServers()
+Get ICE servers currently used by the client
+
+```javascript
+const servers = client.iceServers()
+```
+
+## Configure default DOM elements to attach the MediaStream
+
+### Local
+
+#### localElement
+Set default video/audio element to attach the `localStream`. Possible values are `string` (must be the element's ID), [HTMLMediaElement](https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement), or a `Function` that returns a DOM element.
+
+```javascript
+// Using a string
+client.localElement = 'localVideoId'
+
+// Using a DOM element
+client.localElement = document.getElementById('localVideoId')
+
+// Using a Function
+client.localElement = function() {
+  // Create element or do something and then..
+  return element
+}
+```
+
+#### localElement()
+Get the default element used by the client.
+
+```javascript
+const elem = client.localElement()
+```
+
+### Remote
+
+#### remoteElement
+Set default video/audio element to attach the `remoteStream`. Possible values are `string` (must be the element's ID), [HTMLMediaElement](https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement), or a `Function` that returns a DOM element.
+
+```javascript
+// Using a string
+client.remoteElement = 'remoteVideoId'
+
+// Using a DOM element
+client.remoteElement = document.getElementById('remoteVideoId')
+
+// Using a Function
+client.remoteElement = function() {
+  // Create element or do something and then..
+  return element
+}
+```
+
+#### remoteElement()
+Get the default element used by the client.
+
+```javascript
+const elem = client.remoteElement()
+```
+
 ## Calling:
 
-#### newCall()
+#### newCall(options)
 
-The `newCall` method accept an object of parameters:
+The `newCall` method accept an Object with the following properties:
+
+| property | required | type | default | description |
+| --- | --- | --- | --- | --- |
+| destinationNumber | :heavy_check_mark: | `string` | "" | Extension to call |
+| remoteCallerName | :heavy_check_mark: | `string` | "Outbound Call" | Callee name |
+| remoteCallerNumber | :heavy_check_mark: | `string` | "" | Callee number or email |
+| callerName | :heavy_check_mark: | `string` | "" | Caller name |
+| callerNumber | :heavy_check_mark: | `string` | "" | Caller number or email |
+| localStream | - | `MediaStream` | `null` | Use this stream instead of retrieving a new one. Useful if you have a stream from a canvas.captureStream() or from a screen share extension |
+| localElement | - | `string` | `null` | Overrides client default `localElement` |
+| remoteElement | - | `string` | `null` | Overrides client default `remoteElement` |
+| audio | - | `boolean` or audio [MediaTrackConstraints](https://developer.mozilla.org/en-US/docs/Web/API/MediaTrackConstraints#Properties_of_audio_tracks) | `true` | Overrides client default audio settings |
+| video | - | `boolean` or video [MediaTrackConstraints](https://developer.mozilla.org/en-US/docs/Web/API/MediaTrackConstraints#Properties_of_video_tracks) | `false` | Overrides client default video settings |
+| iceServers | - | Array of [RTCIceServer](https://developer.mozilla.org/en-US/docs/Web/API/RTCIceServer) | [] | Overrides client default iceServers |
+| useStereo | - | `boolean` | true | |
+| camId | - | `string` | `null` | Overrides client default webcam device |
+| micId | - | `string` | `null` | Overrides client default microphone device |
+| userVariables | - | `object` | `{}` | Custom properties like email/gravatar/userName that will be sent to remote peer. |
+| onNotification | - | `Function` | `null` | Overrides the `signalwire.notification` callback for this Dialog so you can have different behaviour for each Dialog |
+
+> Note: with `localElement` and `remoteElement` the lib will attach the related stream to them but doesn't change the style attribute.
+> It's up to you display or hide the HTMLMediaElement following the application logic. Use [dialogUpdate](https://github.com/signalwire/signalwire-client-js/wiki/Notification#dialogupdate) notification to detect dialog state changes and update the UI accordingly.
+
+Example:
 ```javascript
 const params = {
-  // Required:
   destinationNumber: '3599',
-  remoteCallerName: 'Joe Example', // Callee name
-  remoteCallerNumber: 'joe@example.com', // Callee number or email
-  callerName: 'J. Smith', // Caller name
-  callerNumber: 'smith@example.com', // Caller number or email
-
-  // Optional:
-  localStream: MediaStream, // Use this stream instead of retrieving a new one. Useful if you have a stream from a canvas.captureStream() or from a screen share extension.
-  audio: boolean || MediaTrackConstraints, // https://developer.mozilla.org/en-US/docs/Web/API/MediaTrackConstraints#Properties_of_audio_tracks
-  video: boolean || MediaTrackConstraints, // https://developer.mozilla.org/en-US/docs/Web/API/MediaTrackConstraints#Properties_of_video_tracks
-  iceServers: boolean || RTCIceServer[], // https://developer.mozilla.org/en-US/docs/Web/API/RTCIceServer
-  useStereo: boolean,
-  micId: '<deviceUUID>', // Microphone device ID
-  camId: '<deviceUUID>', // Webcam device ID
-  userVariables: {
-    // Custom properties: email/gravatar/userName that will be sent to remote peer.
-  },
-  onNotification: function(message) {
-    // Overrides the `signalwire.notification` callback for this Dialog so you can have different behaviour for each Dialog.
-  }
+  remoteCallerName: 'Joe Example',
+  remoteCallerNumber: 'joe@example.com',
+  callerName: 'J. Smith',
+  callerNumber: 'smith@example.com'
 }
+
 const dialog = client.newCall(params)
 ```
 
@@ -206,6 +390,15 @@ This package can build both ES5 and ES6 version of the client.
 Run `build` to create them both under `dist/` folder:
 ```
 npm run build
+```
+
+To build only ES5 or ES6 version
+```
+npm run build-es5
+```
+
+```
+npm run build-es6
 ```
 
 # Tests

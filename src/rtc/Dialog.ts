@@ -72,6 +72,11 @@ export default class Dialog {
     this.session.execute(msg)
   }
 
+  replace(replaceCallID: string) {
+    const msg = new Modify({ sessid: this.session.sessionid, action: 'replace', replaceCallID, dialogParams: this.options })
+    this.session.execute(msg)
+  }
+
   hold() {
     const msg = new Modify({ sessid: this.session.sessionid, action: 'hold', dialogParams: this.options })
     return this.session.execute(msg)

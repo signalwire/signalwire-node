@@ -6,12 +6,7 @@ const SETUP_PROTOCOL = 'signalwire'
 const SETUP_METHOD = 'setup'
 const SETUP_CHANNEL = 'notifications'
 
-export const Setup = async (session: SignalWire, service: string, handler?: Function): Promise<boolean> => {
-  // Check if service is ready
-  if (session.services.hasOwnProperty(service)) {
-    logger.debug(service, ' has already been setup!')
-    return true
-  }
+export const Setup = async (session: SignalWire, service: string, handler?: Function): Promise<string> => {
   logger.debug('Execute setup for', service)
   const be = new Execute({ protocol: SETUP_PROTOCOL, method: SETUP_METHOD, params: { service } })
   const { result: { protocol = null } = {} } = await session.execute(be).catch(error => error)
@@ -20,14 +15,10 @@ export const Setup = async (session: SignalWire, service: string, handler?: Func
     throw new Error('Setup Error: invalid execute!')
   }
   logger.debug('Subscribe to', protocol)
-  const sub = await session.subscribe({ protocol, channels: [SETUP_CHANNEL], handler }).catch(error => error)
-  logger.debug('Subscribe response', sub)
-  if (sub === undefined) {
-    throw new Error('Setup Error: invalid subscription!')
+  const { subscribe_channels = [], failed_channels = [] } = await session.subscribe({ protocol, channels: [SETUP_CHANNEL], handler }).catch(error => error)
+  if (failed_channels.length || subscribe_channels.indexOf(SETUP_CHANNEL) < 0) {
+    throw new Error('Setup Error: invalid subscription to notifications channel!')
   }
 
-  // FIXME: save service-protocol somewhere
-  session.services[service] = protocol
-
-  return true
+  return protocol
 }

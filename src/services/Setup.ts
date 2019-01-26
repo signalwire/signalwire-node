@@ -6,7 +6,7 @@ const SETUP_PROTOCOL = 'signalwire'
 const SETUP_METHOD = 'setup'
 const SETUP_CHANNEL = 'notifications'
 
-export const Setup = async (session: SignalWire, service: string) => {
+export const Setup = async (session: SignalWire, service: string, handler?: Function): Promise<boolean> => {
   // Check if service is ready
   if (session.services.hasOwnProperty(service)) {
     logger.debug(service, ' has already been setup!')
@@ -14,22 +14,14 @@ export const Setup = async (session: SignalWire, service: string) => {
   }
   logger.debug('Execute setup for', service)
   const be = new Execute({ protocol: SETUP_PROTOCOL, method: SETUP_METHOD, params: { service } })
-  const response = await session.execute(be)
-    .catch(error => {
-      // TODO: The error is already throw by Session but here i want to dispatch a specific error
-      logger.error('Setup error', error)
-    })
-  if (response === undefined) {
+  const { result: { protocol = null } = {} } = await session.execute(be).catch(error => error)
+  if (protocol === null) {
+    // TODO: throw a specific SignalWire error
     throw new Error('Setup Error: invalid execute!')
   }
-  const { protocol } = response.result
-
-  logger.debug('Subscribe to ', protocol)
-  const sub = await session.subscribe({ protocol, channels: [SETUP_CHANNEL] })
-    .catch(error => {
-      // TODO: The error is already throw by Session but here i want to dispatch a specific error
-      logger.error('Setup subscription error', error)
-    })
+  logger.debug('Subscribe to', protocol)
+  const sub = await session.subscribe({ protocol, channels: [SETUP_CHANNEL], handler }).catch(error => error)
+  logger.debug('Subscribe response', sub)
   if (sub === undefined) {
     throw new Error('Setup Error: invalid subscription!')
   }

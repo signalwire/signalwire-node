@@ -8,17 +8,26 @@ import * as Messaging from './services/Messaging'
 import * as Calling from './services/Calling'
 import { ADD, REMOVE, SwEvent } from './util/constants'
 import { register, trigger } from './services/Handler'
+import SwCalling from './relay/Calling'
 
 export default class SignalWire extends BaseSession {
   public nodeid: string
   public master_nodeid: string
   public services: { [service: string]: string } = {}
 
+  private _callingInstance: SwCalling = null
   private _cache: Cache = new Cache()
 
   validateOptions() {
     const { host, project, token } = this.options
     return Boolean(host) && Boolean(project && token)
+  }
+
+  get calling() {
+    if (this._callingInstance === null) {
+      this._callingInstance = new SwCalling(this)
+    }
+    return this._callingInstance
   }
 
   async sendMessage(params: any) {
@@ -124,13 +133,14 @@ export default class SignalWire extends BaseSession {
   }
 
   protected _onSocketMessage(response: any) {
-    logger.info('Inbound Message', response.method, this.nodeid, response)
-    switch (response.method) {
+    const { method, params } = response
+    logger.info('Inbound Message', method, params)
+    switch (method) {
       case 'blade.netcast':
-        this._cache.netcastUpdate(response.params)
+        this._cache.netcastUpdate(params)
       break
       case 'blade.broadcast':
-        BroadcastHandler(this, response.params)
+        BroadcastHandler(params)
       break
     }
   }

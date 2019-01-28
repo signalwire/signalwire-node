@@ -1,10 +1,12 @@
 FROM node:11-alpine
 
-WORKDIR /app
+WORKDIR /home/node/app
 
 COPY . .
 
-RUN npm cache clean --force && npm install
+RUN npm install
+
+COPY provisioning/index.html ./dist/es5/
 
 EXPOSE 9000
 

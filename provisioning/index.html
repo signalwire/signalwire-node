@@ -1,0 +1,512 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <title>Welcome to SignalWire!</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.2/css/bootstrap.min.css" integrity="sha384-Smlep5jCw/wG7hdkwQ/Z5nLIefveQRIY9nfy6xoR1uRYBtpZgI6339F5dgvm/e9B"
+    crossorigin="anonymous">
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+    crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49"
+    crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.2/js/bootstrap.min.js" integrity="sha384-o+RDsa0aLu++PJvFqy8fFScvbHFLtbvScb8AjopnFD+iEQ7wo/CG0xlczd+2O/em"
+    crossorigin="anonymous"></script>
+</head>
+
+<body>
+  <nav class="navbar navbar-default">
+    <div class="container">
+      <div class="navbar-header">
+        <a class="navbar-brand" href="#1" style="padding: 5px;">
+          <img alt="Brand" src="https://signalwire.com/assets/images/logo.svg" style="height: 40px;">
+        </a>
+      </div>
+    </div>
+  </nav>
+  <div class="container">
+    <div class="row">
+      <div class="col-md-8">
+        <form id="connectForm" style="display: block;">
+          <div class="form-group">
+            <label for="host">Host:</label>
+            <input type="text" class="form-control" id="host" placeholder="example.signalwire.com" value="demo.signalwire.com">
+          </div>
+          <div class="form-group">
+            <label for="project">Project:</label>
+            <input type="text" class="form-control" id="project" placeholder="Enter your project ID" value="">
+          </div>
+          <div class="form-group">
+            <label for="token">Token:</label>
+            <input type="text" class="form-control" id="token" placeholder="Enter your token" value="">
+          </div>
+          <button id="connect" type="button" class="btn btn-info">Connect</button>
+        </form>
+
+        <div id="demoContent" style="display: none;">
+          <ul class="nav nav-tabs" id="myTabs" role="tablist">
+            <li class="nav-item">
+              <a class="nav-link active" id="cantina-tab" data-toggle="tab" href="#cantinaTab" role="tab" aria-controls="cantinaTab"
+                aria-selected="true">Cantina</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" id="sms-tab" data-toggle="tab" href="#firstTab" role="tab" aria-controls="firstTab"
+                aria-selected="false">SMS</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" id="call-tab" data-toggle="tab" href="#secondTab" role="tab" aria-controls="secondTab"
+                aria-selected="false">Calls</a>
+            </li>
+          </ul>
+          <div class="tab-content" id="myTabContent">
+            <div class="tab-pane fade show active" id="cantinaTab" role="tabpanel" aria-labelledby="cantina-tab">
+              <form id="cantinaForm">
+                <div class="form-group">
+                  <label for="extension">Extension:</label>
+                  <input type="text" class="form-control" id="extension" placeholder="3593" value="3593">
+                </div>
+                <div class="checkbox">
+                  <label>
+                    <input type="checkbox" id="webrtc-audio" checked="checked"> Audio
+                  </label>
+                </div>
+                <div class="form-inline">
+                  <div class="checkbox" style="margin-right: 20px;">
+                    <label>
+                      <input type="checkbox" id="webrtc-video" checked="checked"> Video
+                    </label>
+                  </div>
+                  <div class="form-group">
+                    <label for="webrtc-video-width" style="margin-left: 5px;">Width:</label>
+                    <input type="number" class="form-control" id="webrtc-video-width" value="1280">
+                  </div>
+                  <div class="form-group">
+                    <label for="webrtc-video-height" style="margin-left: 5px;">Height:</label>
+                    <input type="number" class="form-control" id="webrtc-video-height" value="720">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="extension">Microphone:</label>
+                  <select name="selectedMic" id="selectedMic" class="form-control">
+                    <option value="none">No Mic</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="extension">WebCam:</label>
+                  <select name="selectedCam" id="selectedCam" class="form-control">
+                    <option value="none">No Cam</option>
+                  </select>
+                </div>
+                <br />
+                <button type="button" class="btn btn-success callExtension">Call</button>
+                <button type="button" class="btn btn-warning hangupExtension" style="display: none;">Hangup</button>
+                <hr>
+                <h2>Local:</h2>
+                <video id="webcam-local" style="width: 100%; height: 400px; display: none;" autoplay="autoplay"></video>
+                <h2>Remote:</h2>
+                <video id="webcam-remote" style="width: 100%; height: 400px; display: none;" autoplay="autoplay"></video>
+                <!-- <canvas id="canvasTest" style="display: none; width: 100%; height: 300px; border: 1px solid red; margin-top: 20px;"></canvas> -->
+              </form>
+            </div>
+            <div class="tab-pane fade" id="firstTab" role="tabpanel" aria-labelledby="sms-tab">
+              <form id="smsForm">
+                <div class="form-group">
+                  <label for="msgFrom">From:</label>
+                  <input type="text" class="form-control" id="msgFrom" placeholder="+12622081318" value="+12622081318">
+                </div>
+                <div class="form-group">
+                  <label for="msgTo">To:</label>
+                  <input type="text" class="form-control" id="msgTo" placeholder="+15559999999" value="+15559999999">
+                </div>
+                <div class="form-group">
+                  <label for="msgText">Message:</label>
+                  <textarea class="form-control" id="msgText" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                  <label for="msgMedia">Media:</label>
+                  <input type="text" class="form-control" id="msgMedia" placeholder="URL to media" value="https://bit.ly/2N50Ysq">
+                </div>
+                <button type="button" class="btn btn-success sendMessage">Send</button>
+              </form>
+            </div>
+            <div class="tab-pane fade" id="secondTab" role="tabpanel" aria-labelledby="call-tab">
+              <form id="callForm">
+                <div class="form-group">
+                  <label for="callFrom">From:</label>
+                  <input type="text" class="form-control" id="callFrom" placeholder="+12622081318" value="+1-312-885-6009">
+                </div>
+                <div class="form-group">
+                  <label for="callTo">To:</label>
+                  <input type="text" class="form-control" id="callTo" placeholder="+15559999999" value="+1-404-328-7174">
+                </div>
+                <div class="form-group">
+                  <button type="button" class="btn btn-success makeCall">Start the Call</button>
+                  <button type="button" class="btn btn-danger callHangup" style="display: none;">Hangup</button>
+                </div>
+                <hr>
+                <div id="cmdCallWrapper" style="display: none;">
+                  <div class="form-group">
+                    <label for="callTo">Play an audio file:</label>
+                    <div class="input-group">
+                      <input type="text" class="form-control" id="wavToPlay" placeholder="URL to a .wav file" value="http://www.kozco.com/tech/piano2.wav">
+                      <div class="input-group-append">
+                        <button type="button" class="btn btn-info callPlayAudio">Play It!</button>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label for="digitsToPlay">Play some digits:</label>
+                    <div class="input-group">
+                      <input type="text" class="form-control" id="digitsToPlay" placeholder="12345" value="12345">
+                      <div class="input-group-append">
+                        <button type="button" class="btn btn-info callPlayDigits">Play It!</button>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label for="what">Say something:</label>
+                    <div class="input-group">
+                      <input type="text" class="form-control" id="what" placeholder="Hi there, welcome to SignalWire!"
+                        value="Hi there, welcome to SignalWire!">
+                      <div class="input-group-append">
+                        <button type="button" class="btn btn-info callSay">Say It!</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="json-preview" class="col-md-4">
+        <div class="alert alert-success" role="alert">Click "Connect" to start!</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    var _session = null
+    var _currentCall = null
+    var _calls = []
+    var _appendNotif = function (text, btClass) {
+      $('#json-preview').append('<div class="alert alert-info" role="alert">' + text + '</div>')
+    }
+    window.onunload = function () {
+      if (_session) {
+        _session.disconnect()
+      }
+    }
+    window.onload = function () {
+      var _fillValuesFromUrl = function () {
+        var params = new URLSearchParams(window.location.search.substring(1))
+        $('#host').val(params.get('u') || 'demo.signalwire.com')
+        $('#project').val(params.get('p') || '')
+        $('#token').val(params.get('t') || '')
+        if (params.get('autologin') === '1') {
+          $('#connect').trigger('click')
+        }
+      }
+      var _pollSmsStatus = function (smsResultParams) {
+        console.debug('Poll SmsStatus:', smsResultParams)
+        if (smsResultParams.status !== 'queued') {
+          _appendNotif('SMS status is: "' + smsResultParams.status + '"!')
+          return
+        }
+        var params = { messageId: smsResultParams.id }
+        _session.getMessage(params)
+          .then(function (bladeObj) {
+            _pollSmsStatus(bladeObj.response.result.result)
+          })
+          .catch(function (error) {
+            console.error('statusMessage error', error)
+          })
+      }
+
+      var _checkSession = function () {
+        if (!_session) { throw 'Session not initialized!' }
+      }
+
+      var _checkCurrentCall = function () {
+        if (!_currentCall) { throw 'No active call!' }
+      }
+
+      $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+        var currentTab = e.target
+        $('#json-preview').html('')
+        var text = e.target.id === 'sms-tab' ? 'Compose your message and send it!' : 'Enter two numbers and start the call!'
+        _appendNotif(text)
+      })
+
+      $('#smsForm .sendMessage').on('click', function () {
+        _checkSession()
+        var body = $.trim($('#msgText').val())
+        var from = $.trim($('#msgFrom').val())
+        var to = $.trim($('#msgTo').val())
+        var media = $.trim($('#msgMedia').val())
+        if (!body || !from || !to) {
+          alert('All fields are required!')
+          return
+        }
+        $('#json-preview').html('')
+        _appendNotif('Sending...')
+        var params = { body, from, to, media: [] }
+        if (media) {
+          params.media.push(media)
+        }
+        _session.sendMessage(params)
+          .then(function (result) {
+            console.debug('sendMessage success', result, 'SMS id:', result.id)
+            result.onNotification((notification, data) => {
+              console.debug('createCall onNotification', notification, data)
+              _appendNotif('SMS Status: ' + data.status)
+            })
+            // _pollSmsStatus(result)
+          })
+          .catch(function (error) {
+            _appendNotif('Something goes wrong sending text')
+            console.error('sendMessage error', error)
+          })
+      })
+
+      $('#callForm .makeCall').on('click', function () {
+        _checkSession()
+        var from = $.trim($('#callFrom').val())
+        var to = $.trim($('#callTo').val())
+        if (!from || !to) {
+          alert('All fields are required!')
+          return
+        }
+        $('#json-preview').html('')
+        _appendNotif('Creating the call..')
+        _session.calling.makeCall(from, to)
+        // var params = { from: from, to: to }
+        // _session.createCall(params)
+        // .then(function (result) {
+        //   console.debug('createCall success', result)
+        //   result.onNotification((notification, data) => {
+        //     console.debug('createCall onNotification', notification, data)
+        //     if (data.hasOwnProperty('Application')) {
+        //       _appendNotif('Call application: ' + data['Application'])
+        //     } else {
+        //       _appendNotif('Call state: ' + data['Answer-State'])
+        //     }
+
+        //     if (data['Answer-State'] === 'hangup') {
+        //       $('#callForm .callHangup').trigger('click')
+        //     }
+        //   })
+
+        //   _currentCall = result.channel
+        //   _appendNotif('Call UUID: ' + _currentCall)
+        //   $('.makeCall').attr('disabled', true)
+        //   $('.callHangup').show().attr('disabled', false)
+        //   $('#cmdCallWrapper').show()
+        // })
+        // .catch(function (error) {
+        //   _appendNotif('Something goes wrong!')
+        //   console.error('createCall error', error)
+        // })
+      })
+
+      $('#callForm .callHangup').on('click', function () {
+        _checkSession()
+        _checkCurrentCall()
+        var params = { callId: _currentCall }
+        _session.hangupCall(params)
+          .then(function (result) {
+            console.debug('hangupCall success', result)
+            _appendNotif('Call UUID: ' + _currentCall + ' disconnected!')
+            _currentCall = null
+            $('.makeCall').attr('disabled', false)
+            $('.callHangup').attr('disabled', true).hide()
+            $('#cmdCallWrapper').hide()
+          })
+          .catch(function (error) {
+            _appendNotif('Something goes wrong during disconnect!')
+            console.error('createCall error', error)
+          })
+      })
+
+      $('#callForm .callPlayAudio').on('click', function () {
+        _checkSession()
+        _checkCurrentCall()
+        var url = $.trim($('#wavToPlay').val())
+        if (!url) {
+          alert('URL is required!')
+          return
+        }
+        var params = { callId: _currentCall, url: url }
+        _session.playFileOnCall(params)
+      })
+
+      $('#callForm .callPlayDigits').on('click', function () {
+        _checkSession()
+        _checkCurrentCall()
+        var digits = $.trim($('#digitsToPlay').val())
+        if (!digits) {
+          alert('Digits are required!')
+          return
+        }
+        var params = { callId: _currentCall, digits: digits }
+        _session.sendDtmf(params)
+      })
+
+      $('#callForm .callSay').on('click', function () {
+        _checkSession()
+        _checkCurrentCall()
+        var what = $.trim($('#what').val())
+        if (!what) {
+          alert('You didn\'t tell me what to say!')
+          return
+        }
+        var params = {
+          callId: _currentCall, what: what, gender: 'other'
+        }
+        _session.sayOnCall(params)
+      })
+
+      $('#cantinaForm .hangupExtension').on('click', function () {
+        _checkCurrentCall()
+        _currentCall.hangup()
+      })
+
+      var _dialogChange = dialog => {
+        _appendNotif('Dialog state: ' + dialog.state)
+        _currentCall = dialog
+        if (dialog.state === 'active') {
+          document.getElementById('webcam-local').style.display = 'block'
+          document.getElementById('webcam-remote').style.display = 'block'
+          $('#cantinaForm .hangupExtension').show()
+          $('#cantinaForm .callExtension').hide()
+        } else if (dialog.state === 'destroy') {
+          document.getElementById('webcam-local').style.display = 'none'
+          document.getElementById('webcam-remote').style.display = 'none'
+          $('#cantinaForm .hangupExtension').hide()
+          $('#cantinaForm .callExtension').show()
+        }
+      }
+
+      var _onNotification = notification => {
+        switch (notification.type) {
+          case 'dialogUpdate':
+            _dialogChange(notification.dialog)
+            break
+          case 'conferenceUpdate':
+            // Live notification from the conference: start talking / video floor changed / audio or video state changes / a participant joins or leaves and so on..
+            break
+          case 'participantData':
+            // Caller's data like name and number to update the UI. In case of a conference call you will get the name of the room and the extension.
+            break
+          case 'vertoClientReady':
+            // All previously dialogs have been reattached. Note: FreeSWITCH 1.8+ only.
+            break
+          case 'userMediaError':
+            // Permission denied or invalid audio/video params on `getUserMedia`
+            break
+          case 'event':
+            // Generic notification received
+            break
+        }
+      }
+
+      $('#cantinaForm .callExtension').on('click', function () {
+        _checkSession()
+        var audio = $('#webrtc-audio').is(':checked')
+        if (audio) {
+          audio = {
+            googEchoCancellation: true,
+            googNoiseSuppression: true,
+            googHighpassFilter: true,
+            googAutoGainControl: true,
+          }
+        }
+        var video = $('#webrtc-video').is(':checked')
+        if (video) {
+          var width = $('#webrtc-video-width').val()
+          var height = $('#webrtc-video-height').val()
+          if (width && height) {
+            video = { width: width, height: height, frameRate: { min: 15 } }
+          } else {
+            video = true
+          }
+        }
+        _currentCall = _session.newCall({
+          destinationNumber: $('#extension').val(),
+          callerName: 'SW JS client',
+          callerNumber: 'edoardo@signalwire.com',
+          localElement: 'errore-che-non-ce',
+          remoteElement: 'remote-che-non-ce'
+          // audio: audio,
+          // video: video,
+          // localStream: document.getElementById("canvasTest").captureStream(20),
+          // onNotification: data => {
+          //   console.log('LOCAL: onNotification', data.type, data)
+          //   _onNotification(data)
+          // }
+        })
+      })
+
+      $('#selectedCam').on('change', function () {
+        _checkSession()
+        var $this = $(this)
+        console.log($this.val(), $this.find('option:selected').text())
+        _session.setDefaultWebcam($this.val(), $this.find('option:selected').text())
+      })
+
+      $('#selectedMic').on('change', function () {
+        _checkSession()
+        var $this = $(this)
+        console.log($this.val(), $this.find('option:selected').text())
+        _session.setDefaultMicrophone($this.val(), $this.find('option:selected').text())
+      })
+
+
+      $('#connect').on('click', function () {
+        var host = $.trim($('#host').val())
+        var project = $.trim($('#project').val())
+        var token = $.trim($('#token').val())
+        if (!host || !project || !token) {
+          alert('Host - Project - Token are required!')
+          return
+        }
+
+        // _session = new Verto({ host, login: project, passwd: token })
+        _session = new SignalWire({ host, project, token })
+
+        _session.on('signalwire.error', error => {
+          console.warn('GLOBAL: signalwire.error', error)
+        })
+
+        _session.on('signalwire.notification', notification => {
+          console.warn('GLOBAL: signalwire.notification', notification.type, notification)
+          _onNotification(notification)
+        })
+
+        _session.on('signalwire.ready', session => {
+          $('#connect, #connectForm').hide()
+          $('#demoContent').show()
+          $('#json-preview').html('')
+          _appendNotif('Do something awesome!')
+          session.videoDevices.toArray().map(dev => {
+            $('#selectedCam').append('<option value="' + dev.deviceId + '">' + dev.label + '</option>')
+          })
+          session.audioInDevices.toArray().map(dev => {
+            $('#selectedMic').append('<option value="' + dev.deviceId + '">' + dev.label + '</option>')
+          })
+        })
+
+        _session.localElement = 'webcam-local'
+        _session.remoteElement = 'webcam-remote'
+
+        _session.connect()
+      })
+
+      _fillValuesFromUrl()
+    }
+  </script>
+
+  <script src="./bundle.js"></script>
+</body>
+
+</html>

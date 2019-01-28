@@ -6,7 +6,8 @@ COPY . .
 
 RUN npm install
 
-COPY provisioning/index.html ./dist/es5/
+RUN mkdir -p dist/es5
+RUN ln -sf ../../provisioning/index.html dist/es5/index.html
 
 EXPOSE 9000
 

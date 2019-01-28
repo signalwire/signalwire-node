@@ -7,6 +7,6 @@ services:
       context: ../
       dockerfile: provisioning/Dockerfile
     volumes:
-      - ../:/app
+      - ../:/home/node/app
     ports:
       - "9000:9000"

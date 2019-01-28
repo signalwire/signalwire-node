@@ -158,3 +158,11 @@ export interface IVideoSettings extends MediaTrackConstraints {
   camId: string
   camLabel: string
 }
+
+export interface ICall {
+  id: string
+  state: string
+  prevState: string
+  on: Function
+  off: Function
+}

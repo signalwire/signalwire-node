@@ -115,3 +115,12 @@ export enum ConferenceAction {
   LayoutList = 'layoutList',
   ModCmdResponse = 'modCommandResponse',
 }
+
+export enum RelayCallState {
+  None,
+  Created,
+  Ringing,
+  Answered,
+  Ending,
+  Ended
+}

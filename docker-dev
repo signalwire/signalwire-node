@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+docker-compose -f provisioning/docker-compose.yml --project-name sw-client-js "$@"

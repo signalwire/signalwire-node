@@ -66,6 +66,33 @@ abstract class Call implements ICall {
     logger.debug('Answer call:', result)
   }
 
+  async join(callsToJoin: Call | Call[]) {
+    let calls = []
+    if (callsToJoin instanceof Array) {
+      calls = callsToJoin.map((c: Call) => c.id)
+    } else if (callsToJoin instanceof Call) {
+      calls = [callsToJoin.id]
+    } else {
+      throw `Unknow parameter type for join. ${callsToJoin}`
+    }
+    if (!calls.length) {
+      throw `No Calls to join`
+    }
+    const { protocol, session } = this.relayInstance
+    const msg = new Execute({
+      protocol,
+      method: 'call.join',
+      params: {
+        node_id: '',
+        call_id: this.id,
+        calls
+      }
+    })
+
+    const result = await session.execute(msg).catch(error => error)
+    logger.debug('Join calls:', result)
+  }
+
   get prevState() {
     return CallState[this._prevState].toLowerCase()
   }

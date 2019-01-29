@@ -5,7 +5,7 @@ import { cleanNumber } from '../../util/helpers'
 
 import { register, deRegister } from '../../services/Handler'
 import { ICall } from '../../interfaces'
-import { CallState } from '../../util/constants/relay'
+import { CallState, DisconnectReason } from '../../util/constants/relay'
 
 abstract class Call implements ICall {
   abstract type: string
@@ -33,7 +33,22 @@ abstract class Call implements ICall {
 
     const result = await session.execute(msg).catch(error => error)
     logger.debug('Begin call:', result)
-    // const call = new Call(result)
+  }
+
+  async hangup() {
+    const { protocol, session } = this.relayInstance
+    const msg = new Execute({
+      protocol,
+      method: 'call.end',
+      params: {
+        node_id: '',
+        call_id: this.id,
+        reason: DisconnectReason.Hangup
+      }
+    })
+
+    const result = await session.execute(msg).catch(error => error)
+    logger.debug('Hangup call:', result)
   }
 
   get prevState() {

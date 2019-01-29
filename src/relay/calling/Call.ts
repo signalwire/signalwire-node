@@ -5,7 +5,7 @@ import { cleanNumber } from '../../util/helpers'
 
 import { register, deRegister } from '../../services/Handler'
 import { ICall } from '../../interfaces'
-import { RelayCallState } from '../../util/constants'
+import { CallState } from '../../util/constants/relay'
 
 abstract class Call implements ICall {
   abstract type: string
@@ -37,11 +37,11 @@ abstract class Call implements ICall {
   }
 
   get prevState() {
-    return RelayCallState[this._prevState].toLowerCase()
+    return CallState[this._prevState].toLowerCase()
   }
 
   get state() {
-    return RelayCallState[this._state].toLowerCase()
+    return CallState[this._state].toLowerCase()
   }
 
   on(eventName: string, callback: Function) {

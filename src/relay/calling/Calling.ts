@@ -3,18 +3,34 @@ import Relay from '../Relay'
 import { PhoneCall } from './Call';
 import logger from '../../util/logger';
 import { Execute } from '../../messages/Blade';
+import { trigger } from '../../services/Handler';
 
 export default class Calling extends Relay {
   service = 'calling'
 
+  notificationHandler(notification: any) {
+    logger.warn(`Relay ${this.service} notification on proto ${this._protocol}`, notification)
+    const { event_type, timestamp, params } = notification
+    switch (event_type) {
+      case 'calling.call.state':
+        const { call_id, call_state, node_id } = params
+        trigger(call_id, null, call_state, false)
+        break
+      case 'calling.call.receive':
+        break
+      case 'calling.call.connect':
+        break
+    }
+  }
+
   async makeCall(from: string, to: string) {
-    // await this.setup()
+    await this.setup()
 
     return new PhoneCall(this, { from, to })
   }
 
   async onInbound(context: string, handler: Function) {
-    // await this.setup()
+    await this.setup()
 
     const msg = new Execute({
       protocol: this.protocol,

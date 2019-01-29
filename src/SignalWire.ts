@@ -59,7 +59,7 @@ export default class SignalWire extends BaseSession {
       failed_channels.forEach((c: string) => this._removeSubscription(c))
       throw new Error(`Failed to subscribe to channels ${failed_channels.join(', ')}`)
     }
-    subscribe_channels.forEach((c: string) => this._addSubscription(c, handler))
+    subscribe_channels.forEach((c: string) => this._addSubscription(protocol, handler, c))
     return result
   }
 

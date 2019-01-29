@@ -75,7 +75,7 @@ const trigger = (eventName: string, data: any, uniqueId: string = GLOBAL, global
     if (_propagate) { trigger(eventName, data) }
     return false
   }
-  for (let i = 0; i < len; i++) {
+  for (let i = len - 1; i >= 0; i--) {
     queue[eventName][uniqueId][i](data)
   }
   if (_propagate) { trigger(eventName, data) }

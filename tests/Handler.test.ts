@@ -8,6 +8,7 @@ describe('Handler', () => {
   beforeEach(() => {
     deRegister(eventName, null)
     deRegister(eventName, null, uniqueId)
+    fnMock.mockClear()
   })
 
   describe('register()', () => {
@@ -47,6 +48,7 @@ describe('Handler', () => {
 
       trigger(eventName, null, uniqueId)
 
+      expect(fnMock).toHaveBeenCalled()
       expect(monitorCallbackQueue()).not.toHaveProperty(eventName)
       expect(monitorCallbackQueue()).toMatchObject({})
     })
@@ -76,12 +78,22 @@ describe('Handler', () => {
         expect(monitorCallbackQueue()).toMatchObject({})
       })
     })
+
+    describe('with multiple callbacks on the same event name', () => {
+      it('should remove a registered callback from the queue', () => {
+        registerOnce(eventName, fnMock, uniqueId)
+        registerOnce(eventName, fnMock, uniqueId)
+
+        trigger(eventName, null, uniqueId)
+
+        expect(fnMock).toHaveBeenCalledTimes(2)
+        expect(monitorCallbackQueue()).toMatchObject({})
+      })
+    })
   })
 
   describe('trigger()', () => {
     it('should call the cached callback in the queue', () => {
-      fnMock.mockClear()
-
       register(eventName, fnMock)
 
       trigger(eventName, null)
@@ -93,7 +105,6 @@ describe('Handler', () => {
     })
 
     it('should call the global callback when propagation is set to true', () => {
-      fnMock.mockClear()
       const fnMock2 = jest.fn()
 
       register(eventName, fnMock)
@@ -107,7 +118,6 @@ describe('Handler', () => {
     })
 
     it('should not call the global callback when propagation is set to false', () => {
-      fnMock.mockClear()
       const fnMock2 = jest.fn()
 
       register(eventName, fnMock)

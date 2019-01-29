@@ -3,7 +3,7 @@ import Calling from './Calling'
 import { Execute } from '../../messages/Blade'
 import { cleanNumber } from '../../util/helpers'
 
-import { register, deRegister } from '../../services/Handler'
+import { registerOnce, deRegister } from '../../services/Handler'
 import { ICall } from '../../interfaces'
 import { CallState, DisconnectReason } from '../../util/constants/relay'
 
@@ -12,9 +12,11 @@ abstract class Call implements ICall {
   abstract beginParams: {}
 
   public id: string
+  public nodeId: string
 
   private _prevState: number = 0
   private _state: number = 0
+  private _cbQueues: { [state: string]: Function } = {}
 
   constructor(protected relayInstance: Calling, protected options: any) {
     console.log('Creating a Call', options)
@@ -31,8 +33,19 @@ abstract class Call implements ICall {
       }
     })
 
-    const result = await session.execute(msg).catch(error => error)
-    logger.debug('Begin call:', result)
+    const response = await session.execute(msg).catch(error => error)
+    if (response.result) {
+      const { call_id, code, node_id } = response.result
+      this.id = call_id
+      this.nodeId = node_id
+      Object.keys(this._cbQueues).forEach((state: string) => registerOnce(call_id, this._cbQueues[state], state))
+      registerOnce(call_id, () => {
+        Object.keys(this._cbQueues).forEach((state: string) => deRegister(call_id, this._cbQueues[state], state))
+      }, CallState[CallState.Ended].toLowerCase())
+    } else {
+      logger.error('Begin call', response)
+      throw 'Error creating the call'
+    }
   }
 
   async hangup() {
@@ -102,11 +115,17 @@ abstract class Call implements ICall {
   }
 
   on(eventName: string, callback: Function) {
-    register(eventName, callback/*, this.uuid*/)
+    // FIXME: check eventName is a permitted event
+    // FIXME: if the state is already "created", register the callback without using _cbQueues
+    this._cbQueues[eventName] = callback
+    // register(eventName, callback/*, this.uuid*/)
   }
 
   off(eventName: string, callback?: Function) {
-    deRegister(eventName, callback/*, this.uuid*/)
+    // FIXME: check eventName is a permitted event
+    // FIXME: deRegister callback!
+    delete this._cbQueues[eventName]
+    // deRegister(eventName, callback/*, this.uuid*/)
   }
 }
 

@@ -6,9 +6,9 @@ import logger from '../util/logger';
 
 abstract class Relay {
   protected abstract service: string
-  protected _protocol: string
+  protected _protocol: string // TODO: public removing GETTER
 
-  constructor(protected session: SignalWire) {
+  constructor(public session: SignalWire) {
     this.notificationHandler = this.notificationHandler.bind(this)
   }
 

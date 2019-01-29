@@ -1,5 +1,5 @@
 import logger from '../../util/logger'
-import SignalWire from '../../SignalWire'
+import Calling from './Calling'
 import { Execute } from '../../messages/Blade'
 import { cleanNumber } from '../../util/helpers'
 
@@ -11,11 +11,12 @@ abstract class Call implements ICall {
   abstract type: string
   abstract beginParams: {}
 
-  id: string
+  public id: string
+
   private _prevState: number = 0
   private _state: number = 0
 
-  constructor(protected relayInstance: any, protected options: any) {
+  constructor(protected relayInstance: Calling, protected options: any) {
     console.log('Creating a Call', options)
   }
 

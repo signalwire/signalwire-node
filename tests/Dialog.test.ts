@@ -1,7 +1,7 @@
 import Verto from '../src/Verto'
 import Dialog from '../src/rtc/Dialog'
 import { monitorCallbackQueue } from '../src/services/Handler'
-import { DialogState } from '../src/util/constants'
+import { State } from '../src/util/constants/dialog'
 import { mockMediaDevices } from './helpers/mocks'
 const Connection = require('../src/Connection')
 jest.mock('../src/Connection')
@@ -63,52 +63,52 @@ describe('Dialog', () => {
     })
 
     it('set state to Requesting', () => {
-      dialog.setState(DialogState.Requesting)
+      dialog.setState(State.Requesting)
       expect(dialog.state).toEqual('requesting')
     })
 
     it('set state to Trying', () => {
-      dialog.setState(DialogState.Trying)
+      dialog.setState(State.Trying)
       expect(dialog.state).toEqual('trying')
     })
 
     it('set state to Recovering', () => {
-      dialog.setState(DialogState.Recovering)
+      dialog.setState(State.Recovering)
       expect(dialog.state).toEqual('recovering')
     })
 
     it('set state to Ringing', () => {
-      dialog.setState(DialogState.Ringing)
+      dialog.setState(State.Ringing)
       expect(dialog.state).toEqual('ringing')
     })
 
     it('set state to Answering', () => {
-      dialog.setState(DialogState.Answering)
+      dialog.setState(State.Answering)
       expect(dialog.state).toEqual('answering')
     })
 
     it('set state to Early', () => {
-      dialog.setState(DialogState.Early)
+      dialog.setState(State.Early)
       expect(dialog.state).toEqual('early')
     })
 
     it('set state to Active', () => {
-      dialog.setState(DialogState.Active)
+      dialog.setState(State.Active)
       expect(dialog.state).toEqual('active')
     })
 
     it('set state to Held', () => {
-      dialog.setState(DialogState.Held)
+      dialog.setState(State.Held)
       expect(dialog.state).toEqual('held')
     })
 
     it('set state to Hangup', () => {
-      dialog.setState(DialogState.Hangup)
+      dialog.setState(State.Hangup)
       expect(dialog.state).toEqual('hangup')
     })
 
     it('set state to Destroy', () => {
-      dialog.setState(DialogState.Destroy)
+      dialog.setState(State.Destroy)
       expect(dialog.state).toEqual('destroy')
       expect(session.dialogs).not.toHaveProperty(dialog.id)
       const queue = monitorCallbackQueue()
@@ -117,7 +117,7 @@ describe('Dialog', () => {
     })
 
     it('set state to Purge', () => {
-      dialog.setState(DialogState.Purge)
+      dialog.setState(State.Purge)
       expect(dialog.state).toEqual('destroy')
       expect(session.dialogs).not.toHaveProperty(dialog.id)
       const queue = monitorCallbackQueue()
@@ -126,11 +126,11 @@ describe('Dialog', () => {
     })
 
     it('set prevState', () => {
-      dialog.setState(DialogState.Ringing)
+      dialog.setState(State.Ringing)
       expect(dialog.prevState).toEqual('new')
-      dialog.setState(DialogState.Active)
+      dialog.setState(State.Active)
       expect(dialog.prevState).toEqual('ringing')
-      dialog.setState(DialogState.Hangup)
+      dialog.setState(State.Hangup)
       expect(dialog.prevState).toEqual('active')
     })
   })

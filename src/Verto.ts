@@ -3,7 +3,8 @@ import BaseSession from './BaseSession'
 import { SubscribeParams, BroadcastParams, DialogOptions } from './interfaces'
 import { Login, Result, Broadcast, Subscribe, Unsubscribe } from './messages/Verto'
 import Dialog from './rtc/Dialog'
-import { SwEvent, VertoMethod, DialogState, NOTIFICATION_TYPE, ConferenceAction } from './util/constants'
+import { SwEvent, VertoMethod, NOTIFICATION_TYPE } from './util/constants'
+import { State, ConferenceAction } from './util/constants/dialog'
 import { trigger, register, deRegister } from './services/Handler'
 import * as Storage from './util/storage/'
 
@@ -34,7 +35,7 @@ export default class Verto extends BaseSession {
   purge() {
     logger.warn('Verto purge')
     Object.keys(this.dialogs).forEach(k => {
-      this.dialogs[k].setState(DialogState.Purge)
+      this.dialogs[k].setState(State.Purge)
     })
     this.dialogs = {}
     this.unsubscribe({ channels: Object.keys(this.subscriptions) })
@@ -137,11 +138,11 @@ export default class Verto extends BaseSession {
           attach
         })
         if (attach) {
-          dialog.setState(DialogState.Recovering)
+          dialog.setState(State.Recovering)
           dialog.answer()
           dialog.handleMessage(msg)
         } else {
-          dialog.setState(DialogState.Ringing)
+          dialog.setState(State.Ringing)
           this.execute(new Result(id, method))
         }
         break

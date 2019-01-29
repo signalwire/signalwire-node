@@ -204,10 +204,10 @@ export default abstract class BaseSession {
     delete this.subscriptions[channel]
   }
 
-  protected _addSubscription(channel: string, handler: Function = null) {
+  protected _addSubscription(channel: string, handler: Function = null, uniqueId?: string) {
     this.subscriptions[channel] = {}
     if (handler instanceof Function) {
-      register(channel, handler)
+      register(channel, handler, uniqueId)
     }
   }
 

@@ -3,7 +3,8 @@ import logger from '../util/logger'
 import BaseSession from '../BaseSession'
 import { Invite, Answer, Attach, Bye, Modify, Info } from '../messages/Verto'
 import Peer from './Peer'
-import { DialogState as State, DialogDirection as Direction, PeerType, VertoMethod, SwEvent, NOTIFICATION_TYPE, DEFAULT_DIALOG_OPTIONS, ConferenceAction, DialogRole } from '../util/constants'
+import { PeerType, VertoMethod, SwEvent, NOTIFICATION_TYPE, Direction } from '../util/constants'
+import { State, DEFAULT_DIALOG_OPTIONS, ConferenceAction, Role } from '../util/constants/dialog'
 import { trigger, register, deRegister } from '../services/Handler'
 import { streamIsValid } from '../services/RTCService'
 import { objEmpty, mutateLiveArrayData } from '../util/helpers'
@@ -20,7 +21,7 @@ export default class Dialog {
   public cause: string
   public causeCode: number
   public channels: string[] = []
-  public role: string = DialogRole.Participant
+  public role: string = Role.Participant
 
   private _state: State = State.New
   private _prevState: State = State.New
@@ -214,7 +215,7 @@ export default class Dialog {
         if (infoChannel) {
           await this._subscribeConferenceInfo(infoChannel)
         }
-        if (modChannel && role === DialogRole.Moderator) {
+        if (modChannel && role === Role.Moderator) {
           await this._subscribeConferenceModerator(modChannel)
         }
         const participants = []
@@ -339,7 +340,7 @@ export default class Dialog {
       .catch((error: any) => error)
     const { subscribedChannels = [] } = response
     if (subscribedChannels.includes(channel)) {
-      this.role = DialogRole.Moderator
+      this.role = Role.Moderator
       this._addChannel(channel)
       Object.defineProperties(this, {
         listVideoLayouts: {

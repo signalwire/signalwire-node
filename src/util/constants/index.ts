@@ -1,5 +1,3 @@
-import { DialogOptions } from '../interfaces/'
-
 export enum Netcast {
   ProtocolProviderAdd = 'protocol.provider.add',
   ProtocolProviderRemove = 'protocol.provider.remove'
@@ -32,29 +30,14 @@ export enum SwEvent {
   MediaError = 'signalwire.rtc.mediaError',
 }
 
-export enum DialogState {
-  New,
-  Requesting,
-  Trying,
-  Recovering,
-  Ringing,
-  Answering,
-  Early,
-  Active,
-  Held,
-  Hangup,
-  Destroy,
-  Purge
-}
-
-export enum DialogDirection {
-  Inbound = 'inbound',
-  Outbound = 'outbound'
-}
-
 export enum PeerType {
   Offer = 'offer',
   Answer = 'answer'
+}
+
+export enum Direction {
+  Inbound = 'inbound',
+  Outbound = 'outbound'
 }
 
 export enum VertoMethod {
@@ -81,46 +64,4 @@ export const NOTIFICATION_TYPE = {
   dialogUpdate: 'dialogUpdate',
   vertoClientReady: 'vertoClientReady',
   userMediaError: 'userMediaError'
-}
-
-export const DEFAULT_DIALOG_OPTIONS: DialogOptions = {
-  destinationNumber: '',
-  remoteCallerName: 'Outbound Call',
-  remoteCallerNumber: '',
-  callerName: '',
-  callerNumber: '',
-  audio: true,
-  video: false,
-  useStereo: true,
-  attach: false,
-  screenShare: false,
-  userVariables: {}
-}
-
-export enum DialogRole {
-  Participant = 'participant',
-  Moderator = 'moderator',
-}
-
-export enum ConferenceAction {
-  Join = 'join',
-  Leave = 'leave',
-  Bootstrap = 'bootstrap',
-  Add = 'add',
-  Modify = 'modify',
-  Delete = 'delete',
-  Clear = 'clear',
-  ChatMessage = 'chatMessage',
-  LayoutInfo = 'layoutInfo',
-  LayoutList = 'layoutList',
-  ModCmdResponse = 'modCommandResponse',
-}
-
-export enum RelayCallState {
-  None,
-  Created,
-  Ringing,
-  Answered,
-  Ending,
-  Ended
 }

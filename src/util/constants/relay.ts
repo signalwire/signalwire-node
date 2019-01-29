@@ -15,3 +15,10 @@ export enum DisconnectReason {
   Decline,
   Error
 }
+
+export enum DisconnectSource {
+  None,
+  Client,
+  Server,
+  Endpoint
+}

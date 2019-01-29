@@ -51,6 +51,21 @@ abstract class Call implements ICall {
     logger.debug('Hangup call:', result)
   }
 
+  async answer() {
+    const { protocol, session } = this.relayInstance
+    const msg = new Execute({
+      protocol,
+      method: 'call.answer',
+      params: {
+        node_id: '',
+        call_id: this.id
+      }
+    })
+
+    const result = await session.execute(msg).catch(error => error)
+    logger.debug('Answer call:', result)
+  }
+
   get prevState() {
     return CallState[this._prevState].toLowerCase()
   }

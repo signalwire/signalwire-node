@@ -133,11 +133,11 @@
               <form id="callForm">
                 <div class="form-group">
                   <label for="callFrom">From:</label>
-                  <input type="text" class="form-control" id="callFrom" placeholder="+12622081318" value="+1-312-885-6009">
+                  <input type="text" class="form-control" id="callFrom" placeholder="+12622081318" value="2029195378">
                 </div>
                 <div class="form-group">
                   <label for="callTo">To:</label>
-                  <input type="text" class="form-control" id="callTo" placeholder="+15559999999" value="+1-404-328-7174">
+                  <input type="text" class="form-control" id="callTo" placeholder="+15559999999" value="2083660792">
                 </div>
                 <div class="form-group">
                   <button type="button" class="btn btn-success makeCall">Start the Call</button>
@@ -278,8 +278,36 @@
           return
         }
         $('#json-preview').html('')
-        _appendNotif('Creating the call..')
+        // _appendNotif('Creating the call..')
         _session.calling.makeCall(from, to)
+          .then(call => {
+            console.log('THEN:', call)
+            var makeCall = $('#callForm .makeCall')
+            var hangupCall = $('#callForm .callHangup')
+            call.on('created', () => {
+              _appendNotif(`Call created!`)
+              makeCall.attr('disabled', true)
+              hangupCall.one('click', function() {
+                call.hangup()
+              })
+              hangupCall.show().attr('disabled', false)
+            })
+            .on('ringing', () => {
+              _appendNotif(`Call ringing`)
+            })
+            .on('answered', () => {
+              _appendNotif(`Call answered`)
+            })
+            .on('ending', () => {
+              _appendNotif(`Call ending`)
+            })
+            .on('ended', () => {
+              _appendNotif(`Call ended!`)
+              makeCall.attr('disabled', false)
+              hangupCall.off().hide().attr('disabled', true)
+            })
+            .begin()
+          })
         // var params = { from: from, to: to }
         // _session.createCall(params)
         // .then(function (result) {
@@ -309,62 +337,62 @@
         // })
       })
 
-      $('#callForm .callHangup').on('click', function () {
-        _checkSession()
-        _checkCurrentCall()
-        var params = { callId: _currentCall }
-        _session.hangupCall(params)
-          .then(function (result) {
-            console.debug('hangupCall success', result)
-            _appendNotif('Call UUID: ' + _currentCall + ' disconnected!')
-            _currentCall = null
-            $('.makeCall').attr('disabled', false)
-            $('.callHangup').attr('disabled', true).hide()
-            $('#cmdCallWrapper').hide()
-          })
-          .catch(function (error) {
-            _appendNotif('Something goes wrong during disconnect!')
-            console.error('createCall error', error)
-          })
-      })
+      // $('#callForm .callHangup').on('click', function () {
+      //   _checkSession()
+      //   _checkCurrentCall()
+      //   var params = { callId: _currentCall }
+      //   _session.hangupCall(params)
+      //     .then(function (result) {
+      //       console.debug('hangupCall success', result)
+      //       _appendNotif('Call UUID: ' + _currentCall + ' disconnected!')
+      //       _currentCall = null
+      //       $('.makeCall').attr('disabled', false)
+      //       $('.callHangup').attr('disabled', true).hide()
+      //       $('#cmdCallWrapper').hide()
+      //     })
+      //     .catch(function (error) {
+      //       _appendNotif('Something goes wrong during disconnect!')
+      //       console.error('createCall error', error)
+      //     })
+      // })
 
-      $('#callForm .callPlayAudio').on('click', function () {
-        _checkSession()
-        _checkCurrentCall()
-        var url = $.trim($('#wavToPlay').val())
-        if (!url) {
-          alert('URL is required!')
-          return
-        }
-        var params = { callId: _currentCall, url: url }
-        _session.playFileOnCall(params)
-      })
+      // $('#callForm .callPlayAudio').on('click', function () {
+      //   _checkSession()
+      //   _checkCurrentCall()
+      //   var url = $.trim($('#wavToPlay').val())
+      //   if (!url) {
+      //     alert('URL is required!')
+      //     return
+      //   }
+      //   var params = { callId: _currentCall, url: url }
+      //   _session.playFileOnCall(params)
+      // })
 
-      $('#callForm .callPlayDigits').on('click', function () {
-        _checkSession()
-        _checkCurrentCall()
-        var digits = $.trim($('#digitsToPlay').val())
-        if (!digits) {
-          alert('Digits are required!')
-          return
-        }
-        var params = { callId: _currentCall, digits: digits }
-        _session.sendDtmf(params)
-      })
+      // $('#callForm .callPlayDigits').on('click', function () {
+      //   _checkSession()
+      //   _checkCurrentCall()
+      //   var digits = $.trim($('#digitsToPlay').val())
+      //   if (!digits) {
+      //     alert('Digits are required!')
+      //     return
+      //   }
+      //   var params = { callId: _currentCall, digits: digits }
+      //   _session.sendDtmf(params)
+      // })
 
-      $('#callForm .callSay').on('click', function () {
-        _checkSession()
-        _checkCurrentCall()
-        var what = $.trim($('#what').val())
-        if (!what) {
-          alert('You didn\'t tell me what to say!')
-          return
-        }
-        var params = {
-          callId: _currentCall, what: what, gender: 'other'
-        }
-        _session.sayOnCall(params)
-      })
+      // $('#callForm .callSay').on('click', function () {
+      //   _checkSession()
+      //   _checkCurrentCall()
+      //   var what = $.trim($('#what').val())
+      //   if (!what) {
+      //     alert('You didn\'t tell me what to say!')
+      //     return
+      //   }
+      //   var params = {
+      //     callId: _currentCall, what: what, gender: 'other'
+      //   }
+      //   _session.sayOnCall(params)
+      // })
 
       $('#cantinaForm .hangupExtension').on('click', function () {
         _checkCurrentCall()
@@ -488,11 +516,15 @@
           $('#demoContent').show()
           $('#json-preview').html('')
           _appendNotif('Do something awesome!')
-          session.videoDevices.toArray().map(dev => {
-            $('#selectedCam').append('<option value="' + dev.deviceId + '">' + dev.label + '</option>')
-          })
-          session.audioInDevices.toArray().map(dev => {
-            $('#selectedMic').append('<option value="' + dev.deviceId + '">' + dev.label + '</option>')
+          // session.videoDevices.toArray().map(dev => {
+          //   $('#selectedCam').append('<option value="' + dev.deviceId + '">' + dev.label + '</option>')
+          // })
+          // session.audioInDevices.toArray().map(dev => {
+          //   $('#selectedMic').append('<option value="' + dev.deviceId + '">' + dev.label + '</option>')
+          // })
+
+          _session.calling.onInbound('test', function(call){
+            console.warn(' -- NEW INBOUND CALL', call)
           })
         })
 

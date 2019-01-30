@@ -48,7 +48,10 @@ abstract class Call implements ICall {
     }
     this.id = call_id
     this.nodeId = node_id
+    this._state = CallState.created
     this._attachListeners()
+
+    trigger(this.id, null, this.state, false)
   }
 
   async hangup() {
@@ -137,6 +140,7 @@ abstract class Call implements ICall {
   }
 
   private _attachListeners() {
+    // TODO: attach all listeners to update call state!
     registerOnce(this.id, this._detachListeners, CALL_STATES[CALL_STATES.length - 1])
 
     CALL_STATES

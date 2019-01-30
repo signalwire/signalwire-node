@@ -166,3 +166,13 @@ export interface ICall {
   on: Function
   off: Function
 }
+
+export interface ICallOptions {
+  from_number: string
+  to_number: string
+  type?: string
+  node_id?: string
+  call_id?: string
+  call_state?: string
+  context?: string
+}

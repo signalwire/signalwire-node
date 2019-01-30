@@ -3,8 +3,8 @@ import Calling from './Calling'
 import { Execute } from '../../messages/Blade'
 import { cleanNumber } from '../../util/helpers'
 
-import { registerOnce, deRegister } from '../../services/Handler'
-import { ICall } from '../../interfaces'
+import { registerOnce, deRegister, trigger } from '../../services/Handler'
+import { ICall, ICallOptions } from '../../interfaces'
 import { CallState, DisconnectReason, CALL_STATES } from '../../util/constants/relay'
 
 abstract class Call implements ICall {
@@ -18,7 +18,7 @@ abstract class Call implements ICall {
   private _state: number = 0
   private _cbQueues: { [state: string]: Function } = {}
 
-  constructor(protected relayInstance: Calling, protected options: any) {
+  constructor(protected relayInstance: Calling, protected options: ICallOptions) {
     console.log('Creating a Call', options)
     this._attachListeners = this._attachListeners.bind(this)
     this._detachListeners = this._detachListeners.bind(this)
@@ -155,8 +155,8 @@ export class PhoneCall extends Call {
   type = 'phone'
 
   get beginParams() {
-    const { from, to } = this.options
-    return { from_number: cleanNumber(from), to_number: cleanNumber(to) }
+    const { from_number, to_number } = this.options
+    return { from_number: cleanNumber(from_number), to_number: cleanNumber(to_number) }
   }
 }
 
@@ -164,8 +164,8 @@ export class WebRtcCall extends Call {
   type = 'webrtc'
 
   get beginParams() {
-    const { from, to } = this.options
-    return { from_number: cleanNumber(from), to_number: cleanNumber(to) }
+    const { from_number, to_number } = this.options
+    return { from_number: cleanNumber(from_number), to_number: cleanNumber(to_number) }
   }
 }
 
@@ -173,7 +173,7 @@ export class SipCall extends Call {
   type = 'sip'
 
   get beginParams() {
-    const { from, to } = this.options
-    return { from_number: cleanNumber(from), to_number: cleanNumber(to) }
+    const { from_number, to_number } = this.options
+    return { from_number: cleanNumber(from_number), to_number: cleanNumber(to_number) }
   }
 }

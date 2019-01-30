@@ -23,10 +23,10 @@ export default class Calling extends Relay {
     }
   }
 
-  async makeCall(from: string, to: string) {
+  async makeCall(from_number: string, to_number: string) {
     await this.setup()
 
-    return new PhoneCall(this, { from, to })
+    return new PhoneCall(this, { from_number, to_number })
   }
 
   async onInbound(context: string, handler: Function) {

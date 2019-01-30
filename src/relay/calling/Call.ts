@@ -56,7 +56,7 @@ abstract class Call implements ICall {
       protocol,
       method: 'call.end',
       params: {
-        node_id: '',
+        node_id: this.nodeId,
         call_id: this.id,
         reason: DisconnectReason.Hangup
       }
@@ -72,7 +72,7 @@ abstract class Call implements ICall {
       protocol,
       method: 'call.answer',
       params: {
-        node_id: '',
+        node_id: this.nodeId,
         call_id: this.id
       }
     })
@@ -98,7 +98,7 @@ abstract class Call implements ICall {
       protocol,
       method: 'call.join',
       params: {
-        node_id: '',
+        node_id: this.nodeId,
         call_id: this.id,
         calls
       }

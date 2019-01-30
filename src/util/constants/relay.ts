@@ -10,17 +10,17 @@ export enum CallState {
 export const CALL_STATES = Object.keys(CallState).filter(k => isNaN(Number(k)))
 
 export enum DisconnectReason {
-  Hangup,
-  Cancel,
-  Busy,
-  NoAnswer,
-  Decline,
-  Error
+  Hangup = 'hangup',
+  Cancel = 'cancel',
+  Busy = 'busy',
+  NoAnswer = 'noAnswer',
+  Decline = 'decline',
+  Error = 'error'
 }
 
 export enum DisconnectSource {
-  None,
-  Client,
-  Server,
-  Endpoint
+  None = 'none',
+  Client = 'client',
+  Server = 'server',
+  Endpoint = 'endpoint'
 }

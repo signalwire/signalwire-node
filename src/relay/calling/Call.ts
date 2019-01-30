@@ -125,6 +125,7 @@ abstract class Call implements ICall {
       registerOnce(this.id, callback, eventName)
     }
     this._cbQueues[eventName] = callback
+    return this
   }
 
   off(eventName: string, callback?: Function) {
@@ -132,6 +133,7 @@ abstract class Call implements ICall {
       deRegister(this.id, callback, eventName)
     }
     delete this._cbQueues[eventName]
+    return this
   }
 
   private _attachListeners() {

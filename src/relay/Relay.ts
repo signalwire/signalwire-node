@@ -15,7 +15,7 @@ abstract class Relay {
 
   protected async setup() {
     if (!this._protocol) {
-      this._protocol = await Setup(this.session, this.service, this.notificationHandler)
+      this._protocol = await Setup(this.session, this.service, this.notificationHandler.bind(this))
     }
   }
 }

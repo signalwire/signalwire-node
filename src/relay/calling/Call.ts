@@ -120,7 +120,7 @@ abstract class Call implements ICall {
   on(eventName: string, callback: Function) {
     const eventPermitted = CallState[eventName] && !isNaN(Number(CallState[eventName]))
     if (eventPermitted && this._state >= CallState[eventName]) {
-
+      callback()
     } else if (eventPermitted && this.id) {
       registerOnce(this.id, callback, eventName)
     }
@@ -137,11 +137,11 @@ abstract class Call implements ICall {
   }
 
   private _attachListeners() {
+    registerOnce(this.id, this._detachListeners, CALL_STATES[CALL_STATES.length - 1])
+
     CALL_STATES
       .filter(state => this._cbQueues.hasOwnProperty(state))
       .forEach(state => registerOnce(this.id, this._cbQueues[state], state))
-    // FIXME: 'ended' should be a variable
-    registerOnce(this.id, this._detachListeners, 'ended')
   }
 
   private _detachListeners() {

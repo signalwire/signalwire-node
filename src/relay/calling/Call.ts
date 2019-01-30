@@ -36,18 +36,19 @@ abstract class Call implements ICall {
     })
 
     const response = await session.execute(msg).catch(error => error)
-    if (response.result) {
-      const { call_id, code, node_id } = response.result
-      this.id = call_id
-      this.nodeId = node_id
-      Object.keys(this._cbQueues).forEach((state: string) => registerOnce(call_id, this._cbQueues[state], state))
-      registerOnce(call_id, () => {
-        Object.keys(this._cbQueues).forEach((state: string) => deRegister(call_id, this._cbQueues[state], state))
-      }, CallState[CallState.Ended].toLowerCase())
-    } else {
+    const { result } = response
+    if (!result) {
       logger.error('Begin call', response)
       throw 'Error creating the call'
     }
+    const { call_id, code, node_id } = result
+    if (code !== '200') {
+      logger.error('Begin call not 200', call_id, code, node_id)
+      throw 'Error creating the call'
+    }
+    this.id = call_id
+    this.nodeId = node_id
+    this._attachListeners()
   }
 
   async hangup() {

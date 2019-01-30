@@ -1,11 +1,13 @@
 export enum CallState {
-  None,
-  Created,
-  Ringing,
-  Answered,
-  Ending,
-  Ended
+  none,
+  created,
+  ringing,
+  answered,
+  ending,
+  ended
 }
+
+export const CALL_STATES = Object.keys(CallState).filter(k => isNaN(Number(k)))
 
 export enum DisconnectReason {
   Hangup,

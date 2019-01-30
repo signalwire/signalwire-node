@@ -5,7 +5,7 @@ import { cleanNumber } from '../../util/helpers'
 
 import { registerOnce, deRegister } from '../../services/Handler'
 import { ICall } from '../../interfaces'
-import { CallState, DisconnectReason } from '../../util/constants/relay'
+import { CallState, DisconnectReason, CALL_STATES } from '../../util/constants/relay'
 
 abstract class Call implements ICall {
   abstract type: string
@@ -20,6 +20,8 @@ abstract class Call implements ICall {
 
   constructor(protected relayInstance: Calling, protected options: any) {
     console.log('Creating a Call', options)
+    this._attachListeners = this._attachListeners.bind(this)
+    this._detachListeners = this._detachListeners.bind(this)
   }
 
   async begin() {
@@ -107,25 +109,42 @@ abstract class Call implements ICall {
   }
 
   get prevState() {
-    return CallState[this._prevState].toLowerCase()
+    return CallState[this._prevState]
   }
 
   get state() {
-    return CallState[this._state].toLowerCase()
+    return CallState[this._state]
   }
 
   on(eventName: string, callback: Function) {
-    // FIXME: check eventName is a permitted event
-    // FIXME: if the state is already "created", register the callback without using _cbQueues
+    const eventPermitted = CallState[eventName] && !isNaN(Number(CallState[eventName]))
+    if (eventPermitted && this._state >= CallState[eventName]) {
+
+    } else if (eventPermitted && this.id) {
+      registerOnce(this.id, callback, eventName)
+    }
     this._cbQueues[eventName] = callback
-    // register(eventName, callback/*, this.uuid*/)
   }
 
   off(eventName: string, callback?: Function) {
-    // FIXME: check eventName is a permitted event
-    // FIXME: deRegister callback!
+    if (this.id) {
+      deRegister(this.id, callback, eventName)
+    }
     delete this._cbQueues[eventName]
-    // deRegister(eventName, callback/*, this.uuid*/)
+  }
+
+  private _attachListeners() {
+    CALL_STATES
+      .filter(state => this._cbQueues.hasOwnProperty(state))
+      .forEach(state => registerOnce(this.id, this._cbQueues[state], state))
+    // FIXME: 'ended' should be a variable
+    registerOnce(this.id, this._detachListeners, 'ended')
+  }
+
+  private _detachListeners() {
+    CALL_STATES
+      // .filter(state => this._cbQueues.hasOwnProperty(state))
+      .forEach(state => deRegister(this.id, null, state))
   }
 }
 

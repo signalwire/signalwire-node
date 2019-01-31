@@ -2,7 +2,7 @@ import logger from '../util/logger'
 import { getUserMedia, getMediaConstraints, streamIsValid } from '../services/RTCService'
 import { PeerType, SwEvent } from '../util/constants'
 import { attachMediaStream } from '../util/webrtc'
-import { DialogOptions } from '../interfaces/'
+import { DialogOptions } from '../util/interfaces'
 import { trigger } from '../services/Handler'
 
 export default class Peer {

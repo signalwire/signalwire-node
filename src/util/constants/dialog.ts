@@ -1,4 +1,4 @@
-import { DialogOptions } from '../../interfaces'
+import { DialogOptions } from '../interfaces'
 
 export const DEFAULT_DIALOG_OPTIONS: DialogOptions = {
   destinationNumber: '',

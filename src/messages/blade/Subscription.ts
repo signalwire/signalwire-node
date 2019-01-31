@@ -1,5 +1,5 @@
 import BaseMessage from '../BaseMessage'
-import { IBladeSubscriptionRequest } from '../../interfaces'
+import { IBladeSubscriptionRequest } from '../../util/interfaces'
 
 class Subscription extends BaseMessage {
   method: string = 'blade.subscription'

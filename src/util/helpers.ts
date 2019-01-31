@@ -1,5 +1,5 @@
 import logger from './logger'
-import { ISignalWireOptions } from '../interfaces'
+import { ISignalWireOptions } from './interfaces'
 import { STORAGE_PREFIX } from './constants'
 
 export const validateOptions = (options: ISignalWireOptions, className: string): boolean => {

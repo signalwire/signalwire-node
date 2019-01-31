@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid'
 // import logger from './util/logger'
 import Connection from './Connection'
-import { ISignalWireOptions, SubscribeParams, BroadcastParams } from './interfaces'
+import { ISignalWireOptions, SubscribeParams, BroadcastParams } from './util/interfaces'
 import { register, deRegister } from './services/Handler'
 import { SwEvent } from './util/constants'
 

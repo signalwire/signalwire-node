@@ -9,7 +9,7 @@ import { trigger, register, deRegister } from '../services/Handler'
 import { streamIsValid } from '../services/RTCService'
 import { objEmpty, mutateLiveArrayData } from '../util/helpers'
 import { attachMediaStream, detachMediaStream } from '../util/webrtc'
-import { DialogOptions } from '../interfaces/'
+import { DialogOptions } from '../util/interfaces'
 
 export default class Dialog {
   public id: string = ''

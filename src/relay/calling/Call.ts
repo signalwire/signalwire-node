@@ -4,7 +4,7 @@ import { Execute } from '../../messages/Blade'
 import { cleanNumber } from '../../util/helpers'
 
 import { registerOnce, deRegister, trigger } from '../../services/Handler'
-import { ICall, ICallOptions } from '../../interfaces'
+import { ICall, ICallOptions } from '../../util/interfaces'
 import { CallState, DisconnectReason, CALL_STATES } from '../../util/constants/relay'
 
 abstract class Call implements ICall {

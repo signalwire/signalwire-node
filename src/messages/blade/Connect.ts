@@ -1,5 +1,5 @@
 import BaseMessage from '../BaseMessage'
-import { IBladeConnectRequest } from '../../interfaces'
+import { IBladeConnectRequest } from '../../util/interfaces'
 
 const major = 2
 const minor = 1

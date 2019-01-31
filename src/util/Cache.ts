@@ -1,6 +1,6 @@
-import logger from './util/logger'
+import logger from './logger'
 import { IBladeConnectResult } from './interfaces'
-import { Netcast } from './util/constants'
+import { Netcast } from './constants'
 
 export default class Cache {
   protocols: string[]

@@ -1,11 +1,11 @@
 import logger from './util/logger'
 import BrowserSession from './BrowserSession'
-import { SubscribeParams, BroadcastParams, DialogOptions } from './interfaces'
+import { SubscribeParams, BroadcastParams, DialogOptions } from './util/interfaces'
 import { Login, Result, Broadcast, Subscribe, Unsubscribe } from './messages/Verto'
 import Dialog from './rtc/Dialog'
 import { SwEvent, VertoMethod, NOTIFICATION_TYPE } from './util/constants'
 import { State, ConferenceAction } from './util/constants/dialog'
-import { trigger, register, deRegister } from './services/Handler'
+import { trigger, deRegister } from './services/Handler'
 import * as Storage from './util/storage/'
 
 const SESSID = 'vertoSessId'

@@ -6,7 +6,7 @@ module.exports = (env, argv) => {
   const mode = JSON.stringify(argv.mode)
   const config = {
     mode,
-    entry: './src/index.ts',
+    entry: './src/browser-entry.ts',
     output: {
       path: outputDir,
       filename: 'bundle.js',

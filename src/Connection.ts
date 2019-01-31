@@ -4,6 +4,11 @@ import { SwEvent } from './util/constants'
 import { safeParseJson } from './util/helpers'
 import { registerOnce, trigger } from './services/Handler'
 
+let WebSocketClass: any = typeof WebSocket !== 'undefined' ? WebSocket : null
+export const setWebSocket = (websocket: any): void => {
+  WebSocketClass = websocket
+}
+
 const PATTERN = /^(ws|wss):\/\//
 export default class Connection {
   private _wsClient: any = null
@@ -24,7 +29,7 @@ export default class Connection {
   }
 
   connect() {
-    this._wsClient = new WebSocket(this._host)
+    this._wsClient = new WebSocketClass(this._host)
     this._wsClient.onopen = (event): boolean => trigger(SwEvent.SocketOpen, event, this.session.uuid)
     this._wsClient.onclose = (event): boolean => trigger(SwEvent.SocketClose, event, this.session.uuid)
     this._wsClient.onerror = (event): boolean => trigger(SwEvent.SocketError, event, this.session.uuid)

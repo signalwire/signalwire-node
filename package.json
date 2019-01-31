@@ -27,6 +27,7 @@
     "debug": "npm run build && npm run watch-debug"
   },
   "dependencies": {
+    "faye-websocket": "^0.11.1",
     "uuid": "^3.3.2"
   },
   "devDependencies": {

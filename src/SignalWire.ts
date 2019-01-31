@@ -1,5 +1,5 @@
 import logger from './util/logger'
-import BaseSession from './BaseSession'
+import BrowserSession from './BrowserSession'
 import { Connect, Subscription } from './messages/Blade'
 import Cache from './Cache'
 import { IBladeConnectResult, SubscribeParams, BroadcastParams } from './interfaces'
@@ -9,7 +9,7 @@ import { ADD, REMOVE, SwEvent } from './util/constants'
 import { register, trigger } from './services/Handler'
 import Calling from './relay/calling/Calling'
 
-export default class SignalWire extends BaseSession {
+export default class SignalWire extends BrowserSession {
   public nodeid: string
   public master_nodeid: string
   public services: { [service: string]: string } = {}

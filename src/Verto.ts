@@ -1,5 +1,5 @@
 import logger from './util/logger'
-import BaseSession from './BaseSession'
+import BrowserSession from './BrowserSession'
 import { SubscribeParams, BroadcastParams, DialogOptions } from './interfaces'
 import { Login, Result, Broadcast, Subscribe, Unsubscribe } from './messages/Verto'
 import Dialog from './rtc/Dialog'
@@ -9,7 +9,7 @@ import { trigger, register, deRegister } from './services/Handler'
 import * as Storage from './util/storage/'
 
 const SESSID = 'vertoSessId'
-export default class Verto extends BaseSession {
+export default class Verto extends BrowserSession {
 
   validateOptions() {
     const { host, login, passwd, password } = this.options

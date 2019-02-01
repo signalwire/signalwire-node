@@ -4,9 +4,8 @@ import { Connect, Subscription } from './messages/Blade'
 import Cache from './util/Cache'
 import { IBladeConnectResult, SubscribeParams, BroadcastParams } from './util/interfaces'
 import { BroadcastHandler } from './services/Broadcast'
-import * as Messaging from './services/Messaging'
 import { ADD, REMOVE, SwEvent } from './util/constants'
-import { register, trigger } from './services/Handler'
+import { trigger } from './services/Handler'
 import Calling from './relay/calling/Calling'
 import Connection from './Connection'
 
@@ -39,24 +38,6 @@ export default class SignalWireNode extends BaseSession {
       this._callingInstance = new Calling(this)
     }
     return this._callingInstance
-  }
-
-  async sendMessage(params: any) {
-    const result = await Messaging.sendMessage(this, params)
-
-    Object.defineProperty(result, 'onNotification', {
-      writable: false,
-      value: callback => {
-        register(result.id, callback)
-      }
-    })
-
-    return result
-  }
-
-  getMessage(params: any) {
-    const { messageId } = params
-    return Messaging.getMessage(this, messageId)
   }
 
   broadcast(params: BroadcastParams) {

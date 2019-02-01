@@ -39,7 +39,7 @@ export default class Connection {
         this._handleStringResponse(msg)
         return
       }
-      // logger.debug('RECV: \n', JSON.stringify(msg, null, 2), '\n')
+      logger.debug('RECV: \n', JSON.stringify(msg, null, 2), '\n')
       if (!trigger(msg.id, msg)) {
         // If there is not an handler for this message, dispatch an incoming!
         trigger(SwEvent.SocketMessage, msg, this.session.uuid)
@@ -62,7 +62,7 @@ export default class Connection {
         resolve()
       }
     })
-    // logger.debug('SEND: \n', JSON.stringify(request, null, 2), '\n')
+    logger.debug('SEND: \n', JSON.stringify(request, null, 2), '\n')
     this._wsClient.send(JSON.stringify(request))
 
     return promise

@@ -85,7 +85,6 @@ export default class SignalWireNode extends BaseSession {
 
   protected _onSocketMessage(response: any) {
     const { method, params } = response
-    logger.info('Inbound Message', method, params)
     switch (method) {
       case 'blade.netcast':
         this._cache.netcastUpdate(params)

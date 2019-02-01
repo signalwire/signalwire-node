@@ -7,8 +7,8 @@
     "url": ""
   },
   "author": "Edoardo Gallo <egallo@signalwire.com>",
-  "main": "dist/node/node-entry.js",
-  "module": "dist/es6/browser-entry.js",
+  "main": "dist/cjs/node-entry.js",
+  "module": "dist/esm/browser-entry.js",
   "license": "ISC",
   "scripts": {
     "clean-build": "rm -rf dist/* && npm run build",

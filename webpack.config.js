@@ -9,7 +9,7 @@ module.exports = (env, argv) => {
     entry: './src/browser-entry.ts',
     output: {
       path: outputDir,
-      filename: 'bundle.js',
+      filename: 'bundle.min.js',
       libraryTarget: 'this'
     },
     resolve: {

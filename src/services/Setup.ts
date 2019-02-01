@@ -1,12 +1,13 @@
 import logger from '../util/logger'
-import SignalWire from '../SignalWire'
+// import SignalWire from '../SignalWire'
+import BaseSession from '../BaseSession'
 import { Execute } from '../messages/Blade'
 
 const SETUP_PROTOCOL = 'signalwire'
 const SETUP_METHOD = 'setup'
 const SETUP_CHANNEL = 'notifications'
 
-export const Setup = async (session: SignalWire, service: string, handler?: Function): Promise<string> => {
+export const Setup = async (session: BaseSession, service: string, handler?: Function): Promise<string> => {
   logger.debug('Execute setup for', service)
   const be = new Execute({ protocol: SETUP_PROTOCOL, method: SETUP_METHOD, params: { service } })
   const { result: { protocol = null } = {} } = await session.execute(be).catch(error => error)

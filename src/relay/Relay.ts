@@ -1,4 +1,4 @@
-import SignalWire from '../SignalWire'
+import BaseSession from '../BaseSession'
 import { Setup } from '../services/Setup'
 
 abstract class Relay {
@@ -6,7 +6,7 @@ abstract class Relay {
   protected _protocol: string // TODO: public removing GETTER
   protected abstract notificationHandler(notification: any): void
 
-  constructor(public session: SignalWire) {
+  constructor(public session: BaseSession) {
   }
 
   get protocol() {

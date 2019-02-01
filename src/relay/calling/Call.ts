@@ -5,14 +5,17 @@ import { cleanNumber } from '../../util/helpers'
 
 import { registerOnce, deRegister, trigger } from '../../services/Handler'
 import { ICall, ICallOptions } from '../../util/interfaces'
-import { CallState, DisconnectReason, CALL_STATES } from '../../util/constants/relay'
+import { CallState, CallType, DisconnectReason, CALL_STATES } from '../../util/constants/relay'
 
-abstract class Call implements ICall {
-  abstract type: string
-  abstract beginParams: {}
+const _detectCallType = (to: string): string => {
+  // TODO: check call type by "to"
+  return CallType.Phone
+}
 
+export default class Call implements ICall {
   public id: string
   public nodeId: string
+  public type: string
 
   private _prevState: number = 0
   private _state: number = 0
@@ -22,6 +25,8 @@ abstract class Call implements ICall {
     console.log('Creating a Call', options)
     this._attachListeners = this._attachListeners.bind(this)
     this._detachListeners = this._detachListeners.bind(this)
+    const { type, to_number } = options
+    this.type = type ? type : _detectCallType(to_number)
   }
 
   async begin() {
@@ -120,6 +125,24 @@ abstract class Call implements ICall {
     return CallState[this._state]
   }
 
+  get beginParams() {
+    switch (this.type) {
+      case CallType.Phone: {
+        const { from_number, to_number } = this.options
+        return { from_number: cleanNumber(from_number), to_number: cleanNumber(to_number) }
+      }
+      case CallType.Sip: {
+        const { from_number, to_number } = this.options
+        return { from_number: cleanNumber(from_number), to_number: cleanNumber(to_number) }
+      }
+      case CallType.WebRTC: {
+        const { from_number, to_number } = this.options
+        return { from_number: cleanNumber(from_number), to_number: cleanNumber(to_number) }
+      }
+    }
+    return {}
+  }
+
   on(eventName: string, callback: Function) {
     const eventPermitted = CallState[eventName] && !isNaN(Number(CallState[eventName]))
     if (eventPermitted && this._state >= CallState[eventName]) {
@@ -152,32 +175,5 @@ abstract class Call implements ICall {
     CALL_STATES
       // .filter(state => this._cbQueues.hasOwnProperty(state))
       .forEach(state => deRegister(this.id, null, state))
-  }
-}
-
-export class PhoneCall extends Call {
-  type = 'phone'
-
-  get beginParams() {
-    const { from_number, to_number } = this.options
-    return { from_number: cleanNumber(from_number), to_number: cleanNumber(to_number) }
-  }
-}
-
-export class WebRtcCall extends Call {
-  type = 'webrtc'
-
-  get beginParams() {
-    const { from_number, to_number } = this.options
-    return { from_number: cleanNumber(from_number), to_number: cleanNumber(to_number) }
-  }
-}
-
-export class SipCall extends Call {
-  type = 'sip'
-
-  get beginParams() {
-    const { from_number, to_number } = this.options
-    return { from_number: cleanNumber(from_number), to_number: cleanNumber(to_number) }
   }
 }

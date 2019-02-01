@@ -1,6 +1,5 @@
-// import logger from '../util/logger'
 import Relay from '../Relay'
-import { PhoneCall } from './Call';
+import Call from './Call';
 import logger from '../../util/logger';
 import { Execute } from '../../messages/Blade';
 import { trigger, register } from '../../services/Handler';
@@ -13,23 +12,13 @@ export default class Calling extends Relay {
     logger.warn(`Relay ${this.service} notification on proto ${this._protocol}`, notification)
     const { event_type, timestamp, params } = notification
     switch (event_type) {
-      case 'calling.call.state':
+      case 'calling.call.state': {
         const { call_id, call_state, node_id } = params
         trigger(call_id, null, call_state, false)
         break
+      }
       case 'calling.call.receive': {
-        const { type } = params
-        let call = null
-        if (type === 'phone') {
-          call = new PhoneCall(this, params)
-        } else if (type === 'sip') {
-          // call = new SipCall(this, params)
-        } else if (type === 'webrtc') {
-          // call = new SipCall(this, params)
-        } else {
-          logger.error('Received an unknown call type:', type, notification)
-          return
-        }
+        const call = new Call(this, params)
         trigger(this._protocol, call, this._inboundUniqueId)
         break
       }
@@ -41,7 +30,7 @@ export default class Calling extends Relay {
   async makeCall(from_number: string, to_number: string) {
     await this.setup()
 
-    return new PhoneCall(this, { from_number, to_number })
+    return new Call(this, { from_number, to_number })
   }
 
   async onInbound(context: string, handler: Function) {

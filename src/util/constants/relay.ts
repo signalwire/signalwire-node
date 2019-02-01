@@ -24,3 +24,9 @@ export enum DisconnectSource {
   Server = 'server',
   Endpoint = 'endpoint'
 }
+
+export enum CallType {
+  Phone = 'phone',
+  Sip = 'sip',
+  WebRTC = 'webrtc'
+}

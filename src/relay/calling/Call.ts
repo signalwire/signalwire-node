@@ -162,18 +162,21 @@ export default class Call implements ICall {
     return this
   }
 
-  private _attachListeners() {
-    // TODO: attach all listeners to update call state!
-    registerOnce(this.id, this._detachListeners, CALL_STATES[CALL_STATES.length - 1])
+  private _onStateChange(newState: string) {
+    this._prevState = this._state
+    this._state = CallState[newState]
+    if (this._cbQueues.hasOwnProperty(newState)) {
+      this._cbQueues[newState](this)
+    }
+    return this
+  }
 
-    CALL_STATES
-      .filter(state => this._cbQueues.hasOwnProperty(state))
-      .forEach(state => registerOnce(this.id, this._cbQueues[state], state))
+  private _attachListeners() {
+    registerOnce(this.id, this._detachListeners, CALL_STATES[CALL_STATES.length - 1])
+    CALL_STATES.forEach(state => registerOnce(this.id, this._onStateChange.bind(this, state), state))
   }
 
   private _detachListeners() {
-    CALL_STATES
-      // .filter(state => this._cbQueues.hasOwnProperty(state))
-      .forEach(state => deRegister(this.id, null, state))
+    CALL_STATES.forEach(state => deRegister(this.id, null, state))
   }
 }

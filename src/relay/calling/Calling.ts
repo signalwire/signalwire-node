@@ -9,7 +9,7 @@ export default class Calling extends Relay {
   private _inboundUniqueId = 'inbound'
 
   notificationHandler(notification: any) {
-    logger.warn(`Relay ${this.service} notification on proto ${this._protocol}`, notification)
+    // logger.warn(`Relay ${this.service} notification on proto ${this._protocol}`, notification)
     const { event_type, timestamp, params } = notification
     switch (event_type) {
       case 'calling.call.state': {

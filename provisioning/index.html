@@ -463,10 +463,8 @@
           destinationNumber: $('#extension').val(),
           callerName: 'SW JS client',
           callerNumber: 'edoardo@signalwire.com',
-          localElement: 'errore-che-non-ce',
-          remoteElement: 'remote-che-non-ce'
-          // audio: audio,
-          // video: video,
+          audio: audio,
+          video: video,
           // localStream: document.getElementById("canvasTest").captureStream(20),
           // onNotification: data => {
           //   console.log('LOCAL: onNotification', data.type, data)
@@ -499,8 +497,8 @@
           return
         }
 
-        // _session = new Verto({ host, login: project, passwd: token })
-        _session = new SignalWire({ host, project, token })
+        _session = new Verto({ host, login: project, passwd: token })
+        // _session = new SignalWire({ host, project, token })
 
         _session.on('signalwire.error', error => {
           console.warn('GLOBAL: signalwire.error', error)
@@ -516,16 +514,16 @@
           $('#demoContent').show()
           $('#json-preview').html('')
           _appendNotif('Do something awesome!')
-          // session.videoDevices.toArray().map(dev => {
-          //   $('#selectedCam').append('<option value="' + dev.deviceId + '">' + dev.label + '</option>')
-          // })
-          // session.audioInDevices.toArray().map(dev => {
-          //   $('#selectedMic').append('<option value="' + dev.deviceId + '">' + dev.label + '</option>')
-          // })
-
-          _session.calling.onInbound('test', function(call){
-            console.warn(' -- NEW INBOUND CALL', call)
+          session.videoDevices.toArray().map(dev => {
+            $('#selectedCam').append('<option value="' + dev.deviceId + '">' + dev.label + '</option>')
           })
+          session.audioInDevices.toArray().map(dev => {
+            $('#selectedMic').append('<option value="' + dev.deviceId + '">' + dev.label + '</option>')
+          })
+
+          // _session.calling.onInbound('test', function(call){
+          //   console.warn(' -- NEW INBOUND CALL', call)
+          // })
         })
 
         _session.localElement = 'webcam-local'

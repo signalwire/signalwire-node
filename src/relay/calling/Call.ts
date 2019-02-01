@@ -7,6 +7,9 @@ import { registerOnce, deRegister, trigger } from '../../services/Handler'
 import { ICall, ICallOptions } from '../../util/interfaces'
 import { CallState, CallType, DisconnectReason, CALL_STATES } from '../../util/constants/relay'
 
+// interface DeepArray<T> extends Array<T | DeepArray<T>> { }
+// type ConnectParams = string | DeepArray<string>
+
 const _detectCallType = (to: string): string => {
   // TODO: check call type by "to"
   return CallType.Phone
@@ -20,6 +23,8 @@ export default class Call implements ICall {
   private _prevState: number = 0
   private _state: number = 0
   private _cbQueues: { [state: string]: Function } = {}
+  private _from_number: string = ''
+  private _to_number: string = ''
 
   constructor(protected relayInstance: Calling, protected options: ICallOptions) {
     console.log('Creating a Call', options)
@@ -117,6 +122,36 @@ export default class Call implements ICall {
     logger.debug('Join calls:', result)
   }
 
+  async connect(...peers: any[]) { // FIXME: remove any[]
+    const change = (e: any) => {
+      if (e instanceof Array) return e.map(change)
+      if (typeof e === 'string') return [{ type: _detectCallType(e), params: { to_number: cleanNumber(e), timeout: 50 } }]
+      if (typeof e === 'object') {
+        const { to_number, timeout = 50 } = e
+        return [{ type: _detectCallType(to_number), params: { to_number: cleanNumber(to_number), timeout } }]
+      }
+    }
+    const devices = peers.map(change)
+    if (!devices.length) {
+      throw `No peers to connect!`
+    }
+    const { protocol, session } = this.relayInstance
+    const msg = new Execute({
+      protocol,
+      method: 'call.connect',
+      params: {
+        node_id: this.nodeId,
+        call_id: this.id,
+        from_number: this._from_number,
+        devices
+      }
+    })
+    logger.debug('Connect msg:', msg)
+
+    const result = await session.execute(msg).catch(error => error)
+    logger.debug('Connect to calls:', result)
+  }
+
   get prevState() {
     return CallState[this._prevState]
   }
@@ -129,15 +164,23 @@ export default class Call implements ICall {
     switch (this.type) {
       case CallType.Phone: {
         const { from_number, to_number } = this.options
-        return { from_number: cleanNumber(from_number), to_number: cleanNumber(to_number) }
+        this._from_number = cleanNumber(from_number)
+        this._to_number = cleanNumber(to_number)
+        return { from_number: this._from_number, to_number: this._to_number }
       }
       case CallType.Sip: {
+        // TODO: handle SIP params
         const { from_number, to_number } = this.options
-        return { from_number: cleanNumber(from_number), to_number: cleanNumber(to_number) }
+        this._from_number = cleanNumber(from_number)
+        this._to_number = cleanNumber(to_number)
+        return { from_number: this._from_number, to_number: this._to_number }
       }
       case CallType.WebRTC: {
+        // TODO: handle WebRTC params
         const { from_number, to_number } = this.options
-        return { from_number: cleanNumber(from_number), to_number: cleanNumber(to_number) }
+        this._from_number = cleanNumber(from_number)
+        this._to_number = cleanNumber(to_number)
+        return { from_number: this._from_number, to_number: this._to_number }
       }
     }
     return {}

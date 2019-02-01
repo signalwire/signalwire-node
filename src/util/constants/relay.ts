@@ -30,3 +30,10 @@ export enum CallType {
   Sip = 'sip',
   WebRTC = 'webrtc'
 }
+
+export enum CallConnectState {
+  Disconnected = 'disconnected',
+  Connecting = 'connecting',
+  Connected = 'connected',
+  Failed = 'failed'
+}

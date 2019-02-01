@@ -1,4 +1,4 @@
-import SignalWireNode as SignalWire from './SignalWireNode'
+import SignalWire from './SignalWireNode'
 import { monitorCallbackQueue } from './services/Handler'
 import { setWebSocket } from './Connection'
 

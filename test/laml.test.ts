@@ -1,6 +1,6 @@
 const RestClient = require('..').RestClient
 
-describe('RestClient', function () {
+describe('It generate LaML', function () {
   const FROM = '+11111111119'
 
   it('should generate LaML', function () {
@@ -9,13 +9,13 @@ describe('RestClient', function () {
     expect(response.toString()).toEqual(`<?xml version="1.0" encoding="UTF-8"?><Response><Dial callerId="${FROM}">+11111111111</Dial></Response>`)
   })
 
-  it('can receive a fax', function () {
+  it('LaML to receive a fax', function () {
     const response = new RestClient.LaML.FaxResponse()
     response.receive({ action: '/receive/fax' })
     expect(response.toString()).toEqual('<?xml version="1.0" encoding="UTF-8"?><Response><Receive action=\"/receive/fax\"/></Response>')
   })
 
-  it('can reject a fax', function () {
+  it('LaML to reject a fax', function () {
     const response = new RestClient.LaML.FaxResponse()
     response.reject()
     expect(response.toString()).toEqual('<?xml version="1.0" encoding="UTF-8"?><Response><Reject/></Response>')

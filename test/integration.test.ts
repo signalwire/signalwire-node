@@ -5,6 +5,9 @@ describe('RestClient', function () {
   beforeEach(async () => {
     await mockServer.start()
     client.api.baseUrl = mockServer.url
+
+    client.fax.baseUrl = mockServer.url
+    client.fax.v1._version = `2010-04-01/Accounts/${client.accountSid}`
   })
 
   afterEach(() => mockServer.stop())
@@ -56,26 +59,50 @@ describe('RestClient', function () {
     })
   })
 
-  // it('should list the faxes', done => {
-  //   client.fax.faxes.list()
-  //     .then(faxes => {
-  //       expect(faxes.length).toEqual(7)
-  //       expect(faxes[0].sid).toEqual('dd3e1ac4-50c9-4241-933a-5d4e9a2baf31')
-  //     })
-  //     .catch(error => {
-  //       console.error('handle error?', error)
-  //     })
-  //     .then(done)
-  // })
+  describe('Faxes', function () {
+    const BASE_URL = `/2010-04-01/Accounts/XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/Faxes`
 
-  // it('should get a fax instance', done => {
-  //   client.fax.faxes('831455c6-574e-4d8b-b6ee-2418140bf4cd').fetch()
-  //     .then(fax => {
-  //       expect(fax.to).toEqual('+14044455666')
-  //     })
-  //     .catch(error => {
-  //       console.error('handle error?', error)
-  //     })
-  //     .then(done)
-  // })
-});
+    it('should create a fax', async done => {
+      const RESPONSE = '{"account_sid":"XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX","api_version":"v1","date_created":"2019-02-03T18:30:37Z","date_updated":"2019-02-03T18:30:49Z","direction":"outbound","from":"+11111111112","media_url":"https://s3.us-east-2.amazonaws.com/signalwire-assets/faxes/20190203183038-0b9df3ce-0e93-4e94-a386-a8f1a22e59bb.tiff","media_sid":"45adb4dc-9ecc-49ce-8c43-ff478fcf274c","num_pages":0,"price":0.009,"price_unit":"USD","quality":"fine","sid":"0b9df3ce-0e93-4e94-a386-a8f1a22e59bb","status":"failed","to":"+11111111111","duration":9,"links":{"media":"/api/laml/2010-04-01/Accounts/XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/Faxes/0b9df3ce-0e93-4e94-a386-a8f1a22e59bb/Media"},"url":"/api/laml/2010-04-01/Accounts/XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/Faxes/0b9df3ce-0e93-4e94-a386-a8f1a22e59bb"}'
+      await mockServer.post(BASE_URL).thenReply(200, RESPONSE)
+
+      const call = await client.fax.faxes.create({
+        mediaUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+        from: '+11111111111',
+        to: '+11111111112'
+      }).catch(_error => { })
+
+      expect(call.sid).toEqual('0b9df3ce-0e93-4e94-a386-a8f1a22e59bb')
+      expect(call.to).toEqual('+11111111111')
+      expect(call.from).toEqual('+11111111112')
+
+      done()
+    })
+
+    it('should list the faxes', async done => {
+      const RESPONSE = '{"uri":"/api/laml/2010-04-01/Accounts/XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/Faxes?Page=0\u0026PageSize=50","first_page_uri":"/api/laml/2010-04-01/Accounts/XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/Faxes?Page=0\u0026PageSize=50","next_page_uri":null,"previous_page_uri":null,"page":0,"page_size":50,"faxes":[{"account_sid":"XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX","api_version":"v1","date_created":"2019-02-03T18:30:37Z","date_updated":"2019-02-03T18:30:49Z","direction":"outbound","from":"+11111111112","media_url":"https://s3.us-east-2.amazonaws.com/signalwire-assets/faxes/20190203183038-0b9df3ce-0e93-4e94-a386-a8f1a22e59bb.tiff","media_sid":"45adb4dc-9ecc-49ce-8c43-ff478fcf274c","num_pages":0,"price":0.009,"price_unit":"USD","quality":"fine","sid":"0b9df3ce-0e93-4e94-a386-a8f1a22e59bb","status":"failed","to":"+11111111111","duration":9,"links":{"media":"/api/laml/2010-04-01/Accounts/XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/Faxes/0b9df3ce-0e93-4e94-a386-a8f1a22e59bb/Media"},"url":"/api/laml/2010-04-01/Accounts/XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/Faxes/0b9df3ce-0e93-4e94-a386-a8f1a22e59bb"}]}'
+      const endpointMock = await mockServer.get(BASE_URL).thenReply(200, RESPONSE)
+      const list = await client.fax.faxes.list().catch(_error => { console.error(_error); return [] })
+      const requests = await endpointMock.getSeenRequests()
+      expect(requests[0].url).toEqual(BASE_URL)
+      expect(list.length).toEqual(1)
+      expect(list[0].sid).toEqual('0b9df3ce-0e93-4e94-a386-a8f1a22e59bb')
+
+      done()
+    })
+
+    it('should get a fax instance', async done => {
+      const RESPONSE = '{"account_sid":"XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX","api_version":"v1","date_created":"2019-02-03T18:30:37Z","date_updated":"2019-02-03T18:30:49Z","direction":"outbound","from":"+11111111112","media_url":"https://s3.us-east-2.amazonaws.com/signalwire-assets/faxes/20190203183038-0b9df3ce-0e93-4e94-a386-a8f1a22e59bb.tiff","media_sid":"45adb4dc-9ecc-49ce-8c43-ff478fcf274c","num_pages":0,"price":0.009,"price_unit":"USD","quality":"fine","sid":"0b9df3ce-0e93-4e94-a386-a8f1a22e59bb","status":"failed","to":"+11111111111","duration":9,"links":{"media":"/api/laml/2010-04-01/Accounts/XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/Faxes/0b9df3ce-0e93-4e94-a386-a8f1a22e59bb/Media"},"url":"/api/laml/2010-04-01/Accounts/XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/Faxes/0b9df3ce-0e93-4e94-a386-a8f1a22e59bb"}'
+      const url = '/2010-04-01/Accounts/XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/Faxes/0b9df3ce-0e93-4e94-a386-a8f1a22e59bb'
+      await mockServer.get(url).thenReply(200, RESPONSE)
+
+      const fax = await client.fax.faxes('0b9df3ce-0e93-4e94-a386-a8f1a22e59bb').fetch().catch(_error => { console.error(_error); return {} })
+
+      expect(fax.sid).toEqual('0b9df3ce-0e93-4e94-a386-a8f1a22e59bb')
+      expect(fax.from).toEqual('+11111111112')
+      expect(fax.to).toEqual('+11111111111')
+
+      done()
+    })
+  })
+})

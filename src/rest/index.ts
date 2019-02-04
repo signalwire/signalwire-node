@@ -26,6 +26,9 @@ const RestClient = function(username, token, opts) {
   // Replace base url
   client.api.baseUrl = 'https://' + process.env.SIGNALWIRE_API_HOSTNAME
 
+  client.fax.baseUrl = 'https://' + process.env.SIGNALWIRE_API_HOSTNAME
+  client.fax.v1._version = `2010-04-01/Accounts/${client.accountSid}`
+
   return client
 }
 

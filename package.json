@@ -7,7 +7,24 @@
     "url": "https://github.com/signalwire/signalwire-node"
   },
   "author": "SignalWire Team <open.source@signalwire.com>",
-  "main": "./dist/index.js",
+  "main": "dist/cjs/node-entry.js",
+  "module": "dist/esm/browser-entry.js",
+  "scripts": {
+    "clean-build": "rm -rf dist/* && npm run build",
+    "build": "npm run build-es5 && npm run build-es6 && npm run build-node",
+    "build-es5": "webpack -p",
+    "start:dev": "webpack-dev-server --host 0.0.0.0 --mode development",
+    "build-es6": "tsc -p tsconfig.es6.json",
+    "watch-es6": "tsc -p tsconfig.es6.json -w",
+    "build-node": "rm -rf dist/cjs/ && tsc -p tsconfig.node.json",
+    "watch-node": "tsc -p tsconfig.node.json -w",
+    "tslint": "npm run tslint-es5 && npm run tslint-es6",
+    "tslint-es5": "tslint -c tslint.json -p tsconfig.es5.json",
+    "tslint-es6": "tslint -c tslint.json -p tsconfig.es6.json",
+    "test": "jest --forceExit --coverage --detectOpenHandles",
+    "watch-test": "npm run test -- --watchAll",
+    "debug": "npm run build && npm run watch-debug"
+  },
   "keywords": [
     "signalwire",
     "laml"
@@ -17,14 +34,6 @@
   },
   "homepage": "https://github.com/signalwire/signalwire-node",
   "license": "MIT",
-  "scripts": {
-    "test": "jest --forceExit --coverage --verbose=false --detectOpenHandles",
-    "watch-test": "npm run test -- --watchAll",
-    "build-ts": "tsc",
-    "watch-ts": "tsc -w",
-    "tslint": "tslint -c tslint.json -p tsconfig.json",
-    "debug": "npm run build && npm run watch-debug"
-  },
   "dependencies": {
     "dotenv": "^4.0.0",
     "faye-websocket": "^0.11.1",
@@ -37,10 +46,18 @@
     "@types/jest": "^23.3.11",
     "@types/node": "^9.4.6",
     "@types/uuid": "^3.4.3",
+    "typescript": "^3.2.4",
     "jest": "^23.6.0",
-    "mockttp": "^0.12.6",
     "ts-jest": "^23.10.5",
-    "tslint": "^5.9.1",
-    "typescript": "^3.2.2"
+    "ts-loader": "^5.3.3",
+    "tslint": "^5.12.1",
+    "mockttp": "^0.12.6",
+    "webpack": "^4.29.0",
+    "webpack-cli": "^3.2.1",
+    "webpack-dev-server": "^3.1.14",
+    "uglifyjs-webpack-plugin": "^2.1.1",
+    "babel-loader": "^7.1.5",
+    "babel-plugin-transform-runtime": "^6.23.0",
+    "babel-preset-env": "^1.7.0"
   }
 }

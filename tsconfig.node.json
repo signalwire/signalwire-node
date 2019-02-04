@@ -1,0 +1,21 @@
+{
+  "extends": "./tsconfig.base",
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es6",
+    "outDir": "dist/cjs"
+  },
+  "exclude": [
+    "src/browser-entry.ts",
+    "**/__mocks__/**/*",
+    "src/BrowserSession.ts",
+    "src/SignalWire.ts",
+    "src/services/RTCService.ts",
+    "src/rtc",
+    "src/Verto.ts",
+    "src/messages/verto/*",
+    "src/messages/Verto.ts",
+    "src/util/storage/*",
+    "src/util/webrtc/**"
+  ]
+}

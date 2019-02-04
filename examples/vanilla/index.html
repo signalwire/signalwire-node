@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Signalwire Verto Vanilla Demo</title>
+
+	<script type="text/javascript" src="bundle.js"></script>
+	<script type="text/javascript" src="index.js"></script>
+	<script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
+	<style type="text/css" src="index.css"></style>
+</head>
+<body>
+	<h1>Signalwire Verto Vanilla Demo</h1>
+
+	This demo is designed to be simple and easy to understand using vanilla javascript. Fill in right verto server information and click <strong>Connect</strong> and then <strong>Call</strong>. Check the bottom of this page for a little more detailed instruction.
+	<br/>
+	<br/>
+
+	User Name:
+	<input id='username' onchange="save_params(event)">
+	<br/>
+	Password:
+	<input id='password' onchange="save_params(event)">
+	<br/>
+	Domain:
+	<input id='domain' onchange="save_params(event)">
+	<br/>
+	Host:
+	<input id='host' onchange="save_params(event)">
+	<br/>
+
+	<button onclick="connect()">Connect</button>
+	<span id='connectStatus'></span>
+	<br/>
+	<br/>
+
+	Number:
+	<input id='number' value="9196" onchange="save_params(event)">
+
+	<button onClick="makeCall()">Call</button>
+	<button onClick="hangup()">Hangup</button>
+
+	<video id='localVideo' autoplay="true" style="display:none"></video>
+	<video id='remoteVideo' autoplay="true" style="display:none"></video>
+
+
+	<br/>
+	<br/>
+	Tips:
+	<ul>
+		<li>Chome requires https/wss to work with WebRTC, however, it will work with plain http if you use a local file origin or localhost origin.</li>
+		<li>1) Double click and open the index.html file. or,</li>
+		<li>2) Use any webserver or use python: <pre>python -m SimpleHTTPServer .</pre></li>
+		<li>Open <a href="http://localhost:8000">http://localhost:8000</a></li>
+	</ul>
+</body>
+</html>

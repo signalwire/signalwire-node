@@ -1,12 +1,12 @@
-import logger from './util/logger'
-import BaseSession from './BaseSession'
-import Connection from './Connection'
-import Dialog from './rtc/Dialog'
-import { SubscribeParams, BroadcastParams, ICacheDevices, IAudioSettings, IVideoSettings } from './util/interfaces'
-import { trigger, registerOnce } from './services/Handler'
-import { SwEvent, NOTIFICATION_TYPE } from './util/constants'
-import { getDevices, getResolutions, checkPermissions, removeUnsupportedConstraints, checkDeviceIdConstraints } from './services/RTCService'
-import { findElementByType } from './util/helpers'
+import logger from '../util/logger'
+import BaseSession from '../BaseSession'
+import Connection from '../services/Connection'
+import Dialog from '../rtc/Dialog'
+import { SubscribeParams, BroadcastParams, ICacheDevices, IAudioSettings, IVideoSettings } from '../util/interfaces'
+import { trigger, registerOnce } from '../services/Handler'
+import { SwEvent, NOTIFICATION_TYPE } from '../util/constants'
+import { getDevices, getResolutions, checkPermissions, removeUnsupportedConstraints, checkDeviceIdConstraints } from '../services/RTCService'
+import { findElementByType } from '../util/helpers'
 
 export default abstract class BrowserSession extends BaseSession {
   public dialogs: { [dialogId: string]: Dialog } = {}

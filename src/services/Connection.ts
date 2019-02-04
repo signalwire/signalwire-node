@@ -1,8 +1,8 @@
-import logger from './util/logger'
-import BaseSession from './BaseSession'
-import { SwEvent } from './util/constants'
-import { safeParseJson } from './util/helpers'
-import { registerOnce, trigger } from './services/Handler'
+import logger from '../util/logger'
+import BaseSession from '../BaseSession'
+import { SwEvent } from '../util/constants'
+import { safeParseJson } from '../util/helpers'
+import { registerOnce, trigger } from '../services/Handler'
 
 let WebSocketClass: any = typeof WebSocket !== 'undefined' ? WebSocket : null
 export const setWebSocket = (websocket: any): void => {

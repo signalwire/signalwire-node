@@ -1,20 +1,32 @@
-import logger from './util/logger'
-import BrowserSession from './BrowserSession'
-import { Connect, Subscription } from './messages/Blade'
-import Cache from './util/Cache'
-import { IBladeConnectResult, SubscribeParams, BroadcastParams } from './util/interfaces'
-import { BroadcastHandler } from './services/Broadcast'
-import { ADD, REMOVE, SwEvent } from './util/constants'
-import { trigger } from './services/Handler'
-import Calling from './relay/calling/Calling'
+import logger from '../util/logger'
+import BaseSession from '../BaseSession'
+import { Connect, Subscription } from '../messages/Blade'
+import Cache from '../util/Cache'
+import { IBladeConnectResult, SubscribeParams, BroadcastParams } from '../util/interfaces'
+import { BroadcastHandler } from '../services/Broadcast'
+import { ADD, REMOVE, SwEvent } from '../util/constants'
+import { trigger } from '../services/Handler'
+import Calling from '../relay/calling/Calling'
+import Connection from '../services/Connection'
 
-export default class SignalWire extends BrowserSession {
+export default class SignalWire extends BaseSession {
   public nodeid: string
   public master_nodeid: string
   public services: { [service: string]: string } = {}
 
   private _callingInstance: Calling = null
   private _cache: Cache = new Cache()
+
+  async connect(): Promise<void> {
+    if (this._connection && this._connection.connected) {
+      logger.warn('Session already connected')
+      return
+    } else {
+      this.disconnect()
+    }
+
+    this._connection = new Connection(this)
+  }
 
   validateOptions() {
     const { host, project, token } = this.options
@@ -73,14 +85,13 @@ export default class SignalWire extends BrowserSession {
 
   protected _onSocketMessage(response: any) {
     const { method, params } = response
-    logger.info('Inbound Message', method, params)
     switch (method) {
       case 'blade.netcast':
         this._cache.netcastUpdate(params)
-      break
+        break
       case 'blade.broadcast':
         BroadcastHandler(params)
-      break
+        break
     }
   }
 }

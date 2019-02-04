@@ -14,6 +14,5 @@ module.exports = {
 	testMatch: [
 		'**/tests/**/*.test.(ts|js)'
 	],
-	preset: 'ts-jest',
-	// testEnvironment: 'node'
+	preset: 'ts-jest'
 }

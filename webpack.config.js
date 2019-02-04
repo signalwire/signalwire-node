@@ -6,7 +6,7 @@ module.exports = (env, argv) => {
   const mode = JSON.stringify(argv.mode)
   const config = {
     mode,
-    entry: './src/browser-entry.ts',
+    entry: './src/browser/index.ts',
     output: {
       path: outputDir,
       filename: 'bundle.min.js',
@@ -25,7 +25,7 @@ module.exports = (env, argv) => {
           test: /\.tsx?$/,
           loader: 'ts-loader',
           options: {
-            configFile: 'tsconfig.es5.json'
+            configFile: 'scripts/tsconfig.es5.json'
           }
         }
       ]

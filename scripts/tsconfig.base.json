@@ -6,7 +6,7 @@
     "noImplicitAny": false,
     "sourceMap": false,
     "moduleResolution": "node",
-    "outDir": "dist/esm",
+    "outDir": "../dist/esm",
     "baseUrl": ".",
     "paths": {
       "*": [
@@ -23,11 +23,10 @@
     "removeComments": true
   },
   "include": [
-    "src/**/*"
+    "../src/**/*"
   ],
   "exclude": [
-    "src/node-entry.ts",
-    "**/__mocks__/**/*",
-    "src/SignalWireNode.ts"
+    "../src/node/**",
+    "../**/__mocks__/**/*"
   ]
 }

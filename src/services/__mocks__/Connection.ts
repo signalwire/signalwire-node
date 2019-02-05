@@ -1,4 +1,4 @@
-export const mockResponse = jest.fn(() => 'default')
+export const mockResponse = jest.fn((): { result: string, error?: string } => ({ result: 'fake' }))
 
 export const mockSend = jest.fn((bladeObj: any) => {
   const { request } = bladeObj

@@ -1,4 +1,4 @@
-const RestClient = require('..').RestClient
+const RestClient = require('../../..').RestClient
 
 describe('It generate LaML', function () {
   const FROM = '+11111111119'

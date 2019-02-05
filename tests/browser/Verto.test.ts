@@ -1,8 +1,8 @@
-import Verto from '../src/Verto'
-import { monitorCallbackQueue } from '../src/services/Handler'
-import { mockMediaDevices } from './helpers/mocks'
-const Connection = require('../src/Connection')
-jest.mock('../src/Connection')
+import Verto from '../../src/browser/Verto'
+import { monitorCallbackQueue } from '../../src/services/Handler'
+import { mockMediaDevices } from '../mocks'
+const Connection = require('../../src/services/Connection')
+jest.mock('../../src/services/Connection')
 
 describe('Verto', () => {
   let instance: Verto

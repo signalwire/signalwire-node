@@ -13,7 +13,7 @@ module.exports = {
   },
   rootDir: '../',
   testMatch: [
-    '**/tests/**/*.test.(ts|js)'
+    '**/tests/(common|node)/**/*.test.(ts|js)'
   ],
   preset: 'ts-jest',
   testEnvironment: 'node'

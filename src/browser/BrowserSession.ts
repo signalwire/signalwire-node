@@ -27,7 +27,7 @@ export default abstract class BrowserSession extends BaseSession {
 
   async connect(): Promise<void> {
     if (this._connection && this._connection.connected) {
-      logger.warn('Session already connected')
+      // logger.warn('Session already connected')
       return
     } else {
       this.disconnect()

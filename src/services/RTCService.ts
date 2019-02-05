@@ -125,7 +125,7 @@ const removeUnsupportedConstraints = (constraints: MediaTrackConstraints): void 
   const supported = navigator.mediaDevices.getSupportedConstraints()
   Object.keys(constraints).map(key => {
     if (!supported.hasOwnProperty(key)) {
-      logger.warn(`"${key}" constraint is not supported in this browser!`)
+      // logger.warn(`"${key}" constraint is not supported in this browser!`)
       delete constraints[key]
     }
   })

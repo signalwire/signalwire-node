@@ -62,7 +62,7 @@ export const findElementByType = (tag: HTMLMediaElement | string | Function): HT
   } else if (tag instanceof HTMLMediaElement) {
     return tag
   } else {
-    logger.warn(`Unknown HTML element for ${tag}.`)
+    // logger.warn(`Unknown HTML element for ${tag}.`)
   }
   return null
 }

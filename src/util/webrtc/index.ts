@@ -4,7 +4,7 @@ import { findElementByType } from '../helpers'
 const attachMediaStream = (tag: any, stream: MediaStream) => {
   const element = findElementByType(tag)
   if (element === null) {
-    logger.warn(`Unknown HTML element for ${tag}.`)
+    // logger.warn(`Unknown HTML element for ${tag}.`)
     return
   }
   if (!element.getAttribute('autoplay')) {

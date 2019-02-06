@@ -1,6 +1,6 @@
 {
   "name": "signalwire",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Client library for connecting to SignalWire.",
   "repository": {
     "type": "git",

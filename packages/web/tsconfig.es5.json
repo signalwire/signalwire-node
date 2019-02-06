@@ -1,0 +1,15 @@
+{
+  "extends": "../common/tsconfig.common",
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es5",
+    "downlevelIteration": true
+  },
+  "include": [
+    "index.ts",
+    "src/**/*"
+  ],
+  "exclude": [
+    "**/__mocks__/**/*"
+  ]
+}

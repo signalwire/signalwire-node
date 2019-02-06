@@ -1,0 +1,15 @@
+{
+  "extends": "../common/tsconfig.common",
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es6",
+    "outDir": "../../dist/cjs"
+  },
+  "include": [
+    "index.ts",
+    "src/**/*"
+  ],
+  "exclude": [
+    "**/__mocks__/**/*"
+  ]
+}

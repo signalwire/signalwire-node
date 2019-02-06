@@ -1,0 +1,10 @@
+{
+  "extends": "../common/tsconfig.common",
+  "include": [
+    "index.ts",
+    "src/**/*"
+  ],
+  "exclude": [
+    "**/__mocks__/**/*"
+  ]
+}

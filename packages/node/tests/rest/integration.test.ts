@@ -1,7 +1,7 @@
 import client from './client'
 const mockServer = require('mockttp').getLocal()
 
-describe('RestClient', function () {
+describe('RestClient', () => {
   beforeEach(async () => {
     await mockServer.start()
     client.api.baseUrl = mockServer.url
@@ -12,7 +12,7 @@ describe('RestClient', function () {
 
   afterEach(() => mockServer.stop())
 
-  describe('Calls', function () {
+  describe('Calls', () => {
     const BASE_URL = `/2010-04-01/Accounts/XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/Calls.json`
 
     it('should create a call', async done => {
@@ -59,7 +59,7 @@ describe('RestClient', function () {
     })
   })
 
-  describe('Faxes', function () {
+  describe('Faxes', () => {
     const BASE_URL = `/2010-04-01/Accounts/XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/Faxes`
 
     it('should create a fax', async done => {

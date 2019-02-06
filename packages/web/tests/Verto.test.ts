@@ -25,13 +25,13 @@ describe('Verto', () => {
     expect(instance).toBeInstanceOf(Verto)
   })
 
-  describe('.validateOptions()', function () {
-    it('should return false with invalid options', function () {
+  describe('.validateOptions()', () => {
+    it('should return false with invalid options', () => {
       instance.options = { host: 'example.fs.edo', project: 'project', token: 'token' }
       expect(instance.validateOptions()).toEqual(false)
     })
 
-    it('should return false with invalid options', function () {
+    it('should return false with invalid options', () => {
       instance.options = { host: 'fs.example.com', login: 'login', passwd: '1234' }
       expect(instance.validateOptions()).toEqual(true)
 

@@ -1,4 +1,4 @@
-import { cleanNumber, objEmpty, mutateLiveArrayData, safeParseJson, isDefined, findElementByType } from '../../src/util/helpers'
+import { cleanNumber, objEmpty, mutateLiveArrayData, safeParseJson, isDefined, findElementByType } from '../src/util/helpers'
 
 describe('Helpers functions', function () {
   describe('cleanNumber', function () {

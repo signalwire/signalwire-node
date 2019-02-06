@@ -1,4 +1,4 @@
-import { register, registerOnce, deRegister, trigger, monitorCallbackQueue } from '../../src/services/Handler'
+import { register, registerOnce, deRegister, trigger, monitorCallbackQueue } from '../src/services/Handler'
 
 describe('Handler', () => {
   const fnMock = jest.fn()

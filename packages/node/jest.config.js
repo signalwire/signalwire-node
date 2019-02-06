@@ -12,6 +12,7 @@ module.exports = {
     '^.+\\.(ts|tsx)$': 'ts-jest'
   },
   rootDir: '../',
+  coverageDirectory: './node/coverage',
   testMatch: [
     '**/(common|node)/tests/**/*.test.(ts|js)'
   ],

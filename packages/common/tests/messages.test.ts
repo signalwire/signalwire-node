@@ -1,5 +1,5 @@
-import { Execute, ProviderAdd, ProviderRemove, Connect, Subscription } from '../../src/messages/Blade'
-import { Login, Invite, Answer, Bye, Modify, Info, Result } from '../../src/messages/Verto'
+import { Execute, ProviderAdd, ProviderRemove, Connect, Subscription } from '../src/messages/Blade'
+import { Login, Invite, Answer, Bye, Modify, Info, Result } from '../src/messages/Verto'
 
 describe('Messages', function () {
   describe('BladeConnect', function () {

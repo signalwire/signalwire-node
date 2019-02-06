@@ -1,4 +1,4 @@
-import { findElementByType } from '../../src/util/helpers'
+import { findElementByType } from '../../common/src/util/helpers'
 
 describe('Helpers browser functions', function () {
   describe('findElementByType', function () {

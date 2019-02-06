@@ -1,6 +1,13 @@
 {
   "rules": {
     "class-name": true,
+    "only-arrow-functions": true,
+    "ban-comma-operator": true,
+    "curly": true,
+    "no-bitwise": true,
+    "no-conditional-assignment": true,
+    "no-duplicate-super": true,
+    "encoding": true,
     "comment-format": [
       true,
       "check-space"
@@ -21,9 +28,8 @@
       "avoid-escape"
     ],
     "semicolon": [
-      false,
-      "always",
-      "ignore-bound-class-methods"
+      true,
+      "never"
     ],
     "whitespace": [
       true,
@@ -32,7 +38,8 @@
       "check-operator",
       "check-module",
       "check-separator",
-      "check-type"
+      "check-type",
+      "check-rest-spread"
     ],
     "typedef-whitespace": [
       true,

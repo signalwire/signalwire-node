@@ -123,8 +123,12 @@ export default class Call implements ICall {
 
   async connect(...peers: any[]) { // FIXME: remove any[]
     const change = (e: any) => {
-      if (e instanceof Array) return e.map(change)
-      if (typeof e === 'string') return [{ type: _detectCallType(e), params: { to_number: cleanNumber(e), timeout: 50 } }]
+      if (e instanceof Array) {
+        return e.map(change)
+      }
+      if (typeof e === 'string') {
+        return [{ type: _detectCallType(e), params: { to_number: cleanNumber(e), timeout: 50 } }]
+      }
       if (typeof e === 'object') {
         const { to_number, timeout = 50 } = e
         return [{ type: _detectCallType(to_number), params: { to_number: cleanNumber(to_number), timeout } }]

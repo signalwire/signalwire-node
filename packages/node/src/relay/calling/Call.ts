@@ -1,18 +1,17 @@
-import logger from '../../../../common/src/util/logger'
-import Calling from './Calling'
 import { Execute } from '../../../../common/src/messages/Blade'
+import { deRegister, registerOnce, trigger } from '../../../../common/src/services/Handler'
+import { CallState, CallType, CALL_STATES, DisconnectReason } from '../../../../common/src/util/constants/relay'
 import { cleanNumber } from '../../../../common/src/util/helpers'
-import { registerOnce, deRegister, trigger } from '../../../../common/src/services/Handler'
 import { ICall, ICallOptions } from '../../../../common/src/util/interfaces'
-import { CallState, CallType, DisconnectReason, CALL_STATES } from '../../../../common/src/util/constants/relay'
+import logger from '../../../../common/src/util/logger'
 import { detectCallType, reduceConnectParams } from '../helpers'
-
-// type ConnectParams = string | DeepArray<string>
+import Calling from './Calling'
 
 export default class Call implements ICall {
   public id: string
   public nodeId: string
   public type: string
+  public connectedWith: Call = null
 
   private _prevState: number = 0
   private _state: number = 0
@@ -56,6 +55,7 @@ export default class Call implements ICall {
     this.id = call_id
     this.nodeId = node_id
     this._state = CallState.created
+    this.relayInstance.addCall(this)
     this._attachListeners()
 
     trigger(this.id, null, this.state, false)

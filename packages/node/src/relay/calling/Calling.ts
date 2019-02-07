@@ -1,11 +1,12 @@
+import { Execute } from '../../../../common/src/messages/Blade'
+import { register, trigger } from '../../../../common/src/services/Handler'
+import logger from '../../../../common/src/util/logger'
 import Relay from '../Relay'
 import Call from './Call'
-import logger from '../../../../common/src/util/logger'
-import { Execute } from '../../../../common/src/messages/Blade'
-import { trigger, register } from '../../../../common/src/services/Handler'
 
 export default class Calling extends Relay {
   service = 'calling'
+  private _calls: { [callId: string]: Call } = {}
   private _inboundUniqueId = 'inbound'
 
   notificationHandler(notification: any) {
@@ -13,7 +14,15 @@ export default class Calling extends Relay {
     const { event_type, timestamp, params } = notification
     switch (event_type) {
       case 'calling.call.state': {
-        const { call_id, call_state, node_id } = params
+        const { call_id, call_state, peer: { call_id: peerCallId = null } = {} } = params
+        const callIds = Object.keys(this._calls)
+        if (!callIds.includes(call_id)) {
+          throw `Unknown call_id: ${call_id}.`
+        }
+        if (peerCallId && callIds.includes(peerCallId)) {
+          this._calls[call_id].connectedWith = this._calls[peerCallId]
+          this._calls[peerCallId].connectedWith = this._calls[call_id]
+        }
         trigger(call_id, null, call_state, false)
         break
       }
@@ -45,5 +54,9 @@ export default class Calling extends Relay {
     const result = await this.session.execute(msg).catch(error => error)
     logger.debug('Register onInbound call:', result)
     register(this._protocol, handler, this._inboundUniqueId)
+  }
+
+  addCall(call: Call) {
+    this._calls[call.id] = call
   }
 }

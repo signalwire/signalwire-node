@@ -1,6 +1,5 @@
 import { CallType } from '../../../common/src/util/constants/relay'
 import { cleanNumber } from '../../../common/src/util/helpers'
-import { callbackify } from 'util'
 
 interface DeepArray<T> extends Array<T | DeepArray<T>> { }
 interface Device {

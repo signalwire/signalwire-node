@@ -24,6 +24,7 @@ export default class Call implements ICall {
   private _cbQueues: { [state: string]: Function } = {}
   private _from_number: string = ''
   private _to_number: string = ''
+  private _timeout: number = 30
 
   constructor(protected relayInstance: Calling, protected options: ICallOptions) {
     console.log('Creating a Call', options)
@@ -39,8 +40,10 @@ export default class Call implements ICall {
       protocol,
       method: 'call.begin',
       params: {
-        type: this.type,
-        params: this.beginParams
+        device: {
+          type: this.type,
+          params: this.beginParams
+        }
       }
     })
 
@@ -166,24 +169,27 @@ export default class Call implements ICall {
   get beginParams() {
     switch (this.type) {
       case CallType.Phone: {
-        const { from_number, to_number } = this.options
+        const { from_number, to_number, timeout = 30 } = this.options
         this._from_number = cleanNumber(from_number)
         this._to_number = cleanNumber(to_number)
-        return { from_number: this._from_number, to_number: this._to_number }
+        this._timeout = Number(timeout) || 30
+        return { from_number: this._from_number, to_number: this._to_number, timeout: this._timeout }
       }
       case CallType.Sip: {
         // TODO: handle SIP params
-        const { from_number, to_number } = this.options
+        const { from_number, to_number, timeout = 30 } = this.options
         this._from_number = cleanNumber(from_number)
         this._to_number = cleanNumber(to_number)
-        return { from_number: this._from_number, to_number: this._to_number }
+        this._timeout = Number(timeout) || 30
+        return { from_number: this._from_number, to_number: this._to_number, timeout: this._timeout }
       }
       case CallType.WebRTC: {
         // TODO: handle WebRTC params
-        const { from_number, to_number } = this.options
+        const { from_number, to_number, timeout = 30 } = this.options
         this._from_number = cleanNumber(from_number)
         this._to_number = cleanNumber(to_number)
-        return { from_number: this._from_number, to_number: this._to_number }
+        this._timeout = Number(timeout) || 30
+        return { from_number: this._from_number, to_number: this._to_number, timeout: this._timeout }
       }
     }
     return {}

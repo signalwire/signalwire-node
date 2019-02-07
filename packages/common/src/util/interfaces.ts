@@ -170,6 +170,7 @@ export interface ICall {
 export interface ICallOptions {
   from_number: string
   to_number: string
+  timeout?: number
   type?: string
   node_id?: string
   call_id?: string

@@ -48,6 +48,7 @@ function _init() {
   const choices = [
     'Test a single call',
     'Make a call and then "call.connect"',
+    'Make a call and play TTS',
     { name: 'Send a message', disabled: 'not ready yet :) ' },
     'Just Exit'
   ]
@@ -72,6 +73,13 @@ function _init() {
       message: 'Enter the number to connect the answered call:',
       when: answers => answers.choice === choices[1],
       default: () => '2083660792'
+    },
+    {
+      type: 'input',
+      name: 'tts_to_play',
+      message: 'Enter TTS to play:',
+      when: answers => answers.choice === choices[2],
+      default: () => 'Hey There, Welcome at SignalWire!'
     }
   ]
   inquirer.prompt(questions).then(async answers => {
@@ -83,10 +91,19 @@ function _init() {
       return _init()
     }
     const call = await makeCall(answers.to_number)
+
     if (answers.connect_to_number) {
       call.on('answered', call => {
         call.connect(answers.connect_to_number).then(() => {
           console.log(`\tCall connected?`)
+        })
+      })
+    }
+
+    if (answers.tts_to_play) {
+      call.on('answered', call => {
+        call.playTTS({ text: answers.tts_to_play} ).then(() => {
+          console.log(`\t TTS received?`)
         })
       })
     }

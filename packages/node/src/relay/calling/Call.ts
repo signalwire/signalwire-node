@@ -92,7 +92,7 @@ export default class Call implements ICall {
     logger.debug('Answer call:', result)
   }
 
-  async join(callsToJoin: Call | Call[]) {
+  async join(callsToJoin: Call | Call[]) { // TODO: wip
     let calls = []
     if (callsToJoin instanceof Array) {
       calls = callsToJoin.map((c: Call) => c.id)
@@ -108,6 +108,33 @@ export default class Call implements ICall {
     const msg = new Execute({
       protocol,
       method: 'call.join',
+      params: {
+        node_id: this.nodeId,
+        call_id: this.id,
+        calls
+      }
+    })
+
+    const result = await session.execute(msg).catch(error => error)
+    logger.debug('Join calls:', result)
+  }
+
+  async leave(callsToLeave: Call | Call[]) { // TODO: wip
+    let calls = []
+    if (callsToLeave instanceof Array) {
+      calls = callsToLeave.map((c: Call) => c.id)
+    } else if (callsToLeave instanceof Call) {
+      calls = [callsToLeave.id]
+    } else {
+      throw `Unknow parameter type for leave. ${callsToLeave}`
+    }
+    if (!calls.length) {
+      throw `No Calls to leave`
+    }
+    const { protocol, session } = this.relayInstance
+    const msg = new Execute({
+      protocol,
+      method: 'call.leave',
       params: {
         node_id: this.nodeId,
         call_id: this.id,

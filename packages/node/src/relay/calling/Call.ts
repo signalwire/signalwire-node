@@ -5,14 +5,9 @@ import { cleanNumber } from '../../../../common/src/util/helpers'
 import { registerOnce, deRegister, trigger } from '../../../../common/src/services/Handler'
 import { ICall, ICallOptions } from '../../../../common/src/util/interfaces'
 import { CallState, CallType, DisconnectReason, CALL_STATES } from '../../../../common/src/util/constants/relay'
+import { detectCallType, reduceConnectParams } from '../helpers'
 
-// interface DeepArray<T> extends Array<T | DeepArray<T>> { }
 // type ConnectParams = string | DeepArray<string>
-
-const _detectCallType = (to: string): string => {
-  // TODO: check call type by "to"
-  return CallType.Phone
-}
 
 export default class Call implements ICall {
   public id: string
@@ -31,7 +26,7 @@ export default class Call implements ICall {
     this._attachListeners = this._attachListeners.bind(this)
     this._detachListeners = this._detachListeners.bind(this)
     const { type, to_number } = options
-    this.type = type ? type : _detectCallType(to_number)
+    this.type = type ? type : detectCallType(to_number)
   }
 
   async begin() {
@@ -125,19 +120,7 @@ export default class Call implements ICall {
   }
 
   async connect(...peers: any[]) { // FIXME: remove any[]
-    const change = (e: any) => {
-      if (e instanceof Array) {
-        return e.map(change)
-      }
-      if (typeof e === 'string') {
-        return [{ type: _detectCallType(e), params: { to_number: cleanNumber(e), timeout: 50 } }]
-      }
-      if (typeof e === 'object') {
-        const { to_number, timeout = 50 } = e
-        return [{ type: _detectCallType(to_number), params: { to_number: cleanNumber(to_number), timeout } }]
-      }
-    }
-    const devices = peers.map(change)
+    const devices = reduceConnectParams(peers, this._from_number, this._timeout)
     if (!devices.length) {
       throw `No peers to connect!`
     }
@@ -148,7 +131,6 @@ export default class Call implements ICall {
       params: {
         node_id: this.nodeId,
         call_id: this.id,
-        from_number: this._from_number,
         devices
       }
     })

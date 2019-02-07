@@ -2,11 +2,10 @@ FROM node:11-alpine
 WORKDIR /home/node/app
 
 COPY ./package* ./
-RUN npm install && \
-    npm cache clean --force
-    
+RUN npm install
+
 COPY . .
 
-RUN npm run build-ts
-CMD npm test
-
+RUN npm run clean-build
+CMD npm run test:web && \
+  npm run test:node

@@ -167,6 +167,50 @@ export default class Call implements ICall {
     logger.debug('Connect to calls:', result)
   }
 
+  playAudio(location: string) {
+    const params = [{ type: 'audio', params: { location } }]
+    return this.play(params)
+  }
+
+  playVideo(location: string) {
+    const params = [{ type: 'video', params: { location } }]
+    return this.play(params)
+  }
+
+  playSilence(duration: number) {
+    const params = [{ type: 'silence', params: { duration } }]
+    return this.play(params)
+  }
+
+  playTTS(options: { text: string, language: string, gender: string, name: string }) {
+    const { text = null, language = 'en-US', gender = 'male', name = 'bob' } = options
+    if (!text) {
+      throw '"text" is required to play TTS.'
+    }
+    const params = [{ type: 'tts', params: { text, language, gender, name } }]
+    return this.play(params)
+  }
+
+  async play(play: any[]) { // FIXME: remove any[]
+    if (!play.length) {
+      throw `No actions to play!`
+    }
+    const { protocol, session } = this.relayInstance
+    const msg = new Execute({
+      protocol,
+      method: 'call.play',
+      params: {
+        node_id: this.nodeId,
+        call_id: this.id,
+        play
+      }
+    })
+    logger.debug('Play msg:', msg)
+
+    const result = await session.execute(msg).catch(error => error)
+    logger.debug('Play on call:', result)
+  }
+
   get prevState() {
     return CallState[this._prevState]
   }

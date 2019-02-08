@@ -1,9 +1,9 @@
 import { v4 as uuidv4 } from 'uuid'
 // import logger from './util/logger'
 import Connection from './services/Connection'
-import { ISignalWireOptions, SubscribeParams, BroadcastParams } from './util/interfaces'
-import { register, deRegister } from './services/Handler'
+import { deRegister, register } from './services/Handler'
 import { SwEvent } from './util/constants'
+import { BroadcastParams, ISignalWireOptions, SubscribeParams } from './util/interfaces'
 
 export default abstract class BaseSession {
   public uuid: string = uuidv4()
@@ -60,7 +60,7 @@ export default abstract class BaseSession {
 
   protected _addSubscription(channel: string, handler: Function = null, uniqueId?: string) {
     this.subscriptions[channel] = {}
-    if (handler instanceof Function) {
+    if (handler instanceof Function || typeof handler === 'function') {
       register(channel, handler, uniqueId)
     }
   }

@@ -23,7 +23,6 @@ export default class Call implements ICall {
   private _mediaControlId: string = ''
 
   constructor(protected relayInstance: Calling, protected options: ICallOptions) {
-    console.log('Creating a Call', options)
     this._attachListeners = this._attachListeners.bind(this)
     this._detachListeners = this._detachListeners.bind(this)
     const { type, to_number } = options

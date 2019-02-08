@@ -1,8 +1,7 @@
-import Verto from '../src/Verto'
-import Dialog from '../src/rtc/Dialog'
 import { monitorCallbackQueue } from '../../common/src/services/Handler'
 import { State } from '../../common/src/util/constants/dialog'
-import { mockMediaDevices } from './mocks'
+import Dialog from '../src/rtc/Dialog'
+import Verto from '../src/Verto'
 const Connection = require('../../common/src/services/Connection')
 jest.mock('../../common/src/services/Connection')
 
@@ -17,10 +16,6 @@ describe('Dialog', () => {
     callerNumber: '5678',
   }
   const noop = (): void => {}
-
-  beforeAll(() => {
-    mockMediaDevices()
-  })
 
   beforeEach(async done => {
     session = new Verto({ host: 'example.fs.edo', login: 'login', passwd: 'passwd' })

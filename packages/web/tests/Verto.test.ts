@@ -1,16 +1,11 @@
-import Verto from '../src/Verto'
 import { monitorCallbackQueue } from '../../common/src/services/Handler'
-import { mockMediaDevices } from './mocks'
+import Verto from '../src/Verto'
 const Connection = require('../../common/src/services/Connection')
 jest.mock('../../common/src/services/Connection')
 
 describe('Verto', () => {
   let instance: Verto
   const noop = (): void => { }
-
-  beforeAll(() => {
-    mockMediaDevices()
-  })
 
   beforeEach(async done => {
     Connection.mockSend.mockClear()

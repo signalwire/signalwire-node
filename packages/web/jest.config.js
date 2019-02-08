@@ -16,5 +16,8 @@ module.exports = {
 	testMatch: [
 		'**/(common|web)/tests/**/*.test.(ts|js)'
 	],
-	preset: 'ts-jest'
+	preset: 'ts-jest',
+	setupFiles: [
+		'./common/tests/browserMocks.ts'
+	]
 }

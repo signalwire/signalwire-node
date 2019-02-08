@@ -169,17 +169,17 @@ export default class Call implements ICall {
 
   playAudio(location: string) {
     const params = [{ type: 'audio', params: { location } }]
-    return this.play(params)
+    return this.playMedia(params)
   }
 
   playVideo(location: string) {
     const params = [{ type: 'video', params: { location } }]
-    return this.play(params)
+    return this.playMedia(params)
   }
 
   playSilence(duration: number) {
     const params = [{ type: 'silence', params: { duration } }]
-    return this.play(params)
+    return this.playMedia(params)
   }
 
   playTTS(options: { text: string, language: string, gender: string, name: string }) {
@@ -188,10 +188,10 @@ export default class Call implements ICall {
       throw '"text" is required to play TTS.'
     }
     const params = [{ type: 'tts', params: { text, language, gender, name } }]
-    return this.play(params)
+    return this.playMedia(params)
   }
 
-  async play(play: any[]) { // FIXME: remove any[]
+  async playMedia(play: any[]) { // FIXME: remove any[]
     if (!play.length) {
       throw `No actions to play!`
     }

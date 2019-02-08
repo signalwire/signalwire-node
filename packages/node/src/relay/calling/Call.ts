@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from 'uuid'
 import { Execute } from '../../../../common/src/messages/Blade'
 import { deRegister, registerOnce, trigger } from '../../../../common/src/services/Handler'
 import { CallState, CallType, CALL_STATES, DisconnectReason } from '../../../../common/src/util/constants/relay'
@@ -19,6 +20,7 @@ export default class Call implements ICall {
   private _from_number: string = ''
   private _to_number: string = ''
   private _timeout: number = 30
+  private _mediaControlId: string = ''
 
   constructor(protected relayInstance: Calling, protected options: ICallOptions) {
     console.log('Creating a Call', options)
@@ -161,7 +163,6 @@ export default class Call implements ICall {
         devices
       }
     })
-    logger.debug('Connect msg:', msg)
 
     const result = await session.execute(msg).catch(error => error)
     logger.debug('Connect to calls:', result)
@@ -195,6 +196,7 @@ export default class Call implements ICall {
     if (!play.length) {
       throw `No actions to play!`
     }
+    this._mediaControlId = uuidv4()
     const { protocol, session } = this.relayInstance
     const msg = new Execute({
       protocol,
@@ -202,13 +204,34 @@ export default class Call implements ICall {
       params: {
         node_id: this.nodeId,
         call_id: this.id,
+        control_id: this._mediaControlId,
         play
       }
     })
-    logger.debug('Play msg:', msg)
 
     const result = await session.execute(msg).catch(error => error)
+    // TODO: handle error
     logger.debug('Play on call:', result)
+  }
+
+  async stopMedia() {
+    if (!this._mediaControlId) {
+      throw `There is no media to stop!`
+    }
+    const { protocol, session } = this.relayInstance
+    const msg = new Execute({
+      protocol,
+      method: 'call.play.stop',
+      params: {
+        node_id: this.nodeId,
+        call_id: this.id,
+        control_id: this._mediaControlId
+      }
+    })
+
+    const result = await session.execute(msg).catch(error => error)
+    // TODO: handle error
+    logger.debug('Stop media on call:', result)
   }
 
   get prevState() {

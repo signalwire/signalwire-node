@@ -52,6 +52,10 @@ export default class SignalWire extends BrowserSession {
    * protected methods
    */
 
+  protected async _onDisconnect() {
+    // TODO: sent unsubscribe for all subscriptions?
+  }
+
   protected async _onSocketOpen() {
     const bc = new Connect({ project: this.options.project, token: this.options.token }, this.sessionid)
     const response: IBladeConnectResult = await this.execute(bc)

@@ -5,7 +5,7 @@ import Cache from '../../common/src/util/Cache'
 import { IBladeConnectResult, SubscribeParams, BroadcastParams } from '../../common/src/util/interfaces'
 import { BroadcastHandler } from '../../common/src/services/Broadcast'
 import { ADD, REMOVE, SwEvent } from '../../common/src/util/constants'
-import { trigger } from '../../common/src/services/Handler'
+import { trigger, deRegisterAll } from '../../common/src/services/Handler'
 import Calling from './relay/calling/Calling'
 import Connection from '../../common/src/services/Connection'
 
@@ -64,6 +64,11 @@ export default class SignalWire extends BaseSession {
   /**
    * protected methods
    */
+
+  protected async _onDisconnect() {
+    // TODO: sent unsubscribe for all subscriptions?
+    deRegisterAll(this.calling.protocol)
+  }
 
   protected async _onSocketOpen() {
     const bc = new Connect({ project: this.options.project, token: this.options.token }, this.sessionid)

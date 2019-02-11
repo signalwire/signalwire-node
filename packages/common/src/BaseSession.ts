@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid'
 // import logger from './util/logger'
 import Connection from './services/Connection'
-import { deRegister, register } from './services/Handler'
+import { deRegister, register, trigger } from './services/Handler'
 import { SwEvent } from './util/constants'
 import { BroadcastParams, ISignalWireOptions, SubscribeParams } from './util/interfaces'
 
@@ -16,10 +16,13 @@ export default abstract class BaseSession {
     if (!this.validateOptions()) {
       throw new Error('SignalWire: Invalid init options')
     }
-    this.on(SwEvent.SocketOpen, this._onSocketOpen.bind(this))
-    this.on(SwEvent.SocketClose, this._onSocketClose.bind(this))
-    this.on(SwEvent.SocketError, this._onSocketError.bind(this))
-    this.on(SwEvent.SocketMessage, this._onSocketMessage.bind(this))
+    this._onDisconnect = this._onDisconnect.bind(this)
+    this._onSocketOpen = this._onSocketOpen.bind(this)
+    this._onSocketClose = this._onSocketClose.bind(this)
+    this._onSocketError = this._onSocketError.bind(this)
+    this._onSocketMessage = this._onSocketMessage.bind(this)
+
+    this._attachListeners()
   }
 
   abstract validateOptions(): boolean
@@ -29,11 +32,13 @@ export default abstract class BaseSession {
   abstract async connect(): Promise<void>
 
   disconnect() {
+    trigger(SwEvent.Disconnect, null, this.uuid, false)
     this.subscriptions = {}
     if (this._connection) {
       this._connection.close()
     }
     this._connection = null
+    this._detachListeners()
   }
 
   on(eventName: string, callback: Function) {
@@ -48,6 +53,7 @@ export default abstract class BaseSession {
     return this._connection.send(msg)
   }
 
+  protected abstract _onDisconnect(): void
   protected abstract _onSocketOpen(): void
   protected abstract _onSocketClose(): void
   protected abstract _onSocketError(error): void
@@ -63,6 +69,22 @@ export default abstract class BaseSession {
     if (handler instanceof Function || typeof handler === 'function') {
       register(channel, handler, uniqueId)
     }
+  }
+
+  private _attachListeners() {
+    this.on(SwEvent.Disconnect, this._onDisconnect)
+    this.on(SwEvent.SocketOpen, this._onSocketOpen)
+    this.on(SwEvent.SocketClose, this._onSocketClose)
+    this.on(SwEvent.SocketError, this._onSocketError)
+    this.on(SwEvent.SocketMessage, this._onSocketMessage)
+  }
+
+  private _detachListeners() {
+    this.off(SwEvent.Disconnect, this._onDisconnect)
+    this.off(SwEvent.SocketOpen, this._onSocketOpen)
+    this.off(SwEvent.SocketClose, this._onSocketClose)
+    this.off(SwEvent.SocketError, this._onSocketError)
+    this.off(SwEvent.SocketMessage, this._onSocketMessage)
   }
 
   static on(eventName: string, callback: any) {

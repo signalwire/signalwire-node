@@ -41,7 +41,7 @@ describe('Verto', () => {
     })
 
     it('should register socket listeners', () => {
-      const listeners = ['signalwire.socket.close', 'signalwire.socket.open', 'signalwire.socket.error', 'signalwire.socket.message']
+      const listeners = ['signalwire.internal.disconnect', 'signalwire.socket.close', 'signalwire.socket.open', 'signalwire.socket.error', 'signalwire.socket.message']
       const queue = monitorCallbackQueue()
       expect(Object.keys(queue).sort()).toEqual(listeners.sort())
     })
@@ -56,7 +56,8 @@ describe('Verto', () => {
       it('should do nothing', async done => {
         await instance.connect()
         expect(Connection.mockClose).not.toHaveBeenCalled()
-        expect(Connection.default).toHaveBeenCalledTimes(1)
+        const q = monitorCallbackQueue()['signalwire.socket.open'][instance.uuid]
+        expect(q).toHaveLength(1)
         done()
       })
     })
@@ -74,6 +75,7 @@ describe('Verto', () => {
 
   describe('.disconnect()', () => {
     it('should close the connection', () => {
+      instance.disconnect()
       expect(Connection.mockClose).toHaveBeenCalled()
       expect(instance.dialogs).toMatchObject({})
       expect(instance.subscriptions).toMatchObject({})

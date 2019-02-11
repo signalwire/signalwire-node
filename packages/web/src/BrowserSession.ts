@@ -26,11 +26,7 @@ export default abstract class BrowserSession extends BaseSession {
   abstract broadcast(params: BroadcastParams): void
 
   async connect(): Promise<void> {
-    if (this._connection && this._connection.connected) {
-      // logger.warn('Session already connected')
-      return
-    }
-
+    super.checkConnection()
     const permissionPromise = checkPermissions()
     const devicePromise = this.refreshDevices()
 

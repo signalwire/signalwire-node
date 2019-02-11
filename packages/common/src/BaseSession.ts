@@ -21,8 +21,6 @@ export default abstract class BaseSession {
     this._onSocketClose = this._onSocketClose.bind(this)
     this._onSocketError = this._onSocketError.bind(this)
     this._onSocketMessage = this._onSocketMessage.bind(this)
-
-    this._attachListeners()
   }
 
   abstract validateOptions(): boolean
@@ -30,6 +28,17 @@ export default abstract class BaseSession {
   abstract async unsubscribe(params: SubscribeParams): Promise<any>
   abstract broadcast(params: BroadcastParams): void
   abstract async connect(): Promise<void>
+
+  protected checkConnection() {
+    if (this._connection) {
+      if (this._connection.connected) {
+        return
+      }
+      this.disconnect()
+    }
+
+    this._attachListeners()
+  }
 
   disconnect() {
     trigger(SwEvent.Disconnect, null, this.uuid, false)
@@ -71,7 +80,7 @@ export default abstract class BaseSession {
     }
   }
 
-  private _attachListeners() {
+  protected _attachListeners() {
     this.on(SwEvent.Disconnect, this._onDisconnect)
     this.on(SwEvent.SocketOpen, this._onSocketOpen)
     this.on(SwEvent.SocketClose, this._onSocketClose)
@@ -79,7 +88,7 @@ export default abstract class BaseSession {
     this.on(SwEvent.SocketMessage, this._onSocketMessage)
   }
 
-  private _detachListeners() {
+  protected _detachListeners() {
     this.off(SwEvent.Disconnect, this._onDisconnect)
     this.off(SwEvent.SocketOpen, this._onSocketOpen)
     this.off(SwEvent.SocketClose, this._onSocketClose)

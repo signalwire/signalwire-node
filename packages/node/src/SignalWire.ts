@@ -18,11 +18,7 @@ export default class SignalWire extends BaseSession {
   private _cache: Cache = new Cache()
 
   async connect(): Promise<void> {
-    if (this._connection && this._connection.connected) {
-      logger.warn('Session already connected')
-      return
-    }
-
+    super.checkConnection()
     this._connection = new Connection(this)
   }
 

@@ -49,6 +49,7 @@ function _init() {
     'Test a single call',
     'Make a call and then "call.connect"',
     'Make a call and play TTS',
+    'Register a listener for inbound calls',
     { name: 'Send a message', disabled: 'not ready yet :) ' },
     'Just Exit'
   ]
@@ -64,51 +65,65 @@ function _init() {
       type: 'input',
       name: 'to_number',
       message: 'Enter the number to call:',
-      when: answers => answers.choice !== exitChoice,
+      when: ({ choice }) => choice === choices[1] || choice === choices[2],
       default: () => '2083660792'
     },
     {
       type: 'input',
       name: 'connect_to_number',
       message: 'Enter the number to connect the answered call:',
-      when: answers => answers.choice === choices[1],
+      when: ({ choice }) => choice === choices[1],
       default: () => '2083660792'
     },
     {
       type: 'input',
       name: 'tts_to_play',
       message: 'Enter TTS to play:',
-      when: answers => answers.choice === choices[2],
+      when: ({ choice }) => choice === choices[2],
       default: () => 'Hey There, Welcome at SignalWire!'
+    },
+    {
+      type: 'input',
+      name: 'context',
+      message: 'Context to listen on:',
+      when: ({ choice }) => choice === choices[3]
     }
   ]
   inquirer.prompt(questions).then(async answers => {
     if (answers.choice === exitChoice) {
       return process.exit()
     }
-    if (!answers.to_number) {
-      console.warn('Please, enter the number to call!\n')
+    if (!answers.to_number && !answers.context) {
       return _init()
     }
-    const call = await makeCall(answers.to_number)
 
-    if (answers.connect_to_number) {
-      call.on('answered', call => {
-        call.connect(answers.connect_to_number).then(() => {
-          console.log(`\tCall connected?`)
+    if (answers.to_number) {
+      const call = await makeCall(answers.to_number)
+
+      if (answers.connect_to_number) {
+        call.on('answered', call => {
+          call.connect(answers.connect_to_number).then(() => {
+            console.log(`\tCall connected?`)
+          })
         })
-      })
-    }
+      }
 
-    if (answers.tts_to_play) {
-      call.on('answered', call => {
-        call.playTTS({ text: answers.tts_to_play} ).then(() => {
-          console.log(`\t TTS received?`)
+      if (answers.tts_to_play) {
+        call.on('answered', call => {
+          call.playTTS({ text: answers.tts_to_play} ).then(() => {
+            console.log(`\t TTS received?`)
+          })
         })
-      })
-    }
+      }
+      console.warn(`\tCall to ${answers.to_number} starts now!\n`)
+      call.begin()
 
-    console.warn(`\tCall to ${answers.to_number} starts now!\n`)
-    call.begin()
+    } else if (answers.context) {
+      await client.calling.onInbound(answers.context, call => {
+        console.warn(`Inbound call on "${call.context}"`, call)
+      })
+      console.log(`Listener for ${answers.context} started..\n`)
+      return _init()
+    }
   })
 }

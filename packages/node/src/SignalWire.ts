@@ -21,8 +21,6 @@ export default class SignalWire extends BaseSession {
     if (this._connection && this._connection.connected) {
       logger.warn('Session already connected')
       return
-    } else {
-      this.disconnect()
     }
 
     this._connection = new Connection(this)

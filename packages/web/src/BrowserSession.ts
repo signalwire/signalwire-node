@@ -29,8 +29,6 @@ export default abstract class BrowserSession extends BaseSession {
     if (this._connection && this._connection.connected) {
       // logger.warn('Session already connected')
       return
-    } else {
-      this.disconnect()
     }
 
     const permissionPromise = checkPermissions()

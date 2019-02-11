@@ -241,6 +241,10 @@ export default class Call implements ICall {
     return CallState[this._state]
   }
 
+  get context() {
+    return this.options.context
+  }
+
   get beginParams() {
     switch (this.type) {
       case CallType.Phone: {

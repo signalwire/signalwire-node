@@ -4,10 +4,11 @@ import logger from '../../../../common/src/util/logger'
 import Relay from '../Relay'
 import Call from './Call'
 
+const _ctxUniqueId = (context: string): string => `ctx:${context}`
+
 export default class Calling extends Relay {
   service = 'calling'
   private _calls: { [callId: string]: Call } = {}
-  private _inboundUniqueId = 'inbound'
 
   notificationHandler(notification: any) {
     // logger.warn(`Relay ${this.service} notification on proto ${this._protocol}`, notification)
@@ -28,7 +29,7 @@ export default class Calling extends Relay {
       }
       case 'calling.call.receive': {
         const call = new Call(this, params)
-        trigger(this._protocol, call, this._inboundUniqueId)
+        trigger(this._protocol, call, _ctxUniqueId(call.context))
         break
       }
       case 'calling.call.connect':
@@ -53,7 +54,7 @@ export default class Calling extends Relay {
 
     const result = await this.session.execute(msg).catch(error => error)
     logger.debug('Register onInbound call:', result)
-    register(this._protocol, handler, this._inboundUniqueId)
+    register(this._protocol, handler, _ctxUniqueId(context))
   }
 
   addCall(call: Call) {

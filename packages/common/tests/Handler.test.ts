@@ -1,4 +1,4 @@
-import { register, registerOnce, deRegister, trigger, monitorCallbackQueue } from '../src/services/Handler'
+import { register, registerOnce, deRegister, deRegisterAll, trigger, monitorCallbackQueue } from '../src/services/Handler'
 
 describe('Handler', () => {
   const fnMock = jest.fn()
@@ -128,6 +128,20 @@ describe('Handler', () => {
       expect(fnMock).not.toHaveBeenCalled()
       expect(fnMock2).toHaveBeenCalledTimes(1)
       expect(fnMock2).toBeCalledWith(null)
+    })
+  })
+
+  describe('deRegisterAll()', () => {
+    it('should remove all registered callbacks for that given eventName', () => {
+      register(eventName, fnMock)
+      register(eventName, fnMock, uniqueId)
+
+      deRegisterAll(eventName)
+      expect(monitorCallbackQueue()).not.toHaveProperty(eventName)
+
+      trigger(eventName, null)
+      trigger(eventName, null, uniqueId)
+      expect(fnMock).not.toHaveBeenCalled()
     })
   })
 })

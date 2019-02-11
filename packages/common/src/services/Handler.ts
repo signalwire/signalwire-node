@@ -82,10 +82,18 @@ const trigger = (eventName: string, data: any, uniqueId: string = GLOBAL, global
   return true
 }
 
+/**
+ * Remove all subscriptions
+ */
+const deRegisterAll = (eventName: string) => {
+  delete queue[eventName]
+}
+
 export {
   trigger,
   register,
   registerOnce,
   deRegister,
+  deRegisterAll,
   monitorCallbackQueue
 }

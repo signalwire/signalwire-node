@@ -29,10 +29,11 @@ export default class Call implements ICall {
     this.nodeId = node_id
     this._device = device
     this._state = Number(CallState[call_state])
-    this.relayInstance.addCall(this)
-    this._attachListeners()
-
-    trigger(this.id, null, this.state, false)
+    if (this.id) {
+      this.relayInstance.addCall(this)
+      this._attachListeners()
+      trigger(this.id, this, this.state, false)
+    }
   }
 
   async begin() {

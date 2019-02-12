@@ -167,11 +167,17 @@ export interface ICall {
   off: Function
 }
 
+export interface ICallDevice {
+  type: string
+  params: {
+    from_number: string
+    to_number: string
+    timeout: number
+  }
+}
+
 export interface ICallOptions {
-  from_number: string
-  to_number: string
-  timeout?: number
-  type?: string
+  device: ICallDevice
   node_id?: string
   call_id?: string
   call_state?: string

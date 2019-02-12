@@ -1,6 +1,9 @@
 import { Execute } from '../../../../common/src/messages/Blade'
+import { cleanNumber } from '../../../../common/src/util/helpers'
 import { register, trigger } from '../../../../common/src/services/Handler'
+import { ICallDevice } from '../../../../common/src/util/interfaces'
 import logger from '../../../../common/src/util/logger'
+import { detectCallType } from '../helpers'
 import Relay from '../Relay'
 import Call from './Call'
 
@@ -37,10 +40,17 @@ export default class Calling extends Relay {
     }
   }
 
-  async makeCall(from_number: string, to_number: string) {
+  async makeCall(from: string, to: string, timeout: number = 30) {
     await this.setup()
-
-    return new Call(this, { from_number, to_number })
+    const device: ICallDevice = {
+      type: detectCallType(to),
+      params: {
+        from_number: cleanNumber(from),
+        to_number: cleanNumber(to),
+        timeout: Number(timeout)
+      }
+    }
+    return new Call(this, { device })
   }
 
   async onInbound(context: string, handler: Function) {

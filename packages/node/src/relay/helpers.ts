@@ -1,15 +1,8 @@
 import { CallType } from '../../../common/src/util/constants/relay'
 import { cleanNumber } from '../../../common/src/util/helpers'
+import { ICallDevice } from '../../../common/src/util/interfaces'
 
 interface DeepArray<T> extends Array<T | DeepArray<T>> { }
-interface Device {
-  type: string
-  params: {
-    to_number: string,
-    from_number: string,
-    timeout: number
-  }
-}
 
 export const detectCallType = (to: string): string => {
   // TODO: check call type by "to"
@@ -17,13 +10,14 @@ export const detectCallType = (to: string): string => {
 }
 
 interface DeviceAccumulator {
-  devices: DeepArray<Device>,
+  devices: DeepArray<ICallDevice>,
   nested: boolean
 }
 
-export const reduceConnectParams = (peers: any[], defaultFromNumber: string, defaultTimeout: number): DeepArray<Device> => {
+export const reduceConnectParams = (peers: any[], callDevice: ICallDevice): DeepArray<ICallDevice> => {
+  const { params: { from_number: defaultFromNumber, timeout: defaultTimeout } } = callDevice
   const _reducer = (accumulator: DeviceAccumulator, peer: any, currentIndex: number, sourceArray: any[]) => {
-    let tmp: Device = null
+    let tmp: ICallDevice = null
     if (peer instanceof Array) {
       tmp = peer.reduce(_reducer, { devices: [], nested: true }).devices
     } else if (typeof peer === 'string') {

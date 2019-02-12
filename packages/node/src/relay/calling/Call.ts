@@ -10,7 +10,6 @@ import Calling from './Calling'
 export default class Call implements ICall {
   public id: string
   public nodeId: string
-  public connectedWith: Call = null
 
   private _prevState: number = 0
   private _state: number = 0
@@ -242,6 +241,11 @@ export default class Call implements ICall {
 
   get context() {
     return this.options.context
+  }
+
+  get peer(): Call {
+    const { peer: { call_id = null } = {} } = this.options
+    return this.relayInstance.getCall(call_id)
   }
 
   on(eventName: string, callback: Function) {

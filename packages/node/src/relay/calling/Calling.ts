@@ -14,20 +14,15 @@ export default class Calling extends Relay {
   private _calls: { [callId: string]: Call } = {}
 
   notificationHandler(notification: any) {
-    // logger.warn(`Relay ${this.service} notification on proto ${this._protocol}`, notification)
-    const { event_type, timestamp, params } = notification
+    const { event_type, params } = notification
     switch (event_type) {
       case 'calling.call.state': {
-        const { call_id, call_state, peer: { call_id: peerCallId = null } = {} } = params
-        const callIds = Object.keys(this._calls)
-        if (!callIds.includes(call_id)) {
-          throw `Unknown call_id: ${call_id}.`
+        const { call_id, call_state } = params
+        if (!this.callExists(call_id)) {
+          this._calls[call_id] = new Call(this, params)
+          return
         }
-        if (peerCallId && callIds.includes(peerCallId)) {
-          this._calls[call_id].connectedWith = this._calls[peerCallId]
-          this._calls[peerCallId].connectedWith = this._calls[call_id]
-        }
-        trigger(call_id, null, call_state, false)
+        trigger(call_id, this.getCall(call_id), call_state, false)
         break
       }
       case 'calling.call.receive': {
@@ -69,5 +64,13 @@ export default class Calling extends Relay {
 
   addCall(call: Call) {
     this._calls[call.id] = call
+  }
+
+  getCall(callId: string) {
+    return this._calls[callId]
+  }
+
+  callExists(callId: string) {
+    return Object.keys(this._calls).includes(callId)
   }
 }

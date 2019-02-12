@@ -1,11 +1,10 @@
 import { v4 as uuidv4 } from 'uuid'
 import { Execute } from '../../../../common/src/messages/Blade'
 import { deRegister, registerOnce, trigger } from '../../../../common/src/services/Handler'
-import { CallState, CallType, CALL_STATES, DisconnectReason } from '../../../../common/src/util/constants/relay'
-import { cleanNumber } from '../../../../common/src/util/helpers'
-import { ICall, ICallOptions } from '../../../../common/src/util/interfaces'
+import { CallState, CALL_STATES, DisconnectReason } from '../../../../common/src/util/constants/relay'
+import { ICall, ICallOptions, ICallDevice } from '../../../../common/src/util/interfaces'
 import logger from '../../../../common/src/util/logger'
-import { detectCallType, reduceConnectParams } from '../helpers'
+import { reduceConnectParams } from '../helpers'
 import Calling from './Calling'
 
 export default class Call implements ICall {
@@ -22,8 +21,19 @@ export default class Call implements ICall {
   constructor(protected relayInstance: Calling, protected options: ICallOptions) {
     this._attachListeners = this._attachListeners.bind(this)
     this._detachListeners = this._detachListeners.bind(this)
-    const { type, to_number } = options
-    this.type = type ? type : detectCallType(to_number)
+    this._init(this.options)
+  }
+
+  private _init(params: any) {
+    const { call_id, call_state = CallState[1], device, node_id } = params
+    this.id = call_id
+    this.nodeId = node_id
+    this._device = device
+    this._state = Number(CallState[call_state])
+    this.relayInstance.addCall(this)
+    this._attachListeners()
+
+    trigger(this.id, null, this.state, false)
   }
 
   async begin() {
@@ -47,13 +57,8 @@ export default class Call implements ICall {
       logger.error('Begin call not 200', call_id, code, node_id)
       throw 'Error creating the call'
     }
-    this.id = call_id
-    this.nodeId = node_id
-    this._state = CallState.created
-    this.relayInstance.addCall(this)
-    this._attachListeners()
 
-    trigger(this.id, null, this.state, false)
+    this._init(result)
   }
 
   async hangup() {

@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid'
 import { Execute } from '../../../../common/src/messages/Blade'
 import { deRegister, registerOnce, trigger } from '../../../../common/src/services/Handler'
-import { CallState, CALL_STATES, DisconnectReason } from '../../../../common/src/util/constants/relay'
+import { CallState, CALL_STATES, DisconnectReason, CallConnectState } from '../../../../common/src/util/constants/relay'
 import { ICall, ICallOptions, ICallDevice } from '../../../../common/src/util/interfaces'
 import logger from '../../../../common/src/util/logger'
 import { reduceConnectParams } from '../helpers'
@@ -162,8 +162,22 @@ export default class Call implements ICall {
       }
     })
 
-    const result = await session.execute(msg).catch(error => error)
-    logger.debug('Connect to calls:', result)
+    const response = await session.execute(msg).catch(error => error)
+    const { result } = response
+    if (!result) {
+      logger.error('Connect call', response)
+      throw 'Error connecting the call'
+    }
+    const { code } = result
+    if (code !== '200') {
+      throw result
+    }
+    const awaiter = await new Promise((resolve, reject) => {
+      registerOnce(this.id, resolve.bind(this), CallConnectState.Connected)
+      registerOnce(this.id, reject.bind(this), CallConnectState.Failed)
+    })
+
+    return awaiter
   }
 
   playAudio(location: string) {

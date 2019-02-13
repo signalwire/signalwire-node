@@ -44,6 +44,36 @@ describe('Call', () => {
       expect(session.calling.addCall).not.toHaveBeenCalled()
     })
 
+    it('should not have peers', () => {
+      expect(call.peer).toBeUndefined()
+    })
+
+    const _commonThrow = (methodToCall: Function) => {
+      expect(methodToCall()).toThrow('Call not started yet')
+    }
+
+    it('should throw with .hangup()', () => {
+      _commonThrow.bind(this, () => { call.hangup() })
+    })
+    it('should throw with .answer()', () => {
+      _commonThrow.bind(this, () => { call.answer() })
+    })
+    it('should throw with .join()', () => {
+      _commonThrow.bind(this, () => { call.join(call) })
+    })
+    it('should throw with .leave()', () => {
+      _commonThrow.bind(this, () => { call.leave(call) })
+    })
+    it('should throw with .connect()', () => {
+      _commonThrow.bind(this, () => { call.connect('23499') })
+    })
+    it('should throw with .playMedia()', () => {
+      _commonThrow.bind(this, () => { call.playMedia([{ type: 'silence', params: { duration: 20 } }]) })
+    })
+    it('should throw with .stopMedia()', () => {
+      _commonThrow.bind(this, () => { call.stopMedia() })
+    })
+
     describe('.on()', () => {
       it('should be chainable', () => {
         expect(call.on('created', jest.fn())).toBe(call)

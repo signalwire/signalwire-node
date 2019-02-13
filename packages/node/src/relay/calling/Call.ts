@@ -68,6 +68,7 @@ export default class Call implements ICall {
   }
 
   async hangup() {
+    this._callIdRequired()
     const { protocol, session } = this.relayInstance
     const msg = new Execute({
       protocol,
@@ -84,6 +85,7 @@ export default class Call implements ICall {
   }
 
   async answer() {
+    this._callIdRequired()
     const { protocol, session } = this.relayInstance
     const msg = new Execute({
       protocol,
@@ -99,6 +101,7 @@ export default class Call implements ICall {
   }
 
   async join(callsToJoin: Call | Call[]) { // TODO: wip
+    this._callIdRequired()
     let calls = []
     if (callsToJoin instanceof Array) {
       calls = callsToJoin.map((c: Call) => c.id)
@@ -126,6 +129,7 @@ export default class Call implements ICall {
   }
 
   async leave(callsToLeave: Call | Call[]) { // TODO: wip
+    this._callIdRequired()
     let calls = []
     if (callsToLeave instanceof Array) {
       calls = callsToLeave.map((c: Call) => c.id)
@@ -153,6 +157,7 @@ export default class Call implements ICall {
   }
 
   async connect(...peers: any[]) { // FIXME: remove any[]
+    this._callIdRequired()
     const devices = reduceConnectParams(peers, this._device)
     if (!devices.length) {
       throw `No peers to connect!`
@@ -211,6 +216,7 @@ export default class Call implements ICall {
   }
 
   async playMedia(play: any[]) { // FIXME: remove any[]
+    this._callIdRequired()
     if (!play.length) {
       throw `No actions to play!`
     }
@@ -233,6 +239,7 @@ export default class Call implements ICall {
   }
 
   async stopMedia() {
+    this._callIdRequired()
     if (!this._mediaControlId) {
       throw `There is no media to stop!`
     }
@@ -306,5 +313,11 @@ export default class Call implements ICall {
 
   private _detachListeners() {
     CALL_STATES.forEach(state => deRegister(this.id, null, state))
+  }
+
+  private _callIdRequired() {
+    if (!this.id) {
+      throw 'Call not started yet!'
+    }
   }
 }

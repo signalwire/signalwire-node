@@ -65,15 +65,17 @@ function _init() {
       type: 'input',
       name: 'to_number',
       message: 'Enter the number to call:',
-      when: ({ choice }) => choice === choices[1] || choice === choices[2],
-      default: () => '2083660792'
+      when: ({ choice }) => choice === choices[0] || choice === choices[1] || choice === choices[2],
+      // default: () => '(204) 400-0543'
+      default: () => '(202) 919-5378'
     },
     {
       type: 'input',
       name: 'connect_to_number',
       message: 'Enter the number to connect the answered call:',
       when: ({ choice }) => choice === choices[1],
-      default: () => '2083660792'
+      // default: () => '(202) 919-5378'
+      default: () => '(204) 400-0543'
     },
     {
       type: 'input',
@@ -101,10 +103,14 @@ function _init() {
       const call = await makeCall(answers.to_number)
 
       if (answers.connect_to_number) {
-        call.on('answered', call => {
-          call.connect(answers.connect_to_number).then(() => {
-            console.log(`\tCall connected?`)
-          })
+        call.on('answered', async call => {
+          const connectResponse = await call.connect(answers.connect_to_number)
+            .catch(_error => {
+              console.error(`\tCall connect failed!`)
+              call.hangup()
+              return null
+            })
+          console.log(`\tCall connected?`, connectResponse)
         })
       }
 

@@ -20,20 +20,26 @@ export default class Call implements ICall {
   constructor(protected relayInstance: Calling, protected options: ICallOptions) {
     this._attachListeners = this._attachListeners.bind(this)
     this._detachListeners = this._detachListeners.bind(this)
-    this._init(this.options)
+    this._init(options)
   }
 
   private _init(params: any) {
-    const { call_id, call_state = CallState[1], device, node_id } = params
-    this.id = call_id
-    this.nodeId = node_id
+    const { call_id, call_state = CallState[1], device = this._device, node_id } = params
     this._device = device
     this._state = Number(CallState[call_state])
-    if (this.id) {
-      this.relayInstance.addCall(this)
-      this._attachListeners()
-      trigger(this.id, this, this.state, false)
+    if (!call_id) {
+      return
+    } else if (call_id && this.relayInstance.callExists(call_id)) {
+      console.log('Call already setupped!', call_id)
+      // FIXME: using tag or park the first notification and then check on begin response
+      return
     }
+    this.id = call_id
+    this.nodeId = node_id
+    this._attachListeners()
+    this.relayInstance.addCall(this)
+    trigger(this.id, this, this.state, false)
+    // console.log(`Call ${this.id} setupped!`)
   }
 
   async begin() {

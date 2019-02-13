@@ -17,8 +17,9 @@
 // export default logger;
 // declare var ENV: string
 
+const datetime = () => new Date().toISOString().replace('T', ' ').replace('Z', '')
 const _do = (type: string, args: any) => {
-  console[type](...args)
+  console[type](datetime(), '::', ...args)
 }
 
 const logger = {

@@ -251,10 +251,12 @@ export default class Call implements ICall {
 
   on(eventName: string, callback: Function) {
     const eventPermitted = CallState[eventName] && !isNaN(Number(CallState[eventName]))
-    if (eventPermitted && this._state >= CallState[eventName]) {
-      callback()
-    } else if (eventPermitted && this.id) {
-      registerOnce(this.id, callback, eventName)
+    if (this.id) {
+      if (eventPermitted && this._state >= CallState[eventName]) {
+        callback()
+      } else if (eventPermitted) {
+        registerOnce(this.id, callback, eventName)
+      }
     }
     this._cbQueues[eventName] = callback
     return this

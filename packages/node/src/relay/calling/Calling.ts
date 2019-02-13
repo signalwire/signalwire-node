@@ -30,8 +30,11 @@ export default class Calling extends Relay {
         trigger(this._protocol, call, _ctxUniqueId(call.context))
         break
       }
-      case 'calling.call.connect':
+      case 'calling.call.connect': {
+        const { call_id, connect_state } = params
+        trigger(call_id, this.getCall(call_id), connect_state)
         break
+      }
     }
   }
 

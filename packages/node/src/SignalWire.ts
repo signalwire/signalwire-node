@@ -22,11 +22,6 @@ export default class SignalWire extends BaseSession {
     this._connection = new Connection(this)
   }
 
-  validateOptions() {
-    const { host, project, token } = this.options
-    return Boolean(host) && Boolean(project && token)
-  }
-
   get calling() {
     if (this._callingInstance === null) {
       this._callingInstance = new Calling(this)

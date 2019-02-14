@@ -23,7 +23,11 @@ export default abstract class BaseSession {
     this._onSocketMessage = this._onSocketMessage.bind(this)
   }
 
-  abstract validateOptions(): boolean
+  validateOptions() {
+    const { host, project, token } = this.options
+    return Boolean(host) && Boolean(project && token)
+  }
+
   abstract async subscribe(params: SubscribeParams): Promise<any>
   abstract async unsubscribe(params: SubscribeParams): Promise<any>
   abstract broadcast(params: BroadcastParams): void

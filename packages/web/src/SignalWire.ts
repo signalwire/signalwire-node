@@ -15,11 +15,6 @@ export default class SignalWire extends BrowserSession {
   // private _callingInstance: Calling = null
   private _cache: Cache = new Cache()
 
-  validateOptions() {
-    const { host, project, token } = this.options
-    return Boolean(host) && Boolean(project && token)
-  }
-
   // get calling() {
   //   if (this._callingInstance === null) {
   //     this._callingInstance = new Calling(this)

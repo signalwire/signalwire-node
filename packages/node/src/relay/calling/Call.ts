@@ -8,6 +8,7 @@ import { reduceConnectParams } from '../helpers'
 import Calling from './Calling'
 
 export default class Call implements ICall {
+  public tag: string = uuidv4()
   public id: string
   public nodeId: string
 
@@ -19,26 +20,18 @@ export default class Call implements ICall {
   constructor(protected relayInstance: Calling, protected options: ICallOptions) {
     this._attachListeners = this._attachListeners.bind(this)
     this._detachListeners = this._detachListeners.bind(this)
-    this._init(options)
   }
 
-  private _init(params: any) {
-    const { call_id, call_state = CallState[1], device = this._device, node_id } = params
-    this._device = device
-    this._state = Number(CallState[call_state])
-    if (!call_id) {
-      return
-    } else if (call_id && this.relayInstance.callExists(call_id)) {
-      console.log('Call already setupped!', call_id)
-      // FIXME: using tag or park the first notification and then check on begin response
+  setup(callId: string, nodeId: string) {
+    if (this._state > CallState.none) {
       return
     }
-    this.id = call_id
-    this.nodeId = node_id
+    this._state = CallState.created
+    this.id = callId
+    this.nodeId = nodeId
     this._attachListeners()
     this.relayInstance.addCall(this)
     trigger(this.id, this, this.state, false)
-    // console.log(`Call ${this.id} setupped!`)
   }
 
   async begin() {
@@ -47,7 +40,8 @@ export default class Call implements ICall {
       protocol,
       method: 'call.begin',
       params: {
-        device: this._device
+        tag: this.tag,
+        device: this.device
       }
     })
 
@@ -63,7 +57,7 @@ export default class Call implements ICall {
       throw new Error('Error creating the call')
     }
 
-    this._init(result)
+    this.setup(call_id, node_id)
   }
 
   async hangup() {

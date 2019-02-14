@@ -17,12 +17,13 @@ export default class Calling extends Relay {
     const { event_type, params } = notification
     switch (event_type) {
       case 'calling.call.state': {
-        const { call_id, call_state } = params
-        if (!this.callExists(call_id)) {
-          this._calls[call_id] = new Call(this, params)
-          return
+        const { call_id, node_id, call_state, tag } = params
+        const call = this.getCall(call_id) || this.getCallByTag(tag)
+        if (!call) {
+          throw new Error(`Unknown call id: '${call_id}' tag: '${tag}' state: ${call_state}`)
         }
-        trigger(call_id, this.getCall(call_id), call_state, false)
+        call.setup(call_id, node_id)
+        trigger(call.id, call, call_state, false)
         break
       }
       case 'calling.call.receive': {
@@ -65,15 +66,24 @@ export default class Calling extends Relay {
     register(this._protocol, handler, _ctxUniqueId(context))
   }
 
-  addCall(call: Call) {
+  addCall(call: Call): void {
     this._calls[call.id] = call
   }
 
-  getCall(callId: string) {
+  getCall(callId: string): Call {
     return this._calls[callId]
   }
 
-  callExists(callId: string) {
-    return Object.keys(this._calls).includes(callId)
+  callExists(callId: string): boolean {
+    return this.callIds().includes(callId)
+  }
+
+  callIds(): string[] {
+    return Object.keys(this._calls)
+  }
+
+  getCallByTag(tag: string) {
+    const callId = this.callIds().find(id => this._calls[id].tag === tag)
+    return this.getCall(callId)
   }
 }

@@ -192,17 +192,17 @@ export default class Call implements ICall {
   }
 
   playAudio(location: string) {
-    const params = [{ type: 'audio', params: { location } }]
+    const params = { type: 'audio', params: { location } }
     return this.playMedia(params)
   }
 
   playVideo(location: string) {
-    const params = [{ type: 'video', params: { location } }]
+    const params = { type: 'video', params: { location } }
     return this.playMedia(params)
   }
 
   playSilence(duration: number) {
-    const params = [{ type: 'silence', params: { duration } }]
+    const params = { type: 'silence', params: { duration } }
     return this.playMedia(params)
   }
 
@@ -211,11 +211,11 @@ export default class Call implements ICall {
     if (!text) {
       throw new Error('"text" is required to play TTS.')
     }
-    const params = [{ type: 'tts', params: { text, language, gender, name } }]
+    const params = { type: 'tts', params: { text, language, gender, name } }
     return this.playMedia(params)
   }
 
-  async playMedia(play: any[]) { // FIXME: remove any[]
+  async playMedia(...play: any[]) { // FIXME: remove any[]
     this._callIdRequired()
     if (!play.length) {
       throw new Error('No actions to play!')

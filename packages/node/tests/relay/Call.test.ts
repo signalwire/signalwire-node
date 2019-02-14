@@ -39,7 +39,7 @@ describe('Call', () => {
     })
 
     it('should create the Call object and do nothing else', () => {
-      expect(call.state).toEqual('created')
+      expect(call.state).toEqual('none')
       expect(call.id).toBeUndefined()
       expect(session.calling.addCall).not.toHaveBeenCalled()
     })
@@ -49,32 +49,32 @@ describe('Call', () => {
     })
 
     it('should throw with .hangup()', async () => {
-      await expect(call.hangup()).rejects.toMatch('Call has not started')
+      await expect(call.hangup()).rejects.toThrowError('Call has not started')
     })
 
     it('should throw with .answer()', async () => {
-      await expect(call.answer()).rejects.toMatch('Call has not started')
+      await expect(call.answer()).rejects.toThrowError('Call has not started')
     })
 
     it('should throw with .join()', async () => {
-      await expect(call.join(call)).rejects.toMatch('Call has not started')
+      await expect(call.join(call)).rejects.toThrowError('Call has not started')
     })
 
     it('should throw with .leave()', async () => {
-      await expect(call.leave(call)).rejects.toMatch('Call has not started')
+      await expect(call.leave(call)).rejects.toThrowError('Call has not started')
     })
 
     it('should throw with .connect()', async () => {
-      await expect(call.connect('234599')).rejects.toMatch('Call has not started')
+      await expect(call.connect('234599')).rejects.toThrowError('Call has not started')
     })
 
     it('should throw with .playMedia()', async () => {
       const silence = { type: 'silence', params: { duration: 20 } }
-      await expect(call.playMedia(silence)).rejects.toMatch('Call has not started')
+      await expect(call.playMedia(silence)).rejects.toThrowError('Call has not started')
     })
 
     it('should throw with .stopMedia()', async () => {
-      await expect(call.stopMedia()).rejects.toMatch('Call not started yet')
+      await expect(call.stopMedia()).rejects.toThrowError('Call has not started')
     })
 
     describe('.on()', () => {

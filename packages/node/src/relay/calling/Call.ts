@@ -14,7 +14,6 @@ export default class Call implements ICall {
   private _prevState: number = 0
   private _state: number = 0
   private _cbQueues: { [state: string]: Function } = {}
-  private _device: ICallDevice
   private _mediaControlId: string = ''
 
   constructor(protected relayInstance: Calling, protected options: ICallOptions) {
@@ -158,7 +157,7 @@ export default class Call implements ICall {
 
   async connect(...peers: any[]) { // FIXME: remove any[]
     this._callIdRequired()
-    const devices = reduceConnectParams(peers, this._device)
+    const devices = reduceConnectParams(peers, this.device)
     if (!devices.length) {
       throw new Error('No peers to connect!')
     }
@@ -274,6 +273,10 @@ export default class Call implements ICall {
   get peer(): Call {
     const { peer: { call_id = null } = {} } = this.options
     return this.relayInstance.getCall(call_id)
+  }
+
+  get device(): ICallDevice {
+    return this.options.device
   }
 
   on(eventName: string, callback: Function) {

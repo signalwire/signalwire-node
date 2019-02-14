@@ -4,6 +4,10 @@ This library provides a client for the Signalwire LaML and REST services.
 
 It allows you to create calls, send messages, and generate LAML responses.
 
+[![npm version](https://badge.fury.io/js/signalwire.svg)](https://badge.fury.io/js/signalwire)
+
+![Drone CI](https://ci.signalwire.com/api/badges/signalwire/signalwire-node/status.svg)
+
 # Installation
 
 Install the package using [NPM](https://www.npmjs.com/):

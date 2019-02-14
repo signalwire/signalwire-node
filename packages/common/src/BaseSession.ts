@@ -1,16 +1,23 @@
 import { v4 as uuidv4 } from 'uuid'
+import logger from './util/logger'
 import Connection from './services/Connection'
 import { deRegister, register, trigger } from './services/Handler'
+import { BroadcastHandler } from './services/Broadcast'
 import { ADD, REMOVE, SwEvent } from './util/constants'
-import { BroadcastParams, ISignalWireOptions, SubscribeParams } from './util/interfaces'
-import { Subscription } from '../../common/src/messages/Blade'
+import Cache from './util/Cache'
+import { BroadcastParams, ISignalWireOptions, SubscribeParams, IBladeConnectResult } from './util/interfaces'
+import { Subscription, Connect } from '../../common/src/messages/Blade'
 
 export default abstract class BaseSession {
   public uuid: string = uuidv4()
   public sessionid: string = ''
   public subscriptions: { [channel: string]: any } = {}
+  public nodeid: string
+  public master_nodeid: string
 
   protected _connection: Connection = null
+
+  private _cache: Cache
 
   constructor(public options: ISignalWireOptions) {
     if (!this.validateOptions()) {
@@ -21,6 +28,37 @@ export default abstract class BaseSession {
     this._onSocketClose = this._onSocketClose.bind(this)
     this._onSocketError = this._onSocketError.bind(this)
     this._onSocketMessage = this._onSocketMessage.bind(this)
+  }
+
+  protected async _onSocketOpen() {
+    const bc = new Connect({ project: this.options.project, token: this.options.token }, this.sessionid)
+    const response: IBladeConnectResult = await this.execute(bc)
+    this.sessionid = response.sessionid
+    this.nodeid = response.nodeid
+    this.master_nodeid = response.master_nodeid
+    this._cache = new Cache()
+    this._cache.populateFromConnect(response)
+    trigger(SwEvent.Ready, this, this.uuid)
+  }
+
+  protected _onSocketClose() {
+    setTimeout(() => this.connect(), 1000)
+  }
+
+  protected _onSocketError(error) {
+    logger.error('Socket error', error)
+  }
+
+  protected _onSocketMessage(response: any) {
+    const { method, params } = response
+    switch (method) {
+      case 'blade.netcast':
+        this._cache.netcastUpdate(params)
+        break
+      case 'blade.broadcast':
+        BroadcastHandler(params)
+        break
+    }
   }
 
   validateOptions() {
@@ -85,10 +123,6 @@ export default abstract class BaseSession {
   }
 
   protected abstract _onDisconnect(): void
-  protected abstract _onSocketOpen(): void
-  protected abstract _onSocketClose(): void
-  protected abstract _onSocketError(error): void
-  protected abstract _onSocketMessage(response): void
 
   protected _removeSubscription(channel: string) {
     deRegister(channel)

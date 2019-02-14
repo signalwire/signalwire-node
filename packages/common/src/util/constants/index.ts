@@ -55,6 +55,7 @@ export enum VertoMethod {
   Subscribe = 'verto.subscribe',
   Unsubscribe = 'verto.unsubscribe',
   ClientReady = 'verto.clientReady',
+  Modify = 'verto.modify',
 }
 
 export const NOTIFICATION_TYPE = {

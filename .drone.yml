@@ -1,0 +1,14 @@
+kind: pipeline
+name: default
+
+steps:
+- name: test
+  image: node:11-alpine
+  commands:
+  - npm install
+  - npm cache clean --force
+  - npm run build-ts
+  - npm test
+
+trigger:
+  event: push

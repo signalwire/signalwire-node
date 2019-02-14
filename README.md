@@ -2,6 +2,10 @@
 
 This package provides a client for Signalwire services and supports different Javascript environments.
 
+[![npm version](https://badge.fury.io/js/signalwire.svg)](https://badge.fury.io/js/signalwire)
+
+![Drone CI](https://ci.signalwire.com/api/badges/signalwire/signalwire-node/status.svg)
+
 ### Packages
 
 | Project | Description | Links |

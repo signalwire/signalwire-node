@@ -20,6 +20,7 @@
     "tslint": "npm run tslint:web && npm run tslint:node",
     "tslint:web": "tslint -p packages/web/tsconfig.es6.json",
     "tslint:node": "tslint -p packages/node/tsconfig.json",
+    "test": "npm run test:web && npm run test:node",
     "test:web": "cd packages/web && jest --forceExit --coverage --detectOpenHandles",
     "test:node": "cd packages/node && jest --forceExit --coverage --detectOpenHandles",
     "watch:test:web": "npm run test:web -- --watchAll",

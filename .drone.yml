@@ -6,8 +6,7 @@ steps:
   image: node:11-alpine
   commands:
   - npm install
-  - npm cache clean --force
-  - npm run build-ts
+  - npm run clean-build
   - npm test
 
 trigger:

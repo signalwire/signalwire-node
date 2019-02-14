@@ -15,7 +15,7 @@ export default abstract class BaseSession {
   public nodeid: string
   public master_nodeid: string
 
-  protected _connection: Connection = null
+  protected connection: Connection = null
 
   private _cache: Cache
 
@@ -90,8 +90,8 @@ export default abstract class BaseSession {
   abstract async connect(): Promise<void>
 
   protected checkConnection() {
-    if (this._connection) {
-      if (this._connection.connected) {
+    if (this.connection) {
+      if (this.connection.connected) {
         return
       }
       this.disconnect()
@@ -103,10 +103,10 @@ export default abstract class BaseSession {
   disconnect() {
     trigger(SwEvent.Disconnect, null, this.uuid, false)
     this.subscriptions = {}
-    if (this._connection) {
-      this._connection.close()
+    if (this.connection) {
+      this.connection.close()
     }
-    this._connection = null
+    this.connection = null
     this._detachListeners()
   }
 
@@ -119,7 +119,7 @@ export default abstract class BaseSession {
   }
 
   execute(msg: any) {
-    return this._connection.send(msg)
+    return this.connection.send(msg)
   }
 
   protected abstract _onDisconnect(): void

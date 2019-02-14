@@ -15,7 +15,6 @@ export default abstract class BrowserSession extends BaseSession {
   private _localElement: HTMLMediaElement = null
   private _remoteElement: HTMLMediaElement = null
 
-  protected _connection: Connection = null
   protected _devices: ICacheDevices = {}
   protected _audioConstraints: boolean | MediaTrackConstraints = true
   protected _videoConstraints: boolean | MediaTrackConstraints = false
@@ -28,7 +27,7 @@ export default abstract class BrowserSession extends BaseSession {
     const success = await permissionPromise
     await devicePromise
 
-    this._connection = new Connection(this)
+    this.connection = new Connection(this)
 
     if (!success) {
       trigger(SwEvent.Notification, { type: NOTIFICATION_TYPE.userMediaError, error: 'Permission denied' }, this.uuid)
@@ -54,16 +53,16 @@ export default abstract class BrowserSession extends BaseSession {
         return reject(`Invalid parameter 'bytes': ${bytes}`)
       }
 
-      this._connection.sendRawText(`#SPU ${bytes}`)
+      this.connection.sendRawText(`#SPU ${bytes}`)
       let loops = bytes / 1024
       if (bytes % 1024) {
         loops++
       }
       const dots = '.'.repeat(1024)
       for (let i = 0; i < loops; i++) {
-        this._connection.sendRawText(`#SPB ${dots}`)
+        this.connection.sendRawText(`#SPB ${dots}`)
       }
-      this._connection.sendRawText('#SPE')
+      this.connection.sendRawText('#SPE')
     })
   }
 

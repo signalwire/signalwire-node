@@ -56,12 +56,12 @@ export default class Call implements ICall {
     const { result } = response
     if (!result) {
       logger.error('Begin call', response)
-      throw 'Error creating the call'
+      throw new Error('Error creating the call')
     }
     const { call_id, code, node_id } = result
     if (code !== '200') {
       logger.error('Begin call not 200', call_id, code, node_id)
-      throw 'Error creating the call'
+      throw new Error('Error creating the call')
     }
 
     this._init(result)
@@ -108,10 +108,10 @@ export default class Call implements ICall {
     } else if (callsToJoin instanceof Call) {
       calls = [callsToJoin.id]
     } else {
-      throw `Unknow parameter type for join. ${callsToJoin}`
+      throw new Error(`Unknow parameter type for join. ${callsToJoin}`)
     }
     if (!calls.length) {
-      throw `No Calls to join`
+      throw new Error('No Calls to join')
     }
     const { protocol, session } = this.relayInstance
     const msg = new Execute({
@@ -136,10 +136,10 @@ export default class Call implements ICall {
     } else if (callsToLeave instanceof Call) {
       calls = [callsToLeave.id]
     } else {
-      throw `Unknow parameter type for leave. ${callsToLeave}`
+      throw new Error(`Unknow parameter type for leave. ${callsToLeave}`)
     }
     if (!calls.length) {
-      throw `No Calls to leave`
+      throw new Error('No Calls to leave')
     }
     const { protocol, session } = this.relayInstance
     const msg = new Execute({
@@ -160,7 +160,7 @@ export default class Call implements ICall {
     this._callIdRequired()
     const devices = reduceConnectParams(peers, this._device)
     if (!devices.length) {
-      throw `No peers to connect!`
+      throw new Error('No peers to connect!')
     }
     const { protocol, session } = this.relayInstance
     const msg = new Execute({
@@ -177,7 +177,7 @@ export default class Call implements ICall {
     const { result } = response
     if (!result) {
       logger.error('Connect call', response)
-      throw 'Error connecting the call'
+      throw new Error('Error connecting the call')
     }
     const { code } = result
     if (code !== '200') {
@@ -209,7 +209,7 @@ export default class Call implements ICall {
   playTTS(options: { text: string, language: string, gender: string, name: string }) {
     const { text = null, language = 'en-US', gender = 'male', name = 'bob' } = options
     if (!text) {
-      throw '"text" is required to play TTS.'
+      throw new Error('"text" is required to play TTS.')
     }
     const params = [{ type: 'tts', params: { text, language, gender, name } }]
     return this.playMedia(params)
@@ -218,7 +218,7 @@ export default class Call implements ICall {
   async playMedia(play: any[]) { // FIXME: remove any[]
     this._callIdRequired()
     if (!play.length) {
-      throw `No actions to play!`
+      throw new Error('No actions to play!')
     }
     this._mediaControlId = uuidv4()
     const { protocol, session } = this.relayInstance
@@ -241,7 +241,7 @@ export default class Call implements ICall {
   async stopMedia() {
     this._callIdRequired()
     if (!this._mediaControlId) {
-      throw `There is no media to stop!`
+      throw new Error('There is no media to stop!')
     }
     const { protocol, session } = this.relayInstance
     const msg = new Execute({
@@ -317,7 +317,7 @@ export default class Call implements ICall {
 
   private _callIdRequired() {
     if (!this.id) {
-      throw 'Call not started yet!'
+      throw new Error('Call has not started.')
     }
   }
 }

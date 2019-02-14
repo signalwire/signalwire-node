@@ -49,28 +49,28 @@ describe('Call', () => {
     })
 
     it('should throw with .hangup()', async () => {
-      await expect(call.hangup()).rejects.toMatch('Call not started yet')
+      await expect(call.hangup()).rejects.toMatch('Call has not started')
     })
 
     it('should throw with .answer()', async () => {
-      await expect(call.answer()).rejects.toMatch('Call not started yet')
+      await expect(call.answer()).rejects.toMatch('Call has not started')
     })
 
     it('should throw with .join()', async () => {
-      await expect(call.join(call)).rejects.toMatch('Call not started yet')
+      await expect(call.join(call)).rejects.toMatch('Call has not started')
     })
 
     it('should throw with .leave()', async () => {
-      await expect(call.leave(call)).rejects.toMatch('Call not started yet')
+      await expect(call.leave(call)).rejects.toMatch('Call has not started')
     })
 
     it('should throw with .connect()', async () => {
-      await expect(call.connect('234599')).rejects.toMatch('Call not started yet')
+      await expect(call.connect('234599')).rejects.toMatch('Call has not started')
     })
 
     it('should throw with .playMedia()', async () => {
-      const silence = [{ type: 'silence', params: { duration: 20 } }]
-      await expect(call.playMedia(silence)).rejects.toMatch('Call not started yet')
+      const silence = { type: 'silence', params: { duration: 20 } }
+      await expect(call.playMedia(silence)).rejects.toMatch('Call has not started')
     })
 
     it('should throw with .stopMedia()', async () => {

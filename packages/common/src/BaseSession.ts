@@ -30,6 +30,124 @@ export default abstract class BaseSession {
     this._onSocketMessage = this._onSocketMessage.bind(this)
   }
 
+  /**
+   * Send a JSON object to the server.
+   * @return Promise that will resolve/reject depending on the server response
+   */
+  execute(msg: any) {
+    return this.connection.send(msg)
+  }
+
+  /**
+   * Validates the options passed in.
+   * SignalWire requires host, project and token
+   * Verto requires host, login, passwd OR password
+   * @return boolean
+   */
+  validateOptions() {
+    const { host, project, token } = this.options
+    return Boolean(host) && Boolean(project && token)
+  }
+
+  /**
+   * Broadcast a message in a protocol - channel
+   * @todo Implement it
+   * @return void
+   */
+  broadcast(params: BroadcastParams) { } // TODO: to be implemented
+
+  /**
+   * Subscribe to Blade protocol channels
+   * @async
+   * @return Result of the ADD subscription
+   */
+  async subscribe({ protocol, channels, handler }: SubscribeParams): Promise<any> {
+    const bs = new Subscription({ command: ADD, protocol, channels })
+    const result = await this.execute(bs) // FIXME: handle error
+    const { failed_channels = [], subscribe_channels = [] } = result
+    if (failed_channels.length) {
+      failed_channels.forEach((c: string) => this._removeSubscription(c))
+      throw new Error(`Failed to subscribe to channels ${failed_channels.join(', ')}`)
+    }
+    subscribe_channels.forEach((c: string) => this._addSubscription(protocol, handler, c))
+    return result
+  }
+
+  /**
+   * Unsubscribe from Blade protocol channels
+   * @async
+   * @return Result of the REMOVE subscription
+   */
+  async unsubscribe({ protocol, channels, handler }: SubscribeParams): Promise<any> {
+    const bs = new Subscription({ command: REMOVE, protocol, channels })
+    return this.execute(bs) // FIXME: handle error
+  }
+
+  /**
+   * Disconnect the current session removing all subscriptions and listeners
+   * @return void
+   */
+  disconnect() {
+    trigger(SwEvent.Disconnect, null, this.uuid, false)
+    this.subscriptions = {}
+    if (this.connection) {
+      this.connection.close()
+    }
+    this.connection = null
+    this._detachListeners()
+  }
+
+  /**
+   * Attach a listener to the global session level
+   * @return void
+   */
+  on(eventName: string, callback: Function) {
+    register(eventName, callback, this.uuid)
+  }
+
+  /**
+   * Detach a listener from the global session level
+   * @return void
+   */
+  off(eventName: string, callback?: Function) {
+    deRegister(eventName, callback, this.uuid)
+  }
+
+  /**
+   * Callback fired when the session initiated a disconnect process. Useful to cleanup
+   * @abstract
+   * @return void
+   */
+  protected abstract _onDisconnect(): void
+
+  /**
+   * Define the method to connect the session
+   * @abstract
+   * @async
+   * @return void
+   */
+  abstract async connect(): Promise<void>
+
+  /**
+   * If the connection is already active do nothing otherwise disconnect the current one.
+   * Then attach the listeners to the session.
+   * @return void
+   */
+  protected checkConnection() {
+    if (this.connection) {
+      if (this.connection.connected) {
+        return
+      }
+      this.disconnect()
+    }
+
+    this._attachListeners()
+  }
+
+  /**
+   * Callback when the ws connection is open
+   * @return void
+   */
   protected async _onSocketOpen() {
     const bc = new Connect({ project: this.options.project, token: this.options.token }, this.sessionid)
     const response: IBladeConnectResult = await this.execute(bc)
@@ -41,14 +159,26 @@ export default abstract class BaseSession {
     trigger(SwEvent.Ready, this, this.uuid)
   }
 
+  /**
+   * Callback when the ws connection is going to close
+   * @return void
+   */
   protected _onSocketClose() {
     setTimeout(() => this.connect(), 1000)
   }
 
+  /**
+   * Callback when the ws connection give an error
+   * @return void
+   */
   protected _onSocketError(error) {
     logger.error('Socket error', error)
   }
 
+  /**
+   * Callback to handle inbound messages from the ws
+   * @return void
+   */
   protected _onSocketMessage(response: any) {
     const { method, params } = response
     switch (method) {
@@ -61,74 +191,19 @@ export default abstract class BaseSession {
     }
   }
 
-  validateOptions() {
-    const { host, project, token } = this.options
-    return Boolean(host) && Boolean(project && token)
-  }
-
-  broadcast(params: BroadcastParams) {
-    // TODO: to be implemented
-  }
-
-  async subscribe({ protocol, channels, handler }: SubscribeParams): Promise<any> {
-    const bs = new Subscription({ command: ADD, protocol, channels })
-    const result = await this.execute(bs)
-    const { failed_channels = [], subscribe_channels = [] } = result
-    if (failed_channels.length) {
-      failed_channels.forEach((c: string) => this._removeSubscription(c))
-      throw new Error(`Failed to subscribe to channels ${failed_channels.join(', ')}`)
-    }
-    subscribe_channels.forEach((c: string) => this._addSubscription(protocol, handler, c))
-    return result
-  }
-
-  async unsubscribe({ protocol, channels, handler }: SubscribeParams): Promise<any> {
-    const bs = new Subscription({ command: REMOVE, protocol, channels })
-    return this.execute(bs)
-  }
-
-  abstract async connect(): Promise<void>
-
-  protected checkConnection() {
-    if (this.connection) {
-      if (this.connection.connected) {
-        return
-      }
-      this.disconnect()
-    }
-
-    this._attachListeners()
-  }
-
-  disconnect() {
-    trigger(SwEvent.Disconnect, null, this.uuid, false)
-    this.subscriptions = {}
-    if (this.connection) {
-      this.connection.close()
-    }
-    this.connection = null
-    this._detachListeners()
-  }
-
-  on(eventName: string, callback: Function) {
-    register(eventName, callback, this.uuid)
-  }
-
-  off(eventName: string, callback?: Function) {
-    deRegister(eventName, callback, this.uuid)
-  }
-
-  execute(msg: any) {
-    return this.connection.send(msg)
-  }
-
-  protected abstract _onDisconnect(): void
-
+  /**
+   * Remove subscription by key and deregister the related callback
+   * @return void
+   */
   protected _removeSubscription(channel: string) {
     deRegister(channel)
     delete this.subscriptions[channel]
   }
 
+  /**
+   * Add a subscription by key and register a callback if its passed in
+   * @return void
+   */
   protected _addSubscription(channel: string, handler: Function = null, uniqueId?: string) {
     this.subscriptions[channel] = {}
     if (handler instanceof Function || typeof handler === 'function') {
@@ -136,7 +211,11 @@ export default abstract class BaseSession {
     }
   }
 
-  protected _attachListeners() {
+  /**
+   * Attach listeners for Socket events and disconnect
+   * @return void
+   */
+  private _attachListeners() {
     this.on(SwEvent.Disconnect, this._onDisconnect)
     this.on(SwEvent.SocketOpen, this._onSocketOpen)
     this.on(SwEvent.SocketClose, this._onSocketClose)
@@ -144,7 +223,11 @@ export default abstract class BaseSession {
     this.on(SwEvent.SocketMessage, this._onSocketMessage)
   }
 
-  protected _detachListeners() {
+  /**
+   * Detach listeners for Socket events and disconnect
+   * @return void
+   */
+  private _detachListeners() {
     this.off(SwEvent.Disconnect, this._onDisconnect)
     this.off(SwEvent.SocketOpen, this._onSocketOpen)
     this.off(SwEvent.SocketClose, this._onSocketClose)

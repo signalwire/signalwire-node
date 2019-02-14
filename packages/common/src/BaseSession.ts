@@ -1,9 +1,9 @@
 import { v4 as uuidv4 } from 'uuid'
-// import logger from './util/logger'
 import Connection from './services/Connection'
 import { deRegister, register, trigger } from './services/Handler'
-import { SwEvent } from './util/constants'
+import { ADD, REMOVE, SwEvent } from './util/constants'
 import { BroadcastParams, ISignalWireOptions, SubscribeParams } from './util/interfaces'
+import { Subscription } from '../../common/src/messages/Blade'
 
 export default abstract class BaseSession {
   public uuid: string = uuidv4()
@@ -28,9 +28,27 @@ export default abstract class BaseSession {
     return Boolean(host) && Boolean(project && token)
   }
 
-  abstract async subscribe(params: SubscribeParams): Promise<any>
-  abstract async unsubscribe(params: SubscribeParams): Promise<any>
-  abstract broadcast(params: BroadcastParams): void
+  broadcast(params: BroadcastParams) {
+    // TODO: to be implemented
+  }
+
+  async subscribe({ protocol, channels, handler }: SubscribeParams): Promise<any> {
+    const bs = new Subscription({ command: ADD, protocol, channels })
+    const result = await this.execute(bs)
+    const { failed_channels = [], subscribe_channels = [] } = result
+    if (failed_channels.length) {
+      failed_channels.forEach((c: string) => this._removeSubscription(c))
+      throw new Error(`Failed to subscribe to channels ${failed_channels.join(', ')}`)
+    }
+    subscribe_channels.forEach((c: string) => this._addSubscription(protocol, handler, c))
+    return result
+  }
+
+  async unsubscribe({ protocol, channels, handler }: SubscribeParams): Promise<any> {
+    const bs = new Subscription({ command: REMOVE, protocol, channels })
+    return this.execute(bs)
+  }
+
   abstract async connect(): Promise<void>
 
   protected checkConnection() {

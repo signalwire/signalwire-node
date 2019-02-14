@@ -29,31 +29,6 @@ export default class SignalWire extends BaseSession {
     return this._callingInstance
   }
 
-  broadcast(params: BroadcastParams) {
-    // TODO: to be implemented
-  }
-
-  async subscribe({ protocol, channels, handler }: SubscribeParams) {
-    const bs = new Subscription({ command: ADD, protocol, channels })
-    const result = await this.execute(bs)
-    const { failed_channels = [], subscribe_channels = [] } = result
-    if (failed_channels.length) {
-      failed_channels.forEach((c: string) => this._removeSubscription(c))
-      throw new Error(`Failed to subscribe to channels ${failed_channels.join(', ')}`)
-    }
-    subscribe_channels.forEach((c: string) => this._addSubscription(protocol, handler, c))
-    return result
-  }
-
-  async unsubscribe({ protocol, channels, handler }: SubscribeParams) {
-    const bs = new Subscription({ command: REMOVE, protocol, channels })
-    return this.execute(bs)
-  }
-
-  /**
-   * protected methods
-   */
-
   protected async _onDisconnect() {
     // TODO: sent unsubscribe for all subscriptions?
     deRegisterAll(this.calling.protocol)

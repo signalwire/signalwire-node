@@ -3,7 +3,7 @@ import logger from './util/logger'
 import Connection from './services/Connection'
 import { deRegister, register, trigger } from './services/Handler'
 import { BroadcastHandler } from './services/Broadcast'
-import { ADD, REMOVE, SwEvent } from './util/constants'
+import { ADD, REMOVE, SwEvent, BladeMethod } from './util/constants'
 import Cache from './util/Cache'
 import { BroadcastParams, ISignalWireOptions, SubscribeParams, IBladeConnectResult } from './util/interfaces'
 import { Subscription, Connect } from '../../common/src/messages/Blade'
@@ -190,11 +190,13 @@ export default abstract class BaseSession {
   protected _onSocketMessage(response: any) {
     const { method, params } = response
     switch (method) {
-      case 'blade.netcast':
+      case BladeMethod.Netcast:
         this._cache.netcastUpdate(params)
         break
-      case 'blade.broadcast':
+      case BladeMethod.Broadcast:
         BroadcastHandler(params)
+        break
+      case BladeMethod.Disconnect:
         break
     }
   }

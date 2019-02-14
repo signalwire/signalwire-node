@@ -67,3 +67,9 @@ export const NOTIFICATION_TYPE = {
   vertoClientReady: 'vertoClientReady',
   userMediaError: 'userMediaError'
 }
+
+export enum BladeMethod {
+  Netcast = 'blade.netcast',
+  Broadcast = 'blade.broadcast',
+  Disconnect = 'blade.disconnect'
+}

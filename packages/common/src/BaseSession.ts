@@ -18,6 +18,9 @@ export default abstract class BaseSession {
   protected connection: Connection = null
 
   private _cache: Cache
+  private _idle: boolean = false
+  private _executeQueue: any[] = []
+  private _executeRawQueue: string[] = []
 
   constructor(public options: ISignalWireOptions) {
     if (!this.validateOptions()) {
@@ -35,6 +38,11 @@ export default abstract class BaseSession {
    * @return Promise that will resolve/reject depending on the server response
    */
   execute(msg: any) {
+    // FIXME: must be an async function and push a Promise in _executeQueue!
+    if (this._idle) {
+      this._executeQueue.push(msg)
+      return
+    }
     return this.connection.send(msg)
   }
 
@@ -43,6 +51,10 @@ export default abstract class BaseSession {
    * @return void
    */
   executeRaw(text: string): void {
+    if (this._idle) {
+      this._executeRawQueue.push(text)
+      return
+    }
     this.connection.sendRawText(text)
   }
 
@@ -164,6 +176,7 @@ export default abstract class BaseSession {
     this.master_nodeid = response.master_nodeid
     this._cache = new Cache()
     this._cache.populateFromConnect(response)
+    this._emptyExecuteQueues()
     trigger(SwEvent.Ready, this, this.uuid)
   }
 
@@ -197,6 +210,7 @@ export default abstract class BaseSession {
         BroadcastHandler(params)
         break
       case BladeMethod.Disconnect:
+        this._idle = true
         break
     }
   }
@@ -243,6 +257,16 @@ export default abstract class BaseSession {
     this.off(SwEvent.SocketClose, this._onSocketClose)
     this.off(SwEvent.SocketError, this._onSocketError)
     this.off(SwEvent.SocketMessage, this._onSocketMessage)
+  }
+
+  /**
+   * Execute all the queued messages during the idle period.
+   * @return void
+   */
+  private _emptyExecuteQueues() {
+    this._idle = false
+    this._executeRawQueue.forEach((t: string) => this.executeRaw(t))
+    this._executeQueue.forEach((msg: any) => this.execute(msg))
   }
 
   static on(eventName: string, callback: any) {

@@ -48,30 +48,33 @@ describe('Call', () => {
       expect(call.peer).toBeUndefined()
     })
 
-    const _commonThrow = (methodToCall: Function) => {
-      expect(methodToCall()).toThrow('Call not started yet')
-    }
+    it('should throw with .hangup()', async () => {
+      await expect(call.hangup()).rejects.toMatch('Call not started yet')
+    })
 
-    it('should throw with .hangup()', () => {
-      _commonThrow.bind(this, () => { call.hangup() })
+    it('should throw with .answer()', async () => {
+      await expect(call.answer()).rejects.toMatch('Call not started yet')
     })
-    it('should throw with .answer()', () => {
-      _commonThrow.bind(this, () => { call.answer() })
+
+    it('should throw with .join()', async () => {
+      await expect(call.join(call)).rejects.toMatch('Call not started yet')
     })
-    it('should throw with .join()', () => {
-      _commonThrow.bind(this, () => { call.join(call) })
+
+    it('should throw with .leave()', async () => {
+      await expect(call.leave(call)).rejects.toMatch('Call not started yet')
     })
-    it('should throw with .leave()', () => {
-      _commonThrow.bind(this, () => { call.leave(call) })
+
+    it('should throw with .connect()', async () => {
+      await expect(call.connect('234599')).rejects.toMatch('Call not started yet')
     })
-    it('should throw with .connect()', () => {
-      _commonThrow.bind(this, () => { call.connect('23499') })
+
+    it('should throw with .playMedia()', async () => {
+      const silence = [{ type: 'silence', params: { duration: 20 } }]
+      await expect(call.playMedia(silence)).rejects.toMatch('Call not started yet')
     })
-    it('should throw with .playMedia()', () => {
-      _commonThrow.bind(this, () => { call.playMedia([{ type: 'silence', params: { duration: 20 } }]) })
-    })
-    it('should throw with .stopMedia()', () => {
-      _commonThrow.bind(this, () => { call.stopMedia() })
+
+    it('should throw with .stopMedia()', async () => {
+      await expect(call.stopMedia()).rejects.toMatch('Call not started yet')
     })
 
     describe('.on()', () => {

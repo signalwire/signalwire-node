@@ -53,16 +53,16 @@ export default abstract class BrowserSession extends BaseSession {
         return reject(`Invalid parameter 'bytes': ${bytes}`)
       }
 
-      this.connection.sendRawText(`#SPU ${bytes}`)
+      this.executeRaw(`#SPU ${bytes}`)
       let loops = bytes / 1024
       if (bytes % 1024) {
         loops++
       }
       const dots = '.'.repeat(1024)
       for (let i = 0; i < loops; i++) {
-        this.connection.sendRawText(`#SPB ${dots}`)
+        this.executeRaw(`#SPB ${dots}`)
       }
-      this.connection.sendRawText('#SPE')
+      this.executeRaw('#SPE')
     })
   }
 

@@ -39,6 +39,14 @@ export default abstract class BaseSession {
   }
 
   /**
+   * Send raw text to the server.
+   * @return void
+   */
+  executeRaw(text: string): void {
+    this.connection.sendRawText(text)
+  }
+
+  /**
    * Validates the options passed in.
    * SignalWire requires host, project and token
    * Verto requires host, login, passwd OR password

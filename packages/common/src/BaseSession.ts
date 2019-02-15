@@ -19,8 +19,7 @@ export default abstract class BaseSession {
 
   private _cache: Cache
   private _idle: boolean = false
-  private _executeQueue: any[] = []
-  private _executeRawQueue: string[] = []
+  private _executeQueue: { resolve?: Function, msg: any}[] = []
 
   constructor(public options: ISignalWireOptions) {
     if (!this.validateOptions()) {
@@ -38,10 +37,10 @@ export default abstract class BaseSession {
    * @return Promise that will resolve/reject depending on the server response
    */
   execute(msg: any) {
-    // FIXME: must be an async function and push a Promise in _executeQueue!
     if (this._idle) {
-      this._executeQueue.push(msg)
-      return
+      return new Promise(resolve => {
+        this._executeQueue.push({ resolve, msg })
+      })
     }
     return this.connection.send(msg)
   }
@@ -52,7 +51,7 @@ export default abstract class BaseSession {
    */
   executeRaw(text: string): void {
     if (this._idle) {
-      this._executeRawQueue.push(text)
+      this._executeQueue.push({ msg: text })
       return
     }
     this.connection.sendRawText(text)
@@ -265,8 +264,14 @@ export default abstract class BaseSession {
    */
   private _emptyExecuteQueues() {
     this._idle = false
-    this._executeRawQueue.forEach((t: string) => this.executeRaw(t))
-    this._executeQueue.forEach((msg: any) => this.execute(msg))
+    this._executeQueue.forEach(({ resolve, msg }) => {
+      if (typeof msg === 'string') {
+        this.executeRaw(msg)
+      } else {
+        resolve(this.execute(msg))
+      }
+    })
+
   }
 
   static on(eventName: string, callback: any) {

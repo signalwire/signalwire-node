@@ -5,6 +5,9 @@ import { ICallDevice } from '../../../common/src/util/interfaces'
 interface DeepArray<T> extends Array<T | DeepArray<T>> { }
 
 export const detectCallType = (to: string): string => {
+  if (!to) {
+    return null
+  }
   // TODO: check call type by "to"
   return CallType.Phone
 }
@@ -21,10 +24,16 @@ export const reduceConnectParams = (peers: any[], callDevice: ICallDevice): Deep
     if (peer instanceof Array) {
       tmp = peer.reduce(_reducer, { devices: [], nested: true }).devices
     } else if (typeof peer === 'string') {
-      tmp = { type: detectCallType(peer), params: { to_number: cleanNumber(peer), from_number: cleanNumber(defaultFromNumber), timeout: defaultTimeout } }
+      const type = detectCallType(peer)
+      if (type) {
+        tmp = { type, params: { to_number: cleanNumber(peer), from_number: cleanNumber(defaultFromNumber), timeout: Number(defaultTimeout) } }
+      }
     } else if (typeof peer === 'object') {
-      const { to_number, from_number, timeout = defaultTimeout } = peer
-      tmp = { type: detectCallType(to_number), params: { to_number: cleanNumber(to_number), from_number: cleanNumber(from_number), timeout: Number(timeout) } }
+      const { to_number, from_number = defaultFromNumber, timeout = defaultTimeout } = peer
+      const type = detectCallType(to_number)
+      if (type) {
+        tmp = { type, params: { to_number: cleanNumber(to_number), from_number: cleanNumber(from_number), timeout: Number(timeout) } }
+      }
     }
     if (tmp) {
       const castArray = accumulator.nested || peer instanceof Array

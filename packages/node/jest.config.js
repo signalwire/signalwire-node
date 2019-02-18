@@ -1,25 +1,15 @@
 module.exports = {
-  globals: {
-    'ts-jest': {
-      tsConfig: 'tsconfig.json'
-    }
-  },
-  moduleFileExtensions: [
-    'ts',
-    'js'
-  ],
-  transform: {
-    '^.+\\.(ts|tsx)$': 'ts-jest'
-  },
+  moduleFileExtensions: [ 'ts', 'js' ],
   rootDir: '../',
-  coverageDirectory: './node/coverage',
+  coverageDirectory: '<rootDir>/node/coverage',
   testMatch: [
-    '**/(common|node)/tests/**/*.test.(ts|js)'
+    '<rootDir>/common/tests/**/*.test.(ts|js)',
+    '<rootDir>/node/tests/**/*.test.(ts|js)'
   ],
   preset: 'ts-jest',
   testEnvironment: 'node',
   setupFiles: [
-    './common/tests/setup/browsers.ts',
-    './common/tests/setup/connection.ts'
+    '<rootDir>/common/tests/setup/browsers.ts',
+    '<rootDir>/common/tests/setup/connection.ts'
   ]
 }

@@ -1,9 +1,8 @@
-import { monitorCallbackQueue } from '../../common/src/services/Handler'
-import { State } from '../../common/src/util/constants/dialog'
-import Dialog from '../src/rtc/Dialog'
-import Verto from '../src/Verto'
-const Connection = require('../../common/src/services/Connection')
-jest.mock('../../common/src/services/Connection')
+import { monitorCallbackQueue } from '../../../common/src/services/Handler'
+import { State } from '../../../common/src/util/constants/dialog'
+import Dialog from '../../src/rtc/Dialog'
+import Verto from '../../src/Verto'
+const Connection = require('../../../common/src/services/Connection')
 
 describe('Dialog', () => {
   let session: Verto

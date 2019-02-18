@@ -3,8 +3,7 @@ module.exports = {
   rootDir: '../',
   coverageDirectory: '<rootDir>/node/coverage',
   testMatch: [
-    '<rootDir>/common/tests/**/*.test.(ts|js)',
-    '<rootDir>/node/tests/**/*.test.(ts|js)'
+    '<rootDir>/(common|node)/tests/**/*.test.(ts|js)'
   ],
   preset: 'ts-jest',
   testEnvironment: 'node',

@@ -1,50 +1,51 @@
 import BaseRequest from './verto/BaseRequest'
 import { Login } from './verto/Login'
 import { Result } from './verto/Result'
+import { VertoMethod } from '../util/constants'
 
 class Invite extends BaseRequest {
   toString() {
-    return 'invite'
+    return VertoMethod.Invite
   }
 }
 class Answer extends BaseRequest {
   toString() {
-    return 'answer'
+    return VertoMethod.Answer
   }
 }
 class Attach extends BaseRequest {
   toString() {
-    return 'attach'
+    return VertoMethod.Attach
   }
 }
 class Bye extends BaseRequest {
   toString() {
-    return 'bye'
+    return VertoMethod.Bye
   }
 }
 class Modify extends BaseRequest {
   toString() {
-    return 'modify'
+    return VertoMethod.Modify
   }
 }
 class Info extends BaseRequest {
   toString() {
-    return 'info'
+    return VertoMethod.Info
   }
 }
 class Broadcast extends BaseRequest {
   toString() {
-    return 'broadcast'
+    return VertoMethod.Broadcast
   }
 }
 class Subscribe extends BaseRequest {
   toString() {
-    return 'subscribe'
+    return VertoMethod.Subscribe
   }
 }
 class Unsubscribe extends BaseRequest {
   toString() {
-    return 'unsubscribe'
+    return VertoMethod.Unsubscribe
   }
 }
 

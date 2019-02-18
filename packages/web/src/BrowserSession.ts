@@ -1,8 +1,8 @@
-import logger from '../../common/src/util/logger'
+// import logger from '../../common/src/util/logger'
 import BaseSession from '../../common/src/BaseSession'
 import Connection from '../../common/src/services/Connection'
 import Dialog from './rtc/Dialog'
-import { SubscribeParams, BroadcastParams, ICacheDevices, IAudioSettings, IVideoSettings } from '../../common/src/util/interfaces'
+import { ICacheDevices, IAudioSettings, IVideoSettings } from '../../common/src/util/interfaces'
 import { trigger, registerOnce } from '../../common/src/services/Handler'
 import { SwEvent, NOTIFICATION_TYPE } from '../../common/src/util/constants'
 import { getDevices, getResolutions, checkPermissions, removeUnsupportedConstraints, checkDeviceIdConstraints } from './rtc/helpers'
@@ -15,15 +15,9 @@ export default abstract class BrowserSession extends BaseSession {
   private _localElement: HTMLMediaElement = null
   private _remoteElement: HTMLMediaElement = null
 
-  protected _connection: Connection = null
   protected _devices: ICacheDevices = {}
   protected _audioConstraints: boolean | MediaTrackConstraints = true
   protected _videoConstraints: boolean | MediaTrackConstraints = false
-
-  abstract validateOptions(): boolean
-  abstract async subscribe(params: SubscribeParams): Promise<any>
-  abstract async unsubscribe(params: SubscribeParams): Promise<any>
-  abstract broadcast(params: BroadcastParams): void
 
   async connect(): Promise<void> {
     super.checkConnection()
@@ -33,7 +27,7 @@ export default abstract class BrowserSession extends BaseSession {
     const success = await permissionPromise
     await devicePromise
 
-    this._connection = new Connection(this)
+    this.connection = new Connection(this)
 
     if (!success) {
       trigger(SwEvent.Notification, { type: NOTIFICATION_TYPE.userMediaError, error: 'Permission denied' }, this.uuid)
@@ -59,16 +53,16 @@ export default abstract class BrowserSession extends BaseSession {
         return reject(`Invalid parameter 'bytes': ${bytes}`)
       }
 
-      this._connection.sendRawText(`#SPU ${bytes}`)
+      this.executeRaw(`#SPU ${bytes}`)
       let loops = bytes / 1024
       if (bytes % 1024) {
         loops++
       }
       const dots = '.'.repeat(1024)
       for (let i = 0; i < loops; i++) {
-        this._connection.sendRawText(`#SPB ${dots}`)
+        this.executeRaw(`#SPB ${dots}`)
       }
-      this._connection.sendRawText('#SPE')
+      this.executeRaw('#SPE')
     })
   }
 

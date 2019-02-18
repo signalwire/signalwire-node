@@ -18,6 +18,7 @@ module.exports = {
 	],
 	preset: 'ts-jest',
 	setupFiles: [
-		'./common/tests/browserMocks.ts'
+		'./common/tests/setup/browsers.ts',
+		'./common/tests/setup/connection.ts'
 	]
 }

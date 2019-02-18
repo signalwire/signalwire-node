@@ -24,6 +24,6 @@ export default abstract class BaseRequest extends BaseMessage {
       params.dialogParams = dialogParams
     }
 
-    this.buildRequest({ method: `verto.${this.toString()}`, params })
+    this.buildRequest({ method: this.toString(), params })
   }
 }

@@ -55,6 +55,7 @@ export enum VertoMethod {
   Subscribe = 'verto.subscribe',
   Unsubscribe = 'verto.unsubscribe',
   ClientReady = 'verto.clientReady',
+  Modify = 'verto.modify',
 }
 
 export const NOTIFICATION_TYPE = {
@@ -65,4 +66,10 @@ export const NOTIFICATION_TYPE = {
   dialogUpdate: 'dialogUpdate',
   vertoClientReady: 'vertoClientReady',
   userMediaError: 'userMediaError'
+}
+
+export enum BladeMethod {
+  Netcast = 'blade.netcast',
+  Broadcast = 'blade.broadcast',
+  Disconnect = 'blade.disconnect'
 }

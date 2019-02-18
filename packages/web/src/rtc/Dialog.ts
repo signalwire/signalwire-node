@@ -142,7 +142,7 @@ export default class Dialog {
     this.prevState = State[this._prevState].toLowerCase()
     logger.debug('Dialog %s state change from %s to %s', this.id, this.prevState, this.state)
 
-    this._dispatchDialogUpdate()
+    this._dispatchNotification({ type: NOTIFICATION_TYPE.dialogUpdate, dialog: this })
 
     switch (state) {
       case State.Purge:
@@ -559,10 +559,6 @@ export default class Dialog {
 
   private _validCallback(name: string) {
     return this.options.hasOwnProperty(name) && this.options[name] instanceof Function
-  }
-
-  private _dispatchDialogUpdate() {
-    this._dispatchNotification({ type: NOTIFICATION_TYPE.dialogUpdate, dialog: this })
   }
 
   private _dispatchConferenceUpdate(params: any) {

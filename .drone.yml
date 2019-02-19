@@ -2,25 +2,22 @@ kind: pipeline
 name: default
 
 steps:
+- name: global
+  image: node:11-alpine
+  commands:
+  - npm install
+
 - name: web
   image: node:11-alpine
   commands:
   - cd ./packages/web
-  - pwd
-  - npm install
-  - cat ./node_modules/ts-jest/package.json
-  - ls -la .
-  - npm run test
+  - npm run validate
 
 - name: node
   image: node:11-alpine
   commands:
   - cd ./packages/node
-  - pwd
-  - npm install
-  - cat ./node_modules/ts-jest/package.json
-  - ls -la .
-  - npm run test
+  - npm run validate
 
 trigger:
   event: push

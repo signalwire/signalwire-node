@@ -18,7 +18,8 @@
     "watch-esm": "tsc -p tsconfig.esm.json -w",
     "tslint": "tslint -p tsconfig.esm.json",
     "test": "jest --forceExit --detectOpenHandles",
-    "test:watch": "npm run test -- --watchAll"
+    "test:watch": "npm run test -- --watchAll",
+    "validate": "npm i && npm run tslint && npm run test && npm run clean-build"
   },
   "keywords": [
     "signalwire",

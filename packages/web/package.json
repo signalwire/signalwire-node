@@ -46,13 +46,15 @@
     "babel-loader": "^7.1.5",
     "babel-plugin-transform-runtime": "^6.23.0",
     "babel-preset-env": "^1.7.0",
-    "jest": "^23.6.0",
-    "ts-jest": "^23.10.5",
+    "jest": "^24.1.0",
+    "ts-jest": "^24.0.0",
     "ts-loader": "^5.3.3",
     "tslint": "^5.12.1",
     "typescript": "^3.3.3",
     "webpack": "^4.29.5",
     "webpack-cli": "^3.2.3",
-    "webpack-dev-server": "^3.1.14"
+    "webpack-dev-server": "^3.1.14",
+    "acorn": "^6.0.0",
+    "babel-core": "^6.26.0"
   }
 }

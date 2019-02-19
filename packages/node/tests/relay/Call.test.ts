@@ -153,7 +153,7 @@ describe('Call', () => {
           const mockFn = jest.fn()
           call.on('created', mockFn)
 
-          call.off('created', mockFn)
+          call.off('created')
           expect(monitorCallbackQueue()).not.toHaveProperty('testing-off-method')
         })
       })

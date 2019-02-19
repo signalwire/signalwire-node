@@ -8,8 +8,9 @@ steps:
   - cd ./packages/web
   - pwd
   - npm install
-  - ls -la node_modules/ts-jest/
-  - npm run validate
+  - cat ./node_modules/ts-jest/package.json
+  - ls -la .
+  - npm run test
 
 - name: node
   image: node:11-alpine
@@ -17,8 +18,9 @@ steps:
   - cd ./packages/node
   - pwd
   - npm install
-  - ls -la node_modules/ts-jest/
-  - npm run validate
+  - cat ./node_modules/ts-jest/package.json
+  - ls -la .
+  - npm run test
 
 trigger:
   event: push

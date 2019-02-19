@@ -6,12 +6,18 @@ steps:
   image: node:11-alpine
   commands:
   - cd ./packages/web
+  - pwd
+  - npm install
+  - ls -la node_modules/ts-jest/
   - npm run validate
 
 - name: node
   image: node:11-alpine
   commands:
   - cd ./packages/node
+  - pwd
+  - npm install
+  - ls -la node_modules/ts-jest/
   - npm run validate
 
 trigger:

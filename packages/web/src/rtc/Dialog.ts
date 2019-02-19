@@ -8,7 +8,7 @@ import { PeerType, VertoMethod, SwEvent, NOTIFICATION_TYPE, Direction } from '..
 import { State, DEFAULT_DIALOG_OPTIONS, ConferenceAction, Role } from '../../../common/src/util/constants/dialog'
 import { trigger, register, deRegister } from '../../../common/src/services/Handler'
 import { streamIsValid } from './helpers'
-import { objEmpty, mutateLiveArrayData } from '../../../common/src/util/helpers'
+import { objEmpty, mutateLiveArrayData, isFunction } from '../../../common/src/util/helpers'
 import { attachMediaStream, detachMediaStream } from '../../../common/src/util/webrtc'
 import { DialogOptions } from '../../../common/src/util/interfaces'
 
@@ -558,7 +558,7 @@ export default class Dialog {
   }
 
   private _validCallback(name: string) {
-    return this.options.hasOwnProperty(name) && this.options[name] instanceof Function
+    return this.options.hasOwnProperty(name) && isFunction(this.options[name])
   }
 
   private _dispatchConferenceUpdate(params: any) {

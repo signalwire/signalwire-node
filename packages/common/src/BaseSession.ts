@@ -6,7 +6,8 @@ import { BroadcastHandler } from './services/Broadcast'
 import { ADD, REMOVE, SwEvent, BladeMethod } from './util/constants'
 import Cache from './util/Cache'
 import { BroadcastParams, ISignalWireOptions, SubscribeParams, IBladeConnectResult } from './util/interfaces'
-import { Subscription, Connect } from '../../common/src/messages/Blade'
+import { Subscription, Connect } from './messages/Blade'
+import { isFunction } from './util/helpers'
 
 export default abstract class BaseSession {
   public uuid: string = uuidv4()
@@ -229,7 +230,7 @@ export default abstract class BaseSession {
    */
   protected _addSubscription(channel: string, handler: Function = null, uniqueId?: string) {
     this.subscriptions[channel] = {}
-    if (handler instanceof Function || typeof handler === 'function') {
+    if (isFunction(handler)) {
       register(channel, handler, uniqueId)
     }
   }

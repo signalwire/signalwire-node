@@ -1,7 +1,6 @@
 import { v4 as uuidv4 } from 'uuid'
 import logger from '../../../common/src/util/logger'
-import SignalWire from '../SignalWire'
-import Verto from '../Verto'
+import BrowserSession from '../BrowserSession'
 import { Invite, Answer, Attach, Bye, Modify, Info } from '../../../common/src/messages/Verto'
 import Peer from './Peer'
 import { PeerType, VertoMethod, SwEvent, NOTIFICATION_TYPE, Direction } from '../../../common/src/util/constants'
@@ -30,7 +29,7 @@ export default class Dialog {
   private gotEarly: boolean = false
   private _lastSerno: number = 0
 
-  constructor(private session: SignalWire | Verto, opts?: DialogOptions) {
+  constructor(private session: BrowserSession, opts?: DialogOptions) {
     const { iceServers, localElement, remoteElement, mediaConstraints: { audio, video } } = session
     this.options = Object.assign({}, DEFAULT_DIALOG_OPTIONS, { audio, video, iceServers, localElement, remoteElement }, opts)
 

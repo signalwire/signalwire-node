@@ -13,7 +13,7 @@ Reject.prototype = Object.create(twilio.twiml.FaxResponse.prototype)
 Reject.prototype.constructor = 'Reject'
 
 /* tslint:disable-next-line */
-const RestClient = function(username, token, opts) {
+const RestClient = function (username: string, token: string, opts?: any): void {
   if (!process.env.hasOwnProperty('SIGNALWIRE_API_HOSTNAME')) {
     throw new Error('Missing SIGNALWIRE_API_HOSTNAME environment variable.')
   }

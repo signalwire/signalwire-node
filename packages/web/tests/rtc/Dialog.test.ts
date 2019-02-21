@@ -1,9 +1,8 @@
-import { monitorCallbackQueue } from '../../common/src/services/Handler'
-import { State } from '../../common/src/util/constants/dialog'
-import Dialog from '../src/rtc/Dialog'
-import Verto from '../src/Verto'
-const Connection = require('../../common/src/services/Connection')
-jest.mock('../../common/src/services/Connection')
+import { monitorCallbackQueue } from '../../../common/src/services/Handler'
+import { State } from '../../../common/src/util/constants/dialog'
+import Dialog from '../../src/rtc/Dialog'
+import Verto from '../../src/Verto'
+const Connection = require('../../../common/src/services/Connection')
 
 describe('Dialog', () => {
   let session: Verto
@@ -148,89 +147,140 @@ describe('Dialog', () => {
 
     describe('on bootObj', () => {
       const packet = JSON.parse('{"action":"bootObj","name":"3599","wireSerno":-1,"data":[["ab077699-540b-c370-fc74-62d5a6d4f300",["0067","email@test.com","Jest client JS","opus@48000","{\\"audio\\":{\\"muted\\":false,\\"deaf\\":false,\\"onHold\\":false,\\"talking\\":false,\\"floor\\":true,\\"energyScore\\":16},\\"video\\":{\\"visible\\":true,\\"videoOnly\\":false,\\"avatarPresented\\":false,\\"mediaFlow\\":\\"sendRecv\\",\\"muted\\":false,\\"floor\\":true,\\"reservationID\\":null,\\"roleID\\":null,\\"videoLayerID\\":1},\\"oldStatus\\":\\"FLOOR VIDEO (FLOOR)\\"}",{"email":"email@test.com","avatar":"avatar"},null]],["3327dda8-b7c6-482c-b692-8f0d8c6d911f",["0069","edoardo@signalwire.com","SW JS client","opus@48000","{\\"audio\\":{\\"muted\\":false,\\"deaf\\":false,\\"onHold\\":false,\\"talking\\":false,\\"floor\\":false,\\"energyScore\\":0},\\"video\\":{\\"visible\\":true,\\"videoOnly\\":false,\\"avatarPresented\\":false,\\"mediaFlow\\":\\"sendRecv\\",\\"muted\\":false,\\"floor\\":false,\\"reservationID\\":null,\\"roleID\\":null,\\"videoLayerID\\":0},\\"oldStatus\\":\\"ACTIVE VIDEO\\"}",{},null]]]}')
-      describe('as a participant', () => {
-        it('should setup liveArray', async done => {
-          _mockResponse()
-          const res = await dialog.handleConferenceUpdate(packet, pvtData)
-          const channels = ['conference-chat-channel', 'conference-info-channel']
-          expect(Object.keys(session.subscriptions)).toEqual(expect.arrayContaining(channels))
-          expect(dialog.channels.sort()).toEqual(channels.sort())
-          expect(dialog).toHaveProperty('hangup')
-          expect(dialog).toHaveProperty('sendChatMessage')
-          done()
-        })
+      it('should setup liveArray as a participant', async done => {
+        _mockResponse()
+        await dialog.handleConferenceUpdate(packet, pvtData)
+        const channels = ['conference-chat-channel', 'conference-info-channel']
+        expect(Object.keys(session.subscriptions)).toEqual(expect.arrayContaining(channels))
+        expect(dialog.channels.sort()).toEqual(channels.sort())
+        expect(dialog).toHaveProperty('hangup')
+        expect(dialog).toHaveProperty('sendChatMessage')
+        done()
       })
 
-      describe('as a moderator', () => {
-        it('should setup liveArray with modChannel', async () => {
-          _mockResponse(true)
-          pvtData = JSON.parse('{"action":"conference-liveArray-join","laChannel":"conference-liveArray-channel","laName":"3599","role":"moderator","chatID":"conf+3599@188.166.44.156","conferenceMemberID":"80","canvasCount":1,"modChannel":"conference-mod-channel","chatChannel":"conference-chat-channel","infoChannel":"conference-info-channel"}')
-          const res = await dialog.handleConferenceUpdate(packet, pvtData)
-          const channels = ['conference-chat-channel', 'conference-info-channel', 'conference-mod-channel']
-          expect(Object.keys(session.subscriptions)).toEqual(expect.arrayContaining(channels))
-          expect(dialog.channels.sort()).toEqual(channels.sort())
-          expect(dialog).toHaveProperty('sendChatMessage')
-          expect(dialog).toHaveProperty('kick')
-          expect(dialog).toHaveProperty('listVideoLayouts')
-          expect(dialog.role).toEqual('moderator')
-        })
+      it('should setup liveArray as a moderator with modChannel', async done => {
+        _mockResponse(true)
+        pvtData = JSON.parse('{"action":"conference-liveArray-join","laChannel":"conference-liveArray-channel","laName":"3599","role":"moderator","chatID":"conf+3599@188.166.44.156","conferenceMemberID":"80","canvasCount":1,"modChannel":"conference-mod-channel","chatChannel":"conference-chat-channel","infoChannel":"conference-info-channel"}')
+        await dialog.handleConferenceUpdate(packet, pvtData)
+        const channels = ['conference-chat-channel', 'conference-info-channel', 'conference-mod-channel']
+        expect(Object.keys(session.subscriptions)).toEqual(expect.arrayContaining(channels))
+        expect(dialog.channels.sort()).toEqual(channels.sort())
+        expect(dialog).toHaveProperty('sendChatMessage')
+        expect(dialog).toHaveProperty('kick')
+        expect(dialog).toHaveProperty('listVideoLayouts')
+        expect(dialog.role).toEqual('moderator')
+        done()
       })
     })
 
-    // describe('on add', () => {
-    //   const packet = JSON.parse('{"action":"add","arrIndex":1,"name":"3599","hashKey":"f9ea4d7e-d55e-7dce-0cc2-ae48ec33abce","wireSerno":6,"data":["0083","email@test.com","Jest client JS","opus@48000","{\\"audio\\":{\\"muted\\":false,\\"deaf\\":false,\\"onHold\\":false,\\"talking\\":false,\\"floor\\":false,\\"energyScore\\":0},\\"video\\":{\\"visible\\":false,\\"videoOnly\\":false,\\"avatarPresented\\":false,\\"mediaFlow\\":\\"sendRecv\\",\\"muted\\":false,\\"floor\\":false,\\"reservationID\\":null,\\"roleID\\":null,\\"videoLayerID\\":-1},\\"oldStatus\\":\\"ACTIVE VIDEO\\"}",{"email":"email@test.com","avatar":"avatar"},null]}')
-    //   it('should do something', async () => {
-    //     const res = await dialog.handleConferenceUpdate(packet, pvtData)
-    //     console.log(res)
-    //     // expect(dialog.__onNotification.mock).toHaveBeenCalledTimes(1)
-    //   })
-    // })
+    describe('on add', () => {
+      const packet = JSON.parse('{"action":"add","arrIndex":1,"name":"3599","hashKey":"19e4f1b5-17a9-9456-b117-57f6bb114ce3","wireSerno":8,"data":["0069","1011","User","opus@48000","{\\"audio\\":{\\"muted\\":false,\\"deaf\\":false,\\"onHold\\":false,\\"talking\\":false,\\"floor\\":false,\\"energyScore\\":0},\\"video\\":{\\"visible\\":false,\\"videoOnly\\":false,\\"avatarPresented\\":false,\\"mediaFlow\\":\\"sendRecv\\",\\"muted\\":false,\\"floor\\":false,\\"reservationID\\":null,\\"videoLayerID\\":-1},\\"oldStatus\\":\\"ACTIVE VIDEO\\"}",{},null]}')
+      it('should dispatch a structured notification', async done => {
+        await dialog.handleConferenceUpdate(packet, pvtData)
+        expect(onNotification).toHaveBeenLastCalledWith({
+          type: 'conferenceUpdate',
+          dialog,
+          action: 'add',
+          callId: '19e4f1b5-17a9-9456-b117-57f6bb114ce3',
+          index: 1,
+          participantId: 69,
+          participantNumber: '1011',
+          participantName: 'User',
+          codec: 'opus@48000',
+          media: {
+            audio: { deaf: false, energyScore: 0, floor: false, muted: false, onHold: false, talking: false },
+            video: { avatarPresented: false, floor: false, mediaFlow: 'sendRecv', muted: false, reservationId: null, videoLayerId: -1, videoOnly: false, visible: false },
+            oldStatus: 'ACTIVE VIDEO'
+          },
+          participantData: {}
+        })
+        done()
+      })
+    })
 
-    // describe('on modify', () => {
-    //   const packet = JSON.parse('{"action":"modify","name":"3599","hashKey":"26c237dd-8995-1a71-96cc-11cd737659c2","wireSerno":24,"data":["0080","email@test.com","Jest client JS","opus@48000","{\\"audio\\":{\\"muted\\":false,\\"deaf\\":false,\\"onHold\\":false,\\"talking\\":true,\\"floor\\":true,\\"energyScore\\":633},\\"video\\":{\\"visible\\":true,\\"videoOnly\\":false,\\"avatarPresented\\":false,\\"mediaFlow\\":\\"sendRecv\\",\\"muted\\":false,\\"floor\\":true,\\"reservationID\\":null,\\"roleID\\":null,\\"videoLayerID\\":0},\\"oldStatus\\":\\"TALKING (FLOOR) VIDEO (FLOOR)\\"}",{"email":"email@test.com","avatar":"avatar"},null]}')
-    //   it('should do something', async () => {
-    //     const res = await dialog.handleConferenceUpdate(packet, pvtData)
-    //     console.log(res)
-    //     // expect(dialog.__onNotification.mock).toHaveBeenCalledTimes(1)
-    //   })
-    // })
+    describe('on modify', () => {
+      const packet = JSON.parse('{"action":"modify","name":"3599","hashKey":"255c02a2-7387-a25e-7862-bdfccfee8c4e","wireSerno":6,"data":["0068","1011","User","opus@48000","{\\"audio\\":{\\"muted\\":false,\\"deaf\\":false,\\"onHold\\":false,\\"talking\\":true,\\"floor\\":true,\\"energyScore\\":736},\\"video\\":{\\"visible\\":true,\\"videoOnly\\":false,\\"avatarPresented\\":false,\\"mediaFlow\\":\\"sendRecv\\",\\"muted\\":false,\\"floor\\":true,\\"floorLocked\\":true,\\"reservationID\\":null,\\"videoLayerID\\":0},\\"oldStatus\\":\\"TALKING (FLOOR) VIDEO (FLOOR)\\"}",{},null]}')
+      it('should dispatch a structured notification', async done => {
+        await dialog.handleConferenceUpdate(packet, pvtData)
+        expect(onNotification).toHaveBeenLastCalledWith({
+          type: 'conferenceUpdate',
+          dialog,
+          action: 'modify',
+          callId: '255c02a2-7387-a25e-7862-bdfccfee8c4e',
+          index: undefined,
+          participantId: 68,
+          participantNumber: '1011',
+          participantName: 'User',
+          codec: 'opus@48000',
+          media: {
+            audio: { deaf: false, energyScore: 736, floor: true, muted: false, onHold: false, talking: true },
+            video: { avatarPresented: false, floor: true, floorLocked: true, mediaFlow: 'sendRecv', muted: false, reservationId: null, videoLayerId: 0, videoOnly: false, visible: true },
+            oldStatus: 'TALKING (FLOOR) VIDEO (FLOOR)'
+          },
+          participantData: {}
+        })
+        done()
+      })
+    })
 
-    // describe('on del', () => {
-    //   const packet = JSON.parse('{"name":"3599","action":"del","hashKey":"f9ea4d7e-d55e-7dce-0cc2-ae48ec33abce","wireSerno":11,"data":["0083","email@test.com","Jest client JS","opus@48000","{\\"audio\\":{\\"muted\\":false,\\"deaf\\":false,\\"onHold\\":false,\\"talking\\":false,\\"floor\\":false,\\"energyScore\\":0},\\"video\\":{\\"visible\\":false,\\"videoOnly\\":false,\\"avatarPresented\\":false,\\"mediaFlow\\":\\"sendRecv\\",\\"muted\\":false,\\"floor\\":false,\\"reservationID\\":null,\\"roleID\\":null,\\"videoLayerID\\":-1},\\"oldStatus\\":\\"ACTIVE VIDEO\\"}",{"email":"email@test.com","avatar":"avatar"},null]}')
-    //   it('should do something', async () => {
-    //     const res = await dialog.handleConferenceUpdate(packet, pvtData)
-    //     console.log(res)
-    //     // expect(dialog.__onNotification.mock).toHaveBeenCalledTimes(1)
-    //   })
-    // })
+    describe('on del', () => {
+      const packet = JSON.parse('{"name":"3599","action":"del","hashKey":"f9ea4d7e-d55e-7dce-0cc2-ae48ec33abce","wireSerno":11,"data":["0083","email@test.com","Jest client JS","opus@48000","{\\"audio\\":{\\"muted\\":false,\\"deaf\\":false,\\"onHold\\":false,\\"talking\\":false,\\"floor\\":false,\\"energyScore\\":0},\\"video\\":{\\"visible\\":false,\\"videoOnly\\":false,\\"avatarPresented\\":false,\\"mediaFlow\\":\\"sendRecv\\",\\"muted\\":false,\\"floor\\":false,\\"reservationID\\":null,\\"roleID\\":null,\\"videoLayerID\\":-1},\\"oldStatus\\":\\"ACTIVE VIDEO\\"}",{"email":"email@test.com","avatar":"avatar"},null]}')
+      it('should do something', async done => {
+        await dialog.handleConferenceUpdate(packet, pvtData)
+        expect(onNotification).toHaveBeenLastCalledWith({
+          type: 'conferenceUpdate',
+          dialog,
+          action: 'delete',
+          callId: 'f9ea4d7e-d55e-7dce-0cc2-ae48ec33abce',
+          index: undefined,
+          participantId: 83,
+          participantNumber: 'email@test.com',
+          participantName: 'Jest client JS',
+          codec: 'opus@48000',
+          media: {
+            audio: { deaf: false, energyScore: 0, floor: false, muted: false, onHold: false, talking: false },
+            video: { avatarPresented: false, floor: false, mediaFlow: 'sendRecv', muted: false, reservationId: null, videoLayerId: -1, videoOnly: false, visible: false, roleId: null },
+            oldStatus: 'ACTIVE VIDEO'
+          },
+          participantData: {
+            avatar: 'avatar',
+            email: 'email@test.com'
+          }
+        })
+        done()
+      })
+    })
 
-    // describe('on clear', () => {
-    //   const packet = JSON.parse('')
-    //   it('should do something', async () => {
-    //     const res = await dialog.handleConferenceUpdate(packet, pvtData)
-    //     expect(onNotification.mock).toHaveBeenCalledTimes(1)
-    //   })
-    // })
+    describe('on clear', () => {
+      const packet = JSON.parse('{"action":"clear","name":"3599","wireSerno":-1,"data":{}}')
+      it('should dispatch a very simple notification', async done => {
+        await dialog.handleConferenceUpdate(packet, pvtData)
+        expect(onNotification).toHaveBeenLastCalledWith(expect.objectContaining({ type: 'conferenceUpdate', action: 'clear', dialog }))
+        done()
+      })
+    })
   })
 
   describe('.hold()', () => {
-    it('should change the dialog state', async () => {
+    it('should change the dialog state', async done => {
       Connection.mockResponse.mockImplementationOnce(() => JSON.parse('{"jsonrpc":"2.0","id":"3a42b89f-3c37-4e5f-874f-ac8a9c021c9d","result":{"callID":"f5552e28-405a-4ebc-93f3-355b01e2df4e","action":"hold","holdState":"held","sessid":"sessid"}}'))
       await dialog.hold()
       expect(dialog.state).toEqual('held')
+      done()
     })
   })
 
   describe('.unhold()', () => {
-    it('should change the dialog state', async () => {
+    it('should change the dialog state', async done => {
       Connection.mockResponse.mockImplementationOnce(() => JSON.parse('{"jsonrpc":"2.0","id":"a8dcd71d-d473-4d43-b517-87b175ba7ed7","result":{"callID":"f5552e28-405a-4ebc-93f3-355b01e2df4e","action":"unhold","holdState":"active","sessid":"sessid"}}'))
       await dialog.unhold()
       expect(dialog.state).toEqual('active')
+      done()
     })
   })
 
   describe('.toggleHold()', () => {
-    it('should change the dialog state', async () => {
+    it('should change the dialog state', async done => {
       Connection.mockResponse.mockImplementationOnce(() => JSON.parse('{"jsonrpc":"2.0","id":"61a9d32b-d241-40d1-87b0-0d8384936ae8","result":{"callID":"f5552e28-405a-4ebc-93f3-355b01e2df4e","action":"toggleHold","holdState":"held","sessid":"sessid"}}'))
       await dialog.toggleHold()
       expect(dialog.state).toEqual('held')
@@ -238,6 +288,7 @@ describe('Dialog', () => {
       Connection.mockResponse.mockImplementationOnce(() => JSON.parse('{"jsonrpc":"2.0","id":"a8dcd71d-d473-4d43-b517-87b175ba7ed7","result":{"callID":"f5552e28-405a-4ebc-93f3-355b01e2df4e","action":"toggleHold","holdState":"active","sessid":"sessid"}}'))
       await dialog.toggleHold()
       expect(dialog.state).toEqual('active')
+      done()
     })
   })
 

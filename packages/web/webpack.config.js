@@ -1,15 +1,14 @@
 const webpack = require('webpack')
-// const UglifyJsPlugin = require('uglifyjs-webpack-plugin')
 
 module.exports = (env, argv) => {
-  const outputDir = __dirname + '/../../dist/es5'
+  const outputDir = __dirname + '/dist'
   const mode = JSON.stringify(argv.mode)
   const config = {
     mode,
     entry: './index.ts',
     output: {
       path: outputDir,
-      filename: 'bundle.min.js',
+      filename: 'index.min.js',
       libraryTarget: 'this'
     },
     resolve: {
@@ -30,11 +29,6 @@ module.exports = (env, argv) => {
         }
       ]
     },
-    // optimization: {
-    //   minimizer: [
-    //     new UglifyJsPlugin()
-    //   ]
-    // },
     devServer: {
       contentBase: outputDir,
       compress: true,

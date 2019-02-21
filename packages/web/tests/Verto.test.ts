@@ -1,9 +1,11 @@
+import behaveLikeBaseSession from '../../common/tests/behaveLike/BaseSession'
 import { monitorCallbackQueue } from '../../common/src/services/Handler'
 import Verto from '../src/Verto'
 const Connection = require('../../common/src/services/Connection')
-jest.mock('../../common/src/services/Connection')
 
 describe('Verto', () => {
+  behaveLikeBaseSession.call(this, Verto)
+
   let instance: Verto
   const noop = (): void => { }
 

@@ -101,4 +101,37 @@ describe('reduceConnectParams()', () => {
     ]
     expect(reduceConnectParams(input, DEFAULT_DEVICE)).toEqual(res)
   })
+
+  describe('with invalid parameters', () => {
+    it('should not reduce invalid strings', () => {
+      expect(reduceConnectParams([''], DEFAULT_DEVICE)).toEqual([])
+      expect(reduceConnectParams([], DEFAULT_DEVICE)).toEqual([])
+    })
+
+    it('should ignore invalid string to call in serial', () => {
+      const res = [
+        [{ type: 'phone', params: { to_number: '+14567', from_number: DEFAULT_FROM_NUMBER_CLEANED, timeout: 30 } }]
+      ]
+      expect(reduceConnectParams(['', '4567'], DEFAULT_DEVICE)).toEqual(res)
+    })
+
+    it('should ignore invalid input in both serial & parallel specifying from and timeout', () => {
+      const res = [
+        [{ type: 'phone', params: { to_number: '+19999', from_number: '+17777', timeout: 30 } }],
+        [
+          { type: 'phone', params: { to_number: '+14567', from_number: '+17779', timeout: 25 } }
+        ]
+      ]
+      const input = [
+        { to_number: '19999', from_number: '7777', timeout: 30 },
+        [
+          { from_number: '7778', timeout: 25 },
+          { to_number: '', from_number: '7772', timeout: 25 },
+          { to_number: '4567', from_number: '7779', timeout: 25 }
+        ],
+        { to_number: '', from_number: '7780', timeout: 30 }
+      ]
+      expect(reduceConnectParams(input, DEFAULT_DEVICE)).toEqual(res)
+    })
+  })
 })

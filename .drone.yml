@@ -2,12 +2,22 @@ kind: pipeline
 name: default
 
 steps:
-- name: test
+- name: global
   image: node:11-alpine
   commands:
   - npm install
-  - npm run clean-build
-  - npm test
+
+- name: web
+  image: node:11-alpine
+  commands:
+  - cd ./packages/web
+  - npm run validate
+
+- name: node
+  image: node:11-alpine
+  commands:
+  - cd ./packages/node
+  - npm run validate
 
 trigger:
   event: push

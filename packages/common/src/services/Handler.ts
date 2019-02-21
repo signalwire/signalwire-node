@@ -1,4 +1,4 @@
-import { objEmpty } from '../util/helpers'
+import { objEmpty, isFunction } from '../util/helpers'
 
 type QueueMap = {
   [key: string]: {
@@ -44,7 +44,7 @@ const deRegister = (eventName: string, callback?: Function | null, uniqueId: str
   if (!_exists(eventName, uniqueId)) {
     return false
   }
-  if (callback instanceof Function) {
+  if (isFunction(callback)) {
     const index = queue[eventName][uniqueId].indexOf(callback)
     if (index >= 0) {
       queue[eventName][uniqueId].splice(index, 1)

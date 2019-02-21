@@ -5,7 +5,7 @@ import { deRegister, register, trigger } from './services/Handler'
 import { BroadcastHandler } from './services/Broadcast'
 import { ADD, REMOVE, SwEvent, BladeMethod } from './util/constants'
 import Cache from './util/Cache'
-import { BroadcastParams, ISignalWireOptions, SubscribeParams, IBladeConnectResult } from './util/interfaces'
+import { BroadcastParams, ISignalWireOptions, SubscribeParams } from './util/interfaces'
 import { Subscription, Connect } from './messages/Blade'
 import { isFunction } from './util/helpers'
 
@@ -21,6 +21,7 @@ export default abstract class BaseSession {
   private _cache: Cache
   private _idle: boolean = false
   private _executeQueue: { resolve?: Function, msg: any}[] = []
+  private _autoReconnect: boolean = true
 
   constructor(public options: ISignalWireOptions) {
     if (!this.validateOptions()) {
@@ -170,7 +171,13 @@ export default abstract class BaseSession {
    */
   protected async _onSocketOpen() {
     const bc = new Connect({ project: this.options.project, token: this.options.token }, this.sessionid)
-    const response: IBladeConnectResult = await this.execute(bc)
+    const response = await this.execute(bc).catch(error => error)
+    const { code, message } = response
+    if (code && code == -32002) {
+      this._autoReconnect = false
+      trigger(SwEvent.Error, message, this.uuid)
+      return
+    }
     this.sessionid = response.sessionid
     this.nodeid = response.nodeid
     this.master_nodeid = response.master_nodeid
@@ -185,7 +192,9 @@ export default abstract class BaseSession {
    * @return void
    */
   protected _onSocketClose() {
-    setTimeout(() => this.connect(), 1000)
+    if (this._autoReconnect) {
+      setTimeout(() => this.connect(), 1000)
+    }
   }
 
   /**

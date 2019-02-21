@@ -3,8 +3,8 @@
   "version": "0.0.1",
   "description": "Client library for connecting to SignalWire.",
   "author": "SignalWire Team <open.source@signalwire.com>",
-  "main": "dist/index.js",
-  "module": "dist/index.js",
+  "main": "dist/node/index.js",
+  "module": "dist/node/index.js",
   "files": [
     "dist"
   ],

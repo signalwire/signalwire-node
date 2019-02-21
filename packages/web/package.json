@@ -5,7 +5,7 @@
   "author": "SignalWire Team <open.source@signalwire.com>",
   "main": "dist/index.min.js",
   "unpkg": "dist/index.min.js",
-  "module": "dist/esm/index.js",
+  "module": "dist/esm/web/index.js",
   "files": [
     "dist"
   ],

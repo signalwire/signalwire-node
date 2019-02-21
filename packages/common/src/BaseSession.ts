@@ -178,6 +178,7 @@ export default abstract class BaseSession {
       trigger(SwEvent.Error, message, this.uuid)
       return
     }
+    this._autoReconnect = true
     this.sessionid = response.sessionid
     this.nodeid = response.nodeid
     this.master_nodeid = response.master_nodeid

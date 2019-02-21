@@ -9,6 +9,13 @@ export const setWebSocket = (websocket: any): void => {
   WebSocketClass = websocket
 }
 
+const WS_STATE = {
+  CONNECTING: 0,
+  OPEN: 1,
+  CLOSING: 2,
+  CLOSED: 3
+}
+
 const PATTERN = /^(ws|wss):\/\//
 export default class Connection {
   private _wsClient: any = null
@@ -25,7 +32,7 @@ export default class Connection {
   }
 
   get connected(): boolean {
-    return this._wsClient.readyState === WebSocket.OPEN
+    return this._wsClient.readyState === WS_STATE.OPEN
   }
 
   connect() {

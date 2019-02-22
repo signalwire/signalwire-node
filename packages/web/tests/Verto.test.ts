@@ -14,6 +14,7 @@ describe('Verto', () => {
   beforeEach(async done => {
     Connection.mockSend.mockClear()
     Connection.default.mockClear()
+    Connection.mockClose.mockClear()
     instance = new Verto({ host: 'example.fs.edo', login: 'login', password: 'passwd' })
     instance.subscriptions = {}
     await instance.connect()

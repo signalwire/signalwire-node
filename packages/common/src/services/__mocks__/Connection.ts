@@ -1,5 +1,7 @@
 export const mockResponse = jest.fn((): { result: string, error?: string } => ({ result: 'fake' }))
 
+export const mockSendRawText = jest.fn((str: string) => {})
+
 export const mockSend = jest.fn((bladeObj: any) => {
   const { request } = bladeObj
   return new Promise((resolve, reject) => {
@@ -18,6 +20,7 @@ export const connected = jest.fn().mockReturnValue(true)
 
 const mock = jest.fn().mockImplementation(() => {
   const mocked = {
+    sendRawText: mockSendRawText,
     send: mockSend,
     close: mockClose
   }

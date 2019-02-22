@@ -41,23 +41,30 @@ export default (klass: any) => {
           done()
         })
 
-        it('should auto-connect the session if the connection went down', async done => {
-          const response = await instance.execute(payload)
-          expect(instance.connected).toEqual(true)
-          expect(response).toEqual('fake')
-          done()
+        it('should queue the message if the connection went down', async done => {
+          instance.execute(payload)
+            .then(response => {
+              expect(instance.connected).toEqual(true)
+              expect(response).toEqual('fake')
+              done()
+            })
+          expect(Connection.mockSend).not.toHaveBeenCalled()
+          expect(instance._executeQueue).toHaveLength(1)
+          await instance.connect()
+          instance._emptyExecuteQueues()
         })
 
-        it('should NOT send the message through the socket if the connection is idle', done => {
+        it('should queue the message if the connection is idle', async done => {
           instance._idle = true
           instance.execute(payload).then(response => {
-            expect(response).toEqual('response-fake')
+            expect(response).toEqual('fake')
             done()
           })
           expect(Connection.mockSend).not.toHaveBeenCalled()
           expect(instance._executeQueue).toHaveLength(1)
           /** Reproduce/Mock a reconnection to validate the execute Promise */
-          instance._executeQueue[0].resolve('response-fake')
+          await instance.connect()
+          instance._emptyExecuteQueues()
         })
       })
 

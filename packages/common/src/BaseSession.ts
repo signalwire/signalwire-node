@@ -42,14 +42,15 @@ export default abstract class BaseSession {
    * Send a JSON object to the server.
    * @return Promise that will resolve/reject depending on the server response
    */
-  async execute(msg: any) {
+  execute(msg: any) {
     if (this._idle) {
-      return new Promise(resolve => {
-        this._executeQueue.push({ resolve, msg })
-      })
+      return new Promise(resolve => this._executeQueue.push({ resolve, msg }))
     }
     if (!this.connected) {
-      await this.connect()
+      return new Promise(resolve => {
+        this._executeQueue.push({ resolve, msg })
+        this.connect()
+      })
     }
     return this.connection.send(msg)
   }
@@ -292,7 +293,6 @@ export default abstract class BaseSession {
         resolve(this.execute(msg))
       }
     })
-
   }
 
   static on(eventName: string, callback: any) {

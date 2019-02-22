@@ -15,8 +15,16 @@ export const validateOptions = (options: ISignalWireOptions, className: string):
   return Boolean(host) && check
 }
 
-export const cleanNumber = (num: string) => {
-  let tmp = num.replace(/\D/g, '')
+export const cleanNumber = (num: string = '') => {
+  let tmp: string = ''
+  try {
+    tmp = num.replace(/\D/g, '')
+  } catch (error) {
+    return ''
+  }
+  if (!tmp.length) {
+    return ''
+  }
   if (!/^1/.test(tmp)) {
     tmp = `1${tmp}`
   }

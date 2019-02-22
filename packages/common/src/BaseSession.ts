@@ -119,6 +119,7 @@ export default abstract class BaseSession {
     trigger(SwEvent.Disconnect, null, this.uuid, false)
     this.subscriptions = {}
     if (this.connection) {
+      this._autoReconnect = false
       this.connection.close()
     }
     this.connection = null

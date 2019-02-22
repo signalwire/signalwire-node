@@ -76,7 +76,6 @@ export default class Connection {
   }
 
   close() {
-    this._wsClient.onclose = null
     this._wsClient.close()
     this._wsClient = null
   }

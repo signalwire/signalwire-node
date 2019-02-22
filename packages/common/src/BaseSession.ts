@@ -34,14 +34,22 @@ export default abstract class BaseSession {
     this._onSocketMessage = this._onSocketMessage.bind(this)
   }
 
+  get connected() {
+    return this.connection && this.connection.connected
+  }
+
   /**
    * Send a JSON object to the server.
    * @return Promise that will resolve/reject depending on the server response
    */
   execute(msg: any) {
     if (this._idle) {
+      return new Promise(resolve => this._executeQueue.push({ resolve, msg }))
+    }
+    if (!this.connected) {
       return new Promise(resolve => {
         this._executeQueue.push({ resolve, msg })
+        this.connect()
       })
     }
     return this.connection.send(msg)
@@ -112,9 +120,11 @@ export default abstract class BaseSession {
     trigger(SwEvent.Disconnect, null, this.uuid, false)
     this.subscriptions = {}
     if (this.connection) {
+      this._autoReconnect = false
       this.connection.close()
     }
     this.connection = null
+    this._executeQueue = []
     this._detachListeners()
   }
 
@@ -150,11 +160,11 @@ export default abstract class BaseSession {
   abstract async connect(): Promise<void>
 
   /**
-   * If the connection is already active do nothing otherwise disconnect the current one.
-   * Then attach the listeners to the session.
+   * If the connection is already active do nothing otherwise disconnect the current connection.
+   * Setup the default listeners to the session.
    * @return void
    */
-  protected checkConnection() {
+  protected setup() {
     if (this.connection) {
       if (this.connection.connected) {
         return
@@ -250,6 +260,7 @@ export default abstract class BaseSession {
    * @return void
    */
   private _attachListeners() {
+    this._detachListeners()
     this.on(SwEvent.Disconnect, this._onDisconnect)
     this.on(SwEvent.SocketOpen, this._onSocketOpen)
     this.on(SwEvent.SocketClose, this._onSocketClose)
@@ -282,7 +293,6 @@ export default abstract class BaseSession {
         resolve(this.execute(msg))
       }
     })
-
   }
 
   static on(eventName: string, callback: any) {

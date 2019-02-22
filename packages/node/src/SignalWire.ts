@@ -7,7 +7,7 @@ export default class SignalWire extends BaseSession {
   private _callingInstance: Calling = null
 
   async connect(): Promise<void> {
-    super.checkConnection()
+    super.setup()
     this.connection = new Connection(this)
   }
 

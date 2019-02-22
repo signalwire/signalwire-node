@@ -150,11 +150,11 @@ export default abstract class BaseSession {
   abstract async connect(): Promise<void>
 
   /**
-   * If the connection is already active do nothing otherwise disconnect the current one.
-   * Then attach the listeners to the session.
+   * If the connection is already active do nothing otherwise disconnect the current connection.
+   * Setup the default listeners to the session.
    * @return void
    */
-  protected checkConnection() {
+  protected setup() {
     if (this.connection) {
       if (this.connection.connected) {
         return

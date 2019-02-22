@@ -20,7 +20,7 @@ export default abstract class BrowserSession extends BaseSession {
   protected _videoConstraints: boolean | MediaTrackConstraints = false
 
   async connect(): Promise<void> {
-    super.checkConnection()
+    super.setup()
     const permissionPromise = checkPermissions()
     const devicePromise = this.refreshDevices()
 

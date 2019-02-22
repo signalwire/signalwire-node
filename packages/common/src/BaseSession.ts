@@ -34,15 +34,22 @@ export default abstract class BaseSession {
     this._onSocketMessage = this._onSocketMessage.bind(this)
   }
 
+  get connected() {
+    return this.connection && this.connection.connected
+  }
+
   /**
    * Send a JSON object to the server.
    * @return Promise that will resolve/reject depending on the server response
    */
-  execute(msg: any) {
+  async execute(msg: any) {
     if (this._idle) {
       return new Promise(resolve => {
         this._executeQueue.push({ resolve, msg })
       })
+    }
+    if (!this.connected) {
+      await this.connect()
     }
     return this.connection.send(msg)
   }

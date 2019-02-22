@@ -1,13 +1,13 @@
 import { monitorCallbackQueue } from '../../src/services/Handler'
 import BaseSession from '../../src/BaseSession'
-// import { ISignalWireOptions } from '../../src/util/interfaces'
-// const Connection = require('../../src/services/Connection')
+import { ISignalWireOptions } from '../../src/util/interfaces'
+const Connection = require('../../src/services/Connection')
 // jest.mock('../../src/services/Connection')
 
 export default (klass: any) => {
   describe('Inherit BaseClass', () => {
-    // const OPTIONS: ISignalWireOptions = { host: 'example.signalwire.com', login: 'login', password: 'password', project: 'project', token: 'token' }
-    // const instance = new klass(OPTIONS)
+    const OPTIONS: ISignalWireOptions = { host: 'example.signalwire.com', login: 'login', password: 'password', project: 'project', token: 'token' }
+    const instance = new klass(OPTIONS)
 
     // afterAll(() => {
     //   console.log('\t afterAll \n', monitorCallbackQueue(), '\n')
@@ -17,6 +17,13 @@ export default (klass: any) => {
     //   console.log('BaseSession beforeEach?')
     // })
 
+    afterEach(() => {
+      instance.disconnect()
+      instance._idle = false
+      Connection.mockSend.mockClear()
+      Connection.mockSendRawText.mockClear()
+    })
+
     // beforeAll(() => {
     //   console.log('beforeAll')
     // })
@@ -24,8 +31,54 @@ export default (klass: any) => {
     // describe('', () => {})
     describe('public methods', () => {
       // TODO: implement all these specs
-      describe('execute', () => { })
-      describe('executeRaw', () => { })
+      describe('execute', () => {
+        const payload = { request: { fake: 'data' } }
+        it('should send the message through the socket if the connection is live', async done => {
+          await instance.connect()
+          const response = await instance.execute(payload)
+          expect(Connection.mockSend).toHaveBeenLastCalledWith(payload)
+          expect(response).toEqual('fake')
+          done()
+        })
+
+        it('should auto-connect the session if the connection went down', async done => {
+          const response = await instance.execute(payload)
+          expect(instance.connected).toEqual(true)
+          expect(response).toEqual('fake')
+          done()
+        })
+
+        it('should NOT send the message through the socket if the connection is idle', done => {
+          instance._idle = true
+          instance.execute(payload).then(response => {
+            expect(response).toEqual('response-fake')
+            done()
+          })
+          expect(Connection.mockSend).not.toHaveBeenCalled()
+          expect(instance._executeQueue).toHaveLength(1)
+          /** Reproduce/Mock a reconnection to validate the execute Promise */
+          instance._executeQueue[0].resolve('response-fake')
+        })
+      })
+
+      describe('executeRaw', () => {
+        const payload = '#TEST'
+        it('should send the message through the socket if the connection is live', async done => {
+          await instance.connect()
+          instance.executeRaw(payload)
+          expect(Connection.mockSendRawText).toHaveBeenLastCalledWith(payload)
+          done()
+        })
+
+        it('should NOT send the message through the socket if the connection is idle', () => {
+          instance._idle = true
+          instance.executeRaw(payload)
+          expect(Connection.mockSendRawText).not.toHaveBeenCalled()
+          expect(instance._executeQueue).toHaveLength(1)
+          expect(instance._executeQueue[0].msg).toEqual(payload)
+        })
+      })
+
       describe('on', () => { })
       describe('off', () => { })
       describe('subscribe', () => { })

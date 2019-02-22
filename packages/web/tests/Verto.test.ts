@@ -1,10 +1,12 @@
 import behaveLikeBaseSession from '../../common/tests/behaveLike/BaseSession'
+import VertoHandler from './services/VertoHandler'
 import { monitorCallbackQueue } from '../../common/src/services/Handler'
 import Verto from '../src/Verto'
 const Connection = require('../../common/src/services/Connection')
 
 describe('Verto', () => {
   behaveLikeBaseSession.call(this, Verto)
+  VertoHandler.call(this, Verto)
 
   let instance: Verto
   const noop = (): void => { }
@@ -149,13 +151,6 @@ describe('Verto', () => {
       expect(instance.broadcast.bind(instance, { channel: '' })).toThrow()
       expect(instance.broadcast.bind(instance, { channel: false })).toThrow()
       expect(instance.broadcast.bind(instance, { channel: null })).toThrow()
-    })
-  })
-
-  describe('static .uuid()', () => {
-    it('generates UUID v4', () => {
-      const pattern = new RegExp(/^[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i)
-      expect(Verto.uuid()).toMatch(pattern)
     })
   })
 

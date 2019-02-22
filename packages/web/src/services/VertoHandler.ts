@@ -109,6 +109,7 @@ class VertoHandler {
           session.broadcast({ channel: laChannel, data: { liveArray: { command: 'bootstrap', context: laChannel, name: laName } } })
         }
         const tmp = {
+          // protocol, // TODO: add Blade protocol here
           channels: [laChannel],
           handler: ({ data: packet }: any) => {
             let dialogId: string = null

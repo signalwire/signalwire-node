@@ -250,6 +250,7 @@ export default abstract class BaseSession {
    * @return void
    */
   private _attachListeners() {
+    this._detachListeners()
     this.on(SwEvent.Disconnect, this._onDisconnect)
     this.on(SwEvent.SocketOpen, this._onSocketOpen)
     this.on(SwEvent.SocketClose, this._onSocketClose)

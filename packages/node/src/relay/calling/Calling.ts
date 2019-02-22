@@ -1,5 +1,5 @@
 import { Execute } from '../../../../common/src/messages/Blade'
-import { cleanNumber } from '../../../../common/src/util/helpers'
+import { cleanNumber, isFunction } from '../../../../common/src/util/helpers'
 import { register, trigger } from '../../../../common/src/services/Handler'
 import { ICallDevice } from '../../../../common/src/util/interfaces'
 import logger from '../../../../common/src/util/logger'
@@ -39,20 +39,22 @@ export default class Calling extends Relay {
     }
   }
 
-  async makeCall(from: string, to: string, timeout: number = 30) {
-    await this.setup()
-    const device: ICallDevice = {
-      type: detectCallType(to),
-      params: {
-        from_number: cleanNumber(from),
-        to_number: cleanNumber(to),
-        timeout: Number(timeout)
-      }
+  async makeCall(from: string, to: string, time: number = 30) {
+    const from_number = cleanNumber(from)
+    const to_number = cleanNumber(to)
+    const timeout = Number(time)
+    if (!from_number || !to_number || !timeout) {
+      throw new Error(`Invalid parameters for makeCall. from: ${from}, to: ${to}, timeout: ${time}`)
     }
+    await this.setup()
+    const device: ICallDevice = { type: detectCallType(to), params: { from_number, to_number, timeout } }
     return new Call(this, { device })
   }
 
   async onInbound(context: string, handler: Function) {
+    if (!context || !isFunction(handler)) {
+      throw new Error(`Invalid parameters for 'onInbound'.`)
+    }
     await this.setup()
 
     const msg = new Execute({

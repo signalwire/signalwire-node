@@ -115,6 +115,7 @@ export default abstract class BaseSession {
       this.connection.close()
     }
     this.connection = null
+    this._executeQueue = []
     this._detachListeners()
   }
 

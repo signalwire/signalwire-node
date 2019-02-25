@@ -41,7 +41,7 @@ export default class Calling extends Relay {
 
   async makeCall(params: IMakeCallParams) {
     const { type, from_number, to_number, timeout } = cleanCallingParams(params)
-    if (!from_number || !to_number || !timeout) {
+    if (!type || !from_number || !to_number || !timeout) {
       throw new Error(`Invalid parameters for 'makeCall'.`)
     }
     await this.setup()

@@ -4,12 +4,19 @@ import { ICallDevice } from '../../../common/src/util/interfaces'
 
 interface DeepArray<T> extends Array<T | DeepArray<T>> { }
 
-export const detectCallType = (to: string): string => {
+export const detectCallType = (_to: string = ''): string => {
+  let to: string = ''
+  try { to = _to.trim() } catch {}
   if (!to) {
     return null
   }
-  // TODO: check call type by "to"
-  return CallType.Phone
+  if (/^sip:/.test(to)) {
+    return CallType.Sip
+  }
+  if (cleanNumber(to)) {
+    return CallType.Phone
+  }
+  return CallType.WebRTC
 }
 
 interface DeviceAccumulator {

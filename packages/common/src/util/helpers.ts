@@ -15,20 +15,16 @@ export const validateOptions = (options: ISignalWireOptions, className: string):
   return Boolean(host) && check
 }
 
-export const cleanNumber = (num: string = '') => {
-  let tmp: string = ''
-  try {
-    tmp = num.replace(/\D/g, '')
-  } catch (error) {
-    return ''
+export const cleanNumber = (_num: string = ''): string => {
+  let num: string = ''
+  try { num = _num.replace(/\D/g, '') } catch { }
+  if (num.length < 10) { // FIXME: We need a better check here!
+    return null
   }
-  if (!tmp.length) {
-    return ''
+  if (!/^1/.test(num)) {
+    num = `1${num}`
   }
-  if (!/^1/.test(tmp)) {
-    tmp = `1${tmp}`
-  }
-  return `+${tmp}`
+  return `+${num}`
 }
 
 export const objEmpty = (obj: Object) => Object.keys(obj).length === 0

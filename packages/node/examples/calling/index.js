@@ -22,7 +22,7 @@ client.on('signalwire.ready', session => {
 client.connect()
 
 async function makeCall(to) {
-  const leg = await client.calling.makeCall(FROM_NUMBER, to)
+  const leg = await client.calling.makeCall({ from: FROM_NUMBER, to })
   leg.on('created', call => {
     console.log(`\t ${call.id} state from ${call.prevState} to ${call.state}`, '\n')
   })

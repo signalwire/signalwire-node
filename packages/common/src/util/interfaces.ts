@@ -190,3 +190,9 @@ export interface ICallOptions {
   call_state?: string
   context?: string
 }
+
+export interface IMakeCallParams {
+  from: string
+  to: string
+  timeout?: number
+}

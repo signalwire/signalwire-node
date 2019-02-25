@@ -47,7 +47,7 @@ describe('Calling', () => {
 
     let call: Call
     beforeEach(async done => {
-      call = await session.calling.makeCall('2234', '5678')
+      call = await session.calling.makeCall({ from: '8992222222', to: '8991111111' })
       done()
     })
 

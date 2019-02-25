@@ -21,86 +21,108 @@ describe('detectCallType()', () => {
 })
 
 describe('reduceConnectParams()', () => {
-  const DEFAULT_DEVICE: ICallDevice = { type: 'phone', params: { from_number: '2224449999', timeout: 30, to_number: '' } }
-  // const DEFAULT_TIMEOUT = 30
-  // const DEFAULT_FROM_NUMBER = '2224449999'
-  const DEFAULT_FROM_NUMBER_CLEANED = '+12224449999'
+  const from_number = '8992222222'
+  const from_number_cleaned = '+18992222222'
+  const to_number = '8991111111'
+  const to_number_cleaned = '+18991111111'
+  const timeout = 30
+  const type = 'phone'
+  const DEFAULT_DEVICE: ICallDevice = { type, params: { from_number, timeout, to_number: '' } }
   it('should return a single device to call', () => {
-    const res = [[{ type: 'phone', params: { to_number: '+1234', from_number: DEFAULT_FROM_NUMBER_CLEANED, timeout: 30 } }]]
-    expect(reduceConnectParams(['1234'], DEFAULT_DEVICE)).toEqual(res)
+    const res = [
+      [{ type, params: { to_number: to_number_cleaned, from_number: from_number_cleaned, timeout } }]
+    ]
+    const input = [to_number]
+    expect(reduceConnectParams(input, DEFAULT_DEVICE)).toEqual(res)
   })
 
   it('should return a single device to call specifying from and timeout', () => {
-    const res = [[{ type: 'phone', params: { to_number: '+1234', from_number: '+18888', timeout: 50 } }]]
-    expect(reduceConnectParams([{ to_number: '1234', from_number: '8888', timeout: 50 }], DEFAULT_DEVICE)).toEqual(res)
+    const res = [
+      [{ type, params: { to_number: to_number_cleaned, from_number: from_number_cleaned, timeout: 50 } }]
+    ]
+    const input = [{ to_number, from_number, timeout: 50 }]
+    expect(reduceConnectParams(input, DEFAULT_DEVICE)).toEqual(res)
   })
 
   it('should return multiple devices to call in serial', () => {
     const res = [
-      [{ type: 'phone', params: { to_number: '+1234', from_number: DEFAULT_FROM_NUMBER_CLEANED, timeout: 30 } }],
-      [{ type: 'phone', params: { to_number: '+14567', from_number: DEFAULT_FROM_NUMBER_CLEANED, timeout: 30 } }]
+      [{ type, params: { to_number: to_number_cleaned, from_number: from_number_cleaned, timeout } }],
+      [{ type, params: { to_number: '+18991111112', from_number: from_number_cleaned, timeout } }]
     ]
-    expect(reduceConnectParams(['1234', '4567'], DEFAULT_DEVICE)).toEqual(res)
+    const input = [to_number, '8991111112']
+    expect(reduceConnectParams(input, DEFAULT_DEVICE)).toEqual(res)
   })
 
   it('should return multiple devices to call in serial specifying from and timeout', () => {
     const res = [
-      [{ type: 'phone', params: { to_number: '+19999', from_number: '+17777', timeout: 10 } }],
-      [{ type: 'phone', params: { to_number: '+19998', from_number: '+17778', timeout: 20 } }]
+      [{ type, params: { to_number: to_number_cleaned, from_number: from_number_cleaned, timeout: 10 } }],
+      [{ type, params: { to_number: '+18991111112', from_number: '+18992222223', timeout: 20 } }]
     ]
     const input = [
-      { to_number: '9999', from_number: '7777', timeout: 10 }, { to_number: '9998', from_number: '7778', timeout: 20 }
+      { to_number, from_number, timeout: 10 },
+      { to_number: '8991111112', from_number: '8992222223', timeout: 20 }
     ]
     expect(reduceConnectParams(input, DEFAULT_DEVICE)).toEqual(res)
   })
 
   it('should return multiple devices to call in parallel', () => {
     const res = [[
-      { type: 'phone', params: { to_number: '+1234', from_number: DEFAULT_FROM_NUMBER_CLEANED, timeout: 30 } },
-      { type: 'phone', params: { to_number: '+14567', from_number: DEFAULT_FROM_NUMBER_CLEANED, timeout: 30 } }
+      { type, params: { to_number: to_number_cleaned, from_number: from_number_cleaned, timeout } },
+      { type, params: { to_number: '+18991111112', from_number: from_number_cleaned, timeout } }
     ]]
-    expect(reduceConnectParams([['1234', '4567']], DEFAULT_DEVICE)).toEqual(res)
+    const input = [
+      [to_number, '8991111112']
+    ]
+    expect(reduceConnectParams(input, DEFAULT_DEVICE)).toEqual(res)
   })
 
   it('should return multiple devices to call in parallel specifying from and timeout', () => {
     const res = [[
-      { type: 'phone', params: { to_number: '+1234', from_number: '+17777', timeout: 30 } },
-      { type: 'phone', params: { to_number: '+1235', from_number: '+17778', timeout: 20 } }
+      { type, params: { to_number: to_number_cleaned, from_number: from_number_cleaned, timeout } },
+      { type, params: { to_number: '+18991111119', from_number: '+18992222229', timeout: 20 } }
     ]]
     const input = [
-      [{ to_number: '1234', from_number: '7777', timeout: 30 }, { to_number: '1235', from_number: '7778', timeout: 20 }]
+      [
+        { to_number, from_number, timeout },
+        { to_number: '18991111119', from_number: '8992222229', timeout: 20 }
+      ]
     ]
     expect(reduceConnectParams(input, DEFAULT_DEVICE)).toEqual(res)
   })
 
   it('should return multiple devices to call in both serial & parallel', () => {
     const res = [
-      [{ type: 'phone', params: { to_number: '+19999', from_number: DEFAULT_FROM_NUMBER_CLEANED, timeout: 30 } }],
+      [{ type, params: { to_number: to_number_cleaned, from_number: from_number_cleaned, timeout } }],
       [
-        { type: 'phone', params: { to_number: '+1234', from_number: DEFAULT_FROM_NUMBER_CLEANED, timeout: 30 } },
-        { type: 'phone', params: { to_number: '+14567', from_number: DEFAULT_FROM_NUMBER_CLEANED, timeout: 30 } }
+        { type, params: { to_number: to_number_cleaned, from_number: from_number_cleaned, timeout } },
+        { type, params: { to_number: '+18991111112', from_number: from_number_cleaned, timeout } }
       ],
-      [{ type: 'phone', params: { to_number: '+198877', from_number: DEFAULT_FROM_NUMBER_CLEANED, timeout: 30 } }]
+      [{ type, params: { to_number: '+18991111113', from_number: from_number_cleaned, timeout } }]
     ]
-    expect(reduceConnectParams(['19999', ['1234', '4567'], '98877'], DEFAULT_DEVICE)).toEqual(res)
+    const input = [
+      to_number,
+      [to_number, '8991111112'],
+      '8991111113'
+    ]
+    expect(reduceConnectParams(input, DEFAULT_DEVICE)).toEqual(res)
   })
 
   it('should return multiple devices to call in both serial & parallel specifying from and timeout', () => {
     const res = [
-      [{ type: 'phone', params: { to_number: '+19999', from_number: '+17777', timeout: 30 } }],
+      [{ type, params: { to_number: to_number_cleaned, from_number: from_number_cleaned, timeout } }],
       [
-        { type: 'phone', params: { to_number: '+1234', from_number: '+17778', timeout: 25 } },
-        { type: 'phone', params: { to_number: '+14567', from_number: '+17779', timeout: 25 } }
+        { type, params: { to_number: to_number_cleaned, from_number: '+18992222223', timeout: 25 } },
+        { type, params: { to_number: '+18991111112', from_number: '+18992222224', timeout: 25 } }
       ],
-      [{ type: 'phone', params: { to_number: '+198877', from_number: '+17780', timeout: 30 } }]
+      [{ type, params: { to_number: '+18991111113', from_number: '+18992222225', timeout } }]
     ]
     const input = [
-      { to_number: '19999', from_number: '7777', timeout: 30 },
+      { to_number, from_number, timeout },
       [
-        { to_number: '1234', from_number: '7778', timeout: 25 },
-        { to_number: '4567', from_number: '7779', timeout: 25 }
+        { to_number, from_number: '8992222223', timeout: 25 },
+        { to_number: '8991111112', from_number: '8992222224', timeout: 25 }
       ],
-      { to_number: '98877', from_number: '7780', timeout: 30 }
+      { to_number: '8991111113', from_number: '8992222225', timeout }
     ]
     expect(reduceConnectParams(input, DEFAULT_DEVICE)).toEqual(res)
   })
@@ -113,26 +135,28 @@ describe('reduceConnectParams()', () => {
 
     it('should ignore invalid string to call in serial', () => {
       const res = [
-        [{ type: 'phone', params: { to_number: '+14567', from_number: DEFAULT_FROM_NUMBER_CLEANED, timeout: 30 } }]
+        [{ type, params: { to_number: '+18991111112', from_number: from_number_cleaned, timeout } }]
       ]
-      expect(reduceConnectParams(['', '4567'], DEFAULT_DEVICE)).toEqual(res)
+      expect(reduceConnectParams(['', '8991111112'], DEFAULT_DEVICE)).toEqual(res)
     })
 
     it('should ignore invalid input in both serial & parallel specifying from and timeout', () => {
       const res = [
-        [{ type: 'phone', params: { to_number: '+19999', from_number: '+17777', timeout: 30 } }],
         [
-          { type: 'phone', params: { to_number: '+14567', from_number: '+17779', timeout: 25 } }
+          { type, params: { to_number: to_number_cleaned, from_number: from_number_cleaned, timeout } }
+        ],
+        [
+          { type, params: { to_number: '+18991111112', from_number: '+18992222226', timeout: 25 } }
         ]
       ]
       const input = [
-        { to_number: '19999', from_number: '7777', timeout: 30 },
+        { to_number, from_number, timeout },
         [
           { from_number: '7778', timeout: 25 },
           { to_number: '', from_number: '7772', timeout: 25 },
-          { to_number: '4567', from_number: '7779', timeout: 25 }
+          { to_number: '8991111112', from_number: '8992222226', timeout: 25 }
         ],
-        { to_number: '', from_number: '7780', timeout: 30 }
+        { to_number: '', from_number: '7780', timeout }
       ]
       expect(reduceConnectParams(input, DEFAULT_DEVICE)).toEqual(res)
     })

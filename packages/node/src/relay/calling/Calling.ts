@@ -18,11 +18,13 @@ export default class Calling extends Relay {
     switch (event_type) {
       case 'calling.call.state': {
         const { call_id, node_id, call_state, tag } = params
-        const call = this.getCall(call_id) || this.getCallByTag(tag)
+        const call = this.getCall(call_id) || this.getCall(tag)
         if (!call) {
           throw new Error(`Unknown call id: '${call_id}' tag: '${tag}' state: ${call_state}`)
         }
-        call.setup(call_id, node_id)
+        if (call.id.indexOf('local-') === 0) {
+          call.setup(call_id, node_id)
+        }
         trigger(call.id, call, call_state, false)
         break
       }
@@ -80,10 +82,5 @@ export default class Calling extends Relay {
 
   callIds(): string[] {
     return Object.keys(this._calls)
-  }
-
-  getCallByTag(tag: string) {
-    const callId = this.callIds().find(id => this._calls[id].tag === tag)
-    return this.getCall(callId)
   }
 }

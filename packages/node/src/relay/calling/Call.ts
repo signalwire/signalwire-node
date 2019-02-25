@@ -8,8 +8,7 @@ import { reduceConnectParams } from '../helpers'
 import Calling from './Calling'
 
 export default class Call implements ICall {
-  public tag: string = uuidv4()
-  public id: string
+  public id: string = `local-${uuidv4()}`
   public nodeId: string
 
   private _prevState: number = 0
@@ -23,15 +22,10 @@ export default class Call implements ICall {
   }
 
   setup(callId: string, nodeId: string) {
-    if (this._state > CallState.none) {
-      return
-    }
-    this._state = CallState.created
+    console.log(' - SETUP! - ', callId, nodeId, this.id)
     this.id = callId
     this.nodeId = nodeId
     this._attachListeners()
-    this.relayInstance.addCall(this)
-    trigger(this.id, this, this.state, false)
   }
 
   async begin() {
@@ -40,10 +34,12 @@ export default class Call implements ICall {
       protocol,
       method: 'call.begin',
       params: {
-        tag: this.tag,
+        tag: this.id,
         device: this.device
       }
     })
+
+    this.relayInstance.addCall(this)
 
     const response = await session.execute(msg).catch(error => error)
     const { result } = response
@@ -56,8 +52,6 @@ export default class Call implements ICall {
       logger.error('Begin call not 200', call_id, code, node_id)
       throw new Error('Error creating the call')
     }
-
-    this.setup(call_id, node_id)
   }
 
   async hangup() {

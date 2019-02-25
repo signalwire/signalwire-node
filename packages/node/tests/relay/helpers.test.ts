@@ -40,7 +40,7 @@ describe('reduceConnectParams()', () => {
     const res = [
       [{ type, params: { to_number: to_number_cleaned, from_number: from_number_cleaned, timeout: 50 } }]
     ]
-    const input = [{ to_number, from_number, timeout: 50 }]
+    const input = [{ to: to_number, from: from_number, timeout: 50 }]
     expect(reduceConnectParams(input, DEFAULT_DEVICE)).toEqual(res)
   })
 
@@ -59,8 +59,8 @@ describe('reduceConnectParams()', () => {
       [{ type, params: { to_number: '+18991111112', from_number: '+18992222223', timeout: 20 } }]
     ]
     const input = [
-      { to_number, from_number, timeout: 10 },
-      { to_number: '8991111112', from_number: '8992222223', timeout: 20 }
+      { to: to_number, from: from_number, timeout: 10 },
+      { to: '8991111112', from: '8992222223', timeout: 20 }
     ]
     expect(reduceConnectParams(input, DEFAULT_DEVICE)).toEqual(res)
   })
@@ -83,8 +83,8 @@ describe('reduceConnectParams()', () => {
     ]]
     const input = [
       [
-        { to_number, from_number, timeout },
-        { to_number: '18991111119', from_number: '8992222229', timeout: 20 }
+        { to: to_number, from: from_number, timeout },
+        { to: '18991111119', from: '8992222229', timeout: 20 }
       ]
     ]
     expect(reduceConnectParams(input, DEFAULT_DEVICE)).toEqual(res)
@@ -117,12 +117,12 @@ describe('reduceConnectParams()', () => {
       [{ type, params: { to_number: '+18991111113', from_number: '+18992222225', timeout } }]
     ]
     const input = [
-      { to_number, from_number, timeout },
+      { to: to_number, from: from_number, timeout },
       [
-        { to_number, from_number: '8992222223', timeout: 25 },
-        { to_number: '8991111112', from_number: '8992222224', timeout: 25 }
+        { to: to_number, from: '8992222223', timeout: 25 },
+        { to: '8991111112', from: '8992222224', timeout: 25 }
       ],
-      { to_number: '8991111113', from_number: '8992222225', timeout }
+      { to: '8991111113', from: '8992222225', timeout }
     ]
     expect(reduceConnectParams(input, DEFAULT_DEVICE)).toEqual(res)
   })
@@ -150,13 +150,13 @@ describe('reduceConnectParams()', () => {
         ]
       ]
       const input = [
-        { to_number, from_number, timeout },
+        { to: to_number, from: from_number, timeout },
         [
-          { from_number: '7778', timeout: 25 },
-          { to_number: '', from_number: '7772', timeout: 25 },
-          { to_number: '8991111112', from_number: '8992222226', timeout: 25 }
+          { from: '7778', timeout: 25 },
+          { to: '', from: '7772', timeout: 25 },
+          { to: '8991111112', from: '8992222226', timeout: 25 }
         ],
-        { to_number: '', from_number: '7780', timeout }
+        { to: '', from: '7780', timeout }
       ]
       expect(reduceConnectParams(input, DEFAULT_DEVICE)).toEqual(res)
     })

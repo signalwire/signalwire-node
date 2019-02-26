@@ -42,8 +42,10 @@ export default class Calling extends Relay {
         break
       }
       case 'calling.call.connect': {
-        const { call_id, connect_state } = params
-        trigger(call_id, this.getCallById(call_id), connect_state)
+        const { call_id, connect_state, peer } = params
+        const call = this.getCallById(call_id)
+        call.setOptions({ peer } )
+        trigger(call_id, call, connect_state)
         break
       }
     }

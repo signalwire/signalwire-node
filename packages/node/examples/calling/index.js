@@ -110,7 +110,9 @@ function _init() {
               call.hangup()
               return null
             })
-          console.log(`\tCall connected?`, connectResponse)
+          if (connectResponse) {
+            console.log(`\tCall connected?`, connectResponse.id, connectResponse.peer.id)
+          }
         })
       }
 

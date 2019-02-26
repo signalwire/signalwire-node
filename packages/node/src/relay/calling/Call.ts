@@ -264,6 +264,10 @@ export default class Call implements ICall {
     return this.relayInstance.getCallById(call_id)
   }
 
+  setOptions(opts: ICallOptions) {
+    this.options = { ...this.options, ...opts }
+  }
+
   get device(): ICallDevice {
     return this.options.device
   }

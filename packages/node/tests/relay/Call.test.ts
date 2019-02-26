@@ -38,10 +38,14 @@ describe('Call', () => {
       call = new Call(session.calling, { device })
     })
 
-    it('should create the Call object and do nothing else', () => {
+    it('should create the Call object with no id and nodeId', () => {
       expect(call.state).toEqual('none')
       expect(call.id).toBeUndefined()
-      expect(session.calling.addCall).not.toHaveBeenCalled()
+      expect(call.nodeId).toBeUndefined()
+    })
+
+    it('should add the call to the cache array', () => {
+      expect(session.calling.addCall).toHaveBeenCalledWith(call)
     })
 
     it('should not have peers', () => {

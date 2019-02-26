@@ -183,7 +183,7 @@ export interface ICallPeer {
 }
 
 export interface ICallOptions {
-  device: ICallDevice
+  device?: ICallDevice
   peer?: ICallPeer
   node_id?: string
   call_id?: string

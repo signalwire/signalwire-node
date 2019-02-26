@@ -192,6 +192,7 @@ export interface ICallOptions {
 }
 
 export interface IMakeCallParams {
+  type: string
   from: string
   to: string
   timeout?: number

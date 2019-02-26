@@ -3,7 +3,6 @@ import { isFunction } from '../../../../common/src/util/helpers'
 import { register, trigger } from '../../../../common/src/services/Handler'
 import { ICallDevice, IMakeCallParams } from '../../../../common/src/util/interfaces'
 import logger from '../../../../common/src/util/logger'
-import { cleanCallingParams } from '../helpers'
 import Relay from '../Relay'
 import Call from './Call'
 
@@ -52,7 +51,7 @@ export default class Calling extends Relay {
   }
 
   async makeCall(params: IMakeCallParams) {
-    const { type, from_number, to_number, timeout } = cleanCallingParams(params)
+    const { type, from: from_number, to: to_number, timeout = 30 } = params
     if (!type || !from_number || !to_number || !timeout) {
       throw new Error(`Invalid parameters for 'makeCall'.`)
     }

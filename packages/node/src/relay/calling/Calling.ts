@@ -89,12 +89,4 @@ export default class Calling extends Relay {
   getCallByTag(tag: string): Call {
     return this._calls.find(call => call.tag === tag)
   }
-
-  // callExists(callId: string): boolean {
-  //   return this.callIds().includes(callId)
-  // }
-
-  // callIds(): string[] {
-  //   return Object.keys(this._calls)
-  // }
 }

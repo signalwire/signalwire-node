@@ -1,23 +1,6 @@
-import { cleanNumber, objEmpty, mutateLiveArrayData, safeParseJson, isDefined } from '../src/util/helpers'
+import { objEmpty, mutateLiveArrayData, safeParseJson, isDefined } from '../src/util/helpers'
 
 describe('Helpers functions', () => {
-  describe('cleanNumber', () => {
-    it('should clear a number starting with 1', () => {
-      const number = '1-650.382.0000'
-      expect(cleanNumber(number)).toEqual('+16503820000')
-    })
-    it('should clear a number not starting with 1', () => {
-      const number = '650.382.0000'
-      expect(cleanNumber(number)).toEqual('+16503820000')
-    })
-    it('should clear a number already cleaned', () => {
-      const number = '+6503820000'
-      expect(cleanNumber(number)).toEqual('+16503820000')
-      const number2 = '+16503820000'
-      expect(cleanNumber(number2)).toEqual('+16503820000')
-    })
-  })
-
   describe('objEmpty', () => {
     it('should return true if object has no values', () => {
       const tmp = { test: 1234 }

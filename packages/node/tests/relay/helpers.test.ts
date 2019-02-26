@@ -1,24 +1,5 @@
-import { detectCallType, reduceConnectParams } from '../../src/relay/helpers'
+import { reduceConnectParams } from '../../src/relay/helpers'
 import { ICallDevice } from '../../../common/src/util/interfaces'
-
-describe('detectCallType()', () => {
-  it('detect phone call type', () => {
-    expect(detectCallType('(204) 222-9999')).toEqual('phone')
-    expect(detectCallType('+1 (204) 222-9999')).toEqual('phone')
-    expect(detectCallType('1 (204) 222-9999')).toEqual('phone')
-  })
-
-  it('detect SIP call type', () => {
-    expect(detectCallType('sip:joe.smith@127.0.0.1')).toEqual('sip')
-    expect(detectCallType('sip:test@sip.example.com')).toEqual('sip')
-    expect(detectCallType('sip:22444032@sip.example.com:6000')).toEqual('sip')
-  })
-
-  it('detect WebRTC call type', () => {
-    expect(detectCallType('1008')).toEqual('webrtc')
-    expect(detectCallType('1009-conf-admin')).toEqual('webrtc')
-  })
-})
 
 describe('reduceConnectParams()', () => {
   const from_number = '8992222222'

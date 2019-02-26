@@ -1,4 +1,4 @@
-import { ICallDevice } from '../../../common/src/util/interfaces'
+import { ICallDevice } from '../util/interfaces'
 
 interface DeepArray<T> extends Array<T | DeepArray<T>> { }
 

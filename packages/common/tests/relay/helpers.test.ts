@@ -1,5 +1,5 @@
 import { reduceConnectParams } from '../../src/relay/helpers'
-import { ICallDevice } from '../../../common/src/util/interfaces'
+import { ICallDevice } from '../../src/util/interfaces'
 
 describe('reduceConnectParams()', () => {
   const from_number = '+18992222222'

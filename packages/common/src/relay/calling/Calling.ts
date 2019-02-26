@@ -1,8 +1,8 @@
-import { Execute } from '../../../../common/src/messages/Blade'
-import { isFunction } from '../../../../common/src/util/helpers'
-import { register, trigger } from '../../../../common/src/services/Handler'
-import { ICallDevice, IMakeCallParams } from '../../../../common/src/util/interfaces'
-import logger from '../../../../common/src/util/logger'
+import { Execute } from '../../messages/Blade'
+import { isFunction } from '../../util/helpers'
+import { register, trigger } from '../../services/Handler'
+import { ICallDevice, IMakeCallParams } from '../../util/interfaces'
+import logger from '../../util/logger'
 import Relay from '../Relay'
 import Call from './Call'
 

@@ -1,9 +1,8 @@
 import SignalWire from '../../src/SignalWire'
 import { ICallDevice } from '../../../common/src/util/interfaces'
-import Call from '../../src/relay/calling/Call'
+import Call from '../../../common/src/relay/calling/Call'
 import { CallState } from '../../../common/src/util/constants/relay'
-import { monitorCallbackQueue, trigger } from '../../../common/src/services/Handler'
-// import Calling from '../../src/relay/calling/Calling'
+import { monitorCallbackQueue } from '../../../common/src/services/Handler'
 const Connection = require('../../../common/src/services/Connection')
 jest.mock('../../../common/src/services/Connection')
 

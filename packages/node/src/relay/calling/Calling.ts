@@ -11,21 +11,29 @@ const _ctxUniqueId = (context: string): string => `ctx:${context}`
 
 export default class Calling extends Relay {
   service = 'calling'
-  private _calls: { [callId: string]: Call } = {}
+  private _calls: Call[] = []
 
   notificationHandler(notification: any) {
     const { event_type, params } = notification
     switch (event_type) {
       case 'calling.call.state': {
-        const { call_id, node_id, call_state, tag } = params
-        const call = this.getCall(call_id) || this.getCall(tag)
-        if (!call) {
-          throw new Error(`Unknown call id: '${call_id}' tag: '${tag}' state: ${call_state}`)
+        const { call_id, node_id, call_state, tag, peer } = params
+        let call = this.getCallById(call_id)
+        if (call) {
+          return trigger(call_id, call, call_state, false)
         }
-        if (call.id.indexOf('local-') === 0) {
-          call.setup(call_id, node_id)
+        call = this.getCallByTag(tag)
+        if (call) {
+          if (!call.ready) {
+            call.setup(call_id, node_id)
+          }
+          return trigger(call_id, call, call_state, false)
         }
-        trigger(call.id, call, call_state, false)
+        if (call_id && peer) {
+          call = new Call(this, params)
+          return
+        }
+        logger.error('\t - Unknown call:', params, '\n\n')
         break
       }
       case 'calling.call.receive': {
@@ -35,7 +43,7 @@ export default class Calling extends Relay {
       }
       case 'calling.call.connect': {
         const { call_id, connect_state } = params
-        trigger(call_id, this.getCall(call_id), connect_state)
+        trigger(call_id, this.getCallById(call_id), connect_state)
         break
       }
     }
@@ -69,18 +77,22 @@ export default class Calling extends Relay {
   }
 
   addCall(call: Call): void {
-    this._calls[call.id] = call
+    this._calls.push(call)
   }
 
-  getCall(callId: string): Call {
-    return this._calls[callId]
+  getCallById(id: string): Call {
+    return this._calls.find(call => call.id === id)
   }
 
-  callExists(callId: string): boolean {
-    return this.callIds().includes(callId)
+  getCallByTag(tag: string): Call {
+    return this._calls.find(call => call.tag === tag)
   }
 
-  callIds(): string[] {
-    return Object.keys(this._calls)
-  }
+  // callExists(callId: string): boolean {
+  //   return this.callIds().includes(callId)
+  // }
+
+  // callIds(): string[] {
+  //   return Object.keys(this._calls)
+  // }
 }

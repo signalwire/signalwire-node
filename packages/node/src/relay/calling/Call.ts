@@ -8,8 +8,9 @@ import { reduceConnectParams } from '../helpers'
 import Calling from './Calling'
 
 export default class Call implements ICall {
-  public id: string = `local-${uuidv4()}`
+  public id: string
   public nodeId: string
+  public tag: string = uuidv4()
 
   private _prevState: number = 0
   private _state: number = 0
@@ -19,10 +20,12 @@ export default class Call implements ICall {
   constructor(protected relayInstance: Calling, protected options: ICallOptions) {
     this._attachListeners = this._attachListeners.bind(this)
     this._detachListeners = this._detachListeners.bind(this)
+    this.id = options.call_id
+    this.nodeId = options.node_id
+    this.relayInstance.addCall(this)
   }
 
   setup(callId: string, nodeId: string) {
-    console.log(' - SETUP! - ', callId, nodeId, this.id)
     this.id = callId
     this.nodeId = nodeId
     this._attachListeners()
@@ -34,12 +37,10 @@ export default class Call implements ICall {
       protocol,
       method: 'call.begin',
       params: {
-        tag: this.id,
+        tag: this.tag,
         device: this.device
       }
     })
-
-    this.relayInstance.addCall(this)
 
     const response = await session.execute(msg).catch(error => error)
     const { result } = response
@@ -260,16 +261,20 @@ export default class Call implements ICall {
 
   get peer(): Call {
     const { peer: { call_id = null } = {} } = this.options
-    return this.relayInstance.getCall(call_id)
+    return this.relayInstance.getCallById(call_id)
   }
 
   get device(): ICallDevice {
     return this.options.device
   }
 
+  get ready(): boolean {
+    return Boolean(this.id)
+  }
+
   on(eventName: string, callback: Function) {
     const eventPermitted = CallState[eventName] && !isNaN(Number(CallState[eventName]))
-    if (this.id && eventPermitted) {
+    if (this.ready && eventPermitted) {
       if (this._state >= CallState[eventName]) {
         callback(this)
       } else {
@@ -281,7 +286,7 @@ export default class Call implements ICall {
   }
 
   off(eventName: string, callback?: Function) {
-    if (this.id) {
+    if (this.ready) {
       deRegister(this.id, callback, eventName)
     }
     delete this._cbQueues[eventName]
@@ -307,7 +312,7 @@ export default class Call implements ICall {
   }
 
   private _callIdRequired() {
-    if (!this.id) {
+    if (!this.ready) {
       throw new Error('Call has not started.')
     }
   }

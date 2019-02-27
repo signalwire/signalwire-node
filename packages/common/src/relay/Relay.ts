@@ -1,7 +1,9 @@
 import BaseSession from '../BaseSession'
+import { Execute } from '../messages/Blade'
 import { Setup } from '../services/Setup'
 import { registerOnce, deRegisterAll } from '../services/Handler'
 import { SwEvent } from '../util/constants'
+import logger from '../util/logger'
 
 abstract class Relay {
   public Ready: Promise<string>
@@ -22,6 +24,22 @@ abstract class Relay {
     })
 
     registerOnce(SwEvent.Disconnect, this._disconnect.bind(this), this.session.uuid)
+  }
+
+  protected async configure() {
+    if (!this._protocol) {
+      throw new Error('No protocol to configure.')
+    }
+    // TODO: add 'resource' - 'domain' to ISignalWireOptions interface
+    // @ts-ignore
+    const { resource = 'swire', domain = 'dev.swire.io' } = this.session.options
+    const msg = new Execute({ protocol: this._protocol, method: 'configure', params: { resource, domain } })
+    const response = await this.session.execute(msg)
+      .catch(error => {
+        logger.error(`Error during configure ${this.service}.`, error)
+        return null
+      })
+    console.log('Configure', response)
   }
 
   protected _disconnect() {

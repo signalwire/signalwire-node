@@ -169,21 +169,21 @@ export default abstract class BaseSession {
    */
   protected async _onSocketOpen() {
     const bc = new Connect({ project: this.options.project, token: this.options.token }, this.sessionid)
-    const response = await this.execute(bc).catch(error => error)
-    const { code, message } = response
-    if (code && code == -32002) {
-      this._autoReconnect = false
-      trigger(SwEvent.Error, message, this.uuid)
-      return
+    const response = await this.execute(bc)
+      .catch(error => {
+        this._autoReconnect = false
+        trigger(SwEvent.Error, error, this.uuid)
+      })
+    if (response) {
+      this._autoReconnect = true
+      this.sessionid = response.sessionid
+      this.nodeid = response.nodeid
+      this.master_nodeid = response.master_nodeid
+      this._cache = new Cache()
+      this._cache.populateFromConnect(response)
+      this._emptyExecuteQueues()
+      trigger(SwEvent.Ready, this, this.uuid)
     }
-    this._autoReconnect = true
-    this.sessionid = response.sessionid
-    this.nodeid = response.nodeid
-    this.master_nodeid = response.master_nodeid
-    this._cache = new Cache()
-    this._cache.populateFromConnect(response)
-    this._emptyExecuteQueues()
-    trigger(SwEvent.Ready, this, this.uuid)
   }
 
   /**

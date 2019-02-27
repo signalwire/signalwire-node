@@ -64,8 +64,13 @@ export default class Call implements ICall {
       }
     })
 
-    const result = await session.execute(msg).catch(error => error)
-    logger.debug('Hangup call:', result)
+    const response = await session.execute(msg)
+      .catch(error => {
+        throw error.result
+      })
+    if (response) {
+      return response.result
+    }
   }
 
   async answer() {

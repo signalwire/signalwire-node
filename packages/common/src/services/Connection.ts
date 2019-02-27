@@ -61,13 +61,19 @@ export default class Connection {
   send(bladeObj: any): Promise<any> {
     const { request } = bladeObj
     const promise = new Promise((resolve, reject) => {
-      if (!request.hasOwnProperty('result')) {
-        registerOnce(request.id, response => {
-          response.hasOwnProperty('error') ? reject(response.error) : resolve(response.result)
-        })
-      } else {
-        resolve()
+      if (request.hasOwnProperty('result')) {
+        return resolve()
       }
+      registerOnce(request.id, (response: any) => {
+        const { result, error } = response
+        if (error) {
+          return reject(error)
+        }
+        if (result) {
+          const { result: { code = null } = {} } = result
+          code && code !== '200' ? reject(result) : resolve(result)
+        }
+      })
     })
     logger.debug('SEND: \n', JSON.stringify(request, null, 2), '\n')
     this._wsClient.send(JSON.stringify(request))

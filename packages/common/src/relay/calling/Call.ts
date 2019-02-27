@@ -162,22 +162,17 @@ export default class Call implements ICall {
       }
     })
 
-    const response = await session.execute(msg).catch(error => error)
-    const { result } = response
-    if (!result) {
-      logger.error('Connect call', response)
-      throw new Error('Error connecting the call')
+    const response = await session.execute(msg)
+      .catch(error => {
+        throw error.result
+      })
+    if (response) {
+      const awaiter = await new Promise((resolve, reject) => {
+        registerOnce(this.id, resolve.bind(this), CallConnectState.Connected)
+        registerOnce(this.id, reject.bind(this), CallConnectState.Failed)
+      })
+      return awaiter
     }
-    const { code } = result
-    if (code !== '200') {
-      throw result
-    }
-    const awaiter = await new Promise((resolve, reject) => {
-      registerOnce(this.id, resolve.bind(this), CallConnectState.Connected)
-      registerOnce(this.id, reject.bind(this), CallConnectState.Failed)
-    })
-
-    return awaiter
   }
 
   playAudio(location: string) {

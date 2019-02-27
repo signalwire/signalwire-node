@@ -1,7 +1,7 @@
 import { SwEvent } from '../../../common/src/util/constants'
 import { monitorCallbackQueue, trigger } from '../../../common/src/services/Handler'
-import Call from '../../src/relay/calling/Call'
-import Calling from '../../src/relay/calling/Calling'
+import Call from '../../../common/src/relay/calling/Call'
+import Calling from '../../../common/src/relay/calling/Calling'
 import SignalWire from '../../src/SignalWire'
 
 const Connection = require('../../../common/src/services/Connection')

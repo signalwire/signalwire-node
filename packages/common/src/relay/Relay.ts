@@ -1,5 +1,5 @@
-import BaseSession from '../../../common/src/BaseSession'
-import { Setup } from '../../../common/src/services/Setup'
+import BaseSession from '../BaseSession'
+import { Setup } from '../services/Setup'
 
 abstract class Relay {
   protected abstract service: string

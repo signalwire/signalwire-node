@@ -1,6 +1,6 @@
 import BaseSession from '../../common/src/BaseSession'
 import { deRegisterAll } from '../../common/src/services/Handler'
-import Calling from './relay/calling/Calling'
+import Calling from '../../common/src/relay/calling/Calling'
 import Connection from '../../common/src/services/Connection'
 
 export default class SignalWire extends BaseSession {

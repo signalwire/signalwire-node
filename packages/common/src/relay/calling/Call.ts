@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { Execute } from '../../messages/Blade'
 import { deRegister, registerOnce } from '../../services/Handler'
 import { CallState, CALL_STATES, DisconnectReason, CallConnectState } from '../../util/constants/relay'
-import { ICall, ICallOptions, ICallDevice } from '../../util/interfaces'
+import { ICall, ICallOptions, ICallDevice, IMakeCallParams } from '../../util/interfaces'
 import logger from '../../util/logger'
 import { reduceConnectParams } from '../helpers'
 import Calling from './Calling'
@@ -145,7 +145,7 @@ export default class Call implements ICall {
     logger.debug('Join calls:', result)
   }
 
-  async connect(...peers: any[]) { // FIXME: remove any[]
+  async connect(...peers: IMakeCallParams[]) {
     this._callIdRequired()
     const devices = reduceConnectParams(peers, this.device)
     if (!devices.length) {

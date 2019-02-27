@@ -30,7 +30,7 @@ module.exports = (env, argv) => {
       ]
     },
     devServer: {
-      contentBase: outputDir,
+      contentBase: [outputDir, __dirname + '/examples/vanilla'],
       compress: true,
       port: 9000,
       https: true

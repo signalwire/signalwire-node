@@ -199,10 +199,10 @@ export default class Call implements ICall {
     return this.playMedia(params)
   }
 
-  async playMedia(...play: any[]) { // FIXME: remove any[]
+  async playMedia(...play: { type: string, params: any }[]) {
     this._callIdRequired()
     if (!play.length) {
-      throw new Error('No actions to play!')
+      return
     }
     this._mediaControlId = uuidv4()
     const { protocol, session } = this.relayInstance
@@ -217,15 +217,19 @@ export default class Call implements ICall {
       }
     })
 
-    const result = await session.execute(msg).catch(error => error)
-    // TODO: handle error
-    logger.debug('Play on call:', result)
+    const response = await session.execute(msg)
+      .catch(error => {
+        throw error.result
+      })
+    if (response) {
+      return response.result
+    }
   }
 
   async stopMedia() {
     this._callIdRequired()
     if (!this._mediaControlId) {
-      throw new Error('There is no media to stop!')
+      return
     }
     const { protocol, session } = this.relayInstance
     const msg = new Execute({
@@ -238,9 +242,13 @@ export default class Call implements ICall {
       }
     })
 
-    const result = await session.execute(msg).catch(error => error)
-    // TODO: handle error
-    logger.debug('Stop media on call:', result)
+    const response = await session.execute(msg)
+      .catch(error => {
+        throw error.result
+      })
+    if (response) {
+      return response.result
+    }
   }
 
   get prevState() {

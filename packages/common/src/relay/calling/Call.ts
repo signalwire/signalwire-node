@@ -192,9 +192,6 @@ export default class Call implements ICall {
 
   playTTS(options: { text: string, language: string, gender: string, name: string }) {
     const { text = null, language = 'en-US', gender = 'male', name = 'bob' } = options
-    if (!text) {
-      throw new Error('"text" is required to play TTS.')
-    }
     const params = { type: 'tts', params: { text, language, gender, name } }
     return this.playMedia(params)
   }

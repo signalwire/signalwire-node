@@ -42,16 +42,12 @@ export default class Call implements ICall {
       }
     })
 
-    const response = await session.execute(msg).catch(error => error)
-    const { result } = response
-    if (!result) {
-      logger.error('Begin call', response)
-      throw new Error('Error creating the call')
-    }
-    const { call_id, code, node_id } = result
-    if (code !== '200') {
-      logger.error('Begin call not 200', call_id, code, node_id)
-      throw new Error('Error creating the call')
+    const response = await session.execute(msg)
+      .catch(error => {
+        throw error.result
+      })
+    if (response) {
+      return response.result
     }
   }
 

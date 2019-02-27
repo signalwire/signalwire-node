@@ -5,6 +5,7 @@ var username = localStorage.getItem('verto.example.username');
 var password = localStorage.getItem('verto.example.password');
 var domain   = localStorage.getItem('verto.example.domain');
 var host     = localStorage.getItem('verto.example.host');
+var client = localStorage.getItem('verto.example.client');
 var number   = localStorage.getItem('verto.example.number');
 
 ready(function() {
@@ -13,12 +14,14 @@ ready(function() {
   if (!username) username = '1000';
   if (!password) password = '1234';
   if (!number)   number   = '9196';
+  if (!client)   client   = 'sw';
 
   document.getElementById('username').value = username;
   document.getElementById('password').value = password;
   document.getElementById('domain').value = domain;
   document.getElementById('host').value = host;
   document.getElementById('number').value = number;
+  document.getElementById('client_' + client).checked = true;
 });
 
 function connect() {
@@ -27,12 +30,17 @@ function connect() {
   domain   = document.getElementById('domain').value;
   username = document.getElementById('username').value;
   password = document.getElementById('password').value;
+  client = document.querySelector('input[name="client"]:checked').value;
   login    = username + '@' + domain;
 
-  client = new Verto({
+  var klass = client === 'sw' ? SignalWire : Verto
+
+  client = new klass({
     host: host,
     login: login,
-    passwd: password
+    passwd: password,
+    project: username,
+    token: password
   });
 
   client.on('signalwire.ready', function() {
@@ -147,8 +155,8 @@ function hangup() {
 }
 
 function save_params(e) {
-  console.log(e.target.id, e.target.value);
-  localStorage.setItem('verto.example.' + e.target.id, e.target.value);
+  var key = e.target.name || e.target.id
+  localStorage.setItem('verto.example.' + key, e.target.value);
 }
 
 // jQuery document.ready equivalent

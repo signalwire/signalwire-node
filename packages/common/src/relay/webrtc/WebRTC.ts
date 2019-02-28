@@ -32,22 +32,23 @@ export default class WebRTC extends Relay {
 
     const msg = new Execute({
       protocol: this._protocol, method: 'message', params: {
-        message: new Login('1008', '1234', null, {}).request
+        message: new Login('1008@dev.swire.io', '1234', null, {}).request
       }
     })
+
     const response = await this.session.execute(msg)
       .catch(error => {
         logger.error('SignalWire login error', error)
       })
 
-    // logger.info('webrtc makeCall', params)
+    logger.info('webrtc makeCall', params)
 
-    // const { destinationNumber = null } = params
-    // if (!destinationNumber) {
-    //   throw new Error('SignalWire.newCall() error: destinationNumber is required.')
-    // }
-    // const dialog = new Dialog(this.session, params)
-    // dialog.invite()
-    // return dialog
+    const { destinationNumber = null } = params
+    if (!destinationNumber) {
+      throw new Error('SignalWire.newCall() error: destinationNumber is required.')
+    }
+    const dialog = new Dialog(this.session, params)
+    dialog.invite()
+    return dialog
   }
 }

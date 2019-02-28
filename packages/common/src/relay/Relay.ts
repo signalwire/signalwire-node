@@ -26,7 +26,7 @@ abstract class Relay {
     registerOnce(SwEvent.Disconnect, this._disconnect.bind(this), this.session.uuid)
   }
 
-  protected async setup() {
+  async setup() {
     if (this._protocol) {
       return
     }

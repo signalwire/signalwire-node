@@ -148,6 +148,8 @@ export default abstract class BaseSession {
    */
   abstract async connect(): Promise<void>
 
+  protected async _vertoLogin?(): Promise<void>
+
   /**
    * If the connection is already active do nothing otherwise disconnect the current connection.
    * Setup the default listeners to the session.
@@ -182,6 +184,9 @@ export default abstract class BaseSession {
       this.master_nodeid = response.master_nodeid
       this._cache = new Cache()
       this._cache.populateFromConnect(response)
+      if (this._vertoLogin) {
+        await this._vertoLogin()
+      }
       this._emptyExecuteQueues()
       trigger(SwEvent.Ready, this, this.uuid)
     }

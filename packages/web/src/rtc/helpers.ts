@@ -144,6 +144,40 @@ const checkDeviceIdConstraints = async (id: string, label: string, kind: MediaDe
   return constraints
 }
 
+/**
+ * Add stereo support hacking the SDP
+ * @return the SDP modified
+ */
+const sdpStereoHack = (sdp: string) => {
+  const endOfLine = '\r\n'
+  const sdpLines = sdp.split(endOfLine)
+
+  const opusIndex = sdpLines.findIndex(s => /^a=rtpmap/.test(s) && /opus\/48000/.test(s))
+  if (!opusIndex) {
+    return sdp
+  }
+
+  const getCodecPayloadType = (line: string) => {
+    const pattern = new RegExp('a=rtpmap:(\\d+) \\w+\\/\\d+')
+    const result = line.match(pattern)
+    return result && result.length == 2 ? result[1] : null
+  }
+  const opusPayload = getCodecPayloadType(sdpLines[opusIndex])
+
+  const pattern = new RegExp(`a=fmtp:${opusPayload}`)
+  const fmtpLineIndex = sdpLines.findIndex(s => pattern.test(s))
+
+  if (fmtpLineIndex >= 0) {
+    if (!/stereo=1;/.test(sdpLines[fmtpLineIndex])) { // Append stereo=1 to fmtp line if not already present
+      sdpLines[fmtpLineIndex] += '; stereo=1; sprop-stereo=1'
+    }
+  } else { // create an fmtp line
+    sdpLines[opusIndex] += `${endOfLine}a=fmtp:${opusPayload} stereo=1; sprop-stereo=1`
+  }
+
+  return sdpLines.join(endOfLine)
+}
+
 export {
   getUserMedia,
   getDevices,
@@ -153,5 +187,6 @@ export {
   assureDeviceId,
   checkPermissions,
   removeUnsupportedConstraints,
-  checkDeviceIdConstraints
+  checkDeviceIdConstraints,
+  sdpStereoHack
 }

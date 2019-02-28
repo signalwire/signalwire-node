@@ -21,19 +21,25 @@ export default class SignalWire extends BrowserSession {
     return super.execute(msg)
   }
 
-  _test() {
-    if (this._webrtcInstance === null) {
-      this._webrtcInstance = new WebRTC(this)
-    }
-  }
-
   async newCall(options: DialogOptions) {
-    this._test()
-
     const dialog = await this._webrtcInstance.makeCall(options)
       .catch(error => {
         logger.error('SignalWire newCall error', error)
       })
     return dialog
+  }
+
+  protected async _vertoLogin() {
+    if (this._webrtcInstance === null) {
+      this._webrtcInstance = new WebRTC(this)
+    }
+    await this._webrtcInstance.setup()
+
+    // TODO: set login/passwd
+    const msg = new Login('1008@dev.swire.io', '1234', this.sessionid, {})
+    await this.execute(msg)
+      .catch(error => {
+        logger.error('SignalWire _vertoLogin error', error)
+      })
   }
 }

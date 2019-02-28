@@ -93,28 +93,28 @@ function handleDialogChange(dialog) {
   cur_call = dialog;
 
   switch (dialog.state) {
-    case 'New':
+    case 'new':
       // Setup the UI
       break;
-    case 'Trying':
+    case 'trying':
       // You are calling someone and he's ringing now
       break;
-    case 'Ringing':
+    case 'ringing':
       // Someone is calling you
       break;
-    case 'Active':
+    case 'active':
       // Dialog has become active
       document.getElementById('remoteVideo').style.display = "block";
       document.getElementById('localVideo').style.display = "block";
 
       break;
-    case 'Hangup':
+    case 'hangup':
       // Dialog is over
       document.getElementById('remoteVideo').style.display = "none";
       document.getElementById('localVideo').style.display = "none";
 
       break;
-    case 'Destroy':
+    case 'destroy':
       // Dialog has been destroyed
       break;
   }
@@ -140,7 +140,7 @@ function makeCall() {
     userVariables: {
       // General user variables.. email/username
     },
-    localElement: 'localVideo', // Video element ID to display the localStream
+    // localElement: 'localVideo', // Video element ID to display the localStream
     remoteElement: 'remoteVideo', // Video element ID to display the remoteStream
     onNotification: function (notification) {
       handleDialogChange(notification.dialog)

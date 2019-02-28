@@ -1,19 +1,14 @@
-// import { Execute } from '../../messages/Blade'
-// import { isFunction } from '../../util/helpers'
-// import { register } from '../../services/Handler'
-
 import logger from '../../util/logger'
 import Relay from '../Relay'
 import { DialogOptions } from '../../util/interfaces'
 import Dialog from '../../../../web/src/rtc/Dialog'
 import BrowserSession from '../../../../web/src/BrowserSession'
-
 import { Execute } from '../../messages/Blade'
 import { Login } from '../../messages/Verto'
+import VertoHandler from '../../../../web/src/services/VertoHandler'
 
 export default class WebRTC extends Relay {
   service = 'webrtc'
-  // private _calls: Call[] = []
 
   constructor(public session: BrowserSession) {
     super(session)
@@ -21,9 +16,13 @@ export default class WebRTC extends Relay {
 
   notificationHandler(notification: any) {
     const { event_type, params } = notification
-    console.log('WebRTC notification', event_type, params)
-    // switch (event_type) {
-    // }
+    // console.log('WebRTC notification', event_type, params)
+    switch (event_type) {
+      case 'webrtc.message':
+        const handler = new VertoHandler(this.session)
+        handler.handleMessage(params)
+        break
+    }
   }
 
   async makeCall(params: DialogOptions) {

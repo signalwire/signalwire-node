@@ -1,7 +1,6 @@
 import BaseSession from '../BaseSession'
 import { Execute } from '../messages/Blade'
 import { Setup } from '../services/Setup'
-import logger from '../util/logger'
 
 abstract class Relay {
   protected abstract service: string
@@ -21,11 +20,7 @@ abstract class Relay {
       return
     }
     this._protocol = await Setup(this.session, this.service, this.notificationHandler.bind(this))
-      .catch(error => {
-        logger.error(`Error during setup ${this.service}.`, error)
-        return null
-      })
-    if (this._protocol && this._configure) {
+    if (this._configure) {
       await this.configure()
     }
   }

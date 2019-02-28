@@ -6,7 +6,7 @@ import Peer from './Peer'
 import { PeerType, VertoMethod, SwEvent, NOTIFICATION_TYPE, Direction } from '../../../common/src/util/constants'
 import { State, DEFAULT_DIALOG_OPTIONS, ConferenceAction, Role } from '../../../common/src/util/constants/dialog'
 import { trigger, register, deRegister } from '../../../common/src/services/Handler'
-import { streamIsValid, sdpStereoHack } from './helpers'
+import { streamIsValid, sdpStereoHack, sdpMediaOrderHack } from './helpers'
 import { objEmpty, mutateLiveArrayData, isFunction } from '../../../common/src/util/helpers'
 import { attachMediaStream, detachMediaStream } from '../../../common/src/util/webrtc'
 import { DialogOptions } from '../../../common/src/util/interfaces'
@@ -485,7 +485,7 @@ export default class Dialog {
   }
 
   private _onRemoteSdp(remoteSdp: string) {
-    let sdp = remoteSdp
+    let sdp = sdpMediaOrderHack(remoteSdp, this.peer.instance.localDescription.sdp)
     if (this.options.useStereo) {
       sdp = sdpStereoHack(sdp)
     }

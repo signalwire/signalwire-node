@@ -10,6 +10,7 @@ abstract class Relay {
   public protocol: string
 
   protected abstract notificationHandler(notification: any): void
+  protected _configure: boolean = false
 
   abstract get service(): string
 
@@ -26,20 +27,29 @@ abstract class Relay {
     registerOnce(SwEvent.Disconnect, this._disconnect.bind(this), this.session.uuid)
   }
 
-  protected async configure() {
-    if (!this._protocol) {
-      throw new Error('No protocol to configure.')
+  protected async setup() {
+    if (this._protocol) {
+      return
     }
+    this._protocol = await Setup(this.session, this.service, this.notificationHandler.bind(this))
+      .catch(error => {
+        logger.error(`Error during setup ${this.service}.`, error)
+        return null
+      })
+    if (this._protocol && this._configure) {
+      await this.configure()
+    }
+  }
+
+  protected async configure() {
     // TODO: add 'resource' - 'domain' to ISignalWireOptions interface
     // @ts-ignore
     const { resource = 'swire', domain = 'dev.swire.io' } = this.session.options
     const msg = new Execute({ protocol: this._protocol, method: 'configure', params: { resource, domain } })
-    const response = await this.session.execute(msg)
+    await this.session.execute(msg)
       .catch(error => {
-        logger.error(`Error during configure ${this.service}.`, error)
-        return null
+        throw error.result
       })
-    console.log('Configure', response)
   }
 
   protected _disconnect() {

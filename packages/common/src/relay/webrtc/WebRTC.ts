@@ -10,6 +10,8 @@ import VertoHandler from '../../../../web/src/services/VertoHandler'
 export default class WebRTC extends Relay {
   service = 'webrtc'
 
+  protected _configure: boolean = true
+
   constructor(public session: BrowserSession) {
     super(session)
   }
@@ -27,7 +29,6 @@ export default class WebRTC extends Relay {
 
   async makeCall(params: DialogOptions) {
     await this.setup()
-    await this.configure()
 
     const msg = new Execute({
       protocol: this._protocol, method: 'message', params: {

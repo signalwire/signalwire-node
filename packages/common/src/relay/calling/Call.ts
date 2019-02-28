@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { Execute } from '../../messages/Blade'
 import { deRegister, registerOnce } from '../../services/Handler'
 import { CallState, CALL_STATES, DisconnectReason, CallConnectState } from '../../util/constants/relay'
-import { ICall, ICallOptions, ICallDevice } from '../../util/interfaces'
+import { ICall, ICallOptions, ICallDevice, IMakeCallParams } from '../../util/interfaces'
 import logger from '../../util/logger'
 import { reduceConnectParams } from '../helpers'
 import Calling from './Calling'
@@ -42,16 +42,12 @@ export default class Call implements ICall {
       }
     })
 
-    const response = await session.execute(msg).catch(error => error)
-    const { result } = response
-    if (!result) {
-      logger.error('Begin call', response)
-      throw new Error('Error creating the call')
-    }
-    const { call_id, code, node_id } = result
-    if (code !== '200') {
-      logger.error('Begin call not 200', call_id, code, node_id)
-      throw new Error('Error creating the call')
+    const response = await session.execute(msg)
+      .catch(error => {
+        throw error.result
+      })
+    if (response) {
+      return response.result
     }
   }
 
@@ -68,8 +64,13 @@ export default class Call implements ICall {
       }
     })
 
-    const result = await session.execute(msg).catch(error => error)
-    logger.debug('Hangup call:', result)
+    const response = await session.execute(msg)
+      .catch(error => {
+        throw error.result
+      })
+    if (response) {
+      return response.result
+    }
   }
 
   async answer() {
@@ -84,8 +85,13 @@ export default class Call implements ICall {
       }
     })
 
-    const result = await session.execute(msg).catch(error => error)
-    logger.debug('Answer call:', result)
+    const response = await session.execute(msg)
+      .catch(error => {
+        throw error.result
+      })
+    if (response) {
+      return response.result
+    }
   }
 
   async join(callsToJoin: Call | Call[]) { // TODO: wip
@@ -144,7 +150,7 @@ export default class Call implements ICall {
     logger.debug('Join calls:', result)
   }
 
-  async connect(...peers: any[]) { // FIXME: remove any[]
+  async connect(...peers: IMakeCallParams[]) {
     this._callIdRequired()
     const devices = reduceConnectParams(peers, this.device)
     if (!devices.length) {
@@ -161,22 +167,17 @@ export default class Call implements ICall {
       }
     })
 
-    const response = await session.execute(msg).catch(error => error)
-    const { result } = response
-    if (!result) {
-      logger.error('Connect call', response)
-      throw new Error('Error connecting the call')
+    const response = await session.execute(msg)
+      .catch(error => {
+        throw error.result
+      })
+    if (response) {
+      const awaiter = await new Promise((resolve, reject) => {
+        registerOnce(this.id, resolve.bind(this), CallConnectState.Connected)
+        registerOnce(this.id, reject.bind(this), CallConnectState.Failed)
+      })
+      return awaiter
     }
-    const { code } = result
-    if (code !== '200') {
-      throw result
-    }
-    const awaiter = await new Promise((resolve, reject) => {
-      registerOnce(this.id, resolve.bind(this), CallConnectState.Connected)
-      registerOnce(this.id, reject.bind(this), CallConnectState.Failed)
-    })
-
-    return awaiter
   }
 
   playAudio(location: string) {
@@ -196,17 +197,14 @@ export default class Call implements ICall {
 
   playTTS(options: { text: string, language: string, gender: string, name: string }) {
     const { text = null, language = 'en-US', gender = 'male', name = 'bob' } = options
-    if (!text) {
-      throw new Error('"text" is required to play TTS.')
-    }
     const params = { type: 'tts', params: { text, language, gender, name } }
     return this.playMedia(params)
   }
 
-  async playMedia(...play: any[]) { // FIXME: remove any[]
+  async playMedia(...play: { type: string, params: any }[]) {
     this._callIdRequired()
     if (!play.length) {
-      throw new Error('No actions to play!')
+      return
     }
     this._mediaControlId = uuidv4()
     const { protocol, session } = this.relayInstance
@@ -221,15 +219,19 @@ export default class Call implements ICall {
       }
     })
 
-    const result = await session.execute(msg).catch(error => error)
-    // TODO: handle error
-    logger.debug('Play on call:', result)
+    const response = await session.execute(msg)
+      .catch(error => {
+        throw error.result
+      })
+    if (response) {
+      return response.result
+    }
   }
 
   async stopMedia() {
     this._callIdRequired()
     if (!this._mediaControlId) {
-      throw new Error('There is no media to stop!')
+      return
     }
     const { protocol, session } = this.relayInstance
     const msg = new Execute({
@@ -242,9 +244,13 @@ export default class Call implements ICall {
       }
     })
 
-    const result = await session.execute(msg).catch(error => error)
-    // TODO: handle error
-    logger.debug('Stop media on call:', result)
+    const response = await session.execute(msg)
+      .catch(error => {
+        throw error.result
+      })
+    if (response) {
+      return response.result
+    }
   }
 
   get prevState() {

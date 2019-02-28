@@ -16,13 +16,25 @@ client.on('signalwire.error', error => {
 
 client.on('signalwire.ready', session => {
   console.log('SW Client ready! \n')
+
+  process.on('exit', () => {
+    client.disconnect()
+    console.log('\nHope to see you again!\n')
+  })
+
   _init()
 })
 
 client.connect()
 
 async function makeCall(to) {
-  const leg = await client.calling.makeCall({ from: FROM_NUMBER, to })
+  const leg = await client.calling.makeCall({ type: 'phone', from: FROM_NUMBER, to })
+    .catch(error => {
+      console.error('MakeCall error:', error)
+    })
+  if (!leg) {
+    return
+  }
   leg.on('created', call => {
     console.log(`\t ${call.id} state from ${call.prevState} to ${call.state}`, '\n')
   })
@@ -66,16 +78,14 @@ function _init() {
       name: 'to_number',
       message: 'Enter the number to call:',
       when: ({ choice }) => choice === choices[0] || choice === choices[1] || choice === choices[2],
-      // default: () => '(204) 400-0543'
-      default: () => '(202) 919-5378'
+      default: () => '+12029195378'
     },
     {
       type: 'input',
       name: 'connect_to_number',
       message: 'Enter the number to connect the answered call:',
       when: ({ choice }) => choice === choices[1],
-      // default: () => '(202) 919-5378'
-      default: () => '(204) 400-0543'
+      default: () => '+12044000543'
     },
     {
       type: 'input',
@@ -102,16 +112,22 @@ function _init() {
     if (answers.to_number) {
       const call = await makeCall(answers.to_number)
 
+      // call.on('answered', async call => {
+      //   setTimeout(() => {
+      //     call.hangup().catch(console.error)
+      //   }, 3000)
+      // })
+
       if (answers.connect_to_number) {
         call.on('answered', async call => {
-          const connectResponse = await call.connect(answers.connect_to_number)
-            .catch(_error => {
-              console.error(`\tCall connect failed!`)
+          const response = await call.connect({ type: 'phone', to: answers.connect_to_number })
+            .catch(error => {
+              console.error('\tCall connect failed!', error)
               call.hangup()
               return null
             })
-          if (connectResponse) {
-            console.log(`\tCall connected?`, connectResponse.id, connectResponse.peer.id)
+          if (response) {
+            console.log(`\tCall connected?`, response.id, response.peer.id)
           }
         })
       }
@@ -125,11 +141,28 @@ function _init() {
       }
       console.warn(`\tCall to ${answers.to_number} starts now!\n`)
       call.begin()
+        .catch(error => {
+          console.error('Call cant start:', error)
+          _init()
+        })
 
     } else if (answers.context) {
       await client.calling.onInbound(answers.context, call => {
         console.warn(`Inbound call on "${call.context}"`, call)
+        setTimeout(async () => {
+          const response = await call.answer().catch(console.error)
+          // const response = await call.connect({ type: 'phone', to: '+12029195378' })
+          //   .catch(error => {
+          //     console.error('\tCall connect failed!', error)
+          //     call.hangup()
+          //     return null
+          //   })
+          // if (response) {
+          //   console.log(`\tCall connected?`, response.id, response.peer.id)
+          // }
+        }, 4000)
       })
+
       console.log(`Listener for ${answers.context} started..\n`)
       return _init()
     }

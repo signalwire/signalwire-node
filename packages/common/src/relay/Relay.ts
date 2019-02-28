@@ -18,7 +18,7 @@ abstract class Relay {
     return this._protocol
   }
 
-  protected async setup() {
+  async setup() {
     if (this._protocol) {
       return
     }

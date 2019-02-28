@@ -178,6 +178,27 @@ const sdpStereoHack = (sdp: string) => {
   return sdpLines.join(endOfLine)
 }
 
+const _isAudioLine = (line: string) => /^m=audio/.test(line)
+const _isVideoLine = (line: string) => /^m=video/.test(line)
+
+const sdpMediaOrderHack = (answer: string, localOffer: string): string => {
+  const endOfLine = '\r\n'
+  const offerLines = localOffer.split(endOfLine)
+  const offerAudioIndex = offerLines.findIndex(_isAudioLine)
+  const offerVideoIndex = offerLines.findIndex(_isVideoLine)
+  if (offerAudioIndex < offerVideoIndex) {
+    return answer
+  }
+
+  const answerLines = answer.split(endOfLine)
+  const answerAudioIndex = answerLines.findIndex(_isAudioLine)
+  const answerVideoIndex = answerLines.findIndex(_isVideoLine)
+  const audioLines = answerLines.slice(answerAudioIndex, answerVideoIndex)
+  const videoLines = answerLines.slice(answerVideoIndex, (answerLines.length - 1))
+  const beginLines = answerLines.slice(0, answerAudioIndex)
+  return [...beginLines, ...videoLines, ...audioLines, ''].join(endOfLine)
+}
+
 export {
   getUserMedia,
   getDevices,
@@ -188,5 +209,6 @@ export {
   checkPermissions,
   removeUnsupportedConstraints,
   checkDeviceIdConstraints,
-  sdpStereoHack
+  sdpStereoHack,
+  sdpMediaOrderHack
 }

@@ -3,7 +3,6 @@ import { Execute } from '../messages/Blade'
 import { Setup } from '../services/Setup'
 import { registerOnce, deRegisterAll } from '../services/Handler'
 import { SwEvent } from '../util/constants'
-import logger from '../util/logger'
 
 abstract class Relay {
   public Ready: Promise<string>
@@ -32,11 +31,7 @@ abstract class Relay {
       return
     }
     this._protocol = await Setup(this.session, this.service, this.notificationHandler.bind(this))
-      .catch(error => {
-        logger.error(`Error during setup ${this.service}.`, error)
-        return null
-      })
-    if (this._protocol && this._configure) {
+    if (this._configure) {
       await this.configure()
     }
   }

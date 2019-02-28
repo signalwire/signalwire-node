@@ -56,7 +56,7 @@ export default class Verto extends BrowserSession {
       return
     }
     const msg = new Subscribe({ sessid: this.sessionid, eventChannel })
-    const response = await this.execute(msg).catch(error => error)
+    const response = await this.execute(msg)
     const { unauthorizedChannels = [], subscribedChannels = [] } = response
     if (unauthorizedChannels.length) {
       logger.debug(`Unauthorized Channels: ${unauthorizedChannels.join(', ')}`)

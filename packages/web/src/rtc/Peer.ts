@@ -87,7 +87,7 @@ export default class Peer {
     }
   }
 
-  private async _createOffer() {
+  private _createOffer() {
     if (!this._isOffer()) {
       return
     }

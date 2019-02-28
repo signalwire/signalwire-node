@@ -53,6 +53,7 @@ describe('reduceConnectParams()', () => {
     const input = [
       [{ type, to: to_number }, { type, to: '8991111112' }]
     ]
+    // @ts-ignore
     expect(reduceConnectParams(input, DEFAULT_DEVICE)).toEqual(res)
   })
 
@@ -67,6 +68,7 @@ describe('reduceConnectParams()', () => {
         { type, to: '8991111119', from: '8992222229', timeout: 20 }
       ]
     ]
+    // @ts-ignore
     expect(reduceConnectParams(input, DEFAULT_DEVICE)).toEqual(res)
   })
 
@@ -84,6 +86,7 @@ describe('reduceConnectParams()', () => {
       [{ type, to: to_number }, { type, to: '8991111112' }],
       { type, to: '8991111113' }
     ]
+    // @ts-ignore
     expect(reduceConnectParams(input, DEFAULT_DEVICE)).toEqual(res)
   })
 
@@ -104,11 +107,13 @@ describe('reduceConnectParams()', () => {
       ],
       { type, to: '8991111113', from: '8992222225', timeout }
     ]
+    // @ts-ignore
     expect(reduceConnectParams(input, DEFAULT_DEVICE)).toEqual(res)
   })
 
   describe('with invalid parameters', () => {
     it('should not reduce invalid strings', () => {
+      // @ts-ignore
       expect(reduceConnectParams([''], DEFAULT_DEVICE)).toEqual([])
       expect(reduceConnectParams([], DEFAULT_DEVICE)).toEqual([])
     })
@@ -118,6 +123,7 @@ describe('reduceConnectParams()', () => {
         [{ type, params: { to_number: '8991111112', from_number, timeout } }]
       ]
       const input = ['', { type, to: '8991111112' }]
+      // @ts-ignore
       expect(reduceConnectParams(input, DEFAULT_DEVICE)).toEqual(res)
     })
 
@@ -139,6 +145,7 @@ describe('reduceConnectParams()', () => {
         ],
         { to: '', from: '7780', timeout }
       ]
+      // @ts-ignore
       expect(reduceConnectParams(input, DEFAULT_DEVICE)).toEqual(res)
     })
   })

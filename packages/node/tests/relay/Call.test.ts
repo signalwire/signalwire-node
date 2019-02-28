@@ -68,7 +68,7 @@ describe('Call', () => {
     })
 
     it('should throw with .connect()', async () => {
-      await expect(call.connect('234599')).rejects.toThrowError('Call has not started')
+      await expect(call.connect({ type: 'phone', to: '234599' })).rejects.toThrowError('Call has not started')
     })
 
     it('should throw with .playMedia()', async () => {

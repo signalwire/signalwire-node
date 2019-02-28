@@ -20,6 +20,7 @@ const PATTERN = /^(ws|wss):\/\//
 export default class Connection {
   private _wsClient: any = null
   private _host: string = 'wss://localhost:2100'
+  private _timers: { [id: string]: any } = {}
 
   public upDur: number = null
   public downDur: number = null
@@ -66,6 +67,7 @@ export default class Connection {
         this._handleStringResponse(msg)
         return
       }
+      this._unsetTimer(msg.id)
       logger.debug('RECV: \n', JSON.stringify(msg, null, 2), '\n')
       if (!trigger(msg.id, msg)) {
         // If there is not an handler for this message, dispatch an incoming!
@@ -94,6 +96,7 @@ export default class Connection {
           code && code !== '200' ? reject(result) : resolve(result)
         }
       })
+      this._setTimer(request.id)
     })
     logger.debug('SEND: \n', JSON.stringify(request, null, 2), '\n')
     this._wsClient.send(JSON.stringify(request))
@@ -105,6 +108,18 @@ export default class Connection {
     // FIXME: wait all req/res before close!
     this._wsClient.close()
     this._wsClient = null
+  }
+
+  private _unsetTimer(id: string) {
+    clearTimeout(this._timers[id])
+    delete this._timers[id]
+  }
+
+  private _setTimer(id: string) {
+    this._timers[id] = setTimeout(() => {
+      trigger(id, { error: { code: '408', message: 'Request Timeout' }})
+      this._unsetTimer(id)
+    }, 5000)
   }
 
   private _handleStringResponse(response: string) {

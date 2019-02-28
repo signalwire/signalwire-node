@@ -259,7 +259,6 @@ export default class Dialog {
     const tmp = {
       channels: [channel],
       handler: (params: any) => {
-        logger.debug('_subscribeConferenceChat handler', params)
         const { direction, from: participantNumber, fromDisplay: participantName, message: messageText, type: messageType } = params.data
         this._dispatchConferenceUpdate({ action: ConferenceAction.ChatMessage, direction, participantNumber, participantName, messageText, messageType, messageId: params.eventSerno })
       }
@@ -284,7 +283,6 @@ export default class Dialog {
     const tmp = {
       channels: [channel],
       handler: (params: any) => {
-        logger.debug('_subscribeConferenceInfo handler', params)
         const { eventData: data } = params
         switch (data.contentType) {
           case 'layout-info':
@@ -321,7 +319,6 @@ export default class Dialog {
     const tmp = {
       channels: [channel],
       handler: (params: any) => {
-        logger.debug('_subscribeConferenceModerator handler', params)
         const { data } = params
         switch (data['conf-command']) {
           case 'list-videoLayouts':

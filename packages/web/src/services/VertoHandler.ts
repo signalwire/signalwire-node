@@ -100,7 +100,7 @@ class VertoHandler {
     return this.session instanceof Verto
   }
 
-  private _handlePvtEvent(pvtData: any) {
+  private async _handlePvtEvent(pvtData: any) {
     const { session } = this
     const { action, laChannel, laName, chatChannel, infoChannel, modChannel, conferenceMemberID, role } = pvtData
     switch (action) {
@@ -134,11 +134,13 @@ class VertoHandler {
             }
           }
         }
-        session.subscribe(tmp).then(response => {
-          if (response.subscribedChannels.indexOf(laChannel) >= 0) {
-            _liveArrayBootstrap()
-          }
-        })
+        const { subscribedChannels = [] } = await session.subscribe(tmp)
+          .catch(error => {
+            console.error('liveArray subscription error:', error)
+          })
+        if (subscribedChannels && subscribedChannels.indexOf(laChannel) >= 0) {
+          _liveArrayBootstrap()
+        }
         break
       }
       case 'conference-liveArray-part': {

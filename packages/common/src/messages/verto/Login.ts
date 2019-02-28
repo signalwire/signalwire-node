@@ -1,6 +1,6 @@
-import BaseMessage from '../BaseMessage'
+import BaseRequest from './BaseRequest'
 
-class Login extends BaseMessage {
+class Login extends BaseRequest {
   method: string = 'login'
 
   constructor(login: string, passwd: string, sessionid: string, userVariables: Object = {}) {

@@ -148,8 +148,9 @@ class VertoHandler {
         // trigger Notification at a Dialog or Session level.
         // deregister Notification callback at the Dialog level.
         // Cleanup subscriptions for all channels
-        if (laChannel && session.subscriptions.hasOwnProperty(laChannel)) {
-          const { dialogId = null } = session.subscriptions[laChannel]
+        const protocol = session.webRtcProtocol
+        if (laChannel && session._existsSubscription(protocol, laChannel)) {
+          const { dialogId = null } = session.subscriptions[protocol][laChannel]
           if (dialogId !== null) {
             const notification = { type: NOTIFICATION_TYPE.conferenceUpdate, action: ConferenceAction.Leave, conferenceName: laName, participantId: Number(conferenceMemberID), role }
             if (!trigger(SwEvent.Notification, notification, dialogId, false)) {

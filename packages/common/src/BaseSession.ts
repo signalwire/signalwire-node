@@ -245,7 +245,7 @@ export default abstract class BaseSession {
    * @return void
    */
   protected _removeSubscription(protocol: string, channel?: string) {
-    if (!this.subscriptions.hasOwnProperty(protocol)) {
+    if (!this._existsSubscription(protocol, channel)) {
       return
     }
     if (channel) {
@@ -262,13 +262,26 @@ export default abstract class BaseSession {
    * @return void
    */
   protected _addSubscription(protocol: string, handler: Function = null, channel?: string) {
-    if (!this.subscriptions.hasOwnProperty(protocol)) {
+    if (!this._existsSubscription(protocol)) {
       this.subscriptions[protocol] = {}
     }
     this.subscriptions[protocol][channel] = {}
     if (isFunction(handler)) {
       register(protocol, handler, channel)
     }
+  }
+
+  /**
+   * Check if a subscription for this protocol-channel already exists
+   * @return boolean
+   */
+  protected _existsSubscription(protocol: string, channel?: string) {
+    if (this.subscriptions.hasOwnProperty(protocol)) {
+      if (!channel || (channel && this.subscriptions[protocol].hasOwnProperty(channel))) {
+        return true
+      }
+    }
+    return false
   }
 
   /**

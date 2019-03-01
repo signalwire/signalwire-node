@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid'
 import logger from './util/logger'
 import Connection from './services/Connection'
-import { deRegister, register, trigger } from './services/Handler'
+import { deRegister, register, trigger, deRegisterAll } from './services/Handler'
 import { BroadcastHandler } from './services/Broadcast'
 import { ADD, REMOVE, SwEvent, BladeMethod } from './util/constants'
 import Cache from './util/Cache'
@@ -244,19 +244,30 @@ export default abstract class BaseSession {
    * Remove subscription by key and deregister the related callback
    * @return void
    */
-  protected _removeSubscription(channel: string) {
-    deRegister(channel)
-    delete this.subscriptions[channel]
+  protected _removeSubscription(protocol: string, channel?: string) {
+    if (!this.subscriptions.hasOwnProperty(protocol)) {
+      return
+    }
+    if (channel) {
+      delete this.subscriptions[protocol][channel]
+      deRegister(protocol, null, channel)
+    } else {
+      delete this.subscriptions[protocol]
+      deRegisterAll(protocol)
+    }
   }
 
   /**
    * Add a subscription by key and register a callback if its passed in
    * @return void
    */
-  protected _addSubscription(channel: string, handler: Function = null, uniqueId?: string) {
-    this.subscriptions[channel] = {}
+  protected _addSubscription(protocol: string, handler: Function = null, channel?: string) {
+    if (!this.subscriptions.hasOwnProperty(protocol)) {
+      this.subscriptions[protocol] = {}
+    }
+    this.subscriptions[protocol][channel] = {}
     if (isFunction(handler)) {
-      register(channel, handler, uniqueId)
+      register(protocol, handler, channel)
     }
   }
 

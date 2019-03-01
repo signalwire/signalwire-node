@@ -30,13 +30,10 @@ export default (klass: any) => {
 
     describe('verto.punt', () => {
       it('should initiate the logout process', () => {
-        // FIXME: add logout() method in SignalWire? [abstract from BrowserSession]
         const msg = JSON.parse('{"jsonrpc":"2.0","id":38,"method":"verto.punt","params":{}}')
-        // @ts-ignore
-        instance.logout = jest.fn()
+        instance.disconnect = jest.fn()
         handler.handleMessage(msg)
-        // @ts-ignore
-        expect(instance.logout).toBeCalledTimes(1)
+        expect(instance.disconnect).toBeCalledTimes(1)
       })
     })
 

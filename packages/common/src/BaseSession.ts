@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid'
 import logger from './util/logger'
 import Connection from './services/Connection'
-import { deRegister, register, trigger } from './services/Handler'
+import { deRegister, register, trigger, deRegisterAll } from './services/Handler'
 import { BroadcastHandler } from './services/Broadcast'
 import { ADD, REMOVE, SwEvent, BladeMethod } from './util/constants'
 import Cache from './util/Cache'
@@ -95,10 +95,10 @@ export default abstract class BaseSession {
     const result = await this.execute(bs) // FIXME: handle error
     const { failed_channels = [], subscribe_channels = [] } = result
     if (failed_channels.length) {
-      failed_channels.forEach((c: string) => this._removeSubscription(c))
+      failed_channels.forEach((channel: string) => this._removeSubscription(protocol, channel))
       throw new Error(`Failed to subscribe to channels ${failed_channels.join(', ')}`)
     }
-    subscribe_channels.forEach((c: string) => this._addSubscription(protocol, handler, c))
+    subscribe_channels.forEach((channel: string) => this._addSubscription(protocol, handler, channel))
     return result
   }
 
@@ -113,12 +113,12 @@ export default abstract class BaseSession {
   }
 
   /**
-   * Disconnect the current session removing all subscriptions and listeners
+   * Purge subscriptions and dialogs, close WS connection and remove all session listeners.
    * @return void
    */
   disconnect() {
     trigger(SwEvent.Disconnect, null, this.uuid, false)
-    this.subscriptions = {}
+    this.purge()
     if (this.connection) {
       this._autoReconnect = false
       this.connection.close()
@@ -126,6 +126,17 @@ export default abstract class BaseSession {
     this.connection = null
     this._executeQueue = []
     this._detachListeners()
+  }
+
+  /**
+   * Unsubscribe all subscriptions
+   * @return void
+   */
+  purge() {
+    Object.keys(this.subscriptions).forEach(protocol => {
+      this.unsubscribe({ protocol, channels: Object.keys(this.subscriptions[protocol]) })
+    })
+    this.subscriptions = {}
   }
 
   /**
@@ -244,20 +255,47 @@ export default abstract class BaseSession {
    * Remove subscription by key and deregister the related callback
    * @return void
    */
-  protected _removeSubscription(channel: string) {
-    deRegister(channel)
-    delete this.subscriptions[channel]
+  protected _removeSubscription(protocol: string, channel?: string) {
+    if (!this._existsSubscription(protocol, channel)) {
+      return
+    }
+    if (channel) {
+      delete this.subscriptions[protocol][channel]
+      deRegister(protocol, null, channel)
+    } else {
+      delete this.subscriptions[protocol]
+      deRegisterAll(protocol)
+    }
   }
 
   /**
    * Add a subscription by key and register a callback if its passed in
    * @return void
    */
-  protected _addSubscription(channel: string, handler: Function = null, uniqueId?: string) {
-    this.subscriptions[channel] = {}
-    if (isFunction(handler)) {
-      register(channel, handler, uniqueId)
+  protected _addSubscription(protocol: string, handler: Function = null, channel: string) {
+    if (this._existsSubscription(protocol, channel)) {
+      return
     }
+    if (!this._existsSubscription(protocol)) {
+      this.subscriptions[protocol] = {}
+    }
+    this.subscriptions[protocol][channel] = {}
+    if (isFunction(handler)) {
+      register(protocol, handler, channel)
+    }
+  }
+
+  /**
+   * Check if a subscription for this protocol-channel already exists
+   * @return boolean
+   */
+  public _existsSubscription(protocol: string, channel?: string) {
+    if (this.subscriptions.hasOwnProperty(protocol)) {
+      if (!channel || (channel && this.subscriptions[protocol].hasOwnProperty(channel))) {
+        return true
+      }
+    }
+    return false
   }
 
   /**

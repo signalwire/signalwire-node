@@ -95,7 +95,7 @@ export default abstract class BaseSession {
     const result = await this.execute(bs) // FIXME: handle error
     const { failed_channels = [], subscribe_channels = [] } = result
     if (failed_channels.length) {
-      failed_channels.forEach((c: string) => this._removeSubscription(c))
+      failed_channels.forEach((channel: string) => this._removeSubscription(protocol, channel))
       throw new Error(`Failed to subscribe to channels ${failed_channels.join(', ')}`)
     }
     subscribe_channels.forEach((c: string) => this._addSubscription(protocol, handler, c))

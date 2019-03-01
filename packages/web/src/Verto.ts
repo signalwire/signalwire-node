@@ -10,6 +10,7 @@ import * as Storage from '../../common/src/util/storage/'
 import VertoHandler from './services/VertoHandler'
 
 const SESSID = 'vertoSessId'
+const VERTO_PROTOCOL = 'verto-protocol'
 export default class Verto extends BrowserSession {
   validateOptions() {
     const { host, login, passwd, password } = this.options
@@ -60,7 +61,7 @@ export default class Verto extends BrowserSession {
     const { unauthorizedChannels = [], subscribedChannels = [] } = response
     if (unauthorizedChannels.length) {
       logger.debug(`Unauthorized Channels: ${unauthorizedChannels.join(', ')}`)
-      unauthorizedChannels.forEach((c: string) => this._removeSubscription(c))
+      unauthorizedChannels.forEach((channel: string) => this._removeSubscription(VERTO_PROTOCOL, channel))
     }
     subscribedChannels.forEach((c: string) => this._addSubscription(c, handler))
     return response
@@ -74,8 +75,8 @@ export default class Verto extends BrowserSession {
     const msg = new Unsubscribe({ sessid: this.sessionid, eventChannel })
     const response = await this.execute(msg).catch(error => error)
     const { unsubscribedChannels = [], notSubscribedChannels = [] } = response
-    unsubscribedChannels.forEach((c: string) => this._removeSubscription(c))
-    notSubscribedChannels.forEach((c: string) => this._removeSubscription(c))
+    unsubscribedChannels.forEach((channel: string) => this._removeSubscription(VERTO_PROTOCOL, channel))
+    notSubscribedChannels.forEach((channel: string) => this._removeSubscription(VERTO_PROTOCOL, channel))
     return response
   }
 

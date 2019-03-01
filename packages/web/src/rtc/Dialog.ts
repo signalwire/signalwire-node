@@ -6,7 +6,7 @@ import Peer from './Peer'
 import { PeerType, VertoMethod, SwEvent, NOTIFICATION_TYPE, Direction } from '../../../common/src/util/constants'
 import { State, DEFAULT_DIALOG_OPTIONS, ConferenceAction, Role } from '../../../common/src/util/constants/dialog'
 import { trigger, register, deRegister } from '../../../common/src/services/Handler'
-import { streamIsValid, sdpStereoHack, sdpMediaOrderHack } from './helpers'
+import { streamIsValid, sdpStereoHack, sdpMediaOrderHack, checkSubscribeResponse } from './helpers'
 import { objEmpty, mutateLiveArrayData, isFunction } from '../../../common/src/util/helpers'
 import { attachMediaStream, detachMediaStream } from '../../../common/src/util/webrtc'
 import { DialogOptions } from '../../../common/src/util/interfaces'
@@ -264,9 +264,10 @@ export default class Dialog {
       }
     }
     const response = await this.session.subscribe(tmp)
-      .catch((error: any) => error)
-    const { subscribedChannels = [] } = response
-    if (subscribedChannels.includes(channel)) {
+      .catch(error => {
+        console.error('ConfChat subscription error:', error)
+      })
+    if (checkSubscribeResponse(response, channel)) {
       this._addChannel(channel)
       Object.defineProperties(this, {
         sendChatMessage: {
@@ -295,9 +296,10 @@ export default class Dialog {
       }
     }
     const response = await this.session.subscribe(tmp)
-      .catch((error: any) => error)
-    const { subscribedChannels = [] } = response
-    if (subscribedChannels.includes(channel)) {
+      .catch(error => {
+        console.error('ConfInfo subscription error:', error)
+      })
+    if (checkSubscribeResponse(response, channel)) {
       this._addChannel(channel)
     }
   }
@@ -334,9 +336,10 @@ export default class Dialog {
       }
     }
     const response = await this.session.subscribe(tmp)
-      .catch((error: any) => error)
-    const { subscribedChannels = [] } = response
-    if (subscribedChannels.includes(channel)) {
+      .catch(error => {
+        console.error('ConfMod subscription error:', error)
+      })
+    if (checkSubscribeResponse(response, channel)) {
       this.role = Role.Moderator
       this._addChannel(channel)
       Object.defineProperties(this, {

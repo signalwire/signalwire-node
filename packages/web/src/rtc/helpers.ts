@@ -199,6 +199,14 @@ const sdpMediaOrderHack = (answer: string, localOffer: string): string => {
   return [...beginLines, ...videoLines, ...audioLines, ''].join(endOfLine)
 }
 
+const checkSubscribeResponse = (response: any, channel: string): boolean => {
+  if (!response) {
+    return false
+  }
+  const { subscribedChannels = [], alreadySubscribedChannels = [] } = response
+  return subscribedChannels.includes(channel) || alreadySubscribedChannels.includes(channel)
+}
+
 export {
   getUserMedia,
   getDevices,
@@ -210,5 +218,6 @@ export {
   removeUnsupportedConstraints,
   checkDeviceIdConstraints,
   sdpStereoHack,
-  sdpMediaOrderHack
+  sdpMediaOrderHack,
+  checkSubscribeResponse
 }

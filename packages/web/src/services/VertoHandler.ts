@@ -4,6 +4,7 @@ import SignalWire from '../SignalWire'
 import Verto from '../Verto'
 
 import Dialog from '../rtc/Dialog'
+import { checkSubscribeResponse } from '../rtc/helpers'
 import { Result } from '../../../common/src/messages/Verto'
 import { SwEvent, VertoMethod, NOTIFICATION_TYPE } from '../../../common/src/util/constants'
 import { trigger, deRegister } from '../../../common/src/services/Handler'
@@ -134,11 +135,11 @@ class VertoHandler {
             }
           }
         }
-        const { subscribedChannels = [] } = await session.subscribe(tmp)
+        const result = await session.subscribe(tmp)
           .catch(error => {
             console.error('liveArray subscription error:', error)
           })
-        if (subscribedChannels && subscribedChannels.indexOf(laChannel) >= 0) {
+        if (checkSubscribeResponse(result, laChannel)) {
           _liveArrayBootstrap()
         }
         break

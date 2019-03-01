@@ -38,4 +38,8 @@ export default class SignalWire extends BrowserSession {
         logger.error('SignalWire _vertoLogin error', error)
       })
   }
+
+  get webRtcProtocol() {
+    return this._webrtcInstance ? this._webrtcInstance.protocol : null
+  }
 }

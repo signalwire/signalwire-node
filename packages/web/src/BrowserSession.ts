@@ -1,10 +1,10 @@
-// import logger from '../../common/src/util/logger'
 import BaseSession from '../../common/src/BaseSession'
 import Connection from '../../common/src/services/Connection'
 import Dialog from './rtc/Dialog'
 import { ICacheDevices, IAudioSettings, IVideoSettings } from '../../common/src/util/interfaces'
 import { trigger, registerOnce } from '../../common/src/services/Handler'
 import { SwEvent, NOTIFICATION_TYPE } from '../../common/src/util/constants'
+import { State } from '../../common/src/util/constants/dialog'
 import { getDevices, getResolutions, checkPermissions, removeUnsupportedConstraints, checkDeviceIdConstraints } from './rtc/helpers'
 import { findElementByType } from '../../common/src/util/helpers'
 
@@ -35,8 +35,25 @@ export default abstract class BrowserSession extends BaseSession {
   }
 
   disconnect() {
+    this.purge()
     super.disconnect()
-    this.dialogs = {}
+  }
+
+  /**
+   * Alias for .disconnect()
+   * @deprecated since version 2.0
+   */
+  logout() {
+    this.disconnect()
+  }
+
+  purge() {
+    Object.keys(this.dialogs).forEach(k => this.dialogs[k].setState(State.Purge))
+    const protocol = this.webRtcProtocol
+    if (this._existsSubscription(protocol)) {
+      this.unsubscribe({ channels: Object.keys(this.subscriptions[protocol]) })
+    }
+    this.subscriptions = {}
   }
 
   speedTest(bytes: number) {

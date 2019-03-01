@@ -4,7 +4,6 @@ import { SubscribeParams, BroadcastParams, DialogOptions } from '../../common/sr
 import { Login, Broadcast, Subscribe, Unsubscribe } from '../../common/src/messages/Verto'
 import Dialog from './rtc/Dialog'
 import { SwEvent } from '../../common/src/util/constants'
-import { State } from '../../common/src/util/constants/dialog'
 import { trigger } from '../../common/src/services/Handler'
 import * as Storage from '../../common/src/util/storage/'
 import VertoHandler from './services/VertoHandler'
@@ -25,22 +24,6 @@ export default class Verto extends BrowserSession {
     const dialog = new Dialog(this, options)
     dialog.invite()
     return dialog
-  }
-
-  logout() {
-    logger.warn('Verto logout')
-    this.purge()
-    this.disconnect()
-  }
-
-  purge() {
-    logger.warn('Verto purge')
-    Object.keys(this.dialogs).forEach(k => {
-      this.dialogs[k].setState(State.Purge)
-    })
-    this.dialogs = {}
-    this.unsubscribe({ channels: Object.keys(this.subscriptions) })
-    this.subscriptions = {}
   }
 
   broadcast({ channel: eventChannel = '', data }: BroadcastParams) {

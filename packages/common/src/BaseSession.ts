@@ -98,7 +98,7 @@ export default abstract class BaseSession {
       failed_channels.forEach((channel: string) => this._removeSubscription(protocol, channel))
       throw new Error(`Failed to subscribe to channels ${failed_channels.join(', ')}`)
     }
-    subscribe_channels.forEach((c: string) => this._addSubscription(protocol, handler, c))
+    subscribe_channels.forEach((channel: string) => this._addSubscription(protocol, handler, channel))
     return result
   }
 

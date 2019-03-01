@@ -63,7 +63,7 @@ export default class Verto extends BrowserSession {
       logger.debug(`Unauthorized Channels: ${unauthorizedChannels.join(', ')}`)
       unauthorizedChannels.forEach((channel: string) => this._removeSubscription(VERTO_PROTOCOL, channel))
     }
-    subscribedChannels.forEach((c: string) => this._addSubscription(c, handler))
+    subscribedChannels.forEach((channel: string) => this._addSubscription(VERTO_PROTOCOL, handler, channel))
     return response
   }
 

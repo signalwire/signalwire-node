@@ -100,6 +100,7 @@ class VertoHandler {
 
   private async _handlePvtEvent(pvtData: any) {
     const { session } = this
+    const protocol = session.webRtcProtocol
     const { action, laChannel, laName, chatChannel, infoChannel, modChannel, conferenceMemberID, role } = pvtData
     switch (action) {
       case 'conference-liveArray-join': {
@@ -107,7 +108,7 @@ class VertoHandler {
           session.broadcast({ channel: laChannel, data: { liveArray: { command: 'bootstrap', context: laChannel, name: laName } } })
         }
         const tmp = {
-          // protocol, // TODO: add Blade protocol here
+          protocol,
           channels: [laChannel],
           handler: ({ data: packet }: any) => {
             let dialogId: string = null
@@ -145,7 +146,6 @@ class VertoHandler {
         // trigger Notification at a Dialog or Session level.
         // deregister Notification callback at the Dialog level.
         // Cleanup subscriptions for all channels
-        const protocol = session.webRtcProtocol
         if (laChannel && session._existsSubscription(protocol, laChannel)) {
           const { dialogId = null } = session.subscriptions[protocol][laChannel]
           if (dialogId !== null) {
@@ -156,7 +156,7 @@ class VertoHandler {
             deRegister(SwEvent.Notification, null, dialogId)
           }
         }
-        session.unsubscribe({ channels: [laChannel, chatChannel, infoChannel, modChannel] })
+        session.unsubscribe({ protocol, channels: [laChannel, chatChannel, infoChannel, modChannel] })
         break
       }
     }

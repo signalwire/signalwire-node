@@ -49,11 +49,11 @@ export default abstract class BrowserSession extends BaseSession {
 
   purge() {
     Object.keys(this.dialogs).forEach(k => this.dialogs[k].setState(State.Purge))
-    const protocol = this.webRtcProtocol
-    if (this._existsSubscription(protocol)) {
-      this.unsubscribe({ channels: Object.keys(this.subscriptions[protocol]) })
-    }
+    Object.keys(this.subscriptions).forEach(protocol => {
+      this.unsubscribe({ protocol, channels: Object.keys(this.subscriptions[protocol]) })
+    })
     this.subscriptions = {}
+    this.dialogs = {}
   }
 
   speedTest(bytes: number) {

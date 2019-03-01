@@ -57,32 +57,34 @@ function connect() {
     console.warn("SignalWire error", error);
   });
 
-  client.on('signalwire.notification', function(notification){
-    console.log("notification", notification.type, notification);
-    switch (notification.type) {
-      case 'dialogUpdate':
-        handleDialogChange(notification.dialog)
-        break
-      case 'conferenceUpdate':
-        // Live notification from the conference: start talking / video floor changed / audio or video state changes / a participant joins or leaves and so on..
-        break
-      case 'participantData':
-        // Caller's data like name and number to update the UI. In case of a conference call you will get the name of the room and the extension.
-        break
-      case 'vertoClientReady':
-        // All previously dialogs have been reattached. Note: FreeSWITCH 1.8+ only.
-        break
-      case 'userMediaError':
-        // Permission denied or invalid audio/video params on `getUserMedia`
-        break
-      case 'event':
-        // Generic notification received
-        break
-    }
-  });
+  client.on('signalwire.notification', handleNotification);
 
   document.getElementById('connectStatus').innerHTML = "connecting..";
   client.connect();
+}
+
+function handleNotification(notification) {
+  console.log("notification", notification.type, notification);
+  switch (notification.type) {
+    case 'dialogUpdate':
+      handleDialogChange(notification.dialog)
+      break
+    case 'conferenceUpdate':
+      // Live notification from the conference: start talking / video floor changed / audio or video state changes / a participant joins or leaves and so on..
+      break
+    case 'participantData':
+      // Caller's data like name and number to update the UI. In case of a conference call you will get the name of the room and the extension.
+      break
+    case 'vertoClientReady':
+      // All previously dialogs have been reattached. Note: FreeSWITCH 1.8+ only.
+      break
+    case 'userMediaError':
+      // Permission denied or invalid audio/video params on `getUserMedia`
+      break
+    case 'event':
+      // Generic notification received
+      break
+  }
 }
 
 function handleDialogChange(dialog) {
@@ -142,9 +144,7 @@ function makeCall() {
     },
     // localElement: 'localVideo', // Video element ID to display the localStream
     remoteElement: 'remoteVideo', // Video element ID to display the remoteStream
-    onNotification: function (notification) {
-      handleDialogChange(notification.dialog)
-    }
+    onNotification: handleNotification
   }
 
   cur_call = client.newCall(params);

@@ -250,8 +250,11 @@ export default class Dialog {
     if (!this.channels.includes(channel)) {
       this.channels.push(channel)
     }
-    this.session.subscriptions[channel] = {
-      ...this.session.subscriptions[channel], dialogId: this.id
+    const protocol = this.session.webRtcProtocol
+    if (this.session._existsSubscription(protocol, channel)) {
+      this.session.subscriptions[protocol][channel] = {
+        ...this.session.subscriptions[protocol][channel], dialogId: this.id
+      }
     }
   }
 

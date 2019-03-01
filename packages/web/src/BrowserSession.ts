@@ -1,10 +1,10 @@
-// import logger from '../../common/src/util/logger'
 import BaseSession from '../../common/src/BaseSession'
 import Connection from '../../common/src/services/Connection'
 import Dialog from './rtc/Dialog'
 import { ICacheDevices, IAudioSettings, IVideoSettings } from '../../common/src/util/interfaces'
 import { trigger, registerOnce } from '../../common/src/services/Handler'
 import { SwEvent, NOTIFICATION_TYPE } from '../../common/src/util/constants'
+import { State } from '../../common/src/util/constants/dialog'
 import { getDevices, getResolutions, checkPermissions, removeUnsupportedConstraints, checkDeviceIdConstraints } from './rtc/helpers'
 import { findElementByType } from '../../common/src/util/helpers'
 
@@ -34,9 +34,23 @@ export default abstract class BrowserSession extends BaseSession {
     }
   }
 
-  disconnect() {
-    super.disconnect()
+  /**
+   * Alias for .disconnect()
+   * @deprecated
+   */
+  logout() {
+    this.disconnect()
+  }
+
+  /**
+   * Purge all active dialogs
+   * @return void
+   */
+  purge() {
+    Object.keys(this.dialogs).forEach(k => this.dialogs[k].setState(State.Purge))
     this.dialogs = {}
+
+    super.purge()
   }
 
   speedTest(bytes: number) {
@@ -148,4 +162,6 @@ export default abstract class BrowserSession extends BaseSession {
   get remoteElement() {
     return this._remoteElement
   }
+
+  abstract get webRtcProtocol(): string
 }

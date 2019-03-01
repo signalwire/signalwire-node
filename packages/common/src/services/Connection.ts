@@ -16,6 +16,7 @@ const WS_STATE = {
   CLOSED: 3
 }
 
+const REQUEST_TIMEOUT = 10 * 1000
 const PATTERN = /^(ws|wss):\/\//
 export default class Connection {
   private _wsClient: any = null
@@ -119,7 +120,7 @@ export default class Connection {
     this._timers[id] = setTimeout(() => {
       trigger(id, { error: { code: '408', message: 'Request Timeout' }})
       this._unsetTimer(id)
-    }, 5000)
+    }, REQUEST_TIMEOUT)
   }
 
   private _handleStringResponse(response: string) {

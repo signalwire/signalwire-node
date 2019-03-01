@@ -112,4 +112,8 @@ export default class Verto extends BrowserSession {
     const handler = new VertoHandler(this)
     handler.handleMessage(msg)
   }
+
+  get webRtcProtocol() {
+    return VERTO_PROTOCOL
+  }
 }

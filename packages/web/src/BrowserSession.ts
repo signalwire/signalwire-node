@@ -148,4 +148,6 @@ export default abstract class BrowserSession extends BaseSession {
   get remoteElement() {
     return this._remoteElement
   }
+
+  abstract get webRtcProtocol(): string
 }

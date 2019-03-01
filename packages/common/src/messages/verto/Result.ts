@@ -1,6 +1,6 @@
-import BaseMessage from '../BaseMessage'
+import BaseRequest from './BaseRequest'
 
-class Result extends BaseMessage {
+class Result extends BaseRequest {
   constructor(id: number, method: string) {
     super()
     this.buildRequest({ id, result: { method } })

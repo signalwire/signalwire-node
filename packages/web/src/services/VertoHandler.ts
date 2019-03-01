@@ -34,10 +34,7 @@ class VertoHandler {
 
     switch (method) {
       case VertoMethod.Punt:
-        if (this.isVerto) {
-          // @ts-ignore
-          session.logout()
-        }
+        session.disconnect()
         break
       case VertoMethod.Invite:
       case VertoMethod.Attach:

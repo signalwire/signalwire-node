@@ -34,26 +34,23 @@ export default abstract class BrowserSession extends BaseSession {
     }
   }
 
-  disconnect() {
-    this.purge()
-    super.disconnect()
-  }
-
   /**
    * Alias for .disconnect()
-   * @deprecated since version 2.0
+   * @deprecated
    */
   logout() {
     this.disconnect()
   }
 
+  /**
+   * Purge all active dialogs
+   * @return void
+   */
   purge() {
     Object.keys(this.dialogs).forEach(k => this.dialogs[k].setState(State.Purge))
-    Object.keys(this.subscriptions).forEach(protocol => {
-      this.unsubscribe({ protocol, channels: Object.keys(this.subscriptions[protocol]) })
-    })
-    this.subscriptions = {}
     this.dialogs = {}
+
+    super.purge()
   }
 
   speedTest(bytes: number) {

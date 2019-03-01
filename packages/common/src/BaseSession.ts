@@ -113,12 +113,12 @@ export default abstract class BaseSession {
   }
 
   /**
-   * Disconnect the current session removing all subscriptions and listeners
+   * Purge subscriptions and dialogs, close WS connection and remove all session listeners.
    * @return void
    */
   disconnect() {
     trigger(SwEvent.Disconnect, null, this.uuid, false)
-    this.subscriptions = {}
+    this.purge()
     if (this.connection) {
       this._autoReconnect = false
       this.connection.close()
@@ -126,6 +126,17 @@ export default abstract class BaseSession {
     this.connection = null
     this._executeQueue = []
     this._detachListeners()
+  }
+
+  /**
+   * Unsubscribe all subscriptions
+   * @return void
+   */
+  purge() {
+    Object.keys(this.subscriptions).forEach(protocol => {
+      this.unsubscribe({ protocol, channels: Object.keys(this.subscriptions[protocol]) })
+    })
+    this.subscriptions = {}
   }
 
   /**

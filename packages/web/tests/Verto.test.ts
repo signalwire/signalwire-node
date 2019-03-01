@@ -1,7 +1,7 @@
 import behaveLikeBaseSession from '../../common/tests/behaveLike/BaseSession'
 import VertoHandler from './services/VertoHandler'
 import { monitorCallbackQueue } from '../../common/src/services/Handler'
-import Verto from '../src/Verto'
+import Verto, { VERTO_PROTOCOL } from '../src/Verto'
 const Connection = require('../../common/src/services/Connection')
 
 describe('Verto', () => {
@@ -98,15 +98,15 @@ describe('Verto', () => {
       expect(response).toHaveProperty('subscribedChannels')
       expect(response.subscribedChannels).toEqual(['channel-test-name'])
       expect(Connection.mockSend.mock.calls).toHaveLength(1)
-      expect(instance.subscriptions).toHaveProperty('channel-test-name')
+      expect(instance.subscriptions[VERTO_PROTOCOL]).toHaveProperty('channel-test-name')
     })
 
     it('should do nothing if subscription already exists and return NULL', async () => {
-      instance.subscriptions = { 'channel-already-there': {} }
+      instance.subscriptions = { [VERTO_PROTOCOL]: { 'channel-already-there': {} } }
       const response = await instance.subscribe({ channels: ['channel-already-there'], handler: noop })
       expect(response).toBeUndefined()
       expect(Connection.mockSend.mock.calls).toHaveLength(0)
-      expect(instance.subscriptions).toHaveProperty('channel-already-there')
+      expect(instance.subscriptions[VERTO_PROTOCOL]).toHaveProperty('channel-already-there')
     })
 
     it('should not add the subscription to an invalid channel but return the response', async () => {
@@ -114,26 +114,26 @@ describe('Verto', () => {
       const response = await instance.subscribe({ channels: ['channel-invalid'], handler: noop })
       expect(response).toHaveProperty('unauthorizedChannels')
       expect(Connection.mockSend.mock.calls).toHaveLength(1)
-      expect(instance.subscriptions).not.toHaveProperty('channel-invalid')
+      expect(instance.subscriptions).not.toHaveProperty(VERTO_PROTOCOL)
     })
   })
 
   describe('.unsubscribe()', () => {
     it('should remove the subscription and return the response', async () => {
       const cName = 'channel-already-there'
-      instance.subscriptions = { [cName]: {} }
+      instance.subscriptions = { [VERTO_PROTOCOL]: { [cName]: {} } }
       Connection.mockResponse.mockImplementationOnce(() => JSON.parse(`{"jsonrpc":"2.0","id":77,"result":{"unsubscribedChannels":["${cName}"],"sessid":"sessid-xyz"}}`))
       const response = await instance.unsubscribe({ channels: [cName] })
       expect(response).toHaveProperty('unsubscribedChannels')
       expect(response.unsubscribedChannels).toEqual([cName])
-      expect(instance.subscriptions).not.toHaveProperty(cName)
+      expect(instance.subscriptions[VERTO_PROTOCOL]).not.toHaveProperty(cName)
     })
 
     it('should do nothing if subscription does not exists', async () => {
       const cName = 'channel-fake'
       const response = await instance.unsubscribe({ channels: [cName] })
       expect(response).toBeUndefined()
-      expect(instance.subscriptions).not.toHaveProperty(cName)
+      expect(instance.subscriptions).not.toHaveProperty(VERTO_PROTOCOL)
     })
   })
 

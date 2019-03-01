@@ -261,7 +261,10 @@ export default abstract class BaseSession {
    * Add a subscription by key and register a callback if its passed in
    * @return void
    */
-  protected _addSubscription(protocol: string, handler: Function = null, channel?: string) {
+  protected _addSubscription(protocol: string, handler: Function = null, channel: string) {
+    if (this._existsSubscription(protocol, channel)) {
+      return
+    }
     if (!this._existsSubscription(protocol)) {
       this.subscriptions[protocol] = {}
     }

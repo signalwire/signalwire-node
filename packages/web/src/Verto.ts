@@ -10,7 +10,7 @@ import * as Storage from '../../common/src/util/storage/'
 import VertoHandler from './services/VertoHandler'
 
 const SESSID = 'vertoSessId'
-const VERTO_PROTOCOL = 'verto-protocol'
+export const VERTO_PROTOCOL = 'verto-protocol'
 export default class Verto extends BrowserSession {
   validateOptions() {
     const { host, login, passwd, password } = this.options
@@ -52,7 +52,7 @@ export default class Verto extends BrowserSession {
   }
 
   async subscribe({ channels: eventChannel = [], handler }: SubscribeParams) {
-    eventChannel = eventChannel.filter((channel: string) => channel && !this.subscriptions.hasOwnProperty(channel))
+    eventChannel = eventChannel.filter((channel: string) => channel && !this._existsSubscription(VERTO_PROTOCOL, channel))
     if (!eventChannel.length) {
       return
     }
@@ -68,7 +68,7 @@ export default class Verto extends BrowserSession {
   }
 
   async unsubscribe({ channels: eventChannel = [] }: SubscribeParams) {
-    eventChannel = eventChannel.filter((channel: string) => channel && this.subscriptions.hasOwnProperty(channel))
+    eventChannel = eventChannel.filter((channel: string) => channel && this._existsSubscription(VERTO_PROTOCOL, channel))
     if (!eventChannel.length) {
       return
     }

@@ -278,7 +278,7 @@ export default abstract class BaseSession {
    * Check if a subscription for this protocol-channel already exists
    * @return boolean
    */
-  protected _existsSubscription(protocol: string, channel?: string) {
+  public _existsSubscription(protocol: string, channel?: string) {
     if (this.subscriptions.hasOwnProperty(protocol)) {
       if (!channel || (channel && this.subscriptions[protocol].hasOwnProperty(channel))) {
         return true

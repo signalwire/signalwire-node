@@ -12,7 +12,7 @@ export default class SignalWire extends BrowserSession {
   execute(message: any) {
     let msg: any = message
     if (message instanceof BaseRequest) {
-      msg = new Execute({ protocol: this._webrtcInstance.protocol, method: 'message', params: { message: message.request } })
+      msg = new Execute({ protocol: this.webRtcProtocol, method: 'message', params: { message: message.request } })
     }
     return super.execute(msg)
   }
@@ -32,7 +32,7 @@ export default class SignalWire extends BrowserSession {
     await this._webrtcInstance.setup()
 
     // TODO: set login/passwd
-    const msg = new Login('1008@dev.swire.io', '1234', this.sessionid, {})
+    const msg = new Login('login', 'password', this.sessionid, {})
     await this.execute(msg)
       .catch(error => {
         logger.error('SignalWire _vertoLogin error', error)

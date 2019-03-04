@@ -1,12 +1,13 @@
 import BaseSession from '../../common/src/BaseSession'
 import Connection from '../../common/src/services/Connection'
 import Dialog from './rtc/Dialog'
-import { ICacheDevices, IAudioSettings, IVideoSettings } from '../../common/src/util/interfaces'
+import { ICacheDevices, IAudioSettings, IVideoSettings, BroadcastParams, SubscribeParams } from '../../common/src/util/interfaces'
 import { trigger, registerOnce } from '../../common/src/services/Handler'
 import { SwEvent, NOTIFICATION_TYPE } from '../../common/src/util/constants'
 import { State } from '../../common/src/util/constants/dialog'
 import { getDevices, getResolutions, checkPermissions, removeUnsupportedConstraints, checkDeviceIdConstraints } from './rtc/helpers'
 import { findElementByType } from '../../common/src/util/helpers'
+import { Unsubscribe, Subscribe, Broadcast } from '../../common/src/messages/Verto'
 
 export default abstract class BrowserSession extends BaseSession {
   public dialogs: { [dialogId: string]: Dialog } = {}
@@ -164,4 +165,40 @@ export default abstract class BrowserSession extends BaseSession {
   }
 
   abstract get webRtcProtocol(): string
+
+  vertoBroadcast({ channel: eventChannel = '', data }: BroadcastParams) {
+    if (!eventChannel) {
+      throw new Error('Invalid channel for broadcast: ' + eventChannel)
+    }
+    const msg = new Broadcast({ sessid: this.sessionid, eventChannel, data })
+    this.execute(msg).catch(error => error)
+  }
+
+  async vertoSubscribe({ channels: eventChannel = [], handler }: SubscribeParams) {
+    eventChannel = eventChannel.filter((channel: string) => channel && !this._existsSubscription(this.webRtcProtocol, channel))
+    if (!eventChannel.length) {
+      return
+    }
+    const msg = new Subscribe({ sessid: this.sessionid, eventChannel })
+    const response = await this.execute(msg)
+    const { unauthorizedChannels = [], subscribedChannels = [] } = response
+    if (unauthorizedChannels.length) {
+      unauthorizedChannels.forEach((channel: string) => this._removeSubscription(this.webRtcProtocol, channel))
+    }
+    subscribedChannels.forEach((channel: string) => this._addSubscription(this.webRtcProtocol, handler, channel))
+    return response
+  }
+
+  async vertoUnsubscribe({ channels: eventChannel = [] }: SubscribeParams) {
+    eventChannel = eventChannel.filter((channel: string) => channel && this._existsSubscription(this.webRtcProtocol, channel))
+    if (!eventChannel.length) {
+      return
+    }
+    const msg = new Unsubscribe({ sessid: this.sessionid, eventChannel })
+    const response = await this.execute(msg).catch(error => error)
+    const { unsubscribedChannels = [], notSubscribedChannels = [] } = response
+    unsubscribedChannels.forEach((channel: string) => this._removeSubscription(this.webRtcProtocol, channel))
+    notSubscribedChannels.forEach((channel: string) => this._removeSubscription(this.webRtcProtocol, channel))
+    return response
+  }
 }

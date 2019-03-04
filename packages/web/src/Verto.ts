@@ -26,41 +26,16 @@ export default class Verto extends BrowserSession {
     return dialog
   }
 
-  broadcast({ channel: eventChannel = '', data }: BroadcastParams) {
-    if (!eventChannel) {
-      throw new Error('Invalid channel for broadcast: ' + eventChannel)
-    }
-    const msg = new Broadcast({ sessid: this.sessionid, eventChannel, data })
-    this.execute(msg).catch(error => error)
+  broadcast(params: BroadcastParams) {
+    return this.vertoBroadcast(params)
   }
 
-  async subscribe({ channels: eventChannel = [], handler }: SubscribeParams) {
-    eventChannel = eventChannel.filter((channel: string) => channel && !this._existsSubscription(VERTO_PROTOCOL, channel))
-    if (!eventChannel.length) {
-      return
-    }
-    const msg = new Subscribe({ sessid: this.sessionid, eventChannel })
-    const response = await this.execute(msg)
-    const { unauthorizedChannels = [], subscribedChannels = [] } = response
-    if (unauthorizedChannels.length) {
-      logger.debug(`Unauthorized Channels: ${unauthorizedChannels.join(', ')}`)
-      unauthorizedChannels.forEach((channel: string) => this._removeSubscription(VERTO_PROTOCOL, channel))
-    }
-    subscribedChannels.forEach((channel: string) => this._addSubscription(VERTO_PROTOCOL, handler, channel))
-    return response
+  subscribe(params: SubscribeParams) {
+    return this.vertoSubscribe(params)
   }
 
-  async unsubscribe({ channels: eventChannel = [] }: SubscribeParams) {
-    eventChannel = eventChannel.filter((channel: string) => channel && this._existsSubscription(VERTO_PROTOCOL, channel))
-    if (!eventChannel.length) {
-      return
-    }
-    const msg = new Unsubscribe({ sessid: this.sessionid, eventChannel })
-    const response = await this.execute(msg).catch(error => error)
-    const { unsubscribedChannels = [], notSubscribedChannels = [] } = response
-    unsubscribedChannels.forEach((channel: string) => this._removeSubscription(VERTO_PROTOCOL, channel))
-    notSubscribedChannels.forEach((channel: string) => this._removeSubscription(VERTO_PROTOCOL, channel))
-    return response
+  unsubscribe(params: SubscribeParams) {
+    return this.vertoUnsubscribe(params)
   }
 
   protected async _onDisconnect() {

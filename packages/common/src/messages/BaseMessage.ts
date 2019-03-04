@@ -4,6 +4,7 @@ abstract class BaseMessage {
   protected method: string
   public request: any
   public response: any
+  public targetNodeId: string = null
 
   buildRequest(params: any) {
     this.request = { ...{ jsonrpc: '2.0', id: uuidv4() }, ...params }

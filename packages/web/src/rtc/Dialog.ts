@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from 'uuid'
 import logger from '../../../common/src/util/logger'
 import BrowserSession from '../BrowserSession'
+import BaseMessage from '../../../common/src/messages/BaseMessage'
 import { Invite, Answer, Attach, Bye, Modify, Info } from '../../../common/src/messages/Verto'
 import Peer from './Peer'
 import { PeerType, VertoMethod, SwEvent, NOTIFICATION_TYPE, Direction } from '../../../common/src/util/constants'
@@ -28,6 +29,7 @@ export default class Dialog {
   private gotAnswer: boolean = false
   private gotEarly: boolean = false
   private _lastSerno: number = 0
+  private _targetNodeId: string = null
 
   constructor(private session: BrowserSession, opts?: DialogOptions) {
     const { iceServers, localElement, remoteElement, mediaConstraints: { audio, video } } = session
@@ -60,7 +62,7 @@ export default class Dialog {
 
     if (execute) {
       const bye = new Bye({ sessid: this.session.sessionid, dialogParams: this.options })
-      this.session.execute(bye)
+      this._execute(bye)
         .then(_close.bind(this))
         .catch(error => logger.error('verto.bye failed!', error))
     } else {
@@ -70,44 +72,44 @@ export default class Dialog {
 
   transfer(destination: string) {
     const msg = new Modify({ sessid: this.session.sessionid, action: 'transfer', destination, dialogParams: this.options })
-    this.session.execute(msg)
+    this._execute(msg)
   }
 
   replace(replaceCallID: string) {
     const msg = new Modify({ sessid: this.session.sessionid, action: 'replace', replaceCallID, dialogParams: this.options })
-    this.session.execute(msg)
+    this._execute(msg)
   }
 
   hold() {
     const msg = new Modify({ sessid: this.session.sessionid, action: 'hold', dialogParams: this.options })
-    return this.session.execute(msg)
+    return this._execute(msg)
       .then(this._handleChangeHoldStateSuccess.bind(this))
       .catch(this._handleChangeHoldStateError.bind(this))
   }
 
   unhold() {
     const msg = new Modify({ sessid: this.session.sessionid, action: 'unhold', dialogParams: this.options })
-    return this.session.execute(msg)
+    return this._execute(msg)
       .then(this._handleChangeHoldStateSuccess.bind(this))
       .catch(this._handleChangeHoldStateError.bind(this))
   }
 
   toggleHold() {
     const msg = new Modify({ sessid: this.session.sessionid, action: 'toggleHold', dialogParams: this.options })
-    return this.session.execute(msg)
+    return this._execute(msg)
       .then(this._handleChangeHoldStateSuccess.bind(this))
       .catch(this._handleChangeHoldStateError.bind(this))
   }
 
   dtmf(dtmf: string) {
     const msg = new Info({ sessid: this.session.sessionid, dtmf, dialogParams: this.options })
-    this.session.execute(msg)
+    this._execute(msg)
   }
 
   message(to: string, body: string) {
     const msg = { from: this.session.options.login, to, body }
     const info = new Info({ sessid: this.session.sessionid, msg, dialogParams: this.options })
-    this.session.execute(info)
+    this._execute(info)
   }
 
   set audioState(what: boolean | string) {
@@ -508,7 +510,6 @@ export default class Dialog {
   }
 
   private _onIceSdp(data: RTCSessionDescription) {
-    // TODO: Blade needs a differ wrapper (maybe BladeInvite & BladeAnswer ?!)
     let msg = null
     const tmpParams = { sessid: this.session.sessionid, sdp: data.sdp, dialogParams: this.options }
     if (data.type === PeerType.Offer) {
@@ -521,8 +522,10 @@ export default class Dialog {
       logger.warn('Unknown SDP type:', data)
       return
     }
-    this.session.execute(msg)
+    this._execute(msg)
       .then(response => {
+        const { result: { node_id = null } = {} } = response
+        this._targetNodeId = node_id
         if (data.type === PeerType.Offer) {
           this.setState(State.Trying)
         } else if (data.type === PeerType.Answer) {
@@ -575,6 +578,11 @@ export default class Dialog {
     if (!trigger(SwEvent.Notification, notification, this.id, false)) {
       trigger(SwEvent.Notification, notification, this.session.uuid)
     }
+  }
+
+  private _execute(msg: BaseMessage) {
+    msg.targetNodeId = this._targetNodeId
+    return this.session.execute(msg)
   }
 
   private _init() {

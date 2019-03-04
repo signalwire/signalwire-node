@@ -204,19 +204,27 @@ const checkSubscribeResponse = (response: any, channel: string): boolean => {
     return false
   }
   console.log('checkSubscribeResponse', response)
-  let subs = []
-  let exists = []
+  const { subscribed, alreadySubscribed } = destructSubscribeResponse(response)
+  return subscribed.includes(channel) || alreadySubscribed.includes(channel)
+}
+
+type DestructuredResult = { subscribed: string[], alreadySubscribed: string[], unauthorized: string[], unsubscribed: string[], notSubscribed: string[] }
+
+const destructSubscribeResponse = (response: any): DestructuredResult => {
+  const tmp = {
+    subscribed: [],
+    alreadySubscribed: [],
+    unauthorized: [],
+    unsubscribed: [],
+    notSubscribed: []
+  }
+  let wrapper = response
   const { result = null } = response
   if (result) {
-    const { result: { subscribedChannels = [], alreadySubscribedChannels = [] } } = result
-    subs = subscribedChannels
-    exists = alreadySubscribedChannels
-  } else {
-    const { subscribedChannels = [], alreadySubscribedChannels = [] } = response
-    subs = subscribedChannels
-    exists = alreadySubscribedChannels
+    wrapper = result.result || {}
   }
-  return subs.includes(channel) || exists.includes(channel)
+  Object.keys(tmp).forEach(k => { tmp[k] = wrapper[`${k}Channels`] || [] })
+  return tmp
 }
 
 export {
@@ -231,5 +239,6 @@ export {
   checkDeviceIdConstraints,
   sdpStereoHack,
   sdpMediaOrderHack,
-  checkSubscribeResponse
+  checkSubscribeResponse,
+  destructSubscribeResponse
 }

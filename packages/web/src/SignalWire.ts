@@ -2,6 +2,7 @@ import BrowserSession from './BrowserSession'
 import WebRTC from '../../common/src/relay/webrtc/WebRTC'
 import { DialogOptions } from '../../common/src/util/interfaces'
 import logger from '../../common/src/util/logger'
+import BaseMessage from '../../common/src/messages/BaseMessage'
 import { Execute } from '../../common/src/messages/Blade'
 import BaseRequest from '../../common/src/messages/verto/BaseRequest'
 import { Login } from '../../common/src/messages/Verto'
@@ -13,10 +14,14 @@ export default class SignalWire extends BrowserSession {
     // TODO: sent unsubscribe for all subscriptions?
   }
 
-  execute(message: any) {
-    let msg: any = message
+  execute(message: BaseMessage) {
+    let msg: BaseMessage = message
     if (message instanceof BaseRequest) {
-      msg = new Execute({ protocol: this.webRtcProtocol, method: 'message', params: { message: message.request } })
+      const params: { message: any, node_id?: string } = { message: message.request }
+      if (message.targetNodeId) {
+        params.node_id = message.targetNodeId
+      }
+      msg = new Execute({ protocol: this.webRtcProtocol, method: 'message', params })
     }
     return super.execute(msg)
   }

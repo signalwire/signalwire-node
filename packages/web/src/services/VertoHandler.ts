@@ -57,6 +57,7 @@ class VertoHandler {
         }
         break
       case VertoMethod.Event:
+      case 'webrtc.event':
         if (!eventChannel) {
           logger.error('Verto received an unknown event:', params)
           return
@@ -118,7 +119,8 @@ class VertoHandler {
                 dialogId = me[0]
               }
             } else {
-              dialogId = dialogIds.find((id: string) => session.dialogs[id].channels.includes(laChannel))
+              // dialogId = dialogIds.find((id: string) => session.dialogs[id].channels.includes(laChannel))
+              dialogId = dialogIds.find((id: string) => packet.hashKey === id)
             }
             if (dialogId && session.dialogs.hasOwnProperty(dialogId)) {
               const dialog = session.dialogs[dialogId]

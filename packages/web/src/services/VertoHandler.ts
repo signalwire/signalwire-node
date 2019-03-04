@@ -11,10 +11,7 @@ import { trigger, deRegister } from '../../../common/src/services/Handler'
 import { State, ConferenceAction } from '../../../common/src/util/constants/dialog'
 
 class VertoHandler {
-  constructor(public session: BrowserSession) {
-    // console.log('isBlade?', this.isBlade)
-    // console.log('isVerto?', this.isVerto)
-  }
+  constructor(public session: BrowserSession) {}
 
   handleMessage(msg: any) {
     const { session } = this
@@ -64,13 +61,15 @@ class VertoHandler {
           logger.error('Verto received an unknown event:', params)
           return
         }
+        const protocol = session.webRtcProtocol
         const firstValue = eventChannel.split('.')[0]
-        if (session.sessionid === eventChannel && params.eventType === 'channelPvtData') {
+        // if (session.sessionid === eventChannel && params.eventType === 'channelPvtData') {
+        if (params.eventType === 'channelPvtData') {
           this._handlePvtEvent(params.pvtData)
-        } else if (session.subscriptions.hasOwnProperty(eventChannel)) {
-          trigger(eventChannel, params)
-        } else if (session.subscriptions.hasOwnProperty(firstValue)) {
-          trigger(firstValue, params)
+        } else if (session._existsSubscription(protocol, eventChannel)) {
+          trigger(protocol, params, eventChannel)
+        } else if (session._existsSubscription(protocol, firstValue)) {
+          trigger(protocol, params, firstValue)
         } else if (session.dialogs.hasOwnProperty(eventChannel)) {
           session.dialogs[eventChannel].handleMessage(msg)
         } else {
@@ -105,7 +104,7 @@ class VertoHandler {
     switch (action) {
       case 'conference-liveArray-join': {
         const _liveArrayBootstrap = () => {
-          session.broadcast({ channel: laChannel, data: { liveArray: { command: 'bootstrap', context: laChannel, name: laName } } })
+          session.vertoBroadcast({ channel: laChannel, data: { liveArray: { command: 'bootstrap', context: laChannel, name: laName } } })
         }
         const tmp = {
           protocol,
@@ -133,7 +132,7 @@ class VertoHandler {
             }
           }
         }
-        const result = await session.subscribe(tmp)
+        const result = await session.vertoSubscribe(tmp)
           .catch(error => {
             console.error('liveArray subscription error:', error)
           })

@@ -3,8 +3,6 @@ import Relay from '../Relay'
 import { DialogOptions } from '../../util/interfaces'
 import Dialog from '../../../../web/src/rtc/Dialog'
 import BrowserSession from '../../../../web/src/BrowserSession'
-import { Execute } from '../../messages/Blade'
-import { Login } from '../../messages/Verto'
 import VertoHandler from '../../../../web/src/services/VertoHandler'
 
 export default class WebRTC extends Relay {

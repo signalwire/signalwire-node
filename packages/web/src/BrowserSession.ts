@@ -195,10 +195,10 @@ export default abstract class BrowserSession extends BaseSession {
       return
     }
     const msg = new Unsubscribe({ sessid: this.sessionid, eventChannel })
-    const response = await this.execute(msg).catch(error => error)
-    const { unsubscribedChannels = [], notSubscribedChannels = [] } = response
-    unsubscribedChannels.forEach((channel: string) => this._removeSubscription(this.webRtcProtocol, channel))
-    notSubscribedChannels.forEach((channel: string) => this._removeSubscription(this.webRtcProtocol, channel))
+    const response = await this.execute(msg)
+    const { unsubscribed = [], notSubscribed = [] } = destructSubscribeResponse(response)
+    unsubscribed.forEach((channel: string) => this._removeSubscription(this.webRtcProtocol, channel))
+    notSubscribed.forEach((channel: string) => this._removeSubscription(this.webRtcProtocol, channel))
     return response
   }
 }

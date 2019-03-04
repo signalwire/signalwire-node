@@ -157,7 +157,7 @@ class VertoHandler {
             deRegister(SwEvent.Notification, null, dialogId)
           }
         }
-        session.unsubscribe({ protocol, channels: [laChannel, chatChannel, infoChannel, modChannel] })
+        session.vertoUnsubscribe({ protocol, channels: [laChannel, chatChannel, infoChannel, modChannel] })
         break
       }
     }

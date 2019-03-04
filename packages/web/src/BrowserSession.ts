@@ -5,7 +5,7 @@ import { ICacheDevices, IAudioSettings, IVideoSettings, BroadcastParams, Subscri
 import { trigger, registerOnce } from '../../common/src/services/Handler'
 import { SwEvent, NOTIFICATION_TYPE } from '../../common/src/util/constants'
 import { State } from '../../common/src/util/constants/dialog'
-import { getDevices, getResolutions, checkPermissions, removeUnsupportedConstraints, checkDeviceIdConstraints } from './rtc/helpers'
+import { getDevices, getResolutions, checkPermissions, removeUnsupportedConstraints, checkDeviceIdConstraints, destructSubscribeResponse } from './rtc/helpers'
 import { findElementByType } from '../../common/src/util/helpers'
 import { Unsubscribe, Subscribe, Broadcast } from '../../common/src/messages/Verto'
 
@@ -181,11 +181,11 @@ export default abstract class BrowserSession extends BaseSession {
     }
     const msg = new Subscribe({ sessid: this.sessionid, eventChannel })
     const response = await this.execute(msg)
-    const { unauthorizedChannels = [], subscribedChannels = [] } = response
-    if (unauthorizedChannels.length) {
-      unauthorizedChannels.forEach((channel: string) => this._removeSubscription(this.webRtcProtocol, channel))
+    const { unauthorized = [], subscribed = [] } = destructSubscribeResponse(response)
+    if (unauthorized.length) {
+      unauthorized.forEach((channel: string) => this._removeSubscription(this.webRtcProtocol, channel))
     }
-    subscribedChannels.forEach((channel: string) => this._addSubscription(this.webRtcProtocol, handler, channel))
+    subscribed.forEach((channel: string) => this._addSubscription(this.webRtcProtocol, handler, channel))
     return response
   }
 

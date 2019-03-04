@@ -203,8 +203,20 @@ const checkSubscribeResponse = (response: any, channel: string): boolean => {
   if (!response) {
     return false
   }
-  const { subscribedChannels = [], alreadySubscribedChannels = [] } = response
-  return subscribedChannels.includes(channel) || alreadySubscribedChannels.includes(channel)
+  console.log('checkSubscribeResponse', response)
+  let subs = []
+  let exists = []
+  const { result = null } = response
+  if (result) {
+    const { result: { subscribedChannels = [], alreadySubscribedChannels = [] } } = result
+    subs = subscribedChannels
+    exists = alreadySubscribedChannels
+  } else {
+    const { subscribedChannels = [], alreadySubscribedChannels = [] } = response
+    subs = subscribedChannels
+    exists = alreadySubscribedChannels
+  }
+  return subs.includes(channel) || exists.includes(channel)
 }
 
 export {

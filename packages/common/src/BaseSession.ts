@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from 'uuid'
 import logger from './util/logger'
 import Connection from './services/Connection'
+import BaseMessage from '../../common/src/messages/BaseMessage'
 import { deRegister, register, trigger, deRegisterAll } from './services/Handler'
 import { BroadcastHandler } from './services/Broadcast'
 import { ADD, REMOVE, SwEvent, BladeMethod } from './util/constants'
@@ -42,7 +43,7 @@ export default abstract class BaseSession {
    * Send a JSON object to the server.
    * @return Promise that will resolve/reject depending on the server response
    */
-  execute(msg: any) {
+  execute(msg: BaseMessage) {
     if (this._idle) {
       return new Promise(resolve => this._executeQueue.push({ resolve, msg }))
     }

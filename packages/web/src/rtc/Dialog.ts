@@ -581,7 +581,9 @@ export default class Dialog {
   }
 
   private _execute(msg: BaseMessage) {
-    msg.targetNodeId = this._targetNodeId
+    if (this._targetNodeId !== null) {
+      msg.targetNodeId = this._targetNodeId
+    }
     return this.session.execute(msg)
   }
 

@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid'
 import { Execute } from '../../messages/Blade'
-import { deRegister, registerOnce } from '../../services/Handler'
-import { CallState, CALL_STATES, DisconnectReason, CallConnectState } from '../../util/constants/relay'
+import { deRegister, registerOnce, deRegisterAll, trigger } from '../../services/Handler'
+import { CallState, CALL_STATES, DisconnectReason, CallConnectState, CALL_CONNECT_STATES } from '../../util/constants/relay'
 import { ICall, ICallOptions, ICallDevice, IMakeCallParams } from '../../util/interfaces'
 import logger from '../../util/logger'
 import { reduceConnectParams } from '../helpers'
@@ -14,6 +14,8 @@ export default class Call implements ICall {
 
   private _prevState: number = 0
   private _state: number = 0
+  private _prevConnectState: number = 0
+  private _connectState: number = 0
   private _cbQueues: { [state: string]: Function } = {}
   private _mediaControlId: string = ''
 
@@ -167,16 +169,15 @@ export default class Call implements ICall {
       }
     })
 
+    CALL_CONNECT_STATES.forEach(state => registerOnce(this.id, this._onConnectStateChange.bind(this, state), state))
+
     const response = await session.execute(msg)
       .catch(error => {
         throw error.result
       })
     if (response) {
-      const awaiter = await new Promise((resolve, reject) => {
-        registerOnce(this.id, resolve.bind(this), CallConnectState.Connected)
-        registerOnce(this.id, reject.bind(this), CallConnectState.Failed)
-      })
-      return awaiter
+      trigger(this.id, this, CallConnectState[CallConnectState.connecting])
+      return response.result
     }
   }
 
@@ -261,6 +262,14 @@ export default class Call implements ICall {
     return CallState[this._state]
   }
 
+  get prevConnectState() {
+    return CallConnectState[this._prevConnectState]
+  }
+
+  get connectState() {
+    return CallConnectState[this._connectState]
+  }
+
   get context() {
     return this.options.context
   }
@@ -306,10 +315,21 @@ export default class Call implements ICall {
   private _onStateChange(newState: string) {
     this._prevState = this._state
     this._state = CallState[newState]
-    if (this._cbQueues.hasOwnProperty(newState)) {
-      this._cbQueues[newState](this)
-    }
+    this._dispatchCallback(newState)
     return this
+  }
+
+  private _onConnectStateChange(newState: string) {
+    this._prevConnectState = this._connectState
+    this._connectState = CallConnectState[newState]
+    this._dispatchCallback(newState)
+    return this
+  }
+
+  private _dispatchCallback(key: string) {
+    if (this._cbQueues.hasOwnProperty(key)) {
+      this._cbQueues[key](this)
+    }
   }
 
   private _attachListeners() {
@@ -318,7 +338,9 @@ export default class Call implements ICall {
   }
 
   private _detachListeners() {
-    CALL_STATES.forEach(state => deRegister(this.id, null, state))
+    // CALL_STATES.forEach(state => deRegister(this.id, null, state))
+    // CALL_CONNECT_STATES.forEach(state => deRegister(this.id, null, state))
+    deRegisterAll(this.id)
   }
 
   private _callIdRequired() {

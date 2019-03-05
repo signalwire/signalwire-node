@@ -32,8 +32,10 @@ export enum CallType {
 }
 
 export enum CallConnectState {
-  Disconnected = 'disconnected',
-  Connecting = 'connecting',
-  Connected = 'connected',
-  Failed = 'failed'
+  disconnected,
+  connecting,
+  connected,
+  failed
 }
+
+export const CALL_CONNECT_STATES = Object.keys(CallConnectState).filter(k => isNaN(Number(k)))

@@ -43,7 +43,13 @@ export default class Calling extends Relay {
       case 'calling.call.connect': {
         const { call_id, connect_state, peer } = params
         const call = this.getCallById(call_id)
-        call.setOptions({ peer } )
+        if (!call) {
+          logger.error('Unknown call:', params)
+          return
+        }
+        if (peer) {
+          call.setOptions({ peer })
+        }
         trigger(call_id, call, connect_state)
         break
       }

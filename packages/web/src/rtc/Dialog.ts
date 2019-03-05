@@ -63,8 +63,8 @@ export default class Dialog {
     if (execute) {
       const bye = new Bye({ sessid: this.session.sessionid, dialogParams: this.options })
       this._execute(bye)
-        .then(_close.bind(this))
         .catch(error => logger.error('verto.bye failed!', error))
+        .then(_close.bind(this))
     } else {
       _close()
     }

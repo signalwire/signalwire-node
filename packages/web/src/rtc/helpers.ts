@@ -203,7 +203,6 @@ const checkSubscribeResponse = (response: any, channel: string): boolean => {
   if (!response) {
     return false
   }
-  console.log('checkSubscribeResponse', response)
   const { subscribed, alreadySubscribed } = destructSubscribeResponse(response)
   return subscribed.includes(channel) || alreadySubscribed.includes(channel)
 }

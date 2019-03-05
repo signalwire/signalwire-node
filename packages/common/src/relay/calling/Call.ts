@@ -169,7 +169,10 @@ export default class Call implements ICall {
       }
     })
 
-    CALL_CONNECT_STATES.forEach(state => registerOnce(this.id, this._onConnectStateChange.bind(this, state), state))
+    CALL_CONNECT_STATES.forEach(state => {
+      deRegister(this.id, null, state)
+      registerOnce(this.id, this._onConnectStateChange.bind(this, state), state)
+    })
 
     const response = await session.execute(msg)
       .catch(error => {

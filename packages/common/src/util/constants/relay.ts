@@ -8,6 +8,7 @@ export enum CallState {
 }
 
 export const CALL_STATES = Object.keys(CallState).filter(k => isNaN(Number(k)))
+export const DEFAULT_CALL_TIMEOUT = 30
 
 export enum DisconnectReason {
   Hangup = 'hangup',

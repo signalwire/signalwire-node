@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid'
 import { Execute } from '../../messages/Blade'
 import { deRegister, registerOnce, deRegisterAll, trigger } from '../../services/Handler'
-import { CallState, CALL_STATES, DisconnectReason, CallConnectState, CALL_CONNECT_STATES } from '../../util/constants/relay'
+import { CallState, CALL_STATES, DisconnectReason, CallConnectState, CALL_CONNECT_STATES, DEFAULT_CALL_TIMEOUT } from '../../util/constants/relay'
 import { ICall, ICallOptions, ICallDevice, IMakeCallParams } from '../../util/interfaces'
 import logger from '../../util/logger'
 import { reduceConnectParams } from '../helpers'
@@ -289,6 +289,26 @@ export default class Call implements ICall {
 
   get ready(): boolean {
     return Boolean(this.id)
+  }
+
+  get type(): string {
+    const { type } = this.options.device
+    return type
+  }
+
+  get from(): string {
+    const { params: { from_number = '' } = {} } = this.options.device
+    return from_number
+  }
+
+  get to(): string {
+    const { params: { to_number = '' } = {} } = this.options.device
+    return to_number
+  }
+
+  get timeout(): number {
+    const { params: { timeout = DEFAULT_CALL_TIMEOUT } = {} } = this.options.device
+    return timeout
   }
 
   on(eventName: string, callback: Function) {

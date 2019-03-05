@@ -5,6 +5,7 @@ import { ICallDevice, IMakeCallParams } from '../../util/interfaces'
 import logger from '../../util/logger'
 import Relay from '../Relay'
 import Call from './Call'
+import { DEFAULT_CALL_TIMEOUT } from '../../util/constants/relay'
 
 const _ctxUniqueId = (context: string): string => `ctx:${context}`
 
@@ -57,7 +58,7 @@ export default class Calling extends Relay {
   }
 
   async makeCall(params: IMakeCallParams) {
-    const { type, from: from_number, to: to_number, timeout = 30 } = params
+    const { type, from: from_number, to: to_number, timeout = DEFAULT_CALL_TIMEOUT } = params
     if (!type || !from_number || !to_number || !timeout) {
       throw new Error(`Invalid parameters for 'makeCall'.`)
     }

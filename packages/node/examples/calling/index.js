@@ -1,6 +1,6 @@
 require('dotenv').config()
 const inquirer = require('inquirer')
-const sw = require('../..')
+const SignalWire = require('../..')
 
 const host = process.env.SIGNALWIRE_API_HOSTNAME
 const project = process.env.SIGNALWIRE_API_PROJECT
@@ -8,7 +8,7 @@ const token = process.env.SIGNALWIRE_API_TOKEN
 const FROM_NUMBER = process.env.DEFAULT_FROM_NUMBER
 
 console.log('Init client with: ', host, project, token, '\n')
-const client = new sw.SignalWire({ host, project, token })
+const client = new SignalWire.RelayClient({ host, project, token })
 
 client.on('signalwire.error', error => {
   console.error('SW Client error,', error)

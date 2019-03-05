@@ -5,7 +5,6 @@ import logger from '../../common/src/util/logger'
 import BaseMessage from '../../common/src/messages/BaseMessage'
 import { Execute } from '../../common/src/messages/Blade'
 import BaseRequest from '../../common/src/messages/verto/BaseRequest'
-import { Login } from '../../common/src/messages/Verto'
 
 export default class SignalWire extends BrowserSession {
   private _webrtcInstance: WebRTC = null
@@ -35,13 +34,6 @@ export default class SignalWire extends BrowserSession {
       this._webrtcInstance = new WebRTC(this)
     }
     await this._webrtcInstance.setup()
-
-    // TODO: set login/passwd
-    const msg = new Login('login', 'password', this.sessionid, {})
-    await this.execute(msg)
-      .catch(error => {
-        logger.error('SignalWire _vertoLogin error', error)
-      })
   }
 
   get webRtcProtocol() {

@@ -268,7 +268,7 @@ export default class Dialog {
         this._dispatchConferenceUpdate({ action: ConferenceAction.ChatMessage, direction, participantNumber, participantName, messageText, messageType, messageId: params.eventSerno })
       }
     }
-    const response = await this.session.subscribe(tmp)
+    const response = await this.session.vertoSubscribe(tmp)
       .catch(error => {
         console.error('ConfChat subscription error:', error)
       })
@@ -300,7 +300,7 @@ export default class Dialog {
         }
       }
     }
-    const response = await this.session.subscribe(tmp)
+    const response = await this.session.vertoSubscribe(tmp)
       .catch(error => {
         console.error('ConfInfo subscription error:', error)
       })
@@ -340,7 +340,7 @@ export default class Dialog {
         }
       }
     }
-    const response = await this.session.subscribe(tmp)
+    const response = await this.session.vertoSubscribe(tmp)
       .catch(error => {
         console.error('ConfMod subscription error:', error)
       })

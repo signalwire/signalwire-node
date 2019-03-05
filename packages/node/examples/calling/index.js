@@ -51,9 +51,25 @@ async function makeCall(to) {
     console.log(`\t ${call.id} state from ${call.prevState} to ${call.state}`, '\n')
     _init()
   })
-  // .begin()
+
+  leg.on('disconnected', call => {
+    console.log(`\t ${call.id} has been disconnected!`, '\n')
+  })
+  .on('connecting', call => {
+    console.log(`\t ${call.id} trying to connecting..`, '\n')
+  })
+  .on('connected', call => {
+    console.log(`\t ${call.id} has been connected with ${call.peer.id}!`, '\n')
+  })
+  .on('failed', call => {
+    console.log(`\t ${call.id} failed to connect!`, '\n')
+  })
 
   return leg
+}
+
+const sleep = (seconds) => {
+  return new Promise(resolve => setTimeout(resolve, seconds * 1000))
 }
 
 function _init() {
@@ -122,12 +138,10 @@ function _init() {
         call.on('answered', async call => {
           const response = await call.connect({ type: 'phone', to: answers.connect_to_number })
             .catch(error => {
-              console.error('\tCall connect failed!', error)
-              call.hangup()
-              return null
+              console.error('\tCall connect failed to start', error)
             })
           if (response) {
-            console.log(`\tCall connected?`, response.id, response.peer.id)
+            console.log(`\tCall connect response:`, response)
           }
         })
       }
@@ -147,20 +161,21 @@ function _init() {
         })
 
     } else if (answers.context) {
-      await client.calling.onInbound(answers.context, call => {
-        console.warn(`Inbound call on "${call.context}"`, call)
-        setTimeout(async () => {
-          const response = await call.answer().catch(console.error)
-          // const response = await call.connect({ type: 'phone', to: '+12029195378' })
-          //   .catch(error => {
-          //     console.error('\tCall connect failed!', error)
-          //     call.hangup()
-          //     return null
-          //   })
-          // if (response) {
-          //   console.log(`\tCall connected?`, response.id, response.peer.id)
-          // }
-        }, 4000)
+      await client.calling.onInbound(answers.context, async call => {
+        console.warn(`Inbound call on "${call.context}"`, `from: ${call.from} - to: ${call.to}`)
+        await sleep(4)
+        await call.answer().catch(console.error)
+        await sleep(5)
+        await call.hangup().catch(console.error)
+        // const response = await call.connect({ type: 'phone', to: '+12029195378' })
+        //   .catch(error => {
+        //     console.error('\tCall connect failed!', error)
+        //     call.hangup()
+        //     return null
+        //   })
+        // if (response) {
+        //   console.log(`\tCall connected?`, response.id, response.peer.id)
+        // }
       })
 
       console.log(`Listener for ${answers.context} started..\n`)

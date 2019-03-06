@@ -1,5 +1,7 @@
 import BaseSession from '../BaseSession'
 import { Setup } from '../services/Setup'
+import { registerOnce, deRegisterAll } from '../services/Handler'
+import { SwEvent } from '../util/constants'
 
 abstract class Relay {
   protected abstract service: string
@@ -7,6 +9,7 @@ abstract class Relay {
   protected abstract notificationHandler(notification: any): void
 
   constructor(public session: BaseSession) {
+    registerOnce(SwEvent.Disconnect, this._disconnect.bind(this), this.session.uuid)
   }
 
   get protocol() {
@@ -16,6 +19,12 @@ abstract class Relay {
   protected async setup() {
     if (!this._protocol) {
       this._protocol = await Setup(this.session, this.service, this.notificationHandler.bind(this))
+    }
+  }
+
+  protected _disconnect() {
+    if (this._protocol) {
+      deRegisterAll(this._protocol)
     }
   }
 }

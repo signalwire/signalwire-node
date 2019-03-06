@@ -17,9 +17,4 @@ export default class SignalWire extends BaseSession {
     }
     return this._callingInstance
   }
-
-  protected async _onDisconnect() {
-    // TODO: sent unsubscribe for all subscriptions?
-    deRegisterAll(this.calling.protocol)
-  }
 }

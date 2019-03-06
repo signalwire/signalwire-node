@@ -27,7 +27,6 @@ export default abstract class BaseSession {
     if (!this.validateOptions()) {
       throw new Error('SignalWire: Invalid init options')
     }
-    this._onDisconnect = this._onDisconnect.bind(this)
     this._onSocketOpen = this._onSocketOpen.bind(this)
     this._onSocketClose = this._onSocketClose.bind(this)
     this._onSocketError = this._onSocketError.bind(this)
@@ -145,13 +144,6 @@ export default abstract class BaseSession {
   }
 
   /**
-   * Callback fired when the session initiated a disconnect process. Useful to cleanup
-   * @abstract
-   * @return void
-   */
-  protected abstract _onDisconnect(): void
-
-  /**
    * Define the method to connect the session
    * @abstract
    * @async
@@ -261,7 +253,6 @@ export default abstract class BaseSession {
    */
   private _attachListeners() {
     this._detachListeners()
-    this.on(SwEvent.Disconnect, this._onDisconnect)
     this.on(SwEvent.SocketOpen, this._onSocketOpen)
     this.on(SwEvent.SocketClose, this._onSocketClose)
     this.on(SwEvent.SocketError, this._onSocketError)
@@ -273,7 +264,6 @@ export default abstract class BaseSession {
    * @return void
    */
   private _detachListeners() {
-    this.off(SwEvent.Disconnect, this._onDisconnect)
     this.off(SwEvent.SocketOpen, this._onSocketOpen)
     this.off(SwEvent.SocketClose, this._onSocketClose)
     this.off(SwEvent.SocketError, this._onSocketError)

@@ -278,7 +278,7 @@ export default class Dialog {
         sendChatMessage: {
           configurable: true,
           value: (message: string, type: string) => {
-            this.session.broadcast({ channel, data: { action: 'send', message, type } })
+            this.session.vertoBroadcast({ channel, data: { action: 'send', message, type } })
           }
         }
       })
@@ -313,7 +313,7 @@ export default class Dialog {
     const _modCommand = (command: string, memberID: any = null, value: any = null): void => {
       const application = 'conf-control'
       const id = parseInt(memberID) || null
-      this.session.broadcast({ channel, data: { application, command, id, value } })
+      this.session.vertoBroadcast({ channel, data: { application, command, id, value } })
     }
 
     const _videoRequired = (): void => {

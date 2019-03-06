@@ -118,11 +118,7 @@ export default abstract class BaseSession {
   disconnect() {
     trigger(SwEvent.Disconnect, null, this.uuid, false)
     this.subscriptions = {}
-    if (this.connection) {
-      this._autoReconnect = false
-      this.connection.close()
-    }
-    this.connection = null
+    this._removeConnection()
     this._executeQueue = []
     this._detachListeners()
   }
@@ -158,10 +154,10 @@ export default abstract class BaseSession {
    */
   protected setup() {
     if (this.connection) {
-      if (this.connection.connected) {
+      if (this.connection.isAlive) {
         return
       }
-      this.disconnect()
+      this._removeConnection()
     }
 
     this._attachListeners()
@@ -283,6 +279,19 @@ export default abstract class BaseSession {
         resolve(this.execute(msg))
       }
     })
+  }
+
+  /**
+   * Close and remove the current connection.
+   * @return void
+   */
+  private _removeConnection() {
+    this._idle = true
+    if (this.connection) {
+      this._autoReconnect = false
+      this.connection.close()
+    }
+    this.connection = null
   }
 
   static on(eventName: string, callback: any) {

@@ -79,10 +79,6 @@ export default class Verto extends BrowserSession {
     return response
   }
 
-  protected async _onDisconnect() {
-    // TODO: sent unsubscribe for all subscriptions?
-  }
-
   protected async _onSocketOpen() {
     const sessid = await Storage.getItem(SESSID)
     const { login, password, passwd, userVariables } = this.options

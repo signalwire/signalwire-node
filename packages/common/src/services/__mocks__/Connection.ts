@@ -17,6 +17,7 @@ export const mockSend = jest.fn((bladeObj: any) => {
 export const mockClose = jest.fn()
 
 export const connected = jest.fn().mockReturnValue(true)
+export const isAlive = jest.fn().mockReturnValue(true)
 
 const mock = jest.fn().mockImplementation(() => {
   const mocked = {
@@ -26,6 +27,9 @@ const mock = jest.fn().mockImplementation(() => {
   }
   Object.defineProperty(mocked, 'connected', {
     get: () => connected()
+  })
+  Object.defineProperty(mocked, 'isAlive', {
+    get: () => isAlive()
   })
   return mocked
 })

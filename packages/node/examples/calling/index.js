@@ -10,6 +10,11 @@ const FROM_NUMBER = process.env.DEFAULT_FROM_NUMBER
 console.log('Init client with: ', host, project, token, '\n')
 const client = new SignalWire.RelayClient({ host, project, token })
 
+const _gracefulExit = () => {
+  client.disconnect()
+  console.log('\nHope to see you again!\n')
+}
+
 client.on('signalwire.error', error => {
   console.error('SW Client error,', error)
 })
@@ -17,10 +22,8 @@ client.on('signalwire.error', error => {
 client.on('signalwire.ready', session => {
   console.log('SW Client ready! \n')
 
-  process.on('exit', () => {
-    client.disconnect()
-    console.log('\nHope to see you again!\n')
-  })
+  // process.on('SIGINT', _gracefulExit)
+  process.on('exit', _gracefulExit)
 
   _init()
 })
@@ -165,8 +168,8 @@ function _init() {
         console.warn(`Inbound call on "${call.context}"`, `from: ${call.from} - to: ${call.to}`)
         await sleep(4)
         await call.answer().catch(console.error)
-        await sleep(5)
-        await call.hangup().catch(console.error)
+        // await sleep(5)
+        // await call.hangup().catch(console.error)
         // const response = await call.connect({ type: 'phone', to: '+12029195378' })
         //   .catch(error => {
         //     console.error('\tCall connect failed!', error)

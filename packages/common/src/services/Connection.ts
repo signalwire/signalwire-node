@@ -35,6 +35,26 @@ export default class Connection {
     return this._wsClient.readyState === WS_STATE.OPEN
   }
 
+  get connecting(): boolean {
+    return this._wsClient.readyState === WS_STATE.CONNECTING
+  }
+
+  get closing(): boolean {
+    return this._wsClient.readyState === WS_STATE.CLOSING
+  }
+
+  get closed(): boolean {
+    return this._wsClient.readyState === WS_STATE.CLOSED
+  }
+
+  get isAlive(): boolean {
+    return this.connecting || this.connected
+  }
+
+  get isDead(): boolean {
+    return this.closing || this.closed
+  }
+
   connect() {
     this._wsClient = new WebSocketClass(this._host)
     this._wsClient.onopen = (event): boolean => trigger(SwEvent.SocketOpen, event, this.session.uuid)
@@ -82,6 +102,7 @@ export default class Connection {
   }
 
   close() {
+    // FIXME: wait all req/res before close!
     this._wsClient.close()
     this._wsClient = null
   }

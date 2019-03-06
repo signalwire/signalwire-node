@@ -46,7 +46,7 @@ describe('Verto', () => {
     })
 
     it('should register socket listeners', () => {
-      const listeners = ['signalwire.internal.disconnect', 'signalwire.socket.close', 'signalwire.socket.open', 'signalwire.socket.error', 'signalwire.socket.message']
+      const listeners = ['signalwire.socket.close', 'signalwire.socket.open', 'signalwire.socket.error', 'signalwire.socket.message']
       const queue = monitorCallbackQueue()
       expect(Object.keys(queue).sort()).toEqual(listeners.sort())
     })
@@ -69,7 +69,7 @@ describe('Verto', () => {
 
     describe('with an invalid connection (closed/closing state)', () => {
       it('should close the previous one and create another', async done => {
-        Connection.connected.mockReturnValueOnce(false)
+        Connection.isAlive.mockReturnValueOnce(false)
         await instance.connect()
         expect(Connection.mockClose).toHaveBeenCalledTimes(1)
         expect(Connection.default).toHaveBeenCalledTimes(2)

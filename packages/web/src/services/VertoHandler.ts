@@ -13,6 +13,12 @@ import { State, ConferenceAction } from '../../../common/src/util/constants/dial
 class VertoHandler {
   constructor(public session: BrowserSession) {}
 
+  private _ack(id: number, method: string, nodeId: string): void {
+    const msg = new Result(id, method)
+    msg.targetNodeId = nodeId
+    this.session.execute(msg)
+  }
+
   handleMessage(msg: any) {
     const { session } = this
     const { id, method, params } = msg
@@ -20,11 +26,12 @@ class VertoHandler {
     const attach = method === VertoMethod.Attach
 
     if (dialogId && session.dialogs.hasOwnProperty(dialogId)) {
+      const dialog = session.dialogs[dialogId]
       if (attach) {
-        session.dialogs[dialogId].hangup()
+        dialog.hangup()
       } else {
-        session.dialogs[dialogId].handleMessage(msg)
-        session.execute(new Result(id, method))
+        dialog.handleMessage(msg)
+        this._ack(id, method, dialog.nodeId)
         return
       }
     }
@@ -53,7 +60,7 @@ class VertoHandler {
           dialog.handleMessage(msg)
         } else {
           dialog.setState(State.Ringing)
-          session.execute(new Result(id, method))
+          this._ack(id, method, dialog.nodeId)
         }
         break
       case VertoMethod.Event:
@@ -119,7 +126,6 @@ class VertoHandler {
                 dialogId = me[0]
               }
             } else {
-              // dialogId = dialogIds.find((id: string) => session.dialogs[id].channels.includes(laChannel))
               dialogId = dialogIds.find((id: string) => packet.hashKey === id)
             }
             if (dialogId && session.dialogs.hasOwnProperty(dialogId)) {

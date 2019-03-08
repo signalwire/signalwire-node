@@ -79,6 +79,8 @@ class VertoHandler {
           this._handlePvtEvent(params.pvtData)
         } else if (session._existsSubscription(protocol, eventChannel)) {
           trigger(protocol, params, eventChannel)
+        } else if (eventChannel === session.sessionid) {
+          this._handleSessionEvent(params.eventData)
         } else if (session._existsSubscription(protocol, firstValue)) {
           trigger(protocol, params, firstValue)
         } else if (session.dialogs.hasOwnProperty(eventChannel)) {
@@ -167,6 +169,21 @@ class VertoHandler {
           }
         }
         session.vertoUnsubscribe({ nodeId: this.nodeId, channels: [laChannel, chatChannel, infoChannel, modChannel] })
+        break
+      }
+    }
+  }
+
+  private _handleSessionEvent(eventData: any) {
+    switch (eventData.contentType) {
+      case 'layer-info': {
+        const notification = { type: NOTIFICATION_TYPE.conferenceUpdate, action: ConferenceAction.LayerInfo, ...eventData }
+        trigger(SwEvent.Notification, notification, this.session.uuid)
+        break
+      }
+      case 'logo-info': {
+        const notification = { type: NOTIFICATION_TYPE.conferenceUpdate, action: ConferenceAction.LogoInfo, logo: eventData.logoURL }
+        trigger(SwEvent.Notification, notification, this.session.uuid)
         break
       }
     }

@@ -24,8 +24,12 @@ ready(function() {
   document.getElementById('client_' + client).checked = true;
 });
 
-function connect() {
+function disconnect() {
+  connectStatus.innerHTML = 'disconnecting..'
+  client.disconnect()
+}
 
+function connect() {
   host     = document.getElementById('host').value;
   domain   = document.getElementById('domain').value;
   username = document.getElementById('username').value;
@@ -38,18 +42,28 @@ function connect() {
   client = new klass({
     host: host,
     login: login,
-    passwd: password,
+    password: password,
     project: username,
     token: password
   });
 
   client.on('signalwire.ready', function() {
-    document.getElementById('connectStatus').innerHTML = "connected";
+    btnConnect.disabled = true
+    btnDisconnect.disabled = false
+    connectStatus.innerHTML = 'connected!'
+
+    startCall.disabled = false
   });
 
   client.on('signalwire.socket.open', function() {
-    // Do something when the socket has been opened!
-    console.log("socket connected");
+    console.log('socket connected')
+  });
+
+  client.on('signalwire.socket.close', function() {
+    console.log('socket disconnected')
+    btnConnect.disabled = false
+    btnDisconnect.disabled = true
+    connectStatus.innerHTML = 'disconnected'
   });
 
   client.on('signalwire.error', function(error){
@@ -59,8 +73,8 @@ function connect() {
 
   client.on('signalwire.notification', handleNotification);
 
-  document.getElementById('connectStatus').innerHTML = "connecting..";
-  client.connect();
+  connectStatus.innerHTML = 'connecting..'
+  client.connect()
 }
 
 function handleNotification(notification) {
@@ -70,7 +84,7 @@ function handleNotification(notification) {
       handleDialogChange(notification.dialog)
       break
     case 'conferenceUpdate':
-      // Live notification from the conference: start talking / video floor changed / audio or video state changes / a participant joins or leaves and so on..
+      handleConferenceUpdate(notification)
       break
     case 'participantData':
       // Caller's data like name and number to update the UI. In case of a conference call you will get the name of the room and the extension.
@@ -106,19 +120,45 @@ function handleDialogChange(dialog) {
       break;
     case 'active':
       // Dialog has become active
-      document.getElementById('remoteVideo').style.display = "block";
-      document.getElementById('localVideo').style.display = "block";
+      hangupCall.disabled = false
+      remoteVideo.style.display = 'block'
+      // localVideo.style.display = 'block'
 
       break;
     case 'hangup':
       // Dialog is over
-      document.getElementById('remoteVideo').style.display = "none";
-      document.getElementById('localVideo').style.display = "none";
+      hangupCall.disabled = true
+      startCall.disabled = false
+
+      remoteVideo.style.display = 'none'
+      // localVideo.style.display = 'none'
 
       break;
     case 'destroy':
       // Dialog has been destroyed
       break;
+  }
+}
+
+function handleConferenceUpdate(notification) {
+  switch (notification.action) {
+    case 'bootstrap':
+      notification.participants.forEach(function(part) {
+        var li = document.createElement('li')
+        li.id = part.participantId
+        li.innerHTML = 'p-' + part.participantName
+        participants.appendChild(li)
+      })
+      break
+    case 'add':
+      break
+    case 'modify':
+      break
+    case 'del':
+      break
+    case 'clear':
+      participants.innerHTML = ''
+      break
   }
 }
 
@@ -151,7 +191,7 @@ function makeCall() {
 }
 
 function hangup() {
-  cur_call.hangup();
+  cur_call.hangup()
 }
 
 function save_params(e) {

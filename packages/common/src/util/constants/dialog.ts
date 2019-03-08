@@ -43,6 +43,8 @@ export enum ConferenceAction {
   Delete = 'delete',
   Clear = 'clear',
   ChatMessage = 'chatMessage',
+  LayerInfo = 'layerInfo',
+  LogoInfo = 'logoInfo',
   LayoutInfo = 'layoutInfo',
   LayoutList = 'layoutList',
   ModCmdResponse = 'modCommandResponse',

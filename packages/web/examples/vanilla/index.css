@@ -7,3 +7,25 @@ label {
 input[type="text"] {
   width: 200px;
 }
+
+.row {
+  position: relative;
+}
+
+.row .half-page {
+  position: relative;
+  float: left;
+  width: 49%;
+}
+
+#participants {
+  list-style: none;
+}
+
+video {
+  width: 100%;
+}
+
+.clear {
+  clear: both;
+}

@@ -2,7 +2,6 @@
 <html>
 <head>
 	<title>Signalwire Verto Vanilla Demo</title>
-
 	<script type="text/javascript" src="index.min.js"></script>
 	<script type="text/javascript" src="index.js"></script>
 	<script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
@@ -32,21 +31,34 @@
 	<input type="radio" id="client_sw" name="client" value="sw" onchange="save_params(event)"> SignalWire
 	<input type="radio" id="client_verto" name="client" value="verto" onchange="save_params(event)"> Verto
 	<br/>
-
-	<button onclick="connect()">Connect</button>
+	<br/>
+	<label for="client">&nbsp;</label>
+	<button id="btnConnect" onclick="connect()">Connect</button>
+	<button id="btnDisconnect" onclick="disconnect()" disabled="true">Disconnect</button>
 	<span id='connectStatus'></span>
 	<br/>
 	<br/>
 
-	Number:
-	<input id='number' value="9196" onchange="save_params(event)">
+	<label for="number">Number:</label>
+	<input id="number" value="9196" onchange="save_params(event)">
 
-	<button onClick="makeCall()">Call</button>
-	<button onClick="hangup()">Hangup</button>
+	<button id="startCall" onClick="makeCall()" disabled="true">Call</button>
+	<button id="hangupCall" onClick="hangup()" disabled="true">Hangup</button>
+	<br />
+	<br />
+	<!-- <div class="half-page">
+		<video id="localVideo" autoplay="true" style="display:none;"></video>
+	</div> -->
+	<div class="row">
+		<div class="half-page">
+			<video id="remoteVideo" autoplay="true" style="display:none;"></video>
+		</div>
+		<div id="confCommands" class="half-page">
+			<ul id="participants"></ul>
+		</div>
+	</div>
 
-	<video id='localVideo' autoplay="true" style="display:none"></video>
-	<video id='remoteVideo' autoplay="true" style="display:none"></video>
-
+	<div class="clear"></div>
 
 	<br/>
 	<br/>

@@ -11,11 +11,15 @@ import { trigger, deRegister } from '../../../common/src/services/Handler'
 import { State, ConferenceAction } from '../../../common/src/util/constants/dialog'
 
 class VertoHandler {
+  public nodeId: string
+
   constructor(public session: BrowserSession) {}
 
-  private _ack(id: number, method: string, nodeId: string): void {
+  private _ack(id: number, method: string): void {
     const msg = new Result(id, method)
-    msg.targetNodeId = nodeId
+    if (this.nodeId) {
+      msg.targetNodeId = this.nodeId
+    }
     this.session.execute(msg)
   }
 
@@ -26,12 +30,11 @@ class VertoHandler {
     const attach = method === VertoMethod.Attach
 
     if (dialogId && session.dialogs.hasOwnProperty(dialogId)) {
-      const dialog = session.dialogs[dialogId]
       if (attach) {
-        dialog.hangup()
+        session.dialogs[dialogId].hangup()
       } else {
-        dialog.handleMessage(msg)
-        this._ack(id, method, dialog.nodeId)
+        session.dialogs[dialogId].handleMessage(msg)
+        this._ack(id, method)
         return
       }
     }
@@ -60,7 +63,7 @@ class VertoHandler {
           dialog.handleMessage(msg)
         } else {
           dialog.setState(State.Ringing)
-          this._ack(id, method, dialog.nodeId)
+          this._ack(id, method)
         }
         break
       case VertoMethod.Event:
@@ -112,10 +115,10 @@ class VertoHandler {
     switch (action) {
       case 'conference-liveArray-join': {
         const _liveArrayBootstrap = () => {
-          session.vertoBroadcast({ channel: laChannel, data: { liveArray: { command: 'bootstrap', context: laChannel, name: laName } } })
+          session.vertoBroadcast({ nodeId: this.nodeId, channel: laChannel, data: { liveArray: { command: 'bootstrap', context: laChannel, name: laName } } })
         }
         const tmp = {
-          protocol,
+          nodeId: this.nodeId,
           channels: [laChannel],
           handler: ({ data: packet }: any) => {
             let dialogId: string = null
@@ -163,7 +166,7 @@ class VertoHandler {
             deRegister(SwEvent.Notification, null, dialogId)
           }
         }
-        session.vertoUnsubscribe({ protocol, channels: [laChannel, chatChannel, infoChannel, modChannel] })
+        session.vertoUnsubscribe({ nodeId: this.nodeId, channels: [laChannel, chatChannel, infoChannel, modChannel] })
         break
       }
     }

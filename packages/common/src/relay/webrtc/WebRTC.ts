@@ -15,11 +15,12 @@ export default class WebRTC extends Relay {
   }
 
   notificationHandler(notification: any) {
-    const { event_type, params } = notification
+    const { event_type, node_id, params } = notification
     // console.log('WebRTC notification', event_type, params)
     switch (event_type) {
       case 'webrtc.message':
         const handler = new VertoHandler(this.session)
+        handler.nodeId = node_id
         handler.handleMessage(params)
         break
     }

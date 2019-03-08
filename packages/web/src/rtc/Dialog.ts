@@ -266,6 +266,7 @@ export default class Dialog {
 
   private async _subscribeConferenceChat(channel: string) {
     const tmp = {
+      nodeId: this.nodeId,
       channels: [channel],
       handler: (params: any) => {
         const { direction, from: participantNumber, fromDisplay: participantName, message: messageText, type: messageType } = params.data
@@ -282,7 +283,7 @@ export default class Dialog {
         sendChatMessage: {
           configurable: true,
           value: (message: string, type: string) => {
-            this.session.vertoBroadcast({ channel, data: { action: 'send', message, type } })
+            this.session.vertoBroadcast({ nodeId: this.nodeId, channel, data: { action: 'send', message, type } })
           }
         }
       })
@@ -291,6 +292,7 @@ export default class Dialog {
 
   private async _subscribeConferenceInfo(channel: string) {
     const tmp = {
+      nodeId: this.nodeId,
       channels: [channel],
       handler: (params: any) => {
         const { eventData: data } = params
@@ -317,7 +319,7 @@ export default class Dialog {
     const _modCommand = (command: string, memberID: any = null, value: any = null): void => {
       const application = 'conf-control'
       const id = parseInt(memberID) || null
-      this.session.vertoBroadcast({ channel, data: { application, command, id, value } })
+      this.session.vertoBroadcast({ nodeId: this.nodeId, channel, data: { application, command, id, value } })
     }
 
     const _videoRequired = (): void => {
@@ -328,6 +330,7 @@ export default class Dialog {
     }
 
     const tmp = {
+      nodeId: this.nodeId,
       channels: [channel],
       handler: (params: any) => {
         const { data } = params
@@ -585,8 +588,8 @@ export default class Dialog {
   }
 
   private _execute(msg: BaseMessage) {
-    if (this._targetNodeId !== null) {
-      msg.targetNodeId = this._targetNodeId
+    if (this.nodeId) {
+      msg.targetNodeId = this.nodeId
     }
     return this.session.execute(msg)
   }

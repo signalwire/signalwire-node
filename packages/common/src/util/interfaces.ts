@@ -131,12 +131,14 @@ export interface SubscribeParams {
   channels?: string[]
   protocol?: string
   handler?: Function
+  nodeId?: string
 }
 
 export interface BroadcastParams {
   channel?: string
   protocol?: string
   data?: object
+  nodeId?: string
 }
 
 export interface ICacheDevices {

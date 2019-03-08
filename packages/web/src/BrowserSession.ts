@@ -166,20 +166,26 @@ export default abstract class BrowserSession extends BaseSession {
 
   abstract get webRtcProtocol(): string
 
-  vertoBroadcast({ channel: eventChannel = '', data }: BroadcastParams) {
+  vertoBroadcast({ nodeId, channel: eventChannel = '', data }: BroadcastParams) {
     if (!eventChannel) {
       throw new Error('Invalid channel for broadcast: ' + eventChannel)
     }
     const msg = new Broadcast({ sessid: this.sessionid, eventChannel, data })
+    if (nodeId) {
+      msg.targetNodeId = nodeId
+    }
     this.execute(msg).catch(error => error)
   }
 
-  async vertoSubscribe({ channels: eventChannel = [], handler }: SubscribeParams) {
+  async vertoSubscribe({ nodeId, channels: eventChannel = [], handler }: SubscribeParams) {
     eventChannel = eventChannel.filter((channel: string) => channel && !this._existsSubscription(this.webRtcProtocol, channel))
     if (!eventChannel.length) {
       return
     }
     const msg = new Subscribe({ sessid: this.sessionid, eventChannel })
+    if (nodeId) {
+      msg.targetNodeId = nodeId
+    }
     const response = await this.execute(msg)
     const { unauthorized = [], subscribed = [] } = destructSubscribeResponse(response)
     if (unauthorized.length) {
@@ -189,12 +195,15 @@ export default abstract class BrowserSession extends BaseSession {
     return response
   }
 
-  async vertoUnsubscribe({ channels: eventChannel = [] }: SubscribeParams) {
+  async vertoUnsubscribe({ nodeId, channels: eventChannel = [] }: SubscribeParams) {
     eventChannel = eventChannel.filter((channel: string) => channel && this._existsSubscription(this.webRtcProtocol, channel))
     if (!eventChannel.length) {
       return
     }
     const msg = new Unsubscribe({ sessid: this.sessionid, eventChannel })
+    if (nodeId) {
+      msg.targetNodeId = nodeId
+    }
     const response = await this.execute(msg)
     const { unsubscribed = [], notSubscribed = [] } = destructSubscribeResponse(response)
     unsubscribed.forEach((channel: string) => this._removeSubscription(this.webRtcProtocol, channel))

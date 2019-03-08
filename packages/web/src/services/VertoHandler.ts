@@ -131,7 +131,8 @@ class VertoHandler {
                 dialogId = me[0]
               }
             } else {
-              dialogId = dialogIds.find((id: string) => packet.hashKey === id)
+              dialogId = dialogIds.find((id: string) => session.dialogs[id].channels.includes(laChannel))
+              // dialogId = dialogIds.find((id: string) => packet.hashKey === id)
             }
             if (dialogId && session.dialogs.hasOwnProperty(dialogId)) {
               const dialog = session.dialogs[dialogId]

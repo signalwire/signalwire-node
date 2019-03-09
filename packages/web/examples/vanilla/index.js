@@ -140,24 +140,44 @@ function handleDialogChange(dialog) {
   }
 }
 
+function _createLiParticipant(part) {
+  var li = document.createElement('li')
+  li.id = 'p-' + part.participantId
+  li.appendChild(document.createTextNode(part.participantName + ' ' + part.participantNumber))
+  if (cur_call.role === 'moderator') {
+    var kickBtn = document.createElement('button')
+    kickBtn.innerHTML = 'Kick'
+    kickBtn.onclick = function () {
+      cur_call.kick(part.participantId)
+    }
+    li.appendChild(kickBtn)
+  }
+  return li
+}
+
 function handleConferenceUpdate(notification) {
   switch (notification.action) {
+    case 'join':
+    case 'leave':
+    case 'clear':
+      participants.innerHTML = ''
+      break
     case 'bootstrap':
+      participants.innerHTML = ''
       notification.participants.forEach(function(part) {
-        var li = document.createElement('li')
-        li.id = part.participantId
-        li.innerHTML = 'p-' + part.participantName
-        participants.appendChild(li)
+        participants.appendChild(_createLiParticipant(part))
       })
       break
     case 'add':
+      participants.appendChild(_createLiParticipant(notification))
       break
     case 'modify':
       break
-    case 'del':
-      break
-    case 'clear':
-      participants.innerHTML = ''
+    case 'delete':
+      var li = document.getElementById('p-' + notification.participantId)
+      if (li) {
+        li.remove()
+      }
       break
   }
 }

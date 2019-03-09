@@ -141,7 +141,7 @@ client.connect()
 const asyncFn = async () => {
   const call = await client.calling.makeCall({ type: 'phone', from: '+18888888888', to: '+19999999999' })
     .catch(error => {
-      // An error occurend creating the call!
+      // An error occured creating the call!
     })
   if (call) {
     call.on('answered', call => {
@@ -149,7 +149,7 @@ const asyncFn = async () => {
     })
     call.begin()
       .catch(error => {
-        // An error occurend starting the call!
+        // An error occured starting the call!
       })
   }
 }

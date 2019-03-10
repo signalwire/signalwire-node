@@ -81,8 +81,7 @@ export default class Calling extends Relay {
       params: { context }
     })
 
-    const result = await this.session.execute(msg).catch(error => error)
-    logger.debug('Register onInbound call:', result)
+    await this.session.execute(msg)
     register(this.protocol, handler, _ctxUniqueId(context))
   }
 

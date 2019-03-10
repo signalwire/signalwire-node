@@ -15,7 +15,7 @@ export const Setup = async (session: BaseSession, service: string, handler?: Fun
   const { subscribe_channels = [], failed_channels = [] } = await session.subscribe({ protocol, channels: [SETUP_CHANNEL], handler })
     .catch(error => error)
   if (failed_channels.length || subscribe_channels.indexOf(SETUP_CHANNEL) < 0) {
-    throw new Error(`Setup '${service}' error: invalid subscription to channel.`)
+    throw new Error(`Setup '${service}' error: invalid subscription.`)
   }
 
   return protocol

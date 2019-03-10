@@ -91,11 +91,10 @@ export default abstract class BaseSession {
    */
   async subscribe({ protocol, channels, handler }: SubscribeParams): Promise<any> {
     const bs = new Subscription({ command: ADD, protocol, channels })
-    const result = await this.execute(bs) // FIXME: handle error
+    const result = await this.execute(bs)
     const { failed_channels = [], subscribe_channels = [] } = result
     if (failed_channels.length) {
       failed_channels.forEach((c: string) => this._removeSubscription(c))
-      throw new Error(`Failed to subscribe to channels ${failed_channels.join(', ')}`)
     }
     subscribe_channels.forEach((c: string) => this._addSubscription(protocol, handler, c))
     return result

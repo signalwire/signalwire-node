@@ -10,8 +10,11 @@ import { DEFAULT_CALL_TIMEOUT } from '../../util/constants/relay'
 const _ctxUniqueId = (context: string): string => `ctx:${context}`
 
 export default class Calling extends Relay {
-  service = 'calling'
   private _calls: Call[] = []
+
+  get service() {
+    return 'calling'
+  }
 
   notificationHandler(notification: any) {
     const { event_type, params } = notification
@@ -38,7 +41,7 @@ export default class Calling extends Relay {
       }
       case 'calling.call.receive': {
         const call = new Call(this, params)
-        trigger(this._protocol, call, _ctxUniqueId(call.context))
+        trigger(this.protocol, call, _ctxUniqueId(call.context))
         break
       }
       case 'calling.call.connect': {
@@ -58,21 +61,20 @@ export default class Calling extends Relay {
   }
 
   async makeCall(params: IMakeCallParams) {
+    await this.Ready
     const { type, from: from_number, to: to_number, timeout = DEFAULT_CALL_TIMEOUT } = params
     if (!type || !from_number || !to_number || !timeout) {
       throw new Error(`Invalid parameters for 'makeCall'.`)
     }
-    await this.setup()
     const device: ICallDevice = { type, params: { from_number, to_number, timeout } }
     return new Call(this, { device })
   }
 
   async onInbound(context: string, handler: Function) {
+    await this.Ready
     if (!context || !isFunction(handler)) {
       throw new Error(`Invalid parameters for 'onInbound'.`)
     }
-    await this.setup()
-
     const msg = new Execute({
       protocol: this.protocol,
       method: 'call.receive',
@@ -81,7 +83,7 @@ export default class Calling extends Relay {
 
     const result = await this.session.execute(msg).catch(error => error)
     logger.debug('Register onInbound call:', result)
-    register(this._protocol, handler, _ctxUniqueId(context))
+    register(this.protocol, handler, _ctxUniqueId(context))
   }
 
   addCall(call: Call): void {

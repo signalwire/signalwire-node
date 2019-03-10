@@ -17,7 +17,7 @@ export default class Call implements ICall {
   private _prevConnectState: number = 0
   private _connectState: number = 0
   private _cbQueues: { [state: string]: Function } = {}
-  private _mediaControlId: string = ''
+  // private _mediaControlId: string = ''
 
   constructor(protected relayInstance: Calling, protected options: ICallOptions) {
     this._attachListeners = this._attachListeners.bind(this)
@@ -96,6 +96,39 @@ export default class Call implements ICall {
     }
   }
 
+  async connect(...peers: IMakeCallParams[]) {
+    this._callIdRequired()
+    const devices = reduceConnectParams(peers, this.device)
+    if (!devices.length) {
+      throw new Error('No peers to connect!')
+    }
+    const { protocol, session } = this.relayInstance
+    const msg = new Execute({
+      protocol,
+      method: 'call.connect',
+      params: {
+        node_id: this.nodeId,
+        call_id: this.id,
+        devices
+      }
+    })
+
+    CALL_CONNECT_STATES.forEach(state => {
+      deRegister(this.id, null, state)
+      registerOnce(this.id, this._onConnectStateChange.bind(this, state), state)
+    })
+
+    const response = await session.execute(msg)
+      .catch(error => {
+        throw error.result
+      })
+    if (response) {
+      trigger(this.id, this, CallConnectState[CallConnectState.connecting])
+      return response.result
+    }
+  }
+
+  /*
   async join(callsToJoin: Call | Call[]) { // TODO: wip
     this._callIdRequired()
     let calls = []
@@ -150,38 +183,6 @@ export default class Call implements ICall {
 
     const result = await session.execute(msg).catch(error => error)
     logger.debug('Join calls:', result)
-  }
-
-  async connect(...peers: IMakeCallParams[]) {
-    this._callIdRequired()
-    const devices = reduceConnectParams(peers, this.device)
-    if (!devices.length) {
-      throw new Error('No peers to connect!')
-    }
-    const { protocol, session } = this.relayInstance
-    const msg = new Execute({
-      protocol,
-      method: 'call.connect',
-      params: {
-        node_id: this.nodeId,
-        call_id: this.id,
-        devices
-      }
-    })
-
-    CALL_CONNECT_STATES.forEach(state => {
-      deRegister(this.id, null, state)
-      registerOnce(this.id, this._onConnectStateChange.bind(this, state), state)
-    })
-
-    const response = await session.execute(msg)
-      .catch(error => {
-        throw error.result
-      })
-    if (response) {
-      trigger(this.id, this, CallConnectState[CallConnectState.connecting])
-      return response.result
-    }
   }
 
   playAudio(location: string) {
@@ -256,6 +257,7 @@ export default class Call implements ICall {
       return response.result
     }
   }
+  */
 
   get prevState() {
     return CallState[this._prevState]

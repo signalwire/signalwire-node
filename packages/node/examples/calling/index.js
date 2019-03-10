@@ -164,25 +164,20 @@ function _init() {
         })
 
     } else if (answers.context) {
-      await client.calling.onInbound(answers.context, async call => {
-        console.warn(`Inbound call on "${call.context}"`, `from: ${call.from} - to: ${call.to}`)
-        await sleep(4)
-        await call.answer().catch(console.error)
-        // await sleep(5)
-        // await call.hangup().catch(console.error)
-        // const response = await call.connect({ type: 'phone', to: '+12029195378' })
-        //   .catch(error => {
-        //     console.error('\tCall connect failed!', error)
-        //     call.hangup()
-        //     return null
-        //   })
-        // if (response) {
-        //   console.log(`\tCall connected?`, response.id, response.peer.id)
-        // }
-      })
-
-      console.log(`Listener for ${answers.context} started..\n`)
-      return _init()
+      try {
+        await client.calling.onInbound(answers.context, async call => {
+          console.warn(`Inbound call on "${call.context}"`, `from: ${call.from} - to: ${call.to}`)
+          await sleep(4)
+          await call.answer().catch(console.error)
+          // await sleep(5)
+          // await call.hangup().catch(console.error)
+        })
+        console.log(`Listener for ${answers.context} started..\n`)
+      } catch (error) {
+        console.error('onInbound error:', error)
+      } finally {
+        _init()
+      }
     }
   })
 }

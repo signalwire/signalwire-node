@@ -128,6 +128,7 @@ export default abstract class BaseSession {
    */
   on(eventName: string, callback: Function) {
     register(eventName, callback, this.uuid)
+    return this
   }
 
   /**
@@ -136,6 +137,7 @@ export default abstract class BaseSession {
    */
   off(eventName: string, callback?: Function) {
     deRegister(eventName, callback, this.uuid)
+    return this
   }
 
   /**

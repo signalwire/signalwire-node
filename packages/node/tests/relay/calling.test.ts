@@ -2,16 +2,16 @@ import { SwEvent } from '../../../common/src/util/constants'
 import { monitorCallbackQueue, trigger } from '../../../common/src/services/Handler'
 import Call from '../../../common/src/relay/calling/Call'
 import Calling from '../../../common/src/relay/calling/Calling'
-import SignalWire from '../../src/SignalWire'
+import RelayClient from '../../src/relay'
 
 const Connection = require('../../../common/src/services/Connection')
 
 describe('Calling', () => {
-  let session: SignalWire = null
+  let session: RelayClient = null
 
   const _common = () => {
     beforeAll(async done => {
-      session = new SignalWire({ host: 'example.signalwire.com', project: 'project', token: 'token' })
+      session = new RelayClient({ host: 'example.signalwire.com', project: 'project', token: 'token' })
       await session.connect()
       done()
     })

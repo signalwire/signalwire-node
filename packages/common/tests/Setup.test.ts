@@ -1,6 +1,6 @@
 import { monitorCallbackQueue } from '../../common/src/services/Handler'
-import SignalWireNode from '../../node/src/SignalWire'
-import SignalWireWeb from '../../web/src/SignalWire'
+import RelayClientNode from '../../node/src/relay'
+import RelayClientWeb from '../../web/src/SignalWire'
 import { Setup } from '../src/services/Setup'
 const Connection = require('../../common/src/services/Connection')
 jest.mock('../../common/src/services/Connection')
@@ -33,18 +33,18 @@ describe('Setup', () => {
     session = null
   })
 
-  describe('SignalWireWeb', () => {
+  describe('RelayClientWeb', () => {
     beforeAll(done => {
-      session = new SignalWireWeb(swOptions)
+      session = new RelayClientWeb(swOptions)
       session.connect().then(done)
     })
 
     it('should setup a new protocol', _test)
   })
 
-  describe('SignalWireNode', () => {
+  describe('RelayClientNode', () => {
     beforeAll(done => {
-      session = new SignalWireNode(swOptions)
+      session = new RelayClientNode(swOptions)
       session.connect().then(done)
     })
 

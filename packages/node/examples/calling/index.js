@@ -17,9 +17,7 @@ const _gracefulExit = () => {
 
 client.on('signalwire.error', error => {
   console.error('SW Client error,', error)
-})
-
-client.on('signalwire.ready', session => {
+}).on('signalwire.ready', session => {
   console.log('SW Client ready! \n')
 
   // process.on('SIGINT', _gracefulExit)

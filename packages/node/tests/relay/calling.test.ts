@@ -23,7 +23,6 @@ describe('Calling', () => {
 
     it('each client should have its own calling instance', () => {
       expect(session.calling).toBeInstanceOf(Calling)
-      expect(session.calling).not.toBe(new Calling(session))
     })
 
     it('should setup its own protocol', () => {

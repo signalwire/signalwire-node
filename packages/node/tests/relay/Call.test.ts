@@ -31,7 +31,7 @@ describe('Call', () => {
   describe('creating outbound calls', () => {
     let call: Call = null
     beforeEach(() => {
-      // mockSetupResponses()
+      mockSetupResponses()
       session.calling.addCall = jest.fn()
       const device: ICallDevice = { type: 'phone', params: { from_number: '2345', to_number: '6789', timeout: 30 } }
       call = new Call(session.calling, { device })
@@ -59,26 +59,26 @@ describe('Call', () => {
       await expect(call.answer()).rejects.toThrowError('Call has not started')
     })
 
-    it('should throw with .join()', async () => {
-      await expect(call.join(call)).rejects.toThrowError('Call has not started')
-    })
+    // it('should throw with .join()', async () => {
+    //   await expect(call.join(call)).rejects.toThrowError('Call has not started')
+    // })
 
-    it('should throw with .leave()', async () => {
-      await expect(call.leave(call)).rejects.toThrowError('Call has not started')
-    })
+    // it('should throw with .leave()', async () => {
+    //   await expect(call.leave(call)).rejects.toThrowError('Call has not started')
+    // })
 
     it('should throw with .connect()', async () => {
       await expect(call.connect({ type: 'phone', to: '234599' })).rejects.toThrowError('Call has not started')
     })
 
-    it('should throw with .playMedia()', async () => {
-      const silence = { type: 'silence', params: { duration: 20 } }
-      await expect(call.playMedia(silence)).rejects.toThrowError('Call has not started')
-    })
+    // it('should throw with .playMedia()', async () => {
+    //   const silence = { type: 'silence', params: { duration: 20 } }
+    //   await expect(call.playMedia(silence)).rejects.toThrowError('Call has not started')
+    // })
 
-    it('should throw with .stopMedia()', async () => {
-      await expect(call.stopMedia()).rejects.toThrowError('Call has not started')
-    })
+    // it('should throw with .stopMedia()', async () => {
+    //   await expect(call.stopMedia()).rejects.toThrowError('Call has not started')
+    // })
 
     describe('.on()', () => {
       it('should be chainable', () => {

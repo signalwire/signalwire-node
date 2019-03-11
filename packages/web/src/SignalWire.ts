@@ -33,7 +33,6 @@ export default class SignalWire extends BrowserSession {
     if (this._webrtcInstance === null) {
       this._webrtcInstance = new WebRTC(this)
     }
-    await this._webrtcInstance.setup()
   }
 
   get webRtcProtocol() {

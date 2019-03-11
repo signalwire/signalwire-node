@@ -17,6 +17,9 @@ abstract class Relay {
     this.Ready = new Promise(async resolve => {
       try {
         this.protocol = await Setup(this.session, this.service, this.notificationHandler.bind(this))
+        if (this._configure) {
+          await this.configure()
+        }
         resolve(this.protocol)
       } catch (error) {
         console.error(error)
@@ -26,25 +29,12 @@ abstract class Relay {
     registerOnce(SwEvent.Disconnect, this._disconnect.bind(this), this.session.uuid)
   }
 
-  async setup() {
-    if (this._protocol) {
-      return
-    }
-    this._protocol = await Setup(this.session, this.service, this.notificationHandler.bind(this))
-    if (this._configure) {
-      await this.configure()
-    }
-  }
-
   protected async configure() {
     // TODO: add 'resource' - 'domain' to ISignalWireOptions interface
     // @ts-ignore
     const { resource = 'swire', domain = 'dev.swire.io' } = this.session.options
-    const msg = new Execute({ protocol: this._protocol, method: 'configure', params: { resource, domain } })
+    const msg = new Execute({ protocol: this.protocol, method: 'configure', params: { resource, domain } })
     await this.session.execute(msg)
-      .catch(error => {
-        throw error.result
-      })
   }
 
   protected _disconnect() {

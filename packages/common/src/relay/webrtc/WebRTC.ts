@@ -1,4 +1,4 @@
-import logger from '../../util/logger'
+// import logger from '../../util/logger'
 import Relay from '../Relay'
 import { DialogOptions } from '../../util/interfaces'
 import Dialog from '../../../../web/src/rtc/Dialog'
@@ -6,9 +6,11 @@ import BrowserSession from '../../../../web/src/BrowserSession'
 import VertoHandler from '../../../../web/src/services/VertoHandler'
 
 export default class WebRTC extends Relay {
-  service = 'webrtc'
-
   protected _configure: boolean = true
+
+  get service() {
+    return 'webrtc'
+  }
 
   constructor(public session: BrowserSession) {
     super(session)
@@ -27,8 +29,7 @@ export default class WebRTC extends Relay {
   }
 
   async makeCall(params: DialogOptions) {
-    logger.info('webrtc makeCall', params)
-    await this.setup()
+    await this.Ready
 
     const { destinationNumber = null } = params
     if (!destinationNumber) {

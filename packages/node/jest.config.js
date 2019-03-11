@@ -5,7 +5,12 @@ module.exports = {
   testMatch: [
     '<rootDir>/(common|node)/tests/**/*.test.(ts|js)'
   ],
-  preset: 'ts-jest',
+  transform: {
+    '^.+\\.tsx?$': './node/node_modules/ts-jest/dist/'
+  },
+  // moduleDirectories: [
+  //   "<rootDir>/node/node_modules"
+  // ],
   testEnvironment: 'node',
   setupFiles: [
     '<rootDir>/common/tests/setup/browsers.ts',

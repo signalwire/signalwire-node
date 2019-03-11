@@ -34,6 +34,10 @@ export default abstract class BaseSession {
     this._onSocketMessage = this._onSocketMessage.bind(this)
   }
 
+  get __logger() {
+    return logger
+  }
+
   get connected() {
     return this.connection && this.connection.connected
   }

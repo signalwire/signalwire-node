@@ -1,4 +1,4 @@
-import SignalWire from '../../src/SignalWire'
+import RelayClient from '../../src/relay'
 import { ICallDevice } from '../../../common/src/util/interfaces'
 import Call from '../../../common/src/relay/calling/Call'
 import { CallState } from '../../../common/src/util/constants/relay'
@@ -13,10 +13,10 @@ describe('Call', () => {
       .mockImplementationOnce(() => JSON.parse('{"id":"24f9b545-8bed-49e1-8214-5dbadb545f7d","jsonrpc":"2.0","result":{"command":"add","failed_channels":[],"protocol":"signalwire_service_random_uuid","subscribe_channels":["notifications"]}}'))
   }
 
-  let session: SignalWire = null
+  let session: RelayClient = null
 
   beforeAll(async done => {
-    session = new SignalWire({ host: 'example.signalwire.com', project: 'project', token: 'token' })
+    session = new RelayClient({ host: 'example.signalwire.com', project: 'project', token: 'token' })
     await session.connect()
     done()
   })

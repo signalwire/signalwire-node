@@ -1,15 +1,15 @@
 import logger from '../../common/src/util/logger'
 import BrowserSession from './BrowserSession'
 import { SubscribeParams, BroadcastParams, DialogOptions } from '../../common/src/util/interfaces'
-import { Login, Broadcast, Subscribe, Unsubscribe } from '../../common/src/messages/Verto'
+import { Login } from '../../common/src/messages/Verto'
 import Dialog from './rtc/Dialog'
 import { SwEvent } from '../../common/src/util/constants'
-import { State } from '../../common/src/util/constants/dialog'
 import { trigger } from '../../common/src/services/Handler'
 import * as Storage from '../../common/src/util/storage/'
 import VertoHandler from './services/VertoHandler'
 
 const SESSID = 'vertoSessId'
+export const VERTO_PROTOCOL = 'verto-protocol'
 export default class Verto extends BrowserSession {
   validateOptions() {
     const { host, login, passwd, password } = this.options
@@ -26,57 +26,16 @@ export default class Verto extends BrowserSession {
     return dialog
   }
 
-  logout() {
-    logger.warn('Verto logout')
-    this.purge()
-    this.disconnect()
+  broadcast(params: BroadcastParams) {
+    return this.vertoBroadcast(params)
   }
 
-  purge() {
-    logger.warn('Verto purge')
-    Object.keys(this.dialogs).forEach(k => {
-      this.dialogs[k].setState(State.Purge)
-    })
-    this.dialogs = {}
-    this.unsubscribe({ channels: Object.keys(this.subscriptions) })
-    this.subscriptions = {}
+  subscribe(params: SubscribeParams) {
+    return this.vertoSubscribe(params)
   }
 
-  broadcast({ channel: eventChannel = '', data }: BroadcastParams) {
-    if (!eventChannel) {
-      throw new Error('Invalid channel for broadcast: ' + eventChannel)
-    }
-    const msg = new Broadcast({ sessid: this.sessionid, eventChannel, data })
-    this.execute(msg).catch(error => error)
-  }
-
-  async subscribe({ channels: eventChannel = [], handler }: SubscribeParams) {
-    eventChannel = eventChannel.filter((channel: string) => channel && !this.subscriptions.hasOwnProperty(channel))
-    if (!eventChannel.length) {
-      return
-    }
-    const msg = new Subscribe({ sessid: this.sessionid, eventChannel })
-    const response = await this.execute(msg).catch(error => error)
-    const { unauthorizedChannels = [], subscribedChannels = [] } = response
-    if (unauthorizedChannels.length) {
-      logger.debug(`Unauthorized Channels: ${unauthorizedChannels.join(', ')}`)
-      unauthorizedChannels.forEach((c: string) => this._removeSubscription(c))
-    }
-    subscribedChannels.forEach((c: string) => this._addSubscription(c, handler))
-    return response
-  }
-
-  async unsubscribe({ channels: eventChannel = [] }: SubscribeParams) {
-    eventChannel = eventChannel.filter((channel: string) => channel && this.subscriptions.hasOwnProperty(channel))
-    if (!eventChannel.length) {
-      return
-    }
-    const msg = new Unsubscribe({ sessid: this.sessionid, eventChannel })
-    const response = await this.execute(msg).catch(error => error)
-    const { unsubscribedChannels = [], notSubscribedChannels = [] } = response
-    unsubscribedChannels.forEach((c: string) => this._removeSubscription(c))
-    notSubscribedChannels.forEach((c: string) => this._removeSubscription(c))
-    return response
+  unsubscribe(params: SubscribeParams) {
+    return this.vertoUnsubscribe(params)
   }
 
   protected async _onSocketOpen() {
@@ -106,5 +65,9 @@ export default class Verto extends BrowserSession {
   protected _onSocketMessage(msg: any) {
     const handler = new VertoHandler(this)
     handler.handleMessage(msg)
+  }
+
+  get webRtcProtocol() {
+    return VERTO_PROTOCOL
   }
 }

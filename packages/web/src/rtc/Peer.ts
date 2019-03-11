@@ -1,5 +1,5 @@
 import logger from '../../../common/src/util/logger'
-import { getUserMedia, getMediaConstraints, streamIsValid } from './helpers'
+import { getUserMedia, getMediaConstraints, streamIsValid, sdpStereoHack } from './helpers'
 import { PeerType, SwEvent } from '../../../common/src/util/constants'
 import { attachMediaStream } from '../../../common/src/util/webrtc'
 import { DialogOptions } from '../../../common/src/util/interfaces'
@@ -87,13 +87,13 @@ export default class Peer {
     }
   }
 
-  private async _createOffer() {
+  private _createOffer() {
     if (!this._isOffer()) {
       return
     }
     // FIXME: Use https://developer.mozilla.org/en-US/docs/Web/API/RTCRtpTransceiver when available (M71)
     this.instance.createOffer(this._constraints)
-      .then(offer => this.instance.setLocalDescription(offer))
+      .then(this._setLocalDescription.bind(this))
       .catch(error => logger.error('Peer _createOffer error:', error))
   }
 
@@ -101,10 +101,19 @@ export default class Peer {
     if (!this._isAnswer()) {
       return
     }
-    this.instance.setRemoteDescription({ sdp: this.options.remoteSdp, type: 'offer' })
+    const { remoteSdp, useStereo = true } = this.options
+    const sdp = useStereo ? sdpStereoHack(remoteSdp) : remoteSdp
+    this.instance.setRemoteDescription({ sdp, type: 'offer' })
       .then(() => this.instance.createAnswer())
-      .then(answer => this.instance.setLocalDescription(answer))
+      .then(this._setLocalDescription.bind(this))
       .catch(error => logger.error('Peer _createAnswer error:', error))
+  }
+
+  private _setLocalDescription(sessionDescription: RTCSessionDescriptionInit) {
+    if (this.options.useStereo) {
+      sessionDescription.sdp = sdpStereoHack(sessionDescription.sdp)
+    }
+    return this.instance.setLocalDescription(sessionDescription)
   }
 
   private async _retrieveLocalStream() {

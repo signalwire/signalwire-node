@@ -1,12 +1,13 @@
-// import logger from '../../common/src/util/logger'
 import BaseSession from '../../common/src/BaseSession'
 import Connection from '../../common/src/services/Connection'
 import Dialog from './rtc/Dialog'
-import { ICacheDevices, IAudioSettings, IVideoSettings } from '../../common/src/util/interfaces'
+import { ICacheDevices, IAudioSettings, IVideoSettings, BroadcastParams, SubscribeParams } from '../../common/src/util/interfaces'
 import { trigger, registerOnce } from '../../common/src/services/Handler'
 import { SwEvent, NOTIFICATION_TYPE } from '../../common/src/util/constants'
-import { getDevices, getResolutions, checkPermissions, removeUnsupportedConstraints, checkDeviceIdConstraints } from './rtc/helpers'
+import { State } from '../../common/src/util/constants/dialog'
+import { getDevices, getResolutions, checkPermissions, removeUnsupportedConstraints, checkDeviceIdConstraints, destructSubscribeResponse } from './rtc/helpers'
 import { findElementByType } from '../../common/src/util/helpers'
+import { Unsubscribe, Subscribe, Broadcast } from '../../common/src/messages/Verto'
 
 export default abstract class BrowserSession extends BaseSession {
   public dialogs: { [dialogId: string]: Dialog } = {}
@@ -34,9 +35,23 @@ export default abstract class BrowserSession extends BaseSession {
     }
   }
 
-  disconnect() {
-    super.disconnect()
+  /**
+   * Alias for .disconnect()
+   * @deprecated
+   */
+  logout() {
+    this.disconnect()
+  }
+
+  /**
+   * Purge all active dialogs
+   * @return void
+   */
+  purge() {
+    Object.keys(this.dialogs).forEach(k => this.dialogs[k].setState(State.Purge))
     this.dialogs = {}
+
+    super.purge()
   }
 
   speedTest(bytes: number) {
@@ -147,5 +162,52 @@ export default abstract class BrowserSession extends BaseSession {
 
   get remoteElement() {
     return this._remoteElement
+  }
+
+  abstract get webRtcProtocol(): string
+
+  vertoBroadcast({ nodeId, channel: eventChannel = '', data }: BroadcastParams) {
+    if (!eventChannel) {
+      throw new Error('Invalid channel for broadcast: ' + eventChannel)
+    }
+    const msg = new Broadcast({ sessid: this.sessionid, eventChannel, data })
+    if (nodeId) {
+      msg.targetNodeId = nodeId
+    }
+    this.execute(msg).catch(error => error)
+  }
+
+  async vertoSubscribe({ nodeId, channels: eventChannel = [], handler }: SubscribeParams) {
+    eventChannel = eventChannel.filter((channel: string) => channel && !this._existsSubscription(this.webRtcProtocol, channel))
+    if (!eventChannel.length) {
+      return
+    }
+    const msg = new Subscribe({ sessid: this.sessionid, eventChannel })
+    if (nodeId) {
+      msg.targetNodeId = nodeId
+    }
+    const response = await this.execute(msg)
+    const { unauthorized = [], subscribed = [] } = destructSubscribeResponse(response)
+    if (unauthorized.length) {
+      unauthorized.forEach((channel: string) => this._removeSubscription(this.webRtcProtocol, channel))
+    }
+    subscribed.forEach((channel: string) => this._addSubscription(this.webRtcProtocol, handler, channel))
+    return response
+  }
+
+  async vertoUnsubscribe({ nodeId, channels: eventChannel = [] }: SubscribeParams) {
+    eventChannel = eventChannel.filter((channel: string) => channel && this._existsSubscription(this.webRtcProtocol, channel))
+    if (!eventChannel.length) {
+      return
+    }
+    const msg = new Unsubscribe({ sessid: this.sessionid, eventChannel })
+    if (nodeId) {
+      msg.targetNodeId = nodeId
+    }
+    const response = await this.execute(msg)
+    const { unsubscribed = [], notSubscribed = [] } = destructSubscribeResponse(response)
+    unsubscribed.forEach((channel: string) => this._removeSubscription(this.webRtcProtocol, channel))
+    notSubscribed.forEach((channel: string) => this._removeSubscription(this.webRtcProtocol, channel))
+    return response
   }
 }

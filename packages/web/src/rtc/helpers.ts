@@ -144,6 +144,88 @@ const checkDeviceIdConstraints = async (id: string, label: string, kind: MediaDe
   return constraints
 }
 
+/**
+ * Add stereo support hacking the SDP
+ * @return the SDP modified
+ */
+const sdpStereoHack = (sdp: string) => {
+  const endOfLine = '\r\n'
+  const sdpLines = sdp.split(endOfLine)
+
+  const opusIndex = sdpLines.findIndex(s => /^a=rtpmap/.test(s) && /opus\/48000/.test(s))
+  if (!opusIndex) {
+    return sdp
+  }
+
+  const getCodecPayloadType = (line: string) => {
+    const pattern = new RegExp('a=rtpmap:(\\d+) \\w+\\/\\d+')
+    const result = line.match(pattern)
+    return result && result.length == 2 ? result[1] : null
+  }
+  const opusPayload = getCodecPayloadType(sdpLines[opusIndex])
+
+  const pattern = new RegExp(`a=fmtp:${opusPayload}`)
+  const fmtpLineIndex = sdpLines.findIndex(s => pattern.test(s))
+
+  if (fmtpLineIndex >= 0) {
+    if (!/stereo=1;/.test(sdpLines[fmtpLineIndex])) { // Append stereo=1 to fmtp line if not already present
+      sdpLines[fmtpLineIndex] += '; stereo=1; sprop-stereo=1'
+    }
+  } else { // create an fmtp line
+    sdpLines[opusIndex] += `${endOfLine}a=fmtp:${opusPayload} stereo=1; sprop-stereo=1`
+  }
+
+  return sdpLines.join(endOfLine)
+}
+
+const _isAudioLine = (line: string) => /^m=audio/.test(line)
+const _isVideoLine = (line: string) => /^m=video/.test(line)
+
+const sdpMediaOrderHack = (answer: string, localOffer: string): string => {
+  const endOfLine = '\r\n'
+  const offerLines = localOffer.split(endOfLine)
+  const offerAudioIndex = offerLines.findIndex(_isAudioLine)
+  const offerVideoIndex = offerLines.findIndex(_isVideoLine)
+  if (offerAudioIndex < offerVideoIndex) {
+    return answer
+  }
+
+  const answerLines = answer.split(endOfLine)
+  const answerAudioIndex = answerLines.findIndex(_isAudioLine)
+  const answerVideoIndex = answerLines.findIndex(_isVideoLine)
+  const audioLines = answerLines.slice(answerAudioIndex, answerVideoIndex)
+  const videoLines = answerLines.slice(answerVideoIndex, (answerLines.length - 1))
+  const beginLines = answerLines.slice(0, answerAudioIndex)
+  return [...beginLines, ...videoLines, ...audioLines, ''].join(endOfLine)
+}
+
+const checkSubscribeResponse = (response: any, channel: string): boolean => {
+  if (!response) {
+    return false
+  }
+  const { subscribed, alreadySubscribed } = destructSubscribeResponse(response)
+  return subscribed.includes(channel) || alreadySubscribed.includes(channel)
+}
+
+type DestructuredResult = { subscribed: string[], alreadySubscribed: string[], unauthorized: string[], unsubscribed: string[], notSubscribed: string[] }
+
+const destructSubscribeResponse = (response: any): DestructuredResult => {
+  const tmp = {
+    subscribed: [],
+    alreadySubscribed: [],
+    unauthorized: [],
+    unsubscribed: [],
+    notSubscribed: []
+  }
+  let wrapper = response
+  const { result = null } = response
+  if (result) {
+    wrapper = result.result || {}
+  }
+  Object.keys(tmp).forEach(k => { tmp[k] = wrapper[`${k}Channels`] || [] })
+  return tmp
+}
+
 export {
   getUserMedia,
   getDevices,
@@ -153,5 +235,9 @@ export {
   assureDeviceId,
   checkPermissions,
   removeUnsupportedConstraints,
-  checkDeviceIdConstraints
+  checkDeviceIdConstraints,
+  sdpStereoHack,
+  sdpMediaOrderHack,
+  checkSubscribeResponse,
+  destructSubscribeResponse
 }

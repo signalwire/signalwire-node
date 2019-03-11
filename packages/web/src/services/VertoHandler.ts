@@ -4,15 +4,23 @@ import SignalWire from '../SignalWire'
 import Verto from '../Verto'
 
 import Dialog from '../rtc/Dialog'
+import { checkSubscribeResponse } from '../rtc/helpers'
 import { Result } from '../../../common/src/messages/Verto'
 import { SwEvent, VertoMethod, NOTIFICATION_TYPE } from '../../../common/src/util/constants'
 import { trigger, deRegister } from '../../../common/src/services/Handler'
 import { State, ConferenceAction } from '../../../common/src/util/constants/dialog'
 
 class VertoHandler {
-  constructor(public session: BrowserSession) {
-    // console.log('isBlade?', this.isBlade)
-    // console.log('isVerto?', this.isVerto)
+  public nodeId: string
+
+  constructor(public session: BrowserSession) {}
+
+  private _ack(id: number, method: string): void {
+    const msg = new Result(id, method)
+    if (this.nodeId) {
+      msg.targetNodeId = this.nodeId
+    }
+    this.session.execute(msg)
   }
 
   handleMessage(msg: any) {
@@ -26,17 +34,14 @@ class VertoHandler {
         session.dialogs[dialogId].hangup()
       } else {
         session.dialogs[dialogId].handleMessage(msg)
-        session.execute(new Result(id, method))
+        this._ack(id, method)
         return
       }
     }
 
     switch (method) {
       case VertoMethod.Punt:
-        if (this.isVerto) {
-          // @ts-ignore
-          session.logout()
-        }
+        session.disconnect()
         break
       case VertoMethod.Invite:
       case VertoMethod.Attach:
@@ -58,21 +63,26 @@ class VertoHandler {
           dialog.handleMessage(msg)
         } else {
           dialog.setState(State.Ringing)
-          session.execute(new Result(id, method))
+          this._ack(id, method)
         }
         break
       case VertoMethod.Event:
+      case 'webrtc.event':
         if (!eventChannel) {
           logger.error('Verto received an unknown event:', params)
           return
         }
+        const protocol = session.webRtcProtocol
         const firstValue = eventChannel.split('.')[0]
-        if (session.sessionid === eventChannel && params.eventType === 'channelPvtData') {
+        // if (session.sessionid === eventChannel && params.eventType === 'channelPvtData') {
+        if (params.eventType === 'channelPvtData') {
           this._handlePvtEvent(params.pvtData)
-        } else if (session.subscriptions.hasOwnProperty(eventChannel)) {
-          trigger(eventChannel, params)
-        } else if (session.subscriptions.hasOwnProperty(firstValue)) {
-          trigger(firstValue, params)
+        } else if (session._existsSubscription(protocol, eventChannel)) {
+          trigger(protocol, params, eventChannel)
+        } else if (eventChannel === session.sessionid) {
+          this._handleSessionEvent(params.eventData)
+        } else if (session._existsSubscription(protocol, firstValue)) {
+          trigger(protocol, params, firstValue)
         } else if (session.dialogs.hasOwnProperty(eventChannel)) {
           session.dialogs[eventChannel].handleMessage(msg)
         } else {
@@ -100,16 +110,17 @@ class VertoHandler {
     return this.session instanceof Verto
   }
 
-  private _handlePvtEvent(pvtData: any) {
+  private async _handlePvtEvent(pvtData: any) {
     const { session } = this
+    const protocol = session.webRtcProtocol
     const { action, laChannel, laName, chatChannel, infoChannel, modChannel, conferenceMemberID, role } = pvtData
     switch (action) {
       case 'conference-liveArray-join': {
         const _liveArrayBootstrap = () => {
-          session.broadcast({ channel: laChannel, data: { liveArray: { command: 'bootstrap', context: laChannel, name: laName } } })
+          session.vertoBroadcast({ nodeId: this.nodeId, channel: laChannel, data: { liveArray: { command: 'bootstrap', context: laChannel, name: laName } } })
         }
         const tmp = {
-          // protocol, // TODO: add Blade protocol here
+          nodeId: this.nodeId,
           channels: [laChannel],
           handler: ({ data: packet }: any) => {
             let dialogId: string = null
@@ -121,6 +132,7 @@ class VertoHandler {
               }
             } else {
               dialogId = dialogIds.find((id: string) => session.dialogs[id].channels.includes(laChannel))
+              // dialogId = dialogIds.find((id: string) => packet.hashKey === id)
             }
             if (dialogId && session.dialogs.hasOwnProperty(dialogId)) {
               const dialog = session.dialogs[dialogId]
@@ -134,19 +146,21 @@ class VertoHandler {
             }
           }
         }
-        session.subscribe(tmp).then(response => {
-          if (response.subscribedChannels.indexOf(laChannel) >= 0) {
-            _liveArrayBootstrap()
-          }
-        })
+        const result = await session.vertoSubscribe(tmp)
+          .catch(error => {
+            console.error('liveArray subscription error:', error)
+          })
+        if (checkSubscribeResponse(result, laChannel)) {
+          _liveArrayBootstrap()
+        }
         break
       }
       case 'conference-liveArray-part': {
         // trigger Notification at a Dialog or Session level.
         // deregister Notification callback at the Dialog level.
         // Cleanup subscriptions for all channels
-        if (laChannel && session.subscriptions.hasOwnProperty(laChannel)) {
-          const { dialogId = null } = session.subscriptions[laChannel]
+        if (laChannel && session._existsSubscription(protocol, laChannel)) {
+          const { dialogId = null } = session.subscriptions[protocol][laChannel]
           if (dialogId !== null) {
             const notification = { type: NOTIFICATION_TYPE.conferenceUpdate, action: ConferenceAction.Leave, conferenceName: laName, participantId: Number(conferenceMemberID), role }
             if (!trigger(SwEvent.Notification, notification, dialogId, false)) {
@@ -155,7 +169,22 @@ class VertoHandler {
             deRegister(SwEvent.Notification, null, dialogId)
           }
         }
-        session.unsubscribe({ channels: [laChannel, chatChannel, infoChannel, modChannel] })
+        session.vertoUnsubscribe({ nodeId: this.nodeId, channels: [laChannel, chatChannel, infoChannel, modChannel] })
+        break
+      }
+    }
+  }
+
+  private _handleSessionEvent(eventData: any) {
+    switch (eventData.contentType) {
+      case 'layer-info': {
+        const notification = { type: NOTIFICATION_TYPE.conferenceUpdate, action: ConferenceAction.LayerInfo, ...eventData }
+        trigger(SwEvent.Notification, notification, this.session.uuid)
+        break
+      }
+      case 'logo-info': {
+        const notification = { type: NOTIFICATION_TYPE.conferenceUpdate, action: ConferenceAction.LogoInfo, logo: eventData.logoURL }
+        trigger(SwEvent.Notification, notification, this.session.uuid)
         break
       }
     }

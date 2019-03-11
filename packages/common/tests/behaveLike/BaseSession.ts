@@ -24,11 +24,6 @@ export default (klass: any) => {
       Connection.mockSendRawText.mockClear()
     })
 
-    // beforeAll(() => {
-    //   console.log('beforeAll')
-    // })
-
-    // describe('', () => {})
     describe('public methods', () => {
       // TODO: implement all these specs
       describe('execute', () => {
@@ -95,9 +90,56 @@ export default (klass: any) => {
     })
 
     describe('protected methods', () => {
-      // TODO: implement all these specs
-      describe('_removeSubscription()', () => { })
-      describe('_addSubscription()', () => { })
+      const _assignSubscriptions = () => {
+        beforeEach(() => {
+          instance.subscriptions = { proto1: { channel1: {}, channel2: {} } }
+        })
+      }
+      describe('_removeSubscription()', () => {
+        _assignSubscriptions.call(this)
+
+        it('should remove a subscription by protocol', () => {
+          instance._removeSubscription('proto1')
+          expect(instance.subscriptions).toEqual({})
+        })
+
+        it('should remove a subscription by protocol and channel', () => {
+          instance._removeSubscription('proto1', 'channel1')
+          expect(instance.subscriptions).toEqual({ proto1: { channel2: {} }})
+        })
+
+        it('should do nothing if no subscriptions exists for that protocol-channel', () => {
+          instance._removeSubscription('proto3')
+          instance._removeSubscription('proto4', 'channel-fake')
+          expect(instance.subscriptions).toEqual({ proto1: { channel1: {}, channel2: {} } })
+        })
+      })
+
+      describe('_addSubscription()', () => {
+        it('should add a subscription by protocol and channel', () => {
+          instance._addSubscription('proto1', null, 'channel1')
+          expect(instance.subscriptions).toEqual({ proto1: { channel1: {} } })
+        })
+
+        it('should do nothing if subscription already exists for that protocol-channel', () => {
+          instance.subscriptions = { proto1: { channel1: { fake: 'data' } } }
+          instance._addSubscription('proto1', null, 'channel1')
+          expect(instance.subscriptions['proto1']['channel1']).toEqual({ fake: 'data' })
+        })
+      })
+
+      describe('_existsSubscription()', () => {
+        _assignSubscriptions.call(this)
+        it('should check just by protocol', () => {
+          expect(instance._existsSubscription('proto1')).toEqual(true)
+          expect(instance._existsSubscription('proto2')).toEqual(false)
+        })
+
+        it('should check by protocol and channel', () => {
+          expect(instance._existsSubscription('proto1', 'channel1')).toEqual(true)
+          expect(instance._existsSubscription('proto1', 'channel3')).toEqual(false)
+        })
+      })
 
       describe('_onSocketOpen()', () => { })
       describe('_onSocketClose()', () => { })

@@ -13,7 +13,7 @@ It allows you to create calls, send messages, and generate LaML responses.
 
 Install the package using [NPM](https://www.npmjs.com/):
 ```bash
-npm install signalwire
+npm install @signalwire/node
 ```
 
 And set the required environment variables!
@@ -30,7 +30,7 @@ With `RestClient` you can create calls, send SMS/MMS, manage Queues, Faxes etc. 
 Read more on our [REST API Documentation](https://docs.signalwire.com/topics/laml-api/?javascript#laml-rest-api).
 ```javascript
 // Here we are using Project and Token from ENV
-const RestClient = require('signalwire').RestClient
+const { RestClient } = require('@signalwire/node')
 const client = new RestClient(process.env.SIGNALWIRE_API_PROJECT, process.env.SIGNALWIRE_API_TOKEN)
 ```
 
@@ -65,7 +65,7 @@ client.messages.create({
 Read more about LaML [here](https://docs.signalwire.com/topics/laml-xml/?javascript#what-is-laml)!
 
 ```javascript
-const RestClient = require('signalwire').RestClient
+const { RestClient } = require('@signalwire/node')
 const response = new RestClient.LaML.VoiceResponse()
 response.dial({ callerId: '+18888888888' }, '+19999999999')
 response.say("Welcome to SignalWire!")
@@ -95,8 +95,8 @@ const twilio = require('twilio')
 const client = new twilio(sid, token)
 
 // With ...
-const signalwire = require('signalwire')
-const client = new signalwire.RestClient(project, token)
+const { RestClient } = require('@signalwire/node')
+const client = new RestClient(project, token)
 
 // Now use client variable like you did before!
 ```
@@ -110,8 +110,8 @@ const twilio = require('twilio')
 const response = new twilio.twiml.VoiceResponse()
 
 // With ..
-const signalwire = require('signalwire')
-const response = new signalwire.RestClient.LaML.VoiceResponse()
+const { RestClient } = require('@signalwire/node')
+const response = new RestClient.LaML.VoiceResponse()
 
 // Now use response like you did before!
 response.say('Hey, Welcome at SignalWire!')
@@ -122,7 +122,7 @@ response.say('Hey, Welcome at SignalWire!')
 With `RelayClient` you can control calls in real time. \
 Read more on our [Relay Documentation](https://docs.signalwire.com/).
 ```javascript
-const { RelayClient } = require('signalwire')
+const { RelayClient } = require('@signalwire/node')
 const client = new RelayClient({
   host: process.env.SIGNALWIRE_API_HOSTNAME,
   project: process.env.SIGNALWIRE_API_PROJECT,
@@ -139,18 +139,14 @@ client.connect()
 #### Make Call
 ```javascript
 const asyncFn = async () => {
-  const call = await client.calling.makeCall({ type: 'phone', from: '+18888888888', to: '+19999999999' })
-    .catch(error => {
-      // An error occured creating the call!
-    })
-  if (call) {
+  try {
+    const call = await client.calling.makeCall({ type: 'phone', from: '+18888888888', to: '+19999999999' })
     call.on('answered', call => {
       // Remote party answered the call
     })
-    call.begin()
-      .catch(error => {
-        // An error occured starting the call!
-      })
+    await call.begin()
+  } catch (error) {
+    // An error occured!
   }
 }
 ```

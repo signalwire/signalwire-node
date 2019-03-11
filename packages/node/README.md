@@ -5,15 +5,15 @@ It allows you to create calls, send messages, and generate LaML responses.
 
 ## Contents
 * [Getting Started](#getting-started)
-* [REST](#setup-rest-client)
-* [LaML](#setup-laml-client)
-* [Relay](#relay)
+* [RestClient](#restclient)
+* [LaML](#laml-client)
+* [RelayClient](#relayclient)
 
 ## Getting Started
 
 Install the package using [NPM](https://www.npmjs.com/):
 ```bash
-npm install signalwire
+npm install @signalwire/node
 ```
 
 And set the required environment variables!
@@ -24,16 +24,16 @@ SIGNALWIRE_API_PROJECT=XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
 SIGNALWIRE_API_TOKEN=PTXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 ```
 
-## Setup REST Client
+## RestClient
 
-Using the REST Client you will be able to create calls, send SMS/MMS, manage Queues, Faxes and so on... Read more on our [REST API Documentation](https://docs.signalwire.com/topics/laml-api/?javascript#laml-rest-api).
+With `RestClient` you can create calls, send SMS/MMS, manage Queues, Faxes etc. \
+Read more on our [REST API Documentation](https://docs.signalwire.com/topics/laml-api/?javascript#laml-rest-api).
 ```javascript
 // Here we are using Project and Token from ENV
-const RestClient = require('signalwire').RestClient
+const { RestClient } = require('@signalwire/node')
 const client = new RestClient(process.env.SIGNALWIRE_API_PROJECT, process.env.SIGNALWIRE_API_TOKEN)
 ```
 
-### Examples
 #### Make Call
 ```javascript
 client.calls.create({
@@ -60,13 +60,12 @@ client.messages.create({
 })
 ```
 
-## Setup LaML Client
+## LaML Client
 `LaML` is the language used by SignalWire to determine how the phone numbers in your account react during calls or text messages.\
 Read more about LaML [here](https://docs.signalwire.com/topics/laml-xml/?javascript#what-is-laml)!
 
-### Example:
 ```javascript
-const RestClient = require('signalwire').RestClient
+const { RestClient } = require('@signalwire/node')
 const response = new RestClient.LaML.VoiceResponse()
 response.dial({ callerId: '+18888888888' }, '+19999999999')
 response.say("Welcome to SignalWire!")
@@ -84,7 +83,7 @@ LaML output:
 ```
 
 
-# Migration
+### Migration
 Do you want to start using SignalWire in your current application? You can easily migrate the code with minimal changes!
 
 Make sure you've set the env variable `SIGNALWIRE_API_HOSTNAME` as described in [Getting Started](#getting-started) and then:
@@ -96,8 +95,8 @@ const twilio = require('twilio')
 const client = new twilio(sid, token)
 
 // With ...
-const signalwire = require('signalwire')
-const client = new signalwire.RestClient(project, token)
+const { RestClient } = require('@signalwire/node')
+const client = new RestClient(project, token)
 
 // Now use client variable like you did before!
 ```
@@ -111,13 +110,64 @@ const twilio = require('twilio')
 const response = new twilio.twiml.VoiceResponse()
 
 // With ..
-const signalwire = require('signalwire')
-const response = new signalwire.RestClient.LaML.VoiceResponse()
+const { RestClient } = require('@signalwire/node')
+const response = new RestClient.LaML.VoiceResponse()
 
 // Now use response like you did before!
 response.say('Hey, Welcome at SignalWire!')
 ```
 
-## RELAY
+## RelayClient [_WIP_]
 
-Coming soon..
+With `RelayClient` you can control calls in real time. \
+Read more on our [Relay Documentation](https://docs.signalwire.com/).
+```javascript
+const { RelayClient } = require('@signalwire/node')
+const client = new RelayClient({
+  host: process.env.SIGNALWIRE_API_HOSTNAME,
+  project: process.env.SIGNALWIRE_API_PROJECT,
+  token: process.env.SIGNALWIRE_API_TOKEN
+})
+
+client.on('signalwire.ready', session => {
+  // Your client is now ready!
+})
+
+client.connect()
+```
+
+#### Make Call
+```javascript
+const asyncFn = async () => {
+  try {
+    const call = await client.calling.makeCall({ type: 'phone', from: '+18888888888', to: '+19999999999' })
+    call.on('answered', call => {
+      // Remote party answered the call
+    })
+    await call.begin()
+  } catch (error) {
+    // An error occured!
+  }
+}
+```
+
+### Build versions
+To build the CommonJS version of the package:
+
+```
+npm run clean-build
+```
+
+### Tests
+
+We provide tests to run with:
+```
+npm run test
+```
+<!---
+A Dockerfile is provided for testing purposes. Run `docker run -it $(docker build -q .)` to execute the test suite.
+-->
+
+## Copyright
+
+Copyright (c) 2018 SignalWire Inc. See [LICENSE](https://github.com/signalwire/signalwire-node/blob/master/LICENSE) for further details.

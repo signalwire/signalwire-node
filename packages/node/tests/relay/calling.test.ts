@@ -41,12 +41,12 @@ describe('Calling', () => {
     Connection.mockSend.mockClear()
   })
 
-  describe('.makeCall()', () => {
+  describe('.newCall()', () => {
     _common.call(this)
 
     let call: Call
     beforeEach(async done => {
-      call = await session.calling.makeCall({ type: 'phone', from: '8992222222', to: '8991111111' })
+      call = await session.calling.newCall({ type: 'phone', from: '8992222222', to: '8991111111' })
       done()
     })
 

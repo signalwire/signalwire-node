@@ -28,7 +28,7 @@ export default class WebRTC extends Relay {
     }
   }
 
-  async makeCall(params: DialogOptions) {
+  async newCall(params: DialogOptions) {
     await this.Ready
 
     const { destinationNumber = null } = params

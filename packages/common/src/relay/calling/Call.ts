@@ -3,7 +3,7 @@ import { Execute } from '../../messages/Blade'
 import { deRegister, registerOnce, deRegisterAll, trigger } from '../../services/Handler'
 import { CallState, CALL_STATES, DisconnectReason, CallConnectState, CALL_CONNECT_STATES, DEFAULT_CALL_TIMEOUT } from '../../util/constants/relay'
 import { ICall, ICallOptions, ICallDevice, IMakeCallParams } from '../../util/interfaces'
-import logger from '../../util/logger'
+// import logger from '../../util/logger'
 import { reduceConnectParams } from '../helpers'
 import Calling from './Calling'
 

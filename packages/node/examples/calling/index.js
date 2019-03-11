@@ -28,10 +28,10 @@ client.on('signalwire.error', error => {
 
 client.connect()
 
-async function makeCall(to) {
-  const leg = await client.calling.makeCall({ type: 'phone', from: FROM_NUMBER, to })
+async function createCall(to) {
+  const leg = await client.calling.newCall({ type: 'phone', from: FROM_NUMBER, to })
     .catch(error => {
-      console.error('MakeCall error:', error)
+      console.error('createCall error:', error)
     })
   if (!leg) {
     return
@@ -127,7 +127,7 @@ function _init() {
     }
 
     if (answers.to_number) {
-      const call = await makeCall(answers.to_number)
+      const call = await createCall(answers.to_number)
 
       // call.on('answered', async call => {
       //   setTimeout(() => {

@@ -22,7 +22,7 @@ export default class SignalWire extends BrowserSession {
   }
 
   async newCall(options: DialogOptions) {
-    const dialog = await this._webrtcInstance.makeCall(options)
+    const dialog = await this._webrtcInstance.newCall(options)
       .catch(error => {
         logger.error('SignalWire newCall error', error)
       })

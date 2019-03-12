@@ -1,0 +1,13 @@
+{
+  "name": "@signalwire/common",
+  "private": true,
+  "version": "0.0.1",
+  "description": "SignalWire shared modules. This package is not published to npm.",
+  "author": "SignalWire Team <open.source@signalwire.com>",
+  "scripts": {},
+  "dependencies": {
+    "loglevel": "^1.6.1",
+    "uuid": "^3.3.2"
+  },
+  "devDependencies": {}
+}

@@ -1,0 +1,61 @@
+{
+  "name": "@signalwire/web",
+  "version": "0.0.1",
+  "description": "Client library for connecting to SignalWire.",
+  "author": "SignalWire Team <open.source@signalwire.com>",
+  "main": "dist/index.min.js",
+  "unpkg": "dist/index.min.js",
+  "module": "dist/esm/web/index.js",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "clean-build": "rm -rf dist/* && npm run build",
+    "build": "npm run build-es5 && npm run build-esm",
+    "build-es5": "webpack -p",
+    "watch-es5": "webpack-dev-server --host 0.0.0.0 --mode development",
+    "build-esm": "tsc",
+    "watch-esm": "tsc -w",
+    "tslint": "tslint -p tsconfig.json",
+    "test": "jest --forceExit --detectOpenHandles",
+    "test:watch": "npm run test -- --watchAll",
+    "validate": "npm i && npm run tslint && npm run test && npm run clean-build"
+  },
+  "keywords": [
+    "signalwire",
+    "relay",
+    "webrtc",
+    "sip",
+    "freeswitch"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/signalwire/signalwire-node"
+  },
+  "bugs": {
+    "url": "https://github.com/signalwire/signalwire-node/issues"
+  },
+  "homepage": "https://github.com/signalwire/signalwire-node",
+  "license": "MIT",
+  "dependencies": {
+    "loglevel": "^1.6.1",
+    "uuid": "^3.3.2"
+  },
+  "devDependencies": {
+    "@types/jest": "^24.0.6",
+    "@types/uuid": "^3.4.4",
+    "babel-loader": "^7.1.5",
+    "babel-plugin-transform-runtime": "^6.23.0",
+    "babel-preset-env": "^1.7.0",
+    "jest": "^24.1.0",
+    "ts-jest": "^24.0.0",
+    "ts-loader": "^5.3.3",
+    "tslint": "^5.12.1",
+    "typescript": "^3.3.3",
+    "webpack": "^4.29.5",
+    "webpack-cli": "^3.2.3",
+    "webpack-dev-server": "^3.1.14",
+    "acorn": "^6.0.0",
+    "babel-core": "^6.26.0"
+  }
+}

@@ -34,6 +34,9 @@ export default abstract class BaseSession {
     this._onSocketClose = this._onSocketClose.bind(this)
     this._onSocketError = this._onSocketError.bind(this)
     this._onSocketMessage = this._onSocketMessage.bind(this)
+    if (this._onSessionConnect) {
+      this._onSessionConnect = this._onSessionConnect.bind(this)
+    }
   }
 
   get __logger() {
@@ -166,7 +169,7 @@ export default abstract class BaseSession {
    */
   abstract async connect(): Promise<void>
 
-  protected async _vertoLogin?(): Promise<void>
+  protected _onSessionConnect?(): void
 
   /**
    * If the connection is already active do nothing otherwise disconnect the current connection.
@@ -203,9 +206,7 @@ export default abstract class BaseSession {
       this.master_nodeid = response.master_nodeid
       this._cache = new Cache()
       this._cache.populateFromConnect(response)
-      if (this._vertoLogin) {
-        await this._vertoLogin()
-      }
+      trigger(SwEvent.Connect, null, this.uuid, false)
       this._emptyExecuteQueues()
       trigger(SwEvent.Ready, this, this.uuid)
     }
@@ -317,6 +318,9 @@ export default abstract class BaseSession {
     this.on(SwEvent.SocketClose, this._onSocketClose)
     this.on(SwEvent.SocketError, this._onSocketError)
     this.on(SwEvent.SocketMessage, this._onSocketMessage)
+    if (this._onSessionConnect) {
+      this.on(SwEvent.Connect, this._onSessionConnect)
+    }
   }
 
   /**
@@ -328,6 +332,9 @@ export default abstract class BaseSession {
     this.off(SwEvent.SocketClose, this._onSocketClose)
     this.off(SwEvent.SocketError, this._onSocketError)
     this.off(SwEvent.SocketMessage, this._onSocketMessage)
+    if (this._onSessionConnect) {
+      this.off(SwEvent.Connect, this._onSessionConnect)
+    }
   }
 
   /**

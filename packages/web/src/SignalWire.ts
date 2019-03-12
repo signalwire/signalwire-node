@@ -27,7 +27,7 @@ export default class SignalWire extends BrowserSession {
     return dialog
   }
 
-  protected async _vertoLogin() {
+  protected _onSessionConnect() {
     this._addRelayInstance('webrtc', WebRTC)
   }
 

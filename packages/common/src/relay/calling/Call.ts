@@ -48,7 +48,7 @@ export default class Call implements ICall {
     return this._execute(msg)
   }
 
-  hangup() {
+  async hangup() {
     this._callIdRequired()
     const msg = new Execute({
       protocol: this.relayInstance.protocol,
@@ -63,7 +63,7 @@ export default class Call implements ICall {
     return this._execute(msg)
   }
 
-  answer() {
+  async answer() {
     this._callIdRequired()
     const msg = new Execute({
       protocol: this.relayInstance.protocol,
@@ -77,7 +77,7 @@ export default class Call implements ICall {
     return this._execute(msg)
   }
 
-  connect(...peers: IMakeCallParams[]) {
+  async connect(...peers: IMakeCallParams[]) {
     this._callIdRequired()
     const devices = reduceConnectParams(peers, this.device)
     if (!devices.length) {
@@ -102,7 +102,7 @@ export default class Call implements ICall {
   }
 
   /*
-  join(callsToJoin: Call | Call[]) { // TODO: wip
+  async join(callsToJoin: Call | Call[]) { // TODO: wip
     this._callIdRequired()
     let calls = []
     if (callsToJoin instanceof Array) {
@@ -128,7 +128,7 @@ export default class Call implements ICall {
     return this._execute(msg)
   }
 
-  leave(callsToLeave: Call | Call[]) { // TODO: wip
+  async leave(callsToLeave: Call | Call[]) { // TODO: wip
     this._callIdRequired()
     let calls = []
     if (callsToLeave instanceof Array) {
@@ -175,7 +175,7 @@ export default class Call implements ICall {
     return this.playMedia(params)
   }
 
-  playMedia(...play: { type: string, params: any }[]) {
+  async playMedia(...play: { type: string, params: any }[]) {
     this._callIdRequired()
     if (!play.length) {
       return
@@ -195,7 +195,7 @@ export default class Call implements ICall {
     return this._execute(msg)
   }
 
-  stopMedia() {
+  async stopMedia() {
     this._callIdRequired()
     if (!this._mediaControlId) {
       return

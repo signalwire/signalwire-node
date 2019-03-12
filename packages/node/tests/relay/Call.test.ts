@@ -34,6 +34,7 @@ describe('Call', () => {
       mockSetupResponses()
       session.calling.addCall = jest.fn()
       const device: ICallDevice = { type: 'phone', params: { from_number: '2345', to_number: '6789', timeout: 30 } }
+      // @ts-ignore
       call = new Call(session.calling, { device })
     })
 

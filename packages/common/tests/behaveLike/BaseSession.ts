@@ -59,6 +59,7 @@ export default (klass: any) => {
           expect(instance._executeQueue).toHaveLength(1)
           /** Reproduce/Mock a reconnection to validate the execute Promise */
           await instance.connect()
+          instance._idle = false
           instance._emptyExecuteQueues()
         })
       })

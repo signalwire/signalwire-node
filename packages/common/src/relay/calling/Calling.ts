@@ -105,7 +105,11 @@ export default class Calling extends Relay {
   }
 
   protected _disconnect() {
-    this._calls.forEach(async call => await call.hangup())
+    this._calls.forEach(async call => {
+      if (call.ready) {
+        await call.hangup().catch(logger.warn)
+      }
+    })
     super._disconnect()
   }
 }

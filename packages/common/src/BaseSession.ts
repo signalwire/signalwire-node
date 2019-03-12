@@ -21,13 +21,6 @@ export default abstract class BaseSession {
   protected connection: Connection = null
   protected _relayInstances: { [service: string]: Relay } = {}
 
-  protected _addRelayInstance(service: string, klass: Constructable<Relay>): Relay {
-    if (!this._relayInstances.hasOwnProperty(service)) {
-      this._relayInstances[service] = new klass(this)
-    }
-    return this._relayInstances[service]
-  }
-
   private _cache: Cache
   private _idle: boolean = false
   private _executeQueue: { resolve?: Function, msg: any}[] = []
@@ -287,6 +280,17 @@ export default abstract class BaseSession {
     if (isFunction(handler)) {
       register(protocol, handler, channel)
     }
+  }
+
+  /**
+   * Creates a new Relay instance if not already present.
+   * @return Relay object
+   */
+  protected _addRelayInstance(service: string, klass: Constructable<Relay>): Relay {
+    if (!this._relayInstances.hasOwnProperty(service)) {
+      this._relayInstances[service] = new klass(this)
+    }
+    return this._relayInstances[service]
   }
 
   /**

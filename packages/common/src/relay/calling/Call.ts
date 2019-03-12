@@ -22,8 +22,10 @@ export default class Call implements ICall {
   constructor(protected relayInstance: Calling, protected options: ICallOptions) {
     this._attachListeners = this._attachListeners.bind(this)
     this._detachListeners = this._detachListeners.bind(this)
-    this.id = options.call_id
-    this.nodeId = options.node_id
+    const { call_id, node_id } = options
+    if (call_id && node_id) {
+      this.setup(call_id, node_id)
+    }
     this.relayInstance.addCall(this)
   }
 

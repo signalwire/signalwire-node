@@ -37,7 +37,7 @@ function connect() {
   client = document.querySelector('input[name="client"]:checked').value;
   login    = username + '@' + domain;
 
-  var klass = client === 'sw' ? SignalWire : Verto
+  var klass = client === 'sw' ? Relay : Verto
 
   client = new klass({
     host: host,

@@ -20,12 +20,13 @@ client.on('signalwire.error', error => {
 }).on('signalwire.ready', session => {
   console.log('SW Client ready! \n')
 
-  // process.on('SIGINT', _gracefulExit)
+  process.on('SIGINT', _gracefulExit)
   process.on('exit', _gracefulExit)
 
   _init()
 })
 
+client.__logger.setLevel(1)
 client.connect()
 
 async function createCall(to) {

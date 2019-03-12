@@ -5,6 +5,7 @@ import { registerOnce, deRegisterAll } from '../services/Handler'
 import { SwEvent } from '../util/constants'
 
 abstract class Relay {
+  [x: string]: any
   public Ready: Promise<string>
   public protocol: string
 

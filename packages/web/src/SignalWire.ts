@@ -7,8 +7,6 @@ import { Execute } from '../../common/src/messages/Blade'
 import BaseRequest from '../../common/src/messages/verto/BaseRequest'
 
 export default class SignalWire extends BrowserSession {
-  private _webrtcInstance: WebRTC = null
-
   execute(message: BaseMessage) {
     let msg: BaseMessage = message
     if (message instanceof BaseRequest) {
@@ -22,7 +20,7 @@ export default class SignalWire extends BrowserSession {
   }
 
   async newCall(options: DialogOptions) {
-    const dialog = await this._webrtcInstance.newCall(options)
+    const dialog = await this._relayInstances['webrtc'].newCall(options)
       .catch(error => {
         logger.error('SignalWire newCall error', error)
       })
@@ -30,12 +28,10 @@ export default class SignalWire extends BrowserSession {
   }
 
   protected async _vertoLogin() {
-    if (this._webrtcInstance === null) {
-      this._webrtcInstance = new WebRTC(this)
-    }
+    this._addRelayInstance('webrtc', WebRTC)
   }
 
   get webRtcProtocol() {
-    return this._webrtcInstance ? this._webrtcInstance.protocol : null
+    return this._relayInstances['webrtc'] ? this._relayInstances['webrtc'].protocol : null
   }
 }

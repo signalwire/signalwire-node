@@ -199,3 +199,7 @@ export interface IMakeCallParams {
   to: string
   timeout?: number
 }
+
+export interface Constructable<T> {
+  new(any: any): T
+}

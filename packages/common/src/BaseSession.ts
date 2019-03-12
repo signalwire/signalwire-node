@@ -6,9 +6,10 @@ import { deRegister, register, trigger, deRegisterAll } from './services/Handler
 import { BroadcastHandler } from './services/Broadcast'
 import { ADD, REMOVE, SwEvent, BladeMethod } from './util/constants'
 import Cache from './util/Cache'
-import { BroadcastParams, ISignalWireOptions, SubscribeParams } from './util/interfaces'
+import { BroadcastParams, ISignalWireOptions, SubscribeParams, Constructable } from './util/interfaces'
 import { Subscription, Connect } from './messages/Blade'
 import { isFunction } from './util/helpers'
+import Relay from './relay/Relay'
 
 export default abstract class BaseSession {
   public uuid: string = uuidv4()
@@ -18,6 +19,14 @@ export default abstract class BaseSession {
   public master_nodeid: string
 
   protected connection: Connection = null
+  protected _relayInstances: { [service: string]: Relay } = {}
+
+  protected _addRelayInstance(service: string, klass: Constructable<Relay>): Relay {
+    if (!this._relayInstances.hasOwnProperty(service)) {
+      this._relayInstances[service] = new klass(this)
+    }
+    return this._relayInstances[service]
+  }
 
   private _cache: Cache
   private _idle: boolean = false

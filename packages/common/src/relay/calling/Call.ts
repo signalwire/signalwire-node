@@ -363,9 +363,8 @@ export default class Call implements ICall {
   }
 
   private _detachListeners() {
-    // CALL_STATES.forEach(state => deRegister(this.id, null, state))
-    // CALL_CONNECT_STATES.forEach(state => deRegister(this.id, null, state))
     deRegisterAll(this.id)
+    this.relayInstance.removeCall(this)
   }
 
   private _callIdRequired() {

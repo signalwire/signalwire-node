@@ -89,6 +89,13 @@ export default class Calling extends Relay {
     this._calls.push(call)
   }
 
+  removeCall(callToRemove: Call): void {
+    const index = this._calls.findIndex(call => callToRemove == call)
+    if (index >= 0) {
+      this._calls.splice(index, 1)
+    }
+  }
+
   getCallById(id: string): Call {
     return this._calls.find(call => call.id === id)
   }

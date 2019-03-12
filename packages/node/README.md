@@ -140,7 +140,7 @@ client.connect()
 ```javascript
 const asyncFn = async () => {
   try {
-    const call = await client.calling.makeCall({ type: 'phone', from: '+18888888888', to: '+19999999999' })
+    const call = await client.calling.newCall({ type: 'phone', from: '+18888888888', to: '+19999999999' })
     call.on('answered', call => {
       // Remote party answered the call
     })

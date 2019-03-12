@@ -5,9 +5,8 @@ It allows you to create calls, send messages, and generate LaML responses.
 
 ## Contents
 * [Getting Started](#getting-started)
-* [RestClient](#restclient)
-* [LaML](#laml-client)
-* [RelayClient](#relayclient)
+* [Relay](#relay)
+* [LaML](#laml)
 
 ## Getting Started
 
@@ -24,7 +23,37 @@ SIGNALWIRE_API_PROJECT=XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
 SIGNALWIRE_API_TOKEN=PTXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 ```
 
-## RestClient
+## Relay
+
+With `RelayClient` you can control calls in real time. \
+Read more on our [Relay Documentation](https://docs.signalwire.com/topics/relay).
+```javascript
+const { RelayClient } = require('@signalwire/node')
+const client = new RelayClient({
+  host: process.env.SIGNALWIRE_API_HOSTNAME,
+  project: process.env.SIGNALWIRE_API_PROJECT,
+  token: process.env.SIGNALWIRE_API_TOKEN
+})
+
+client.on('signalwire.ready', session => {
+  // Your client is now ready!
+})
+
+client.connect()
+```
+
+#### Make Call
+```javascript
+async function main(numberToCall) {
+  const call = await client.calling.newCall({ type: 'phone', from: '+18991112222', to: numberToCall })
+  call.begin() // Start the call!
+}
+main('+18991113333').catch(console.error)
+```
+
+## LaML
+
+### RestClient
 
 With `RestClient` you can create calls, send SMS/MMS, manage Queues, Faxes etc. \
 Read more on our [REST API Documentation](https://docs.signalwire.com/topics/laml-api/?javascript#laml-rest-api).
@@ -60,7 +89,7 @@ client.messages.create({
 })
 ```
 
-## LaML Client
+### LaML Client
 `LaML` is the language used by SignalWire to determine how the phone numbers in your account react during calls or text messages.\
 Read more about LaML [here](https://docs.signalwire.com/topics/laml-xml/?javascript#what-is-laml)!
 
@@ -83,7 +112,7 @@ LaML output:
 ```
 
 
-### Migration
+## Migration
 Do you want to start using SignalWire in your current application? You can easily migrate the code with minimal changes!
 
 Make sure you've set the env variable `SIGNALWIRE_API_HOSTNAME` as described in [Getting Started](#getting-started) and then:
@@ -115,40 +144,6 @@ const response = new RestClient.LaML.VoiceResponse()
 
 // Now use response like you did before!
 response.say('Hey, Welcome at SignalWire!')
-```
-
-## RelayClient [_WIP_]
-
-With `RelayClient` you can control calls in real time. \
-Read more on our [Relay Documentation](https://docs.signalwire.com/).
-```javascript
-const { RelayClient } = require('@signalwire/node')
-const client = new RelayClient({
-  host: process.env.SIGNALWIRE_API_HOSTNAME,
-  project: process.env.SIGNALWIRE_API_PROJECT,
-  token: process.env.SIGNALWIRE_API_TOKEN
-})
-
-client.on('signalwire.ready', session => {
-  // Your client is now ready!
-})
-
-client.connect()
-```
-
-#### Make Call
-```javascript
-const asyncFn = async () => {
-  try {
-    const call = await client.calling.newCall({ type: 'phone', from: '+18888888888', to: '+19999999999' })
-    call.on('answered', call => {
-      // Remote party answered the call
-    })
-    await call.begin()
-  } catch (error) {
-    // An error occured!
-  }
-}
 ```
 
 ### Build versions

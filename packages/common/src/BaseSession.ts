@@ -188,6 +188,7 @@ export default abstract class BaseSession {
    * @return void
    */
   protected async _onSocketOpen() {
+    this._idle = false
     const bc = new Connect({ project: this.options.project, token: this.options.token }, this.sessionid)
     const response = await this.execute(bc)
       .catch(error => {
@@ -321,7 +322,6 @@ export default abstract class BaseSession {
    * @return void
    */
   private _emptyExecuteQueues() {
-    this._idle = false
     this._executeQueue.forEach(({ resolve, msg }) => {
       if (typeof msg === 'string') {
         this.executeRaw(msg)

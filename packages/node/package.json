@@ -1,6 +1,6 @@
 {
   "name": "@signalwire/node",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Client library for connecting to SignalWire.",
   "author": "SignalWire Team <open.source@signalwire.com>",
   "main": "dist/node/index.js",

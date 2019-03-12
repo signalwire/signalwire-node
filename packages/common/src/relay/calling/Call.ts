@@ -1,9 +1,9 @@
 import { v4 as uuidv4 } from 'uuid'
 import { Execute } from '../../messages/Blade'
-import { deRegister, registerOnce, deRegisterAll, trigger } from '../../services/Handler'
+import { deRegister, registerOnce, deRegisterAll } from '../../services/Handler'
 import { CallState, CALL_STATES, DisconnectReason, CallConnectState, CALL_CONNECT_STATES, DEFAULT_CALL_TIMEOUT } from '../../util/constants/relay'
 import { ICall, ICallOptions, ICallDevice, IMakeCallParams } from '../../util/interfaces'
-import logger from '../../util/logger'
+// import logger from '../../util/logger'
 import { reduceConnectParams } from '../helpers'
 import Calling from './Calling'
 
@@ -33,10 +33,9 @@ export default class Call implements ICall {
     this._attachListeners()
   }
 
-  async begin() {
-    const { protocol, session } = this.relayInstance
+  begin() {
     const msg = new Execute({
-      protocol,
+      protocol: this.relayInstance.protocol,
       method: 'call.begin',
       params: {
         tag: this.tag,
@@ -44,20 +43,13 @@ export default class Call implements ICall {
       }
     })
 
-    const response = await session.execute(msg)
-      .catch(error => {
-        throw error.result
-      })
-    if (response) {
-      return response.result
-    }
+    return this._execute(msg)
   }
 
-  async hangup() {
+  hangup() {
     this._callIdRequired()
-    const { protocol, session } = this.relayInstance
     const msg = new Execute({
-      protocol,
+      protocol: this.relayInstance.protocol,
       method: 'call.end',
       params: {
         node_id: this.nodeId,
@@ -66,20 +58,13 @@ export default class Call implements ICall {
       }
     })
 
-    const response = await session.execute(msg)
-      .catch(error => {
-        throw error.result
-      })
-    if (response) {
-      return response.result
-    }
+    return this._execute(msg)
   }
 
-  async answer() {
+  answer() {
     this._callIdRequired()
-    const { protocol, session } = this.relayInstance
     const msg = new Execute({
-      protocol,
+      protocol: this.relayInstance.protocol,
       method: 'call.answer',
       params: {
         node_id: this.nodeId,
@@ -87,24 +72,17 @@ export default class Call implements ICall {
       }
     })
 
-    const response = await session.execute(msg)
-      .catch(error => {
-        throw error.result
-      })
-    if (response) {
-      return response.result
-    }
+    return this._execute(msg)
   }
 
-  async connect(...peers: IMakeCallParams[]) {
+  connect(...peers: IMakeCallParams[]) {
     this._callIdRequired()
     const devices = reduceConnectParams(peers, this.device)
     if (!devices.length) {
       throw new Error('No peers to connect!')
     }
-    const { protocol, session } = this.relayInstance
     const msg = new Execute({
-      protocol,
+      protocol: this.relayInstance.protocol,
       method: 'call.connect',
       params: {
         node_id: this.nodeId,
@@ -118,18 +96,11 @@ export default class Call implements ICall {
       registerOnce(this.id, this._onConnectStateChange.bind(this, state), state)
     })
 
-    const response = await session.execute(msg)
-      .catch(error => {
-        throw error.result
-      })
-    if (response) {
-      trigger(this.id, this, CallConnectState[CallConnectState.connecting])
-      return response.result
-    }
+    return this._execute(msg)
   }
 
   /*
-  async join(callsToJoin: Call | Call[]) { // TODO: wip
+  join(callsToJoin: Call | Call[]) { // TODO: wip
     this._callIdRequired()
     let calls = []
     if (callsToJoin instanceof Array) {
@@ -142,9 +113,8 @@ export default class Call implements ICall {
     if (!calls.length) {
       throw new Error('No Calls to join')
     }
-    const { protocol, session } = this.relayInstance
     const msg = new Execute({
-      protocol,
+      protocol: this.relayInstance.protocol,
       method: 'call.join',
       params: {
         node_id: this.nodeId,
@@ -153,11 +123,10 @@ export default class Call implements ICall {
       }
     })
 
-    const result = await session.execute(msg).catch(error => error)
-    logger.debug('Join calls:', result)
+    return this._execute(msg)
   }
 
-  async leave(callsToLeave: Call | Call[]) { // TODO: wip
+  leave(callsToLeave: Call | Call[]) { // TODO: wip
     this._callIdRequired()
     let calls = []
     if (callsToLeave instanceof Array) {
@@ -170,9 +139,8 @@ export default class Call implements ICall {
     if (!calls.length) {
       throw new Error('No Calls to leave')
     }
-    const { protocol, session } = this.relayInstance
     const msg = new Execute({
-      protocol,
+      protocol: this.relayInstance.protocol,
       method: 'call.leave',
       params: {
         node_id: this.nodeId,
@@ -181,8 +149,7 @@ export default class Call implements ICall {
       }
     })
 
-    const result = await session.execute(msg).catch(error => error)
-    logger.debug('Join calls:', result)
+    return this._execute(msg)
   }
 
   playAudio(location: string) {
@@ -206,15 +173,14 @@ export default class Call implements ICall {
     return this.playMedia(params)
   }
 
-  async playMedia(...play: { type: string, params: any }[]) {
+  playMedia(...play: { type: string, params: any }[]) {
     this._callIdRequired()
     if (!play.length) {
       return
     }
     this._mediaControlId = uuidv4()
-    const { protocol, session } = this.relayInstance
     const msg = new Execute({
-      protocol,
+      protocol: this.relayInstance.protocol,
       method: 'call.play',
       params: {
         node_id: this.nodeId,
@@ -224,23 +190,16 @@ export default class Call implements ICall {
       }
     })
 
-    const response = await session.execute(msg)
-      .catch(error => {
-        throw error.result
-      })
-    if (response) {
-      return response.result
-    }
+    return this._execute(msg)
   }
 
-  async stopMedia() {
+  stopMedia() {
     this._callIdRequired()
     if (!this._mediaControlId) {
       return
     }
-    const { protocol, session } = this.relayInstance
     const msg = new Execute({
-      protocol,
+      protocol: this.relayInstance.protocol,
       method: 'call.play.stop',
       params: {
         node_id: this.nodeId,
@@ -249,13 +208,7 @@ export default class Call implements ICall {
       }
     })
 
-    const response = await session.execute(msg)
-      .catch(error => {
-        throw error.result
-      })
-    if (response) {
-      return response.result
-    }
+    return this._execute(msg)
   }
   */
 
@@ -370,6 +323,19 @@ export default class Call implements ICall {
   private _callIdRequired() {
     if (!this.ready) {
       throw new Error('Call has not started.')
+    }
+  }
+
+  private async _execute(msg: Execute) {
+    try {
+      const { result } = await this.relayInstance.session.execute(msg)
+      return result
+    } catch (error) {
+      const { result = null } = error
+      if (result) {
+        throw result
+      }
+      throw error
     }
   }
 }

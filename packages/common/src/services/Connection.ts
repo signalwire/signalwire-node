@@ -1,7 +1,7 @@
 import logger from '../util/logger'
 import BaseSession from '../BaseSession'
 import { SwEvent } from '../util/constants'
-import { safeParseJson } from '../util/helpers'
+import { safeParseJson, checkWebSocketHost } from '../util/helpers'
 import { registerOnce, trigger } from '../services/Handler'
 
 let WebSocketClass: any = typeof WebSocket !== 'undefined' ? WebSocket : null
@@ -17,7 +17,7 @@ const WS_STATE = {
 }
 
 const REQUEST_TIMEOUT = 10 * 1000
-const PATTERN = /^(ws|wss):\/\//
+
 export default class Connection {
   private _wsClient: any = null
   private _host: string = 'wss://localhost:2100'
@@ -27,9 +27,7 @@ export default class Connection {
   public downDur: number = null
 
   constructor(public session: BaseSession) {
-    const { host } = session.options
-    const protocol = PATTERN.test(host) ? '' : 'wss://'
-    this._host = `${protocol}${session.options.host}`
+    this._host = checkWebSocketHost(session.options.host)
     this.connect()
   }
 

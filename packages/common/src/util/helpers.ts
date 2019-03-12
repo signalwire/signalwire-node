@@ -60,3 +60,12 @@ export const findElementByType = (tag: HTMLMediaElement | string | Function): HT
   }
   return null
 }
+
+const PROTOCOL_PATTERN = /^(ws|wss):\/\//
+const SW_SPACE_PATTERN = /\.signalwire\.com$/
+
+export const checkWebSocketHost = (host: string): string => {
+  const protocol = PROTOCOL_PATTERN.test(host) ? '' : 'wss://'
+  const suffix = SW_SPACE_PATTERN.test(host) ? ':443/api/relay/wss' : ''
+  return `${protocol}${host}${suffix}`
+}

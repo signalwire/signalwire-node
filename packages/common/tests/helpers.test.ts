@@ -1,4 +1,4 @@
-import { objEmpty, mutateLiveArrayData, safeParseJson, isDefined } from '../src/util/helpers'
+import { objEmpty, mutateLiveArrayData, safeParseJson, isDefined, checkWebSocketHost } from '../src/util/helpers'
 
 describe('Helpers functions', () => {
   describe('objEmpty', () => {
@@ -50,5 +50,37 @@ describe('Helpers functions', () => {
       delete obj.key
       expect(isDefined(obj.key)).toEqual(false)
     })
+  })
+
+  describe('checkWebSocketHost()', () => {
+
+    describe('on a signalwire space', () => {
+      it('should add wss protocol and suffix if not present', () => {
+        expect(checkWebSocketHost('example.signalwire.com')).toEqual('wss://example.signalwire.com:443/api/relay/wss')
+      })
+
+      it('should dont add suffix if its already specified', () => {
+        const hostOk = 'wss://example.signalwire.com:9999/something/else'
+        expect(checkWebSocketHost('example.signalwire.com:9999/something/else')).toEqual(hostOk)
+        expect(checkWebSocketHost(hostOk)).toEqual(hostOk)
+      })
+
+      it('should do nothing with protocol and suffix already specified', () => {
+        expect(checkWebSocketHost('ws://example.signalwire.com:8888')).toEqual('ws://example.signalwire.com:8888')
+      })
+    })
+
+    describe('on an host that is not a signalwire space', () => {
+      it('should add wss protocol if not present', () => {
+        expect(checkWebSocketHost('example.com')).toEqual('wss://example.com')
+        expect(checkWebSocketHost('test.example.com:8082')).toEqual('wss://test.example.com:8082')
+      })
+
+      it('should do nothing if protocol is already present', () => {
+        expect(checkWebSocketHost('ws://example.com')).toEqual('ws://example.com')
+        expect(checkWebSocketHost('wss://test.example.com:8082')).toEqual('wss://test.example.com:8082')
+      })
+    })
+
   })
 })

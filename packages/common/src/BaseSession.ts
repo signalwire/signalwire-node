@@ -216,6 +216,7 @@ export default abstract class BaseSession {
    * @return void
    */
   protected _onSocketClose() {
+    this._destroyRelayInstances()
     if (this._autoReconnect) {
       setTimeout(() => this.connect(), 1000)
     }
@@ -354,6 +355,17 @@ export default abstract class BaseSession {
       this.connection.close()
     }
     this.connection = null
+  }
+
+  /**
+   * Remove all Relay instances attached to this session. Cleanup on socket close.
+   * @return void
+   */
+  private _destroyRelayInstances() {
+    Object.keys(this._relayInstances).forEach(service => {
+      delete this._relayInstances[service]
+      this._relayInstances[service] = null
+    })
   }
 
   static on(eventName: string, callback: any) {

@@ -2,6 +2,15 @@ require('dotenv').config()
 const inquirer = require('inquirer')
 const SignalWire = require('../..')
 
+const _inspect = () => {
+  const { _callingInstance } = client
+  if (_callingInstance) {
+    console.log('Calls:', _callingInstance._calls.length, _callingInstance._calls)
+  }
+  // console.log('\nQueue:', SignalWire.monitorCallbackQueue(), '\n')
+  console.log('\n')
+}
+
 const host = process.env.SIGNALWIRE_API_HOSTNAME
 const project = process.env.SIGNALWIRE_API_PROJECT
 const token = process.env.SIGNALWIRE_API_TOKEN
@@ -26,7 +35,7 @@ client.on('signalwire.error', error => {
   _init()
 })
 
-client.__logger.setLevel(1)
+// client.__logger.setLevel(1)
 client.connect()
 
 async function createCall(to) {
@@ -81,6 +90,8 @@ function _init() {
     'Make a call and play TTS',
     'Register a listener for inbound calls',
     { name: 'Send a message', disabled: 'not ready yet :) ' },
+    'Inspect Client',
+    'Change logLevel',
     'Just Exit'
   ]
   const exitChoice = choices[choices.length - 1]
@@ -117,11 +128,26 @@ function _init() {
       name: 'context',
       message: 'Context to listen on:',
       when: ({ choice }) => choice === choices[3]
+    },
+    {
+      type: 'list',
+      name: 'logLevel',
+      message: 'Log level to use:',
+      when: ({ choice }) => choice === choices[6],
+      choices: Object.keys(client.__logger.levels)
     }
   ]
   inquirer.prompt(questions).then(async answers => {
     if (answers.choice === exitChoice) {
       return process.exit()
+    }
+    if (answers.choice === choices[5]) {
+      _inspect()
+      return _init()
+    }
+    if (answers.choice === choices[6] && answers.logLevel) {
+      client.__logger.setLevel(answers.logLevel)
+      return _init()
     }
     if (!answers.to_number && !answers.context) {
       return _init()
@@ -165,7 +191,7 @@ function _init() {
     } else if (answers.context) {
       try {
         await client.calling.onInbound(answers.context, async call => {
-          console.warn(`Inbound call on "${call.context}"`, `from: ${call.from} - to: ${call.to}`)
+          console.warn(`\tInbound call on "${call.context}"`, `from: ${call.from} - to: ${call.to}\n`)
           await sleep(4)
           await call.answer().catch(console.error)
           // await sleep(5)

@@ -6,7 +6,7 @@ It allows you to create calls, send messages, and generate LaML responses.
 ## Contents
 * [Getting Started](#getting-started)
 * [Relay](#relay)
-* [LaML](#laml-client)
+* [LaML](#laml)
 
 ## Getting Started
 

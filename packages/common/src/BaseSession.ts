@@ -227,8 +227,8 @@ export default abstract class BaseSession {
    * Callback when the ws connection give an error
    * @return void
    */
-  protected _onSocketError(error) {
-    logger.error('Socket error', error)
+  protected _onSocketError(error: Error) {
+    logger.error(error.message)
   }
 
   /**

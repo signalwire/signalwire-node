@@ -58,10 +58,6 @@ export default class Verto extends BrowserSession {
     setTimeout(() => this.connect(), 1000)
   }
 
-  protected _onSocketError(error) {
-    logger.error('Verto socket error', error)
-  }
-
   protected _onSocketMessage(msg: any) {
     const handler = new VertoHandler(this)
     handler.handleMessage(msg)

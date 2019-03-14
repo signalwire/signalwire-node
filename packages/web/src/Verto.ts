@@ -50,11 +50,6 @@ export default class Verto extends BrowserSession {
     }
   }
 
-  protected _onSocketClose() {
-    logger.info('Verto socket close')
-    setTimeout(() => this.connect(), 1000)
-  }
-
   protected _onSocketMessage(msg: any) {
     const handler = new VertoHandler(this)
     handler.handleMessage(msg)

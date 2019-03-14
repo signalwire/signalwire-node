@@ -127,6 +127,7 @@ export default abstract class BaseSession {
    */
   disconnect() {
     trigger(SwEvent.Disconnect, null, this.uuid, false)
+    this._autoReconnect = false
     this._removeConnection()
     this.purge()
     this._executeQueue = []
@@ -364,7 +365,6 @@ export default abstract class BaseSession {
   private _removeConnection() {
     this._idle = true
     if (this.connection) {
-      this._autoReconnect = false
       this.connection.close()
     }
     this.connection = null

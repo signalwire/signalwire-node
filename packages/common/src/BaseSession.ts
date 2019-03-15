@@ -37,6 +37,7 @@ export default abstract class BaseSession {
     if (this._onSessionConnect) {
       this._onSessionConnect = this._onSessionConnect.bind(this)
     }
+    this._handleLoginError = this._handleLoginError.bind(this)
   }
 
   get __logger() {
@@ -126,6 +127,7 @@ export default abstract class BaseSession {
    */
   disconnect() {
     trigger(SwEvent.Disconnect, null, this.uuid, false)
+    this._autoReconnect = false
     this._removeConnection()
     this.purge()
     this._executeQueue = []
@@ -188,17 +190,22 @@ export default abstract class BaseSession {
   }
 
   /**
+   * Handle login error
+   * @return void
+   */
+  protected _handleLoginError(error: any) {
+    this._autoReconnect = false
+    trigger(SwEvent.Error, error, this.uuid)
+  }
+
+  /**
    * Callback when the ws connection is open
    * @return void
    */
   protected async _onSocketOpen() {
     this._idle = false
     const bc = new Connect({ project: this.options.project, token: this.options.token }, this.sessionid)
-    const response = await this.execute(bc)
-      .catch(error => {
-        this._autoReconnect = false
-        trigger(SwEvent.Error, error, this.uuid)
-      })
+    const response = await this.execute(bc).catch(this._handleLoginError)
     if (response) {
       this._autoReconnect = true
       this.sessionid = response.sessionid
@@ -227,8 +234,8 @@ export default abstract class BaseSession {
    * Callback when the ws connection give an error
    * @return void
    */
-  protected _onSocketError(error) {
-    logger.error('Socket error', error)
+  protected _onSocketError(error: Error) {
+    logger.error(error.message)
   }
 
   /**
@@ -358,7 +365,6 @@ export default abstract class BaseSession {
   private _removeConnection() {
     this._idle = true
     if (this.connection) {
-      this._autoReconnect = false
       this.connection.close()
     }
     this.connection = null

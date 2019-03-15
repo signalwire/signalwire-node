@@ -42,24 +42,12 @@ export default class Verto extends BrowserSession {
     const sessid = await Storage.getItem(SESSID)
     const { login, password, passwd, userVariables } = this.options
     const msg = new Login(login, (password || passwd), sessid, userVariables)
-    const response = await this.execute(msg)
-      .catch(error => {
-        trigger(SwEvent.Error, error, this.uuid)
-      })
+    const response = await this.execute(msg).catch(this._handleLoginError)
     if (response) {
       this.sessionid = response.sessid
       Storage.setItem(SESSID, this.sessionid)
       trigger(SwEvent.Ready, this, this.uuid)
     }
-  }
-
-  protected _onSocketClose() {
-    logger.info('Verto socket close')
-    setTimeout(() => this.connect(), 1000)
-  }
-
-  protected _onSocketError(error) {
-    logger.error('Verto socket error', error)
   }
 
   protected _onSocketMessage(msg: any) {

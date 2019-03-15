@@ -7,11 +7,11 @@ This package provides a client for Signalwire services and supports different Ja
 
 ### Packages
 
-| Project | Description | Links |
-| ------- | ------- |:-----:|
-| **Node.js** | SignalWire in a Node.js server | [`README.md`](packages/node/README.md)
-| **Web** | SignalWire in the browser! | **coming soon**
-| **React Native** | SignalWire in a React Native App | **coming soon**
+| Project | Description | README | CHANGELOG |
+| ------- | ------- | ------- |:-----:|
+| **Node.js** | SignalWire in a Node.js server | [`README.md`](packages/node/README.md) | [`CHANGELOG.md`](packages/node/CHANGELOG.md)
+| **Web** | SignalWire in the browser! | **coming soon** |
+| **React Native** | SignalWire in a React Native App | **coming soon** |
 
 Refer to the README of each package for further details.
 

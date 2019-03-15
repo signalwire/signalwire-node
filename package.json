@@ -1,13 +1,9 @@
 {
   "name": "signalwire",
-  "version": "1.0.3",
+  "version": "0.0.1",
+  "private": true,
   "description": "Client library for connecting to SignalWire.",
   "author": "SignalWire Team <open.source@signalwire.com>",
-  "main": "dist/cjs/node/index.js",
-  "module": "dist/esm/web/index.js",
-  "files": [
-    "dist"
-  ],
   "scripts": {
     "clean-build": "rm -rf dist/* && npm run build",
     "build": "npm run build-es5 && npm run build-es6 && npm run build-node",
@@ -30,14 +26,6 @@
     "signalwire",
     "laml"
   ],
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/signalwire/signalwire-node"
-  },
-  "bugs": {
-    "url": "https://github.com/signalwire/signalwire-node/issues"
-  },
-  "homepage": "https://github.com/signalwire/signalwire-node",
   "license": "MIT",
   "dependencies": {
     "dotenv": "^6.2.0",

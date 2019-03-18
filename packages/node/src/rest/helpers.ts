@@ -21,7 +21,7 @@ const getHost = (opts: StringStringMap = {}): string => {
   if (SIGNALWIRE_API_HOSTNAME) {
     return SIGNALWIRE_API_HOSTNAME
   }
-  throw new Error('Missing SignalWire Space URL.')
+  throw new Error('SignalWire Space URL is not configured.\nEnter your SignalWire Space domain via the SIGNALWIRE_SPACE_URL or SIGNALWIRE_API_HOSTNAME environment variables, or specifying the property "signalwireSpaceUrl" in the init options.')
 }
 
 export {

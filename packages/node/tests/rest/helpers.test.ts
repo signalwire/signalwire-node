@@ -32,6 +32,6 @@ describe('getHost', () => {
   it('should throw an error without host', () => {
     expect(() => {
       getHost()
-    }).toThrowError(/missing signalwire/i)
+    }).toThrow()
   })
 })

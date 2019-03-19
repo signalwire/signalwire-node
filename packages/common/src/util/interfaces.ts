@@ -61,23 +61,6 @@ export interface IBladeExecuteResult extends IMessageBase {
   }
 }
 
-export interface IBladeProtocolProviderAdd extends IMessageBase {
-  method: string
-  params: {
-    protocol: string
-    command?: string
-    params: IProtocol['params']
-  }
-}
-
-export interface IBladeProtocolProviderRemove extends IMessageBase {
-  method: string
-  params: {
-    command?: string
-    protocol: string
-  }
-}
-
 export interface IBladeSubscriptionRequest extends IMessageBase {
   method: string
   params: {

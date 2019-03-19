@@ -122,7 +122,7 @@ const client = new twilio(sid, token)
 
 // With ...
 const { RestClient } = require('@signalwire/node')
-const client = new RestClient(project, token, { signalwireSpaceUrl: 'your-space.signalwire.com' })
+const client = new RestClient('your-project', 'your-token', { signalwireSpaceUrl: 'your-space.signalwire.com' })
 
 // Now use client variable like you did before!
 ```

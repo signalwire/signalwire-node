@@ -186,3 +186,6 @@ export interface IMakeCallParams {
 export interface Constructable<T> {
   new(any: any): T
 }
+
+export interface StringTMap<T> { [key: string]: T }
+export interface StringStringMap extends StringTMap<string> { }

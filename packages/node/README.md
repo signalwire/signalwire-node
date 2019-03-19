@@ -15,14 +15,6 @@ Install the package using [NPM](https://www.npmjs.com/):
 npm install @signalwire/node
 ```
 
-And set the required environment variables!
-Puts in your `.env` file your SignalWire `host`, `project` and `token`:
-```
-SIGNALWIRE_API_HOSTNAME=changeme.signalwire.com
-SIGNALWIRE_API_PROJECT=XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
-SIGNALWIRE_API_TOKEN=PTXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-```
-
 ## Relay
 
 With `RelayClient` you can control calls in real time. \
@@ -30,9 +22,9 @@ Read more on our [Relay Documentation](https://docs.signalwire.com/topics/relay)
 ```javascript
 const { RelayClient } = require('@signalwire/node')
 const client = new RelayClient({
-  host: process.env.SIGNALWIRE_API_HOSTNAME,
-  project: process.env.SIGNALWIRE_API_PROJECT,
-  token: process.env.SIGNALWIRE_API_TOKEN
+  host: 'example.signalwire.com',
+  project: 'your-project',
+  token: 'your-token'
 })
 
 client.on('signalwire.ready', session => {
@@ -58,9 +50,20 @@ main('+18991113333').catch(console.error)
 With `RestClient` you can create calls, send SMS/MMS, manage Queues, Faxes etc. \
 Read more on our [REST API Documentation](https://docs.signalwire.com/topics/laml-api/?javascript#laml-rest-api).
 ```javascript
-// Here we are using Project and Token from ENV
 const { RestClient } = require('@signalwire/node')
-const client = new RestClient(process.env.SIGNALWIRE_API_PROJECT, process.env.SIGNALWIRE_API_TOKEN)
+const client = new RestClient('your-project', 'your-token', { signalwireSpaceUrl: 'example.signalwire.com' })
+```
+
+You can alternatively use the environment variable to set the Space URL:\
+Puts in your `.env` file the Space URL:
+```
+SIGNALWIRE_SPACE_URL=example.signalwire.com
+```
+
+And then `signalwireSpaceUrl` will be pulled from the ENV for you:
+```javascript
+const { RestClient } = require('@signalwire/node')
+const client = new RestClient('your-project', 'your-token')
 ```
 
 #### Make Call
@@ -71,9 +74,7 @@ client.calls.create({
   url: 'https://example.com/laml/voice.xml' // Valid LaML
 }).then(call => {
   process.stdout.write('Call ID: ' + call.sid)
-}).catch(error => {
-  // Inspecting error...
-})
+}).catch(console.error)
 ```
 
 #### Send Message
@@ -84,9 +85,7 @@ client.messages.create({
   from: '+18888888888' // From a valid SignalWire number
 }).then(message => {
   process.stdout.write('Message ID: ' + message.sid)
-}).catch(error => {
-  // Inspecting error...
-})
+}).catch(console.error)
 ```
 
 ### LaML Client
@@ -115,8 +114,6 @@ LaML output:
 ## Migration
 Do you want to start using SignalWire in your current application? You can easily migrate the code with minimal changes!
 
-Make sure you've set the env variable `SIGNALWIRE_API_HOSTNAME` as described in [Getting Started](#getting-started) and then:
-
 To use the Rest client:
 ```javascript
 // Replace these lines:
@@ -125,7 +122,7 @@ const client = new twilio(sid, token)
 
 // With ...
 const { RestClient } = require('@signalwire/node')
-const client = new RestClient(project, token)
+const client = new RestClient(project, token, { signalwireSpaceUrl: 'your-space.signalwire.com' })
 
 // Now use client variable like you did before!
 ```
@@ -147,7 +144,7 @@ response.say('Hey, Welcome at SignalWire!')
 ```
 
 ### Build versions
-To build the CommonJS version of the package:
+To build the lib:
 
 ```
 npm run clean-build

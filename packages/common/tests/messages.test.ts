@@ -1,4 +1,4 @@
-import { Execute, ProviderAdd, ProviderRemove, Connect, Subscription } from '../src/messages/Blade'
+import { Execute, Connect, Subscription } from '../src/messages/Blade'
 import { Login, Invite, Answer, Bye, Modify, Info, Result } from '../src/messages/Verto'
 
 describe('Messages', function () {
@@ -39,37 +39,6 @@ describe('Messages', function () {
       const message = new Execute(params).request
       const res = JSON.parse(`{"jsonrpc":"2.0","id":"${message.id}","result":{"requester_nodeid":"S1","responder_nodeid":"S2","protocol":"myprot","result":{"msg":"Hello Joe!"}}}`)
       expect(message).toEqual(res)
-    })
-  })
-
-  describe('BladeProtocol', function () {
-    describe('ProviderAdd', function () {
-      it('should match struct', function () {
-        const message = new ProviderAdd({
-          protocol: 'bench',
-          params: {
-            default_method_execute_access: 1,
-            default_channel_broadcast_access: 1,
-            default_channel_subscribe_access: 1,
-            channels: [
-              { name: 'swbench', broadcast_access: 1, subscribe_access: 1 }
-            ],
-            methods: [
-              { name: 'swbench', execute_access: 1 }
-            ]
-          }
-        }).request
-        const res = JSON.parse(`{"jsonrpc":"2.0","id":"${message.id}","method":"blade.protocol","params":{"command":"provider.add","protocol":"bench","params":{"default_method_execute_access":1,"default_channel_broadcast_access":1,"default_channel_subscribe_access":1,"channels":[{"name":"swbench","broadcast_access":1,"subscribe_access":1}],"methods":[{"execute_access":1,"name": "swbench"}]}}}`)
-        expect(message).toEqual(res)
-      })
-    })
-
-    describe('ProviderRemove', function () {
-      it('should match struct', function () {
-        const message = new ProviderRemove('bench').request
-        const res = JSON.parse(`{"jsonrpc":"2.0","id":"${message.id}","method":"blade.protocol","params":{"command":"provider.remove","protocol":"bench"}}`)
-        expect(message).toEqual(res)
-      })
     })
   })
 

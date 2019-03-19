@@ -1,6 +1,6 @@
 import logger from './logger'
 import { IBladeConnectResult } from './interfaces'
-import { Netcast } from './constants'
+// import { Netcast } from './constants'
 
 export default class Cache {
   protocols: string[]
@@ -12,8 +12,10 @@ export default class Cache {
     this._printStats()
   }
 
-  netcastUpdate(params: any) { // TODO: specify params type
-    logger.info('NETCAST: %s', params.command, params)
+  netcastUpdate(params: any) {
+    // FIXME: till needed?
+    logger.debug('NETCAST: %s', params.command, params)
+    /*
     const { params: subParams }: any = params
     switch (params.command) {
       case Netcast.ProtocolProviderAdd:
@@ -27,6 +29,7 @@ export default class Cache {
     }
 
     this._printStats()
+    */
   }
 
   /* Print in console cached data */

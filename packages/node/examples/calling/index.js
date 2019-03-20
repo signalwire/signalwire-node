@@ -11,10 +11,14 @@ const _inspect = () => {
   console.log('\n')
 }
 
-const host = process.env.SIGNALWIRE_SPACE_URL
-const project = process.env.SIGNALWIRE_PROJECT
-const token = process.env.SIGNALWIRE_TOKEN
-const FROM_NUMBER = process.env.DEFAULT_FROM_NUMBER
+const host = 'your-space.signalwire.com'
+const project = ''
+const token = ''
+const FROM_NUMBER = '+1899000XXXX'
+
+if (!project || !token) {
+  throw new Error('Set your SignalWire project and token before run the example.')
+}
 
 console.log('Init client with: ', host, project, token, '\n')
 const client = new SignalWire.RelayClient({ host, project, token })

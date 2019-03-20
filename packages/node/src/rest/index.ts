@@ -12,9 +12,9 @@ const RestClient = function (username: string, token: string, opts?: StringStrin
   // "AC" prefix because twilio-node requires it
   const client = new twilio.Twilio('AC' + username, token, opts)
   // Remove "AC" prefix
-  client.username = username || process.env.SIGNALWIRE_API_PROJECT
-  client.accountSid = username || process.env.SIGNALWIRE_API_PROJECT
-  client.password = token || process.env.SIGNALWIRE_API_TOKEN
+  client.username = username
+  client.accountSid = username
+  client.password = token
   // Replace base url
   client.api.baseUrl = `https://${host}`
 

@@ -66,7 +66,7 @@ const getResolutions = async (): Promise<ICacheResolution[]> => {
     for (let i = 0; i < resolutionList.length; i++) {
       const [width, height] = resolutionList[i]
       const resolution = { resolution: `${width}x${height}`, width, height, devices: [] }
-      for (let y = videoDevices.length - 1; y >= 0; y--) {
+      for (let y = 0; y < videoDevices.length; y++) {
         try {
           const constraints = { video: { width: { exact: width }, height: { exact: height }, deviceId: { exact: videoDevices[y].deviceId } } }
           const stream = await getUserMedia(constraints)

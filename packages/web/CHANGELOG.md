@@ -19,6 +19,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - Expose static method uuid().
 ### Changed
 - client.connect() is now async to check browser permissions before open the websocket connection.
+- client.supportedResolutions() now returns a device list for each resolution supported.
 ### Removed
 - `chatChannel` / `infoChannel` / `conferenceChannel` have been removed from the `conferenceUpdate` notification (**join** & **leave** actions).
 ### Security

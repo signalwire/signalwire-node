@@ -54,18 +54,32 @@ const getDevices = async (): Promise<ICacheDevices> => {
 
 const resolutionList = [[160, 120], [176, 144], [320, 240], [352, 288], [640, 360], [640, 480], [800, 600], [1280, 720], [1600, 1200], [1920, 1080], [3840, 2160]]
 const getResolutions = async (): Promise<ICacheResolution[]> => {
+  let videoDevices = []
+  try {
+    const devices = await navigator.mediaDevices.enumerateDevices()
+    videoDevices = devices.filter(d => d.kind === 'videoinput')
+  } catch (error) {
+    return []
+  }
   const supported = []
-  for (let i = 0; i < resolutionList.length; i++) {
-    const resolution = resolutionList[i]
-    const constraints = { audio: false, video: { width: { exact: resolution[0] }, height: { exact: resolution[1] } } }
-    const stream = await getUserMedia(constraints).catch(error => null)
-    if (stream) {
-      stream.getVideoTracks().forEach((t: MediaStreamTrack) => {
-        supported.push(Object.assign({ resolution: `${resolution[0]}x${resolution[1]}` }, t.getSettings()))
-        t.stop()
-      })
+  if (videoDevices.length) {
+    for (let i = 0; i < resolutionList.length; i++) {
+      const [width, height] = resolutionList[i]
+      const resolution = { resolution: `${width}x${height}`, width, height, devices: [] }
+      for (let y = 0; y < videoDevices.length; y++) {
+        try {
+          const constraints = { video: { width: { exact: width }, height: { exact: height }, deviceId: { exact: videoDevices[y].deviceId } } }
+          const stream = await getUserMedia(constraints)
+          stream.getVideoTracks().forEach(t => t.stop())
+          resolution.devices.push( Object.assign(videoDevices[y]) )
+        } catch {}
+      }
+      if (resolution.devices.length) {
+        supported.push(resolution)
+      }
     }
   }
+
   return supported
 }
 

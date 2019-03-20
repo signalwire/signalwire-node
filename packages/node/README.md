@@ -55,7 +55,7 @@ const client = new RestClient('your-project', 'your-token', { signalwireSpaceUrl
 ```
 
 You can alternatively use the environment variable to set the Space URL:\
-Puts in your `.env` file the Space URL:
+Put the Space URL in your `.env` file:
 ```
 SIGNALWIRE_SPACE_URL=example.signalwire.com
 ```

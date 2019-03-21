@@ -20,6 +20,7 @@ export default abstract class BaseSession {
 
   protected connection: Connection = null
   protected _relayInstances: { [service: string]: Relay } = {}
+  protected _jwtAuth: boolean = false
 
   private _cache: Cache
   private _idle: boolean = false
@@ -28,7 +29,7 @@ export default abstract class BaseSession {
 
   constructor(public options: ISignalWireOptions) {
     if (!this.validateOptions()) {
-      throw new Error('SignalWire: Invalid init options')
+      throw new Error('Invalid init options')
     }
     this._onSocketOpen = this._onSocketOpen.bind(this)
     this._onSocketClose = this._onSocketClose.bind(this)
@@ -204,7 +205,9 @@ export default abstract class BaseSession {
    */
   protected async _onSocketOpen() {
     this._idle = false
-    const bc = new Connect({ project: this.options.project, token: this.options.token }, this.sessionid)
+    const tokenKey = this._jwtAuth ? 'jwt_token' : 'token'
+    const { project, token } = this.options
+    const bc = new Connect({ project, [tokenKey]: token }, this.sessionid)
     const response = await this.execute(bc).catch(this._handleLoginError)
     if (response) {
       this._autoReconnect = true

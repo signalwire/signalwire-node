@@ -8,7 +8,7 @@ const revision = 0
 class Connect extends BaseMessage {
   method: string = 'blade.connect'
 
-  constructor(authentication: { project: string, token: string }, sessionid?: string) {
+  constructor(authentication: { project: string, token?: string, jwt_token?: string }, sessionid?: string) {
     super()
 
     const params: IBladeConnectRequest['params'] = {

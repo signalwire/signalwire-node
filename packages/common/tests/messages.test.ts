@@ -3,15 +3,22 @@ import { Login, Invite, Answer, Bye, Modify, Info, Result } from '../src/message
 
 describe('Messages', function () {
   describe('BladeConnect', function () {
+    const auth = { project: 'project', token: 'token' }
     it('should match struct without sessionId', function () {
-      const message = new Connect({ project: 'project', token: 'token' }).request
+      const message = new Connect(auth).request
       const res = JSON.parse(`{"jsonrpc":"2.0","id":"${message.id}","method":"blade.connect","params":{"authentication":{"project":"project","token":"token"},"version":{"major":2,"minor":1,"revision":0}}}`)
       expect(message).toEqual(res)
     })
     it('should match struct with sessionId', function () {
       const sessionId = '5c26c8d1-adcc-4b46-aa32-d9550022fddc'
-      const message = new Connect({ project: 'project', token: 'token' }, sessionId).request
+      const message = new Connect(auth, sessionId).request
       const res = JSON.parse(`{"jsonrpc":"2.0","id":"${message.id}","method":"blade.connect","params":{"authentication":{"project":"project","token":"token"},"version":{"major":2,"minor":1,"revision":0},"sessionid":"${sessionId}"}}`)
+      expect(message).toEqual(res)
+    })
+    it('should match struct with jwt_token', function () {
+      const jwtAuth = { project: 'project', jwt_token: 'token' }
+      const message = new Connect(jwtAuth).request
+      const res = JSON.parse(`{"jsonrpc":"2.0","id":"${message.id}","method":"blade.connect","params":{"authentication":{"project":"project","jwt_token":"token"},"version":{"major":2,"minor":1,"revision":0}}}`)
       expect(message).toEqual(res)
     })
   })

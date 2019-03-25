@@ -1,5 +1,5 @@
 import { findElementByType } from '../../../common/src/util/helpers'
-import { sdpStereoHack, sdpMediaOrderHack } from '../../src/rtc/helpers'
+import { sdpStereoHack, sdpMediaOrderHack } from '../../src/webrtc/helpers'
 
 describe('Helpers browser functions', () => {
   describe('findElementByType', () => {

@@ -1,5 +1,5 @@
 import behaveLikeBaseSession from '../../common/tests/behaveLike/BaseSession'
-import VertoHandler from './services/VertoHandler'
+import VertoHandler from '../../common/tests/webrtc/VertoHandler'
 import { monitorCallbackQueue } from '../../common/src/services/Handler'
 import Verto, { VERTO_PROTOCOL } from '../src/Verto'
 const Connection = require('../../common/src/services/Connection')

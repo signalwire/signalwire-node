@@ -1,7 +1,7 @@
 import { monitorCallbackQueue } from '../../../common/src/services/Handler'
 import { State } from '../../../common/src/util/constants/dialog'
-import Dialog from '../../src/rtc/Dialog'
-import Verto from '../../src/Verto'
+import Dialog from '../../src/webrtc/Dialog'
+import Verto from '../../../web/src/Verto'
 const Connection = require('../../../common/src/services/Connection')
 
 describe('Dialog', () => {

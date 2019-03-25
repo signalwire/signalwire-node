@@ -7,7 +7,7 @@ const Listr = require('listr')
 
 const rootDir = path.join(__dirname, '../')
 
-const packages = [ 'common', 'node', 'web' ]
+const packages = [ 'common', 'node', 'web', 'react-native' ]
 
 function readPkg(project) {
   const packageJsonPath = packagePath(project)

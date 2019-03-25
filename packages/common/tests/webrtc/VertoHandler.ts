@@ -1,7 +1,7 @@
 import BrowserSession from '../../src/BrowserSession'
-import VertoHandler from '../../src/services/VertoHandler'
-import Dialog from '../../src/rtc/Dialog'
-import { State } from '../../../common/src/util/constants/dialog'
+import VertoHandler from '../../../common/src/webrtc/VertoHandler'
+import Dialog from '../../../common/src/webrtc/Dialog'
+import { State } from '../../src/util/constants/dialog'
 const Connection = require('../../../common/src/services/Connection')
 
 export default (klass: any) => {

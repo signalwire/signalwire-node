@@ -1,13 +1,13 @@
-import BaseSession from '../../common/src/BaseSession'
-import Connection from '../../common/src/services/Connection'
-import Dialog from './rtc/Dialog'
-import { ICacheDevices, IAudioSettings, IVideoSettings, BroadcastParams, SubscribeParams } from '../../common/src/util/interfaces'
-import { trigger, registerOnce } from '../../common/src/services/Handler'
-import { SwEvent, NOTIFICATION_TYPE } from '../../common/src/util/constants'
-import { State } from '../../common/src/util/constants/dialog'
-import { getDevices, getResolutions, checkPermissions, removeUnsupportedConstraints, checkDeviceIdConstraints, destructSubscribeResponse } from './rtc/helpers'
-import { findElementByType } from '../../common/src/util/helpers'
-import { Unsubscribe, Subscribe, Broadcast } from '../../common/src/messages/Verto'
+import BaseSession from './BaseSession'
+import Connection from './services/Connection'
+import Dialog from './webrtc/Dialog'
+import { ICacheDevices, IAudioSettings, IVideoSettings, BroadcastParams, SubscribeParams } from './util/interfaces'
+import { trigger, registerOnce } from './services/Handler'
+import { SwEvent, NOTIFICATION_TYPE } from './util/constants'
+import { State } from './util/constants/dialog'
+import { getDevices, getResolutions, checkPermissions, removeUnsupportedConstraints, checkDeviceIdConstraints, destructSubscribeResponse } from './webrtc/helpers'
+import { findElementByType } from './util/helpers'
+import { Unsubscribe, Subscribe, Broadcast } from './messages/Verto'
 
 export default abstract class BrowserSession extends BaseSession {
   public dialogs: { [dialogId: string]: Dialog } = {}

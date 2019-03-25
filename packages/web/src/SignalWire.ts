@@ -1,4 +1,4 @@
-import BrowserSession from './BrowserSession'
+import BrowserSession from '../../common/src/BrowserSession'
 import WebRTC from '../../common/src/relay/webrtc/WebRTC'
 import { DialogOptions } from '../../common/src/util/interfaces'
 import logger from '../../common/src/util/logger'

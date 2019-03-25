@@ -1,7 +1,7 @@
-import logger from '../../../common/src/util/logger'
-import * as Storage from '../../../common/src/util/storage'
-import { isDefined } from '../../../common/src/util/helpers'
-import { DialogOptions, ICacheDevices, ICacheResolution } from '../../../common/src/util/interfaces'
+import logger from '../util/logger'
+import * as Storage from '../util/storage'
+import { isDefined } from '../util/helpers'
+import { DialogOptions, ICacheDevices, ICacheResolution } from '../util/interfaces'
 
 const getUserMedia = async (constraints: MediaStreamConstraints): Promise<MediaStream | null> => {
   logger.debug('RTCService.getUserMedia', constraints)

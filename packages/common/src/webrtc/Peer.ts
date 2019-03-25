@@ -1,9 +1,9 @@
-import logger from '../../../common/src/util/logger'
+import logger from '../util/logger'
 import { getUserMedia, getMediaConstraints, streamIsValid, sdpStereoHack } from './helpers'
-import { PeerType, SwEvent } from '../../../common/src/util/constants'
-import { attachMediaStream } from '../../../common/src/util/webrtc'
-import { DialogOptions } from '../../../common/src/util/interfaces'
-import { trigger } from '../../../common/src/services/Handler'
+import { PeerType, SwEvent } from '../util/constants'
+import { attachMediaStream } from './utils'
+import { DialogOptions } from '../util/interfaces'
+import { trigger } from '../services/Handler'
 
 export default class Peer {
   public instance: RTCPeerConnection

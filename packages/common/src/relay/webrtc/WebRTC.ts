@@ -1,8 +1,7 @@
-// import logger from '../../util/logger'
 import Relay from '../Relay'
 import { DialogOptions } from '../../util/interfaces'
-import Dialog from '../../../../web/src/rtc/Dialog'
-import BrowserSession from '../../../../web/src/BrowserSession'
+import Dialog from '../../webrtc/Dialog'
+import BrowserSession from '../../BrowserSession'
 import VertoHandler from '../../../../web/src/services/VertoHandler'
 
 export default class WebRTC extends Relay {

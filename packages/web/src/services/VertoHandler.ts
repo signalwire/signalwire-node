@@ -1,10 +1,10 @@
 import logger from '../../../common/src/util/logger'
-import BrowserSession from '../BrowserSession'
+import BrowserSession from '../../../common/src/BrowserSession'
 import SignalWire from '../SignalWire'
 import Verto from '../Verto'
 
-import Dialog from '../rtc/Dialog'
-import { checkSubscribeResponse } from '../rtc/helpers'
+import Dialog from '../../../common/src/webrtc/Dialog'
+import { checkSubscribeResponse } from '../../../common/src/webrtc/helpers'
 import { Result } from '../../../common/src/messages/Verto'
 import { SwEvent, VertoMethod, NOTIFICATION_TYPE } from '../../../common/src/util/constants'
 import { trigger, deRegister } from '../../../common/src/services/Handler'

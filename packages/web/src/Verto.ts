@@ -5,7 +5,7 @@ import Dialog from '../../common/src/webrtc/Dialog'
 import { SwEvent } from '../../common/src/util/constants'
 import { trigger } from '../../common/src/services/Handler'
 import * as Storage from '../../common/src/util/storage/'
-import VertoHandler from './services/VertoHandler'
+import VertoHandler from '../../common/src/webrtc/VertoHandler'
 
 const SESSID = 'vertoSessId'
 export const VERTO_PROTOCOL = 'verto-protocol'

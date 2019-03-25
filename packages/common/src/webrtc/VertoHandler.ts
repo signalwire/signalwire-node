@@ -1,14 +1,14 @@
-import logger from '../../../common/src/util/logger'
-import BrowserSession from '../../../common/src/BrowserSession'
-import SignalWire from '../SignalWire'
-import Verto from '../Verto'
+import logger from '../util/logger'
+import BrowserSession from '../BrowserSession'
+import SignalWire from '../../../web/src/SignalWire'
+import Verto from '../../../web/src/Verto'
 
-import Dialog from '../../../common/src/webrtc/Dialog'
-import { checkSubscribeResponse } from '../../../common/src/webrtc/helpers'
-import { Result } from '../../../common/src/messages/Verto'
-import { SwEvent, VertoMethod, NOTIFICATION_TYPE } from '../../../common/src/util/constants'
-import { trigger, deRegister } from '../../../common/src/services/Handler'
-import { State, ConferenceAction } from '../../../common/src/util/constants/dialog'
+import Dialog from './Dialog'
+import { checkSubscribeResponse } from './helpers'
+import { Result } from '../messages/Verto'
+import { SwEvent, VertoMethod, NOTIFICATION_TYPE } from '../util/constants'
+import { trigger, deRegister } from '../services/Handler'
+import { State, ConferenceAction } from '../util/constants/dialog'
 
 class VertoHandler {
   public nodeId: string

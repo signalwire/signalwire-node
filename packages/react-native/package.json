@@ -6,7 +6,8 @@
   "main": "dist/react-native/index.js",
   "module": "dist/react-native/index.js",
   "files": [
-    "dist"
+    "dist",
+    ".scripts"
   ],
   "scripts": {
     "clean-build": "rm -rf dist/* && npm run build",
@@ -15,7 +16,8 @@
     "tslint": "tslint -p tsconfig.json",
     "test": "jest --forceExit --detectOpenHandles",
     "test:watch": "npm run test -- --watchAll",
-    "validate": "npm i && npm run tslint && npm run test && npm run clean-build"
+    "validate": "npm i && npm run tslint && npm run test && npm run clean-build",
+    "postinstall": "node .scripts/postinstall.js"
   },
   "keywords": [
     "signalwire",
@@ -40,9 +42,6 @@
     "listr": "^0.14.3",
     "loglevel": "^1.6.1",
     "uuid": "^3.3.2"
-  },
-  "peerDependencies": {
-    "react-native-webrtc": ">=1.69.0"
   },
   "devDependencies": {
     "@types/jest": "^24.0.6",

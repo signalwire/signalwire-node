@@ -35,6 +35,9 @@
   "homepage": "https://github.com/signalwire/signalwire-node",
   "license": "MIT",
   "dependencies": {
+    "execa": "^1.0.0",
+    "fs-extra": "^7.0.1",
+    "listr": "^0.14.3",
     "loglevel": "^1.6.1",
     "uuid": "^3.3.2"
   },

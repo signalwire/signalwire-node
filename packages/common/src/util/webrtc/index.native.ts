@@ -16,10 +16,15 @@ const streamIsValid = stream => stream instanceof MediaStream
 
 const getSupportedConstraints = () => ({})
 
+const attachMediaStream = (htmlElementId: string, stream: MediaStream) => null
+const detachMediaStream = (htmlElementId: string) => null
+
 export {
   _RTCPeerConnection as RTCPeerConnection,
   getUserMedia,
   _enumerateDevices as enumerateDevices,
   getSupportedConstraints,
-  streamIsValid
+  streamIsValid,
+  attachMediaStream,
+  detachMediaStream
 }

@@ -1,4 +1,4 @@
-import { monitorCallbackQueue } from '../../../common/src/services/Handler'
+import { isQueued } from '../../../common/src/services/Handler'
 import { State } from '../../../common/src/util/constants/dialog'
 import Dialog from '../../src/webrtc/Dialog'
 import Verto from '../../../web/src/Verto'
@@ -25,9 +25,7 @@ describe('Dialog', () => {
 
   describe('with required parameters', () => {
     it('should instantiate the default listeners', () => {
-      const queue = monitorCallbackQueue()
-      expect(Object.keys(queue)).toContain('signalwire.rtc.mediaError')
-      expect(queue['signalwire.rtc.mediaError']).toHaveProperty(dialog.id)
+      expect(isQueued('signalwire.rtc.mediaError', dialog.id)).toEqual(true)
       expect(dialog.state).toEqual('new')
       expect(session.dialogs).toHaveProperty(dialog.id)
     })
@@ -44,9 +42,7 @@ describe('Dialog', () => {
   describe('specifying onNotification callback', () => {
     it('should set a listener for the notifications', () => {
       dialog = new Dialog(session, { ...defaultParams, onNotification: noop })
-      const queue = monitorCallbackQueue()
-      expect(queue['signalwire.notification']).toHaveProperty(dialog.id)
-      expect(queue['signalwire.notification'][dialog.id].length).toEqual(1)
+      expect(isQueued('signalwire.notification', dialog.id)).toEqual(true)
     })
   })
 
@@ -105,18 +101,15 @@ describe('Dialog', () => {
       dialog.setState(State.Destroy)
       expect(dialog.state).toEqual('destroy')
       expect(session.dialogs).not.toHaveProperty(dialog.id)
-      const queue = monitorCallbackQueue()
-      // expect(queue['signalwire.notification']).not.toHaveProperty(dialog.id)
-      expect(queue['signalwire.rtc.mediaError']).not.toHaveProperty(dialog.id)
+      expect(isQueued('signalwire.rtc.mediaError', dialog.id)).toEqual(false)
+
     })
 
     it('set state to Purge', () => {
       dialog.setState(State.Purge)
       expect(dialog.state).toEqual('destroy')
       expect(session.dialogs).not.toHaveProperty(dialog.id)
-      const queue = monitorCallbackQueue()
-      // expect(queue['signalwire.notification']).not.toHaveProperty(dialog.id)
-      expect(queue['signalwire.rtc.mediaError']).not.toHaveProperty(dialog.id)
+      expect(isQueued('signalwire.rtc.mediaError', dialog.id)).toEqual(false)
     })
 
     it('set prevState', () => {

@@ -7,7 +7,6 @@ const _inspect = () => {
   if (_callingInstance) {
     console.log('Calls:', _callingInstance._calls.length, _callingInstance._calls)
   }
-  // console.log('\nQueue:', SignalWire.monitorCallbackQueue(), '\n')
   console.log('\n')
 }
 

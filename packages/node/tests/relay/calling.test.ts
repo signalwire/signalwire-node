@@ -1,5 +1,5 @@
 import { SwEvent } from '../../../common/src/util/constants'
-import { monitorCallbackQueue, trigger } from '../../../common/src/services/Handler'
+import { isQueued, trigger } from '../../../common/src/services/Handler'
 import Call from '../../../common/src/relay/calling/Call'
 import Calling from '../../../common/src/relay/calling/Calling'
 import RelayClient from '../../src/relay'
@@ -81,8 +81,8 @@ describe('Calling', () => {
 
     it('should register the inbound listener', () => {
       const { protocol } = session.calling
-      expect(monitorCallbackQueue()).toHaveProperty(protocol)
-      expect(monitorCallbackQueue()[protocol]).toHaveProperty(`ctx:${context}`)
+      const uniqueId = `ctx:${context}`
+      expect(isQueued(protocol, uniqueId)).toEqual(true)
     })
 
     it('should handle the notification', () => {

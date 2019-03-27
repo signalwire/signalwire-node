@@ -1,6 +1,6 @@
 import behaveLikeBaseSession from '../../common/tests/behaveLike/BaseSession'
 import VertoHandler from '../../common/tests/webrtc/VertoHandler'
-import { monitorCallbackQueue } from '../../common/src/services/Handler'
+import { isQueued } from '../../common/src/services/Handler'
 import Verto, { VERTO_PROTOCOL } from '../src/Verto'
 const Connection = require('../../common/src/services/Connection')
 
@@ -47,8 +47,9 @@ describe('Verto', () => {
 
     it('should register socket listeners', () => {
       const listeners = ['signalwire.socket.close', 'signalwire.socket.open', 'signalwire.socket.error', 'signalwire.socket.message']
-      const queue = monitorCallbackQueue()
-      expect(Object.keys(queue).sort()).toEqual(listeners.sort())
+      listeners.forEach(event => {
+        expect(isQueued(event, instance.uuid)).toEqual(true)
+      })
     })
 
     it('should set the devices object', () => {
@@ -61,8 +62,6 @@ describe('Verto', () => {
       it('should do nothing', async done => {
         await instance.connect()
         expect(Connection.mockClose).not.toHaveBeenCalled()
-        const q = monitorCallbackQueue()['signalwire.socket.open'][instance.uuid]
-        expect(q).toHaveLength(1)
         done()
       })
     })

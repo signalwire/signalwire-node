@@ -9,8 +9,8 @@ import { State, DEFAULT_DIALOG_OPTIONS, ConferenceAction, Role } from '../util/c
 import { trigger, register, deRegister } from '../services/Handler'
 import { streamIsValid, sdpStereoHack, sdpMediaOrderHack, checkSubscribeResponse } from './helpers'
 import { objEmpty, mutateLiveArrayData, isFunction } from '../util/helpers'
-import { attachMediaStream, detachMediaStream } from './utils'
 import { DialogOptions } from '../util/interfaces'
+import * as WebRTC from '../util/webrtc'
 
 export default class Dialog {
   public id: string = ''
@@ -556,7 +556,7 @@ export default class Dialog {
       this.options.remoteStream = event.streams[0]
 
       const { remoteElement, remoteStream } = this.options
-      attachMediaStream(remoteElement, remoteStream)
+      WebRTC.attachMediaStream(remoteElement, remoteStream)
     }
   }
 
@@ -628,8 +628,8 @@ export default class Dialog {
       localStream.getTracks().forEach(t => t.stop())
       this.options.localStream = null
     }
-    detachMediaStream(localElement)
-    detachMediaStream(remoteElement)
+    WebRTC.detachMediaStream(localElement)
+    WebRTC.detachMediaStream(remoteElement)
 
     deRegister(SwEvent.MediaError, null, this.id)
     this.peer = null

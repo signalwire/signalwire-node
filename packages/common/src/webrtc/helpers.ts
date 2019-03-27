@@ -1,5 +1,6 @@
 import logger from '../util/logger'
 import * as Storage from '../util/storage'
+import * as WebRTC from '../util/webrtc'
 import { isDefined } from '../util/helpers'
 import { DialogOptions, ICacheDevices, ICacheResolution } from '../util/interfaces'
 
@@ -9,7 +10,7 @@ const getUserMedia = async (constraints: MediaStreamConstraints): Promise<MediaS
   if (!audio && !video) {
     return null
   }
-  const stream = await navigator.mediaDevices.getUserMedia(constraints).catch(error => error)
+  const stream = await WebRTC.getUserMedia(constraints).catch(error => error)
   if (streamIsValid(stream)) {
     return stream
   }
@@ -20,7 +21,7 @@ const getUserMedia = async (constraints: MediaStreamConstraints): Promise<MediaS
 const streamIsValid = (stream: MediaStream) => stream && stream instanceof MediaStream
 
 const getDevices = async (): Promise<ICacheDevices> => {
-  const devices = await navigator.mediaDevices.enumerateDevices()
+  const devices = await WebRTC.enumerateDevices()
     .catch(error => {
       logger.error('enumerateDevices Error', error)
       return null
@@ -56,7 +57,7 @@ const resolutionList = [[160, 120], [176, 144], [320, 240], [352, 288], [640, 36
 const getResolutions = async (): Promise<ICacheResolution[]> => {
   let videoDevices = []
   try {
-    const devices = await navigator.mediaDevices.enumerateDevices()
+    const devices = await WebRTC.enumerateDevices()
     videoDevices = devices.filter(d => d.kind === 'videoinput')
   } catch (error) {
     return []
@@ -104,7 +105,7 @@ const getMediaConstraints = (options: DialogOptions): MediaStreamConstraints => 
 }
 
 const assureDeviceId = async (id: string, label: string, kind: MediaDeviceInfo['kind']): Promise<string> => {
-  const devices = await navigator.mediaDevices.enumerateDevices()
+  const devices = await WebRTC.enumerateDevices()
     .catch(error => { logger.error('enumerateDevices Error', error) })
   if (devices) {
     for (let i = 0; i < devices.length; i++) {
@@ -136,7 +137,7 @@ const checkPermissions = async (): Promise<boolean> => {
 }
 
 const removeUnsupportedConstraints = (constraints: MediaTrackConstraints): void => {
-  const supported = navigator.mediaDevices.getSupportedConstraints()
+  const supported = WebRTC.getSupportedConstraints()
   Object.keys(constraints).map(key => {
     if (!supported.hasOwnProperty(key)) {
       // logger.warn(`"${key}" constraint is not supported in this browser!`)

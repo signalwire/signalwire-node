@@ -1,7 +1,12 @@
 import { findElementByType } from '../helpers'
 
-const { RTCPeerConnection } = window
-const { getUserMedia, enumerateDevices, getSupportedConstraints } = navigator.mediaDevices
+const RTCPeerConnection = (config: RTCPeerConnectionConfig) => new window.RTCPeerConnection(config)
+
+const getUserMedia = (constraints: MediaStreamConstraints) => navigator.mediaDevices.getUserMedia(constraints)
+
+const enumerateDevices = () => navigator.mediaDevices.enumerateDevices()
+
+const getSupportedConstraints = () => navigator.mediaDevices.getSupportedConstraints()
 
 const streamIsValid = stream => stream instanceof MediaStream
 

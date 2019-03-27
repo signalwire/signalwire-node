@@ -1,7 +1,7 @@
 import logger from '../util/logger'
 import { getUserMedia, getMediaConstraints, streamIsValid, sdpStereoHack } from './helpers'
 import { PeerType, SwEvent } from '../util/constants'
-import { attachMediaStream } from './utils'
+import * as WebRTC from '../util/webrtc'
 import { DialogOptions } from '../util/interfaces'
 import { trigger } from '../services/Handler'
 
@@ -34,7 +34,7 @@ export default class Peer {
   }
 
   private async _init() {
-    this.instance = new RTCPeerConnection(this._config())
+    this.instance = WebRTC.RTCPeerConnection(this._config())
 
     this.instance.onsignalingstatechange = event => {
       switch (this.instance.signalingState) {
@@ -70,8 +70,13 @@ export default class Peer {
       localStream = mutateLocalStream(localStream)
     }
     if (streamIsValid(localStream)) {
-      localStream.getTracks().forEach(t => this.instance.addTrack(t, localStream))
-      attachMediaStream(localElement, localStream)
+      if (this.instance.hasOwnProperty('addTrack')) {
+        localStream.getTracks().forEach(t => this.instance.addTrack(t, localStream))
+      } else {
+        // @ts-ignore
+        this.instance.addStream(localStream)
+      }
+      WebRTC.attachMediaStream(localElement, localStream)
     } else if (localStream === null) {
       this._startNegotiation()
     }

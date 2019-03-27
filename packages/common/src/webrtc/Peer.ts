@@ -2,11 +2,13 @@ import logger from '../util/logger'
 import { getUserMedia, getMediaConstraints, streamIsValid, sdpStereoHack } from './helpers'
 import { PeerType, SwEvent } from '../util/constants'
 import * as WebRTC from '../util/webrtc'
+import { isFunction } from '../util/helpers'
 import { DialogOptions } from '../util/interfaces'
 import { trigger } from '../services/Handler'
 
 export default class Peer {
   public instance: RTCPeerConnection
+  public onSdpReadyTwice: Function = null
   private _constraints: { offerToReceiveAudio: boolean, offerToReceiveVideo: boolean }
   private _negotiating: boolean = false
 
@@ -14,6 +16,7 @@ export default class Peer {
     logger.info('New Peer with type:', this.type, 'Options:', this.options)
 
     this._constraints = { offerToReceiveAudio: true, offerToReceiveVideo: true }
+    this._sdpReady = this._sdpReady.bind(this)
     this._init()
   }
 
@@ -31,6 +34,16 @@ export default class Peer {
 
   get videoState() {
     return this._videoTracks().every(t => t.enabled)
+  }
+
+  startNegotiation() {
+    this._negotiating = true
+
+    if (this._isOffer()) {
+      this._createOffer()
+    } else {
+      this._createAnswer()
+    }
   }
 
   private async _init() {
@@ -56,7 +69,7 @@ export default class Peer {
         logger.debug('Skip twice onnegotiationneeded..')
         return
       }
-      this._startNegotiation()
+      this.startNegotiation()
     }
 
     this.options.localStream = await this._retrieveLocalStream()
@@ -78,17 +91,7 @@ export default class Peer {
       }
       WebRTC.attachMediaStream(localElement, localStream)
     } else if (localStream === null) {
-      this._startNegotiation()
-    }
-  }
-
-  private _startNegotiation() {
-    this._negotiating = true
-
-    if (this._isOffer()) {
-      this._createOffer()
-    } else {
-      this._createAnswer()
+      this.startNegotiation()
     }
   }
 
@@ -99,6 +102,7 @@ export default class Peer {
     // FIXME: Use https://developer.mozilla.org/en-US/docs/Web/API/RTCRtpTransceiver when available (M71)
     this.instance.createOffer(this._constraints)
       .then(this._setLocalDescription.bind(this))
+      .then(this._sdpReady)
       .catch(error => logger.error('Peer _createOffer error:', error))
   }
 
@@ -111,6 +115,7 @@ export default class Peer {
     this.instance.setRemoteDescription({ sdp, type: 'offer' })
       .then(() => this.instance.createAnswer())
       .then(this._setLocalDescription.bind(this))
+      .then(this._sdpReady)
       .catch(error => logger.error('Peer _createAnswer error:', error))
   }
 
@@ -119,6 +124,13 @@ export default class Peer {
       sessionDescription.sdp = sdpStereoHack(sessionDescription.sdp)
     }
     return this.instance.setLocalDescription(sessionDescription)
+  }
+
+  /** Workaround for ReactNative: first time SDP has no candidates */
+  private _sdpReady(): void {
+    if (isFunction(this.onSdpReadyTwice)) {
+      this.onSdpReadyTwice(this.instance.localDescription)
+    }
   }
 
   private async _retrieveLocalStream() {

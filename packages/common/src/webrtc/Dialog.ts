@@ -516,9 +516,26 @@ export default class Dialog {
       })
   }
 
+  private _requestAnotherLocalDescription() {
+    if (isFunction(this.peer.onSdpReadyTwice)) {
+      trigger(SwEvent.Error, new Error('SDP without candidates for the second time!'), this.session.uuid)
+      return
+    }
+    Object.defineProperty(this.peer, 'onSdpReadyTwice', {
+      writable: false,
+      value: this._onIceSdp.bind(this)
+    })
+    this.peer.startNegotiation()
+  }
+
   private _onIceSdp(data: RTCSessionDescription) {
+    const { sdp } = data
+    if (sdp.indexOf('candidate') === -1) {
+      this._requestAnotherLocalDescription()
+      return
+    }
     let msg = null
-    const tmpParams = { sessid: this.session.sessionid, sdp: data.sdp, dialogParams: this.options }
+    const tmpParams = { sessid: this.session.sessionid, sdp, dialogParams: this.options }
     if (data.type === PeerType.Offer) {
       this.setState(State.Requesting)
       msg = new Invite(tmpParams)

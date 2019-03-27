@@ -1,7 +1,7 @@
 import logger from '../util/logger'
 import { getUserMedia, getMediaConstraints, streamIsValid, sdpStereoHack } from './helpers'
 import { PeerType, SwEvent } from '../util/constants'
-import * as WebRTC from '../util/webrtc'
+import { attachMediaStream, sdpToJsonHack, RTCPeerConnection } from '../util/webrtc'
 import { isFunction } from '../util/helpers'
 import { DialogOptions } from '../util/interfaces'
 import { trigger } from '../services/Handler'
@@ -47,7 +47,7 @@ export default class Peer {
   }
 
   private async _init() {
-    this.instance = WebRTC.RTCPeerConnection(this._config())
+    this.instance = RTCPeerConnection(this._config())
 
     this.instance.onsignalingstatechange = event => {
       switch (this.instance.signalingState) {
@@ -89,7 +89,7 @@ export default class Peer {
         // @ts-ignore
         this.instance.addStream(localStream)
       }
-      WebRTC.attachMediaStream(localElement, localStream)
+      attachMediaStream(localElement, localStream)
     } else if (localStream === null) {
       this.startNegotiation()
     }
@@ -112,7 +112,8 @@ export default class Peer {
     }
     const { remoteSdp, useStereo = true } = this.options
     const sdp = useStereo ? sdpStereoHack(remoteSdp) : remoteSdp
-    this.instance.setRemoteDescription({ sdp, type: 'offer' })
+    const sessionDescr: RTCSessionDescription = sdpToJsonHack({ sdp, type: PeerType.Offer })
+    this.instance.setRemoteDescription(sessionDescr)
       .then(() => this.instance.createAnswer())
       .then(this._setLocalDescription.bind(this))
       .then(this._sdpReady)

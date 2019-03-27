@@ -31,7 +31,7 @@ const detachMediaStream = (tag: any) => {
   }
 }
 
-const sdpToJsonHack = (sdp: RTCSessionDescription) => sdp
+const sdpToJsonHack = sdp => sdp
 
 export {
   RTCPeerConnection,

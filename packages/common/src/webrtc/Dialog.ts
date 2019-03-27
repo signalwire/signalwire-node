@@ -10,7 +10,7 @@ import { trigger, register, deRegister } from '../services/Handler'
 import { streamIsValid, sdpStereoHack, sdpMediaOrderHack, checkSubscribeResponse } from './helpers'
 import { objEmpty, mutateLiveArrayData, isFunction } from '../util/helpers'
 import { DialogOptions } from '../util/interfaces'
-import * as WebRTC from '../util/webrtc'
+import { attachMediaStream, detachMediaStream, sdpToJsonHack } from '../util/webrtc'
 
 export default class Dialog {
   public id: string = ''
@@ -501,7 +501,8 @@ export default class Dialog {
     if (this.options.useStereo) {
       sdp = sdpStereoHack(sdp)
     }
-    this.peer.instance.setRemoteDescription({ sdp, type: PeerType.Answer })
+    const sessionDescr: RTCSessionDescription = sdpToJsonHack({ sdp, type: PeerType.Answer })
+    this.peer.instance.setRemoteDescription(sessionDescr)
       .then(() => {
         if (this.gotEarly) {
           this.setState(State.Early)
@@ -573,7 +574,7 @@ export default class Dialog {
       this.options.remoteStream = event.streams[0]
 
       const { remoteElement, remoteStream } = this.options
-      WebRTC.attachMediaStream(remoteElement, remoteStream)
+      attachMediaStream(remoteElement, remoteStream)
     }
   }
 
@@ -645,8 +646,8 @@ export default class Dialog {
       localStream.getTracks().forEach(t => t.stop())
       this.options.localStream = null
     }
-    WebRTC.detachMediaStream(localElement)
-    WebRTC.detachMediaStream(remoteElement)
+    detachMediaStream(localElement)
+    detachMediaStream(remoteElement)
 
     deRegister(SwEvent.MediaError, null, this.id)
     this.peer = null

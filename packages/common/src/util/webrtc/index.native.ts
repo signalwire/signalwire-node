@@ -19,7 +19,7 @@ const getSupportedConstraints = () => ({})
 const attachMediaStream = (htmlElementId: string, stream: MediaStream) => null
 const detachMediaStream = (htmlElementId: string) => null
 
-const sdpToJsonHack = (sdp: RTCSessionDescription) => {
+const sdpToJsonHack = sdp => {
   Object.defineProperty(sdp, 'toJSON', {
     writable: false,
     value: () => sdp

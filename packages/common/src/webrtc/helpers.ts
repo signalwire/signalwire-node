@@ -11,14 +11,12 @@ const getUserMedia = async (constraints: MediaStreamConstraints): Promise<MediaS
     return null
   }
   const stream = await WebRTC.getUserMedia(constraints).catch(error => error)
-  if (streamIsValid(stream)) {
+  if (WebRTC.streamIsValid(stream)) {
     return stream
   }
   logger.error('getUserMedia error: ', stream.name, stream.message)
   throw stream
 }
-
-const streamIsValid = (stream: MediaStream) => stream && stream instanceof MediaStream
 
 const getDevices = async (): Promise<ICacheDevices> => {
   const devices = await WebRTC.enumerateDevices()
@@ -123,11 +121,11 @@ const assureDeviceId = async (id: string, label: string, kind: MediaDeviceInfo['
 
 const checkPermissions = async (): Promise<boolean> => {
   const fullStream = await getUserMedia({ audio: true, video: true }).catch(_e => null)
-  if (streamIsValid(fullStream)) {
+  if (WebRTC.streamIsValid(fullStream)) {
     fullStream.getTracks().forEach((t: MediaStreamTrack) => t.stop())
   } else {
     const audioStream = await getUserMedia({ audio: true }).catch(_e => null)
-    if (streamIsValid(audioStream)) {
+    if (WebRTC.streamIsValid(audioStream)) {
       audioStream.getTracks().forEach((t: MediaStreamTrack) => t.stop())
     } else {
       return false
@@ -246,7 +244,6 @@ export {
   getDevices,
   getResolutions,
   getMediaConstraints,
-  streamIsValid,
   assureDeviceId,
   checkPermissions,
   removeUnsupportedConstraints,

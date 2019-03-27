@@ -7,10 +7,10 @@ import Peer from './Peer'
 import { PeerType, VertoMethod, SwEvent, NOTIFICATION_TYPE, Direction } from '../util/constants'
 import { State, DEFAULT_DIALOG_OPTIONS, ConferenceAction, Role } from '../util/constants/dialog'
 import { trigger, register, deRegister } from '../services/Handler'
-import { streamIsValid, sdpStereoHack, sdpMediaOrderHack, checkSubscribeResponse } from './helpers'
+import { sdpStereoHack, sdpMediaOrderHack, checkSubscribeResponse } from './helpers'
 import { objEmpty, mutateLiveArrayData, isFunction } from '../util/helpers'
 import { DialogOptions } from '../util/interfaces'
-import { attachMediaStream, detachMediaStream, sdpToJsonHack } from '../util/webrtc'
+import { attachMediaStream, detachMediaStream, sdpToJsonHack, streamIsValid } from '../util/webrtc'
 
 export default class Dialog {
   public id: string = ''

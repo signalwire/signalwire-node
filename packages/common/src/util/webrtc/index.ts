@@ -8,7 +8,7 @@ const enumerateDevices = () => navigator.mediaDevices.enumerateDevices()
 
 const getSupportedConstraints = () => navigator.mediaDevices.getSupportedConstraints()
 
-const streamIsValid = stream => stream instanceof MediaStream
+const streamIsValid = (stream: MediaStream) => stream && stream instanceof MediaStream
 
 const attachMediaStream = (tag: any, stream: MediaStream) => {
   const element = findElementByType(tag)

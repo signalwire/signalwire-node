@@ -1,5 +1,5 @@
 // @ts-ignore
-import { RTCPeerConnection, mediaDevices, getUserMedia, MediaStream, RTCSessionDescription } from 'react-native-webrtc'
+import { RTCPeerConnection, mediaDevices, MediaStream } from 'react-native-webrtc'
 import { objEmpty } from '../helpers'
 import logger from '../logger'
 
@@ -9,10 +9,11 @@ const _RTCPeerConnection = (config: RTCPeerConnectionConfig) => {
   return new RTCPeerConnection(_config)
 }
 
+const _getUserMedia = (constraints: MediaStreamConstraints) => mediaDevices.getUserMedia(constraints)
 
 const _enumerateDevices = () => mediaDevices.enumerateDevices()
 
-const streamIsValid = stream => stream instanceof MediaStream
+const streamIsValid = (stream: MediaStream) => stream && stream instanceof MediaStream
 
 const getSupportedConstraints = () => ({})
 
@@ -30,7 +31,7 @@ const sdpToJsonHack = sdp => {
 
 export {
   _RTCPeerConnection as RTCPeerConnection,
-  getUserMedia,
+  _getUserMedia as getUserMedia,
   _enumerateDevices as enumerateDevices,
   getSupportedConstraints,
   streamIsValid,

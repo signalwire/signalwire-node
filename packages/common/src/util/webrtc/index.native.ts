@@ -1,5 +1,5 @@
 // @ts-ignore
-import { RTCPeerConnection, mediaDevices, getUserMedia, MediaStream } from 'react-native-webrtc'
+import { RTCPeerConnection, mediaDevices, getUserMedia, MediaStream, RTCSessionDescription } from 'react-native-webrtc'
 import { objEmpty } from '../helpers'
 import logger from '../logger'
 
@@ -19,6 +19,15 @@ const getSupportedConstraints = () => ({})
 const attachMediaStream = (htmlElementId: string, stream: MediaStream) => null
 const detachMediaStream = (htmlElementId: string) => null
 
+const sdpToJsonHack = (sdp: RTCSessionDescription) => {
+  Object.defineProperty(sdp, 'toJSON', {
+    writable: false,
+    value: () => sdp
+  })
+
+  return sdp
+}
+
 export {
   _RTCPeerConnection as RTCPeerConnection,
   getUserMedia,
@@ -26,5 +35,6 @@ export {
   getSupportedConstraints,
   streamIsValid,
   attachMediaStream,
-  detachMediaStream
+  detachMediaStream,
+  sdpToJsonHack
 }

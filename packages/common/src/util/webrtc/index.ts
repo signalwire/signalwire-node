@@ -31,6 +31,8 @@ const detachMediaStream = (tag: any) => {
   }
 }
 
+const sdpToJsonHack = (sdp: RTCSessionDescription) => sdp
+
 export {
   RTCPeerConnection,
   getUserMedia,
@@ -38,5 +40,6 @@ export {
   getSupportedConstraints,
   streamIsValid,
   attachMediaStream,
-  detachMediaStream
+  detachMediaStream,
+  sdpToJsonHack
 }

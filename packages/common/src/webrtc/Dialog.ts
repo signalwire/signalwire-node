@@ -7,10 +7,10 @@ import Peer from './Peer'
 import { PeerType, VertoMethod, SwEvent, NOTIFICATION_TYPE, Direction } from '../util/constants'
 import { State, DEFAULT_DIALOG_OPTIONS, ConferenceAction, Role } from '../util/constants/dialog'
 import { trigger, register, deRegister } from '../services/Handler'
-import { streamIsValid, sdpStereoHack, sdpMediaOrderHack, checkSubscribeResponse } from './helpers'
+import { sdpStereoHack, sdpMediaOrderHack, checkSubscribeResponse } from './helpers'
 import { objEmpty, mutateLiveArrayData, isFunction } from '../util/helpers'
-import { attachMediaStream, detachMediaStream } from './utils'
 import { DialogOptions } from '../util/interfaces'
+import { attachMediaStream, detachMediaStream, sdpToJsonHack, streamIsValid } from '../util/webrtc'
 
 export default class Dialog {
   public id: string = ''
@@ -501,7 +501,8 @@ export default class Dialog {
     if (this.options.useStereo) {
       sdp = sdpStereoHack(sdp)
     }
-    this.peer.instance.setRemoteDescription({ sdp, type: PeerType.Answer })
+    const sessionDescr: RTCSessionDescription = sdpToJsonHack({ sdp, type: PeerType.Answer })
+    this.peer.instance.setRemoteDescription(sessionDescr)
       .then(() => {
         if (this.gotEarly) {
           this.setState(State.Early)
@@ -516,9 +517,26 @@ export default class Dialog {
       })
   }
 
+  private _requestAnotherLocalDescription() {
+    if (isFunction(this.peer.onSdpReadyTwice)) {
+      trigger(SwEvent.Error, new Error('SDP without candidates for the second time!'), this.session.uuid)
+      return
+    }
+    Object.defineProperty(this.peer, 'onSdpReadyTwice', {
+      writable: false,
+      value: this._onIceSdp.bind(this)
+    })
+    this.peer.startNegotiation()
+  }
+
   private _onIceSdp(data: RTCSessionDescription) {
+    const { sdp } = data
+    if (sdp.indexOf('candidate') === -1) {
+      this._requestAnotherLocalDescription()
+      return
+    }
     let msg = null
-    const tmpParams = { sessid: this.session.sessionid, sdp: data.sdp, dialogParams: this.options }
+    const tmpParams = { sessid: this.session.sessionid, sdp, dialogParams: this.options }
     if (data.type === PeerType.Offer) {
       this.setState(State.Requesting)
       msg = new Invite(tmpParams)

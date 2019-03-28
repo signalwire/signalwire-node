@@ -98,13 +98,11 @@ const deRegisterAll = (eventName: string) => {
 }
 
 export {
-  GLOBAL,
   trigger,
   register,
   registerOnce,
   deRegister,
   deRegisterAll,
   isQueued,
-  queueLength,
-  queue
+  queueLength
 }

@@ -1,4 +1,3 @@
-[![npm version](https://badge.fury.io/js/signalwire.svg)](https://badge.fury.io/js/signalwire)
 ![Drone CI](https://ci.signalwire.com/api/badges/signalwire/signalwire-node/status.svg)
 
 # SignalWire
@@ -7,11 +6,11 @@ This package provides a client for Signalwire services and supports different Ja
 
 ### Packages
 
-| Project | Description | README | CHANGELOG |
-| ------- | ------- | ------- |:-----:|
-| **Node.js** | SignalWire in a Node.js server | [`README.md`](packages/node/README.md) | [`CHANGELOG.md`](packages/node/CHANGELOG.md)
-| **Web** | SignalWire in the browser! | **coming soon** |
-| **React Native** | SignalWire in a React Native App | **coming soon** |
+| Project | Description | README | CHANGELOG | Version |
+| ------- | ------- | ------- | ------- |:-----:|
+| **Node.js** | SignalWire in Node.js | [`README.md`](packages/node/README.md) | [`CHANGELOG.md`](packages/node/CHANGELOG.md) | [![npm version](https://badge.fury.io/js/%40signalwire%2Fnode.svg)](https://badge.fury.io/js/%40signalwire%2Fnode)
+| **Web** | SignalWire in the browser! | **coming soon** | |
+| **React Native** | SignalWire in a React Native App | **coming soon** | |
 
 Refer to the README of each package for further details.
 

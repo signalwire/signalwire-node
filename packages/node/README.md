@@ -1,3 +1,5 @@
+[![npm version](https://badge.fury.io/js/%40signalwire%2Fnode.svg)](https://badge.fury.io/js/%40signalwire%2Fnode)
+
 # SignalWire Node.js
 
 This package provides a NodeJS client for the Signalwire services.

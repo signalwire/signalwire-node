@@ -34,19 +34,12 @@ const register = (eventName: string, callback: Function, uniqueId: string = GLOB
  * Subscribes the callback to the passed eventName only once. Use uniqueId to render unique the event.
  */
 const registerOnce = (eventName: string, callback: Function, uniqueId: string = GLOBAL) => {
-  // const cb = data => {
-  //   deRegister(eventName, cb, uniqueId)
-  //   callback(data)
-  // }
-  // return register(eventName, cb, uniqueId)
-
-  const __cb = () => {
-    deRegister(eventName, callback, uniqueId)
-    deRegister(eventName, __cb, uniqueId)
+  const cb = data => {
+    deRegister(eventName, cb, uniqueId)
+    callback(data)
   }
-  __cb.prototype.registerOnceHandler = true
-  register(eventName, __cb, uniqueId)
-  return register(eventName, callback, uniqueId)
+  cb.prototype.targetRef = callback
+  return register(eventName, cb, uniqueId)
 }
 
 /**
@@ -57,7 +50,7 @@ const deRegister = (eventName: string, callback?: Function | null, uniqueId: str
     return false
   }
   if (isFunction(callback)) {
-    const index = queue[eventName][uniqueId].indexOf(callback)
+    const index = queue[eventName][uniqueId].findIndex(fn => callback === fn || callback === fn.prototype.targetRef)
     if (index >= 0) {
       queue[eventName][uniqueId].splice(index, 1)
     }

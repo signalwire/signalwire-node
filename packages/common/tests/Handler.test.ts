@@ -51,55 +51,72 @@ describe('Handler', () => {
   })
 
   describe('deRegister()', () => {
-    describe('passing callback reference', () => {
-      it('should remove a registered callback from the queue', () => {
-        register(eventName, fnMock)
-        register(eventName, fnMock, uniqueId)
+    it('should remove the cb looking up by reference', () => {
+      register(eventName, fnMock)
+      register(eventName, fnMock, uniqueId)
 
-        deRegister(eventName, fnMock)
-        expect(isQueued(eventName, uniqueId)).toEqual(true)
-        expect(isQueued(eventName)).toEqual(false)
+      deRegister(eventName, fnMock)
+      expect(isQueued(eventName)).toEqual(false)
+      expect(isQueued(eventName, uniqueId)).toEqual(true)
 
-        deRegister(eventName, fnMock, uniqueId)
-        expect(isQueued(eventName, uniqueId)).toEqual(false)
-      })
+      deRegister(eventName, fnMock, uniqueId)
+      expect(isQueued(eventName, uniqueId)).toEqual(false)
     })
 
-    describe('without passing callback reference', () => {
-      it('should remove a registered callback from the queue', () => {
-        register(eventName, fnMock)
-        register(eventName, fnMock, uniqueId)
+    it('should remove the cb without the callback reference', () => {
+      register(eventName, fnMock)
+      register(eventName, fnMock, uniqueId)
 
-        deRegister(eventName)
+      deRegister(eventName)
 
-        expect(isQueued(eventName, uniqueId)).toEqual(true)
-        expect(isQueued(eventName)).toEqual(false)
-      })
+      expect(isQueued(eventName)).toEqual(false)
+      expect(isQueued(eventName, uniqueId)).toEqual(true)
     })
 
     describe('with multiple callbacks on the same event name', () => {
-      it('should remove a registered callback from the queue', () => {
-        registerOnce(eventName, fnMock, uniqueId)
-        registerOnce(eventName, fnMock, uniqueId)
+      it('should remove the same callback', () => {
+        register(eventName, fnMock, uniqueId)
+        register(eventName, fnMock, uniqueId)
 
-        trigger(eventName, null, uniqueId)
-
-        expect(fnMock).toHaveBeenCalledTimes(2)
-        expect(isQueued(eventName, uniqueId)).toEqual(false)
-      })
-    })
-
-    describe('remove a callback queued with registerOnce', () => {
-      it('should remove the registered callback from the queue', () => {
-        // registerOnce(eventName, fnMock)
-        // deRegister(eventName, fnMock)
-        // expect(isQueued(eventName)).toEqual(false)
-
-        registerOnce(eventName, fnMock, uniqueId)
         deRegister(eventName, fnMock, uniqueId)
 
         expect(isQueued(eventName, uniqueId)).toEqual(false)
       })
+
+      it('should remove a callback without changing the other', () => {
+        const fnMock2 = jest.fn()
+        register(eventName, fnMock, uniqueId)
+        register(eventName, fnMock2, uniqueId)
+
+        deRegister(eventName, fnMock, uniqueId)
+
+        expect(isQueued(eventName, uniqueId)).toEqual(true)
+
+        trigger(eventName, null, uniqueId)
+        expect(fnMock2).toHaveBeenCalledTimes(1)
+      })
+    })
+
+    it('should remove a callback queued with registerOnce()', () => {
+      registerOnce(eventName, fnMock)
+      deRegister(eventName, fnMock)
+      expect(isQueued(eventName)).toEqual(false)
+
+      registerOnce(eventName, fnMock, uniqueId)
+      deRegister(eventName, fnMock, uniqueId)
+      expect(isQueued(eventName, uniqueId)).toEqual(false)
+    })
+
+    it('should remove a callback queued multiple times with registerOnce()', () => {
+      registerOnce(eventName, fnMock)
+      registerOnce(eventName, fnMock)
+      deRegister(eventName, fnMock)
+      expect(isQueued(eventName)).toEqual(false)
+
+      registerOnce(eventName, fnMock, uniqueId)
+      registerOnce(eventName, fnMock, uniqueId)
+      deRegister(eventName, fnMock, uniqueId)
+      expect(isQueued(eventName, uniqueId)).toEqual(false)
     })
   })
 

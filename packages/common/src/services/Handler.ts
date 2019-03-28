@@ -50,9 +50,12 @@ const deRegister = (eventName: string, callback?: Function | null, uniqueId: str
     return false
   }
   if (isFunction(callback)) {
-    const index = queue[eventName][uniqueId].findIndex(fn => callback === fn || callback === fn.prototype.targetRef)
-    if (index >= 0) {
-      queue[eventName][uniqueId].splice(index, 1)
+    const len = queue[eventName][uniqueId].length
+    for (let i = len - 1; i >= 0; i--) {
+      const fn = queue[eventName][uniqueId][i]
+      if (callback === fn || callback === fn.prototype.targetRef) {
+        queue[eventName][uniqueId].splice(i, 1)
+      }
     }
   } else {
     queue[eventName][uniqueId] = []

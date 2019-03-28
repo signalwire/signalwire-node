@@ -9,9 +9,13 @@ type QueueMap = {
 const GLOBAL = 'GLOBAL'
 const queue: QueueMap = {}
 
-const _exists = (eventName: string, uniqueId: string) => queue.hasOwnProperty(eventName) && queue[eventName].hasOwnProperty(uniqueId)
-
-const monitorCallbackQueue = () => queue
+const isQueued = (eventName: string, uniqueId: string = GLOBAL) => queue.hasOwnProperty(eventName) && queue[eventName].hasOwnProperty(uniqueId)
+const queueLength = (eventName: string, uniqueId: string = GLOBAL): number => {
+  if (!isQueued(eventName, uniqueId)) {
+    return 0
+  }
+  return queue[eventName][uniqueId].length
+}
 
 /**
  * Subscribes the callback to the passed eventName. Use uniqueId to render unique the event.
@@ -34,6 +38,7 @@ const registerOnce = (eventName: string, callback: Function, uniqueId: string = 
     deRegister(eventName, cb, uniqueId)
     callback(data)
   }
+  cb.prototype.targetRef = callback
   return register(eventName, cb, uniqueId)
 }
 
@@ -41,13 +46,16 @@ const registerOnce = (eventName: string, callback: Function, uniqueId: string = 
  * Remove subscription by callback. If not callback is passed in, all subscription will be removed.
  */
 const deRegister = (eventName: string, callback?: Function | null, uniqueId: string = GLOBAL) => {
-  if (!_exists(eventName, uniqueId)) {
+  if (!isQueued(eventName, uniqueId)) {
     return false
   }
   if (isFunction(callback)) {
-    const index = queue[eventName][uniqueId].indexOf(callback)
-    if (index >= 0) {
-      queue[eventName][uniqueId].splice(index, 1)
+    const len = queue[eventName][uniqueId].length
+    for (let i = len - 1; i >= 0; i--) {
+      const fn = queue[eventName][uniqueId][i]
+      if (callback === fn || callback === fn.prototype.targetRef) {
+        queue[eventName][uniqueId].splice(i, 1)
+      }
     }
   } else {
     queue[eventName][uniqueId] = []
@@ -66,7 +74,7 @@ const deRegister = (eventName: string, callback?: Function | null, uniqueId: str
  */
 const trigger = (eventName: string, data: any, uniqueId: string = GLOBAL, globalPropagation: boolean = true) => {
   const _propagate: boolean = globalPropagation && uniqueId !== GLOBAL
-  if (!_exists(eventName, uniqueId)) {
+  if (!isQueued(eventName, uniqueId)) {
     if (_propagate) { trigger(eventName, data) }
     return false
   }
@@ -95,5 +103,6 @@ export {
   registerOnce,
   deRegister,
   deRegisterAll,
-  monitorCallbackQueue
+  isQueued,
+  queueLength
 }

@@ -1,4 +1,4 @@
-import { monitorCallbackQueue } from '../../src/services/Handler'
+import { isQueued } from '../../src/services/Handler'
 import BaseSession from '../../src/BaseSession'
 import { ISignalWireOptions } from '../../src/util/interfaces'
 const Connection = require('../../src/services/Connection')
@@ -8,14 +8,6 @@ export default (klass: any) => {
   describe('Inherit BaseClass', () => {
     const OPTIONS: ISignalWireOptions = { host: 'example.signalwire.com', login: 'login', password: 'password', project: 'project', token: 'token' }
     const instance = new klass(OPTIONS)
-
-    // afterAll(() => {
-    //   console.log('\t afterAll \n', monitorCallbackQueue(), '\n')
-    // })
-
-    // beforeEach(() => {
-    //   console.log('BaseSession beforeEach?')
-    // })
 
     afterEach(() => {
       instance.disconnect()
@@ -166,12 +158,12 @@ export default (klass: any) => {
 
       it('.on() should add a listener into the internal queue', () => {
         BaseSession.on('event', mockFn)
-        expect(monitorCallbackQueue()).toHaveProperty('event')
+        expect(isQueued('event')).toEqual(true)
       })
 
       it('.off() should remove a listener from the internal queue', () => {
         BaseSession.off('event')
-        expect(monitorCallbackQueue()).not.toHaveProperty('event')
+        expect(isQueued('event')).toEqual(false)
       })
     })
   })

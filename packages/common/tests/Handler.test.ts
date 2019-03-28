@@ -1,4 +1,4 @@
-import { register, registerOnce, deRegister, deRegisterAll, trigger, monitorCallbackQueue } from '../src/services/Handler'
+import { register, registerOnce, deRegister, deRegisterAll, trigger, isQueued, queueLength } from '../src/services/Handler'
 
 describe('Handler', () => {
   const fnMock = jest.fn()
@@ -14,81 +14,109 @@ describe('Handler', () => {
   describe('register()', () => {
     it('register a listener without uniqueId', () => {
       register(eventName, fnMock)
-      expect(monitorCallbackQueue()).toHaveProperty(eventName)
-      expect(monitorCallbackQueue()[eventName]).toHaveProperty('GLOBAL')
-      expect(monitorCallbackQueue()[eventName]['GLOBAL']).toEqual([fnMock])
+
+      expect(isQueued(eventName)).toEqual(true)
+      expect(queueLength(eventName)).toEqual(1)
     })
 
     it('register a listener with a uniqueId', () => {
       register(eventName, fnMock, uniqueId)
-      expect(monitorCallbackQueue()).toHaveProperty(eventName)
-      expect(monitorCallbackQueue()[eventName]).toHaveProperty(uniqueId)
-      expect(monitorCallbackQueue()[eventName]).not.toHaveProperty('GLOBAL')
-      expect(monitorCallbackQueue()[eventName][uniqueId]).toEqual([fnMock])
+
+      expect(isQueued(eventName, uniqueId)).toEqual(true)
+      expect(isQueued(eventName)).toEqual(false)
+      expect(queueLength(eventName, uniqueId)).toEqual(1)
     })
   })
 
   describe('registerOnce()', () => {
     it('register a listener without uniqueId and remove it after the first call', () => {
       registerOnce(eventName, fnMock)
-      expect(monitorCallbackQueue()).toHaveProperty(eventName)
-      expect(monitorCallbackQueue()[eventName]).toHaveProperty('GLOBAL')
+      expect(isQueued(eventName)).toEqual(true)
 
       trigger(eventName, null)
-
-      expect(monitorCallbackQueue()).not.toHaveProperty(eventName)
-      expect(monitorCallbackQueue()).toMatchObject({})
+      expect(isQueued(eventName)).toEqual(false)
     })
 
     it('register a listener with uniqueId and remove it after the first call', () => {
       registerOnce(eventName, fnMock, uniqueId)
-      expect(monitorCallbackQueue()).toHaveProperty(eventName)
-      expect(monitorCallbackQueue()[eventName]).toHaveProperty(uniqueId)
-      expect(monitorCallbackQueue()[eventName]).not.toHaveProperty('GLOBAL')
+
+      expect(isQueued(eventName, uniqueId)).toEqual(true)
+      expect(isQueued(eventName)).toEqual(false)
 
       trigger(eventName, null, uniqueId)
 
       expect(fnMock).toHaveBeenCalled()
-      expect(monitorCallbackQueue()).not.toHaveProperty(eventName)
-      expect(monitorCallbackQueue()).toMatchObject({})
+      expect(isQueued(eventName, uniqueId)).toEqual(false)
     })
   })
 
   describe('deRegister()', () => {
-    describe('passing callback reference', () => {
-      it('should remove a registered callback from the queue', () => {
-        register(eventName, fnMock)
-        register(eventName, fnMock, uniqueId)
+    it('should remove the cb looking up by reference', () => {
+      register(eventName, fnMock)
+      register(eventName, fnMock, uniqueId)
 
-        deRegister(eventName, fnMock)
-        expect(monitorCallbackQueue()[eventName]).toHaveProperty(uniqueId)
-        expect(monitorCallbackQueue()[eventName]).not.toHaveProperty('GLOBAL')
+      deRegister(eventName, fnMock)
+      expect(isQueued(eventName)).toEqual(false)
+      expect(isQueued(eventName, uniqueId)).toEqual(true)
 
-        deRegister(eventName, fnMock, uniqueId)
-        expect(monitorCallbackQueue()).toMatchObject({})
-      })
+      deRegister(eventName, fnMock, uniqueId)
+      expect(isQueued(eventName, uniqueId)).toEqual(false)
     })
 
-    describe('without passing callback reference', () => {
-      it('should remove a registered callback from the queue', () => {
-        register(eventName, fnMock)
-        register(eventName, fnMock, uniqueId)
+    it('should remove the cb without the callback reference', () => {
+      register(eventName, fnMock)
+      register(eventName, fnMock, uniqueId)
 
-        deRegister(eventName)
-        expect(monitorCallbackQueue()).toMatchObject({})
-      })
+      deRegister(eventName)
+
+      expect(isQueued(eventName)).toEqual(false)
+      expect(isQueued(eventName, uniqueId)).toEqual(true)
     })
 
     describe('with multiple callbacks on the same event name', () => {
-      it('should remove a registered callback from the queue', () => {
-        registerOnce(eventName, fnMock, uniqueId)
-        registerOnce(eventName, fnMock, uniqueId)
+      it('should remove the same callback', () => {
+        register(eventName, fnMock, uniqueId)
+        register(eventName, fnMock, uniqueId)
+
+        deRegister(eventName, fnMock, uniqueId)
+
+        expect(isQueued(eventName, uniqueId)).toEqual(false)
+      })
+
+      it('should remove a callback without changing the other', () => {
+        const fnMock2 = jest.fn()
+        register(eventName, fnMock, uniqueId)
+        register(eventName, fnMock2, uniqueId)
+
+        deRegister(eventName, fnMock, uniqueId)
+
+        expect(isQueued(eventName, uniqueId)).toEqual(true)
 
         trigger(eventName, null, uniqueId)
-
-        expect(fnMock).toHaveBeenCalledTimes(2)
-        expect(monitorCallbackQueue()).toMatchObject({})
+        expect(fnMock2).toHaveBeenCalledTimes(1)
       })
+    })
+
+    it('should remove a callback queued with registerOnce()', () => {
+      registerOnce(eventName, fnMock)
+      deRegister(eventName, fnMock)
+      expect(isQueued(eventName)).toEqual(false)
+
+      registerOnce(eventName, fnMock, uniqueId)
+      deRegister(eventName, fnMock, uniqueId)
+      expect(isQueued(eventName, uniqueId)).toEqual(false)
+    })
+
+    it('should remove a callback queued multiple times with registerOnce()', () => {
+      registerOnce(eventName, fnMock)
+      registerOnce(eventName, fnMock)
+      deRegister(eventName, fnMock)
+      expect(isQueued(eventName)).toEqual(false)
+
+      registerOnce(eventName, fnMock, uniqueId)
+      registerOnce(eventName, fnMock, uniqueId)
+      deRegister(eventName, fnMock, uniqueId)
+      expect(isQueued(eventName, uniqueId)).toEqual(false)
     })
   })
 
@@ -137,7 +165,7 @@ describe('Handler', () => {
       register(eventName, fnMock, uniqueId)
 
       deRegisterAll(eventName)
-      expect(monitorCallbackQueue()).not.toHaveProperty(eventName)
+      expect(isQueued(eventName)).toEqual(false)
 
       trigger(eventName, null)
       trigger(eventName, null, uniqueId)

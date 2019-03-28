@@ -2,7 +2,7 @@ import RelayClient from '../../src/relay'
 import { ICallDevice } from '../../../common/src/util/interfaces'
 import Call from '../../../common/src/relay/calling/Call'
 import { CallState } from '../../../common/src/util/constants/relay'
-import { monitorCallbackQueue } from '../../../common/src/services/Handler'
+import { isQueued } from '../../../common/src/services/Handler'
 const Connection = require('../../../common/src/services/Connection')
 jest.mock('../../../common/src/services/Connection')
 
@@ -114,16 +114,14 @@ describe('Call', () => {
         it('should fire the callback if the event has already passed', () => {
           const mockFn = jest.fn()
           call.on('created', mockFn)
-          expect(monitorCallbackQueue()).not.toHaveProperty('testing-on-method')
+          expect(isQueued(call.id)).toEqual(false)
           expect(mockFn).toHaveBeenCalledTimes(1)
         })
 
         it('should register the callback once if the event has not already passed', () => {
           const mockFn = jest.fn()
           call.on('ended', mockFn)
-          const queue = monitorCallbackQueue()['testing-on-method']
-          expect(queue).toHaveProperty('ended')
-          expect(queue['ended']).toHaveLength(1)
+          expect(isQueued(call.id, 'ended')).toEqual(true)
         })
       })
     })
@@ -158,7 +156,8 @@ describe('Call', () => {
           call.on('created', mockFn)
 
           call.off('created')
-          expect(monitorCallbackQueue()).not.toHaveProperty('testing-off-method')
+
+          expect(isQueued(call.id)).toEqual(false)
         })
       })
     })

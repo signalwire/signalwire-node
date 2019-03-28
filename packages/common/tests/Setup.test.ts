@@ -1,4 +1,4 @@
-import { monitorCallbackQueue } from '../../common/src/services/Handler'
+import { isQueued } from '../../common/src/services/Handler'
 import RelayClientNode from '../../node/src/relay'
 import RelayClientWeb from '../../web/src/SignalWire'
 import { Setup } from '../src/services/Setup'
@@ -14,8 +14,7 @@ describe('Setup', () => {
     const protocol = await Setup(session, service, fnMock)
     expect(protocol).toEqual('signalwire_service_random_uuid')
     expect(session.subscriptions).toHaveProperty(protocol)
-    expect(monitorCallbackQueue()).toHaveProperty(protocol)
-    expect(monitorCallbackQueue()[protocol]).toHaveProperty('notifications')
+    expect(isQueued(protocol, 'notifications')).toEqual(true)
     expect(Connection.mockSend).toHaveBeenCalledTimes(2)
     done()
   }

@@ -10,20 +10,15 @@ const getUserMedia = async (constraints: MediaStreamConstraints): Promise<MediaS
   if (!audio && !video) {
     return null
   }
-  const stream = await WebRTC.getUserMedia(constraints).catch(error => error)
-  if (WebRTC.streamIsValid(stream)) {
-    return stream
+  try {
+    return await WebRTC.getUserMedia(constraints)
+  } catch (error) {
+    logger.error('getUserMedia error: ', error.name, error.message)
+    throw error
   }
-  logger.error('getUserMedia error: ', stream.name, stream.message)
-  throw stream
 }
 
 const getDevices = async (): Promise<ICacheDevices> => {
-  const devices = await WebRTC.enumerateDevices()
-    .catch(error => {
-      logger.error('enumerateDevices Error', error)
-      return null
-    })
   const cache = {};
   ['videoinput', 'audioinput', 'audiooutput'].map((kind: string) => {
     cache[kind] = {}
@@ -33,7 +28,8 @@ const getDevices = async (): Promise<ICacheDevices> => {
       }
     })
   })
-  if (devices) {
+  try {
+    const devices = await WebRTC.enumerateDevices()
     devices.forEach((t: MediaDeviceInfo) => {
       if (!cache.hasOwnProperty(t.kind)) {
         logger.warn(`Unknown device type: ${t.kind}`, t)
@@ -44,10 +40,10 @@ const getDevices = async (): Promise<ICacheDevices> => {
       }
       cache[t.kind][t.deviceId] = t
     })
+  } catch (error) {
+    logger.error('enumerateDevices Error', error)
   }
-
   Storage.setItem('devices', cache)
-
   return cache
 }
 
@@ -70,7 +66,7 @@ const getResolutions = async (): Promise<ICacheResolution[]> => {
           const constraints = { video: { width: { exact: width }, height: { exact: height }, deviceId: { exact: videoDevices[y].deviceId } } }
           const stream = await getUserMedia(constraints)
           stream.getVideoTracks().forEach(t => t.stop())
-          resolution.devices.push( Object.assign(videoDevices[y]) )
+          resolution.devices.push(videoDevices[y])
         } catch {}
       }
       if (resolution.devices.length) {
@@ -83,62 +79,54 @@ const getResolutions = async (): Promise<ICacheResolution[]> => {
 }
 
 const getMediaConstraints = (options: DialogOptions): MediaStreamConstraints => {
-  let { audio = true } = options
-  if (options.hasOwnProperty('micId') && options.micId) {
+  let { audio = true, micId } = options
+  if (micId) {
     if (typeof audio === 'boolean') {
       audio = {}
     }
-    audio.deviceId = { exact: options.micId }
+    audio.deviceId = { exact: micId }
   }
 
-  let { video = false } = options
-  if (options.hasOwnProperty('camId') && options.camId) {
+  let { video = false, camId } = options
+  if (camId) {
     if (typeof video === 'boolean') {
       video = {}
     }
-    video.deviceId = { exact: options.camId }
+    video.deviceId = { exact: camId }
   }
 
   return { audio, video }
 }
 
 const assureDeviceId = async (id: string, label: string, kind: MediaDeviceInfo['kind']): Promise<string> => {
-  const devices = await WebRTC.enumerateDevices()
-    .catch(error => { logger.error('enumerateDevices Error', error) })
-  if (devices) {
-    for (let i = 0; i < devices.length; i++) {
-      const { deviceId, label: deviceLabel, kind: deviceKind } = devices[i]
-      if (kind !== deviceKind || !/input$/.test(kind)) {
-        continue
-      }
-      if ((id && id === deviceId) || (label && label === deviceLabel)) {
-        return deviceId
-      }
+  const devices = await WebRTC.enumerateDevices().catch(error => [])
+  for (let i = 0; i < devices.length; i++) {
+    const { deviceId, label: deviceLabel, kind: deviceKind } = devices[i]
+    if (kind === deviceKind && (id === deviceId || label === deviceLabel)) {
+      return deviceId
     }
   }
+
   return null
 }
 
-const checkPermissions = async (): Promise<boolean> => {
-  const fullStream = await getUserMedia({ audio: true, video: true }).catch(_e => null)
-  if (WebRTC.streamIsValid(fullStream)) {
-    fullStream.getTracks().forEach((t: MediaStreamTrack) => t.stop())
-  } else {
-    const audioStream = await getUserMedia({ audio: true }).catch(_e => null)
-    if (WebRTC.streamIsValid(audioStream)) {
-      audioStream.getTracks().forEach((t: MediaStreamTrack) => t.stop())
-    } else {
-      return false
+const checkPermissions = async (constraints: MediaStreamConstraints = { audio: true, video: true }): Promise<boolean> => {
+  try {
+    const stream = await getUserMedia(constraints)
+    stream.getTracks().forEach(t => t.stop())
+    return true
+  } catch {
+    if (constraints.video) {
+      return await checkPermissions({ audio: true })
     }
   }
-  return true
+  return false
 }
 
 const removeUnsupportedConstraints = (constraints: MediaTrackConstraints): void => {
   const supported = WebRTC.getSupportedConstraints()
   Object.keys(constraints).map(key => {
     if (!supported.hasOwnProperty(key)) {
-      // logger.warn(`"${key}" constraint is not supported in this browser!`)
       delete constraints[key]
     }
   })
@@ -147,11 +135,11 @@ const removeUnsupportedConstraints = (constraints: MediaTrackConstraints): void 
 const checkDeviceIdConstraints = async (id: string, label: string, kind: MediaDeviceInfo['kind'], constraints: MediaTrackConstraints) => {
   const { deviceId } = constraints
   if (!isDefined(deviceId) && (id || label)) {
-    const deviceId = await assureDeviceId(id, label, kind).catch(error => null)
-    if (deviceId) {
+    try {
+      const deviceId = await assureDeviceId(id, label, kind)
       constraints.deviceId = { exact: deviceId }
-    } else {
-      throw `Unknown device with id: '${id}' and label: '${label}'`
+    } catch {
+      logger.warn(`Unknown device with id: '${id}' and label: '${label}'`)
     }
   }
   return constraints

@@ -1,8 +1,5 @@
 import logger from '../util/logger'
 import BrowserSession from '../BrowserSession'
-import SignalWire from '../../../web/src/SignalWire'
-import Verto from '../../../web/src/Verto'
-
 import Dialog from './Dialog'
 import { checkSubscribeResponse } from './helpers'
 import { Result } from '../messages/Verto'
@@ -100,14 +97,6 @@ class VertoHandler {
       default:
         logger.warn('Verto message unknown method:', msg)
     }
-  }
-
-  get isBlade() {
-    return this.session instanceof SignalWire
-  }
-
-  get isVerto() {
-    return this.session instanceof Verto
   }
 
   private async _handlePvtEvent(pvtData: any) {

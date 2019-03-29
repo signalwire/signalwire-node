@@ -56,4 +56,9 @@ function iosTasks() {
   }
 }
 
-main()
+const { INIT_CWD, PWD } = process.env
+if (INIT_CWD === PWD || INIT_CWD.indexOf(PWD) === 0) {
+  console.log('\tSkip on dev..')
+} else {
+  main()
+}

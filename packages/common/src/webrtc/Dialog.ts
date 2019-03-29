@@ -10,7 +10,7 @@ import { trigger, register, deRegister } from '../services/Handler'
 import { sdpStereoHack, sdpMediaOrderHack, checkSubscribeResponse } from './helpers'
 import { objEmpty, mutateLiveArrayData, isFunction } from '../util/helpers'
 import { DialogOptions } from '../util/interfaces'
-import { attachMediaStream, detachMediaStream, sdpToJsonHack, streamIsValid } from '../util/webrtc'
+import { attachMediaStream, detachMediaStream, sdpToJsonHack, streamIsValid, stopStream } from '../util/webrtc'
 
 export default class Dialog {
   public id: string = ''
@@ -275,7 +275,7 @@ export default class Dialog {
     }
     const response = await this.session.vertoSubscribe(tmp)
       .catch(error => {
-        console.error('ConfChat subscription error:', error)
+        logger.error('ConfChat subscription error:', error)
       })
     if (checkSubscribeResponse(response, channel)) {
       this._addChannel(channel)
@@ -308,7 +308,7 @@ export default class Dialog {
     }
     const response = await this.session.vertoSubscribe(tmp)
       .catch(error => {
-        console.error('ConfInfo subscription error:', error)
+        logger.error('ConfInfo subscription error:', error)
       })
     if (checkSubscribeResponse(response, channel)) {
       this._addChannel(channel)
@@ -349,7 +349,7 @@ export default class Dialog {
     }
     const response = await this.session.vertoSubscribe(tmp)
       .catch(error => {
-        console.error('ConfMod subscription error:', error)
+        logger.error('ConfMod subscription error:', error)
       })
     if (checkSubscribeResponse(response, channel)) {
       this.role = Role.Moderator
@@ -522,40 +522,40 @@ export default class Dialog {
       trigger(SwEvent.Error, new Error('SDP without candidates for the second time!'), this.session.uuid)
       return
     }
-    Object.defineProperty(this.peer, 'onSdpReadyTwice', {
-      writable: false,
-      value: this._onIceSdp.bind(this)
-    })
+    Object.defineProperty(this.peer, 'onSdpReadyTwice', { value: this._onIceSdp.bind(this) })
     this.peer.startNegotiation()
   }
 
   private _onIceSdp(data: RTCSessionDescription) {
-    const { sdp } = data
+    const { sdp, type } = data
     if (sdp.indexOf('candidate') === -1) {
       this._requestAnotherLocalDescription()
       return
     }
     let msg = null
     const tmpParams = { sessid: this.session.sessionid, sdp, dialogParams: this.options }
-    if (data.type === PeerType.Offer) {
-      this.setState(State.Requesting)
-      msg = new Invite(tmpParams)
-    } else if (data.type === PeerType.Answer) {
-      this.setState(State.Answering)
-      msg = this.options.attach === true ? new Attach(tmpParams) : new Answer(tmpParams)
-    } else {
-      logger.warn('Unknown SDP type:', data)
-      return
+    switch (type) {
+      case PeerType.Offer:
+        this.setState(State.Requesting)
+        msg = new Invite(tmpParams)
+        break
+      case PeerType.Answer:
+        this.setState(State.Answering)
+        msg = this.options.attach === true ? new Attach(tmpParams) : new Answer(tmpParams)
+        break
+      default:
+        logger.error(`${this.id} - Unknown local SDP type:`, data)
+        return this.hangup({}, false)
     }
     this._execute(msg)
       .then(response => {
         const { result: { node_id = null } = {} } = response
         this._targetNodeId = node_id
-        if (data.type === PeerType.Offer) {
-          this.setState(State.Trying)
-        } else if (data.type === PeerType.Answer) {
-          this.setState(State.Active)
-        }
+        type === PeerType.Offer ? this.setState(State.Trying) : this.setState(State.Active)
+      })
+      .catch(error => {
+        logger.error(`${this.id} - Sending ${type} error:`, error)
+        this.hangup()
       })
   }
 
@@ -638,16 +638,10 @@ export default class Dialog {
 
   private _finalize() {
     const { remoteStream, localStream, remoteElement, localElement } = this.options
-    if (streamIsValid(remoteStream)) {
-      remoteStream.getTracks().forEach(t => t.stop())
-      this.options.remoteStream = null
-    }
-    if (streamIsValid(localStream)) {
-      localStream.getTracks().forEach(t => t.stop())
-      this.options.localStream = null
-    }
-    detachMediaStream(localElement)
+    stopStream(remoteStream)
+    stopStream(localStream)
     detachMediaStream(remoteElement)
+    detachMediaStream(localElement)
 
     deRegister(SwEvent.MediaError, null, this.id)
     this.peer = null

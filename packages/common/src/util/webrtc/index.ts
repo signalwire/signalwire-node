@@ -33,6 +33,13 @@ const detachMediaStream = (tag: any) => {
 
 const sdpToJsonHack = sdp => sdp
 
+const stopStream = (stream: MediaStream) => {
+  if (streamIsValid(stream)) {
+    stream.getTracks().forEach(t => t.stop())
+  }
+  stream = null
+}
+
 export {
   RTCPeerConnection,
   getUserMedia,
@@ -41,5 +48,6 @@ export {
   streamIsValid,
   attachMediaStream,
   detachMediaStream,
-  sdpToJsonHack
+  sdpToJsonHack,
+  stopStream
 }

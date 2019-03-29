@@ -137,7 +137,7 @@ class VertoHandler {
         }
         const result = await session.vertoSubscribe(tmp)
           .catch(error => {
-            console.error('liveArray subscription error:', error)
+            logger.error('liveArray subscription error:', error)
           })
         if (checkSubscribeResponse(result, laChannel)) {
           _liveArrayBootstrap()

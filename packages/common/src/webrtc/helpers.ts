@@ -14,7 +14,7 @@ const getUserMedia = async (constraints: MediaStreamConstraints): Promise<MediaS
   try {
     return await WebRTC.getUserMedia(constraints)
   } catch (error) {
-    logger.error('getUserMedia error: ', error.name, error.message)
+    logger.error('getUserMedia error: ', error)
     throw error
   }
 }
@@ -51,29 +51,36 @@ const getDevices = async (): Promise<ICacheDevices> => {
 const resolutionList = [[160, 120], [176, 144], [320, 240], [352, 288], [640, 360], [640, 480], [800, 600], [1280, 720], [1600, 1200], [1920, 1080], [3840, 2160]]
 const getResolutions = async (): Promise<ICacheResolution[]> => {
   let videoDevices = []
-  try {
-    const devices = await WebRTC.enumerateDevices()
-    videoDevices = devices.filter(d => d.kind === 'videoinput')
-  } catch (error) {
-    return []
-  }
+  const devices = await WebRTC.enumerateDevices().catch(error => [])
+  videoDevices = devices.filter(d => d.kind === 'videoinput')
   const supported = []
   if (videoDevices.length) {
+    console.time('globalRes')
     for (let i = 0; i < resolutionList.length; i++) {
       const [width, height] = resolutionList[i]
       const resolution = { resolution: `${width}x${height}`, width, height, devices: [] }
+      const promiseList = []
       for (let y = 0; y < videoDevices.length; y++) {
-        try {
-          const constraints = { video: { width: { exact: width }, height: { exact: height }, deviceId: { exact: videoDevices[y].deviceId } } }
-          const stream = await getUserMedia(constraints)
-          stopStream(stream)
-          resolution.devices.push(videoDevices[y])
-        } catch {}
+        const constraints = { video: { width: { exact: width }, height: { exact: height }, deviceId: { exact: videoDevices[y].deviceId } } }
+        promiseList.push(getUserMedia(constraints).catch(_e => null))
       }
-      if (resolution.devices.length) {
-        supported.push(resolution)
-      }
+
+      try {
+        const final = await Promise.all(promiseList)
+        // setTimeout(() => final.forEach(stopStream))
+        final.map((stream, index) => {
+          if (stream) {
+            resolution.devices.push(videoDevices[index])
+            setTimeout(() => stopStream(stream))
+            // stopStream(stream)
+          }
+        })
+        if (resolution.devices.length) {
+          supported.push(resolution)
+        }
+      } catch (error) { console.error(error) }
     }
+    console.timeEnd('globalRes')
   }
 
   return supported

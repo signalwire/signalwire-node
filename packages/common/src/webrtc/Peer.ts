@@ -79,7 +79,7 @@ export default class Peer {
       })
     const { localElement, mutateLocalStream = null } = this.options
     let { localStream } = this.options
-    if (mutateLocalStream && typeof mutateLocalStream === 'function') {
+    if (mutateLocalStream && isFunction(mutateLocalStream)) {
       localStream = mutateLocalStream(localStream)
     }
     if (streamIsValid(localStream)) {

@@ -80,20 +80,20 @@ const getResolutions = async (): Promise<ICacheResolution[]> => {
 }
 
 const getMediaConstraints = (options: DialogOptions): MediaStreamConstraints => {
-  let { audio = true, micId } = options
-  if (micId) {
+  let { audio = true } = options
+  if (options.micId) {
     if (typeof audio === 'boolean') {
       audio = {}
     }
-    audio.deviceId = { exact: micId }
+    audio.deviceId = { exact: options.micId }
   }
 
-  let { video = false, camId } = options
-  if (camId) {
+  let { video = false } = options
+  if (options.camId) {
     if (typeof video === 'boolean') {
       video = {}
     }
-    video.deviceId = { exact: camId }
+    video.deviceId = { exact: options.camId }
   }
 
   return { audio, video }

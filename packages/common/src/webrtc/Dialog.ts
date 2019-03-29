@@ -10,7 +10,7 @@ import { trigger, register, deRegister } from '../services/Handler'
 import { sdpStereoHack, sdpMediaOrderHack, checkSubscribeResponse } from './helpers'
 import { objEmpty, mutateLiveArrayData, isFunction } from '../util/helpers'
 import { DialogOptions } from '../util/interfaces'
-import { attachMediaStream, detachMediaStream, sdpToJsonHack, streamIsValid } from '../util/webrtc'
+import { attachMediaStream, detachMediaStream, sdpToJsonHack, streamIsValid, stopStream } from '../util/webrtc'
 
 export default class Dialog {
   public id: string = ''
@@ -638,16 +638,10 @@ export default class Dialog {
 
   private _finalize() {
     const { remoteStream, localStream, remoteElement, localElement } = this.options
-    if (streamIsValid(remoteStream)) {
-      remoteStream.getTracks().forEach(t => t.stop())
-      this.options.remoteStream = null
-    }
-    if (streamIsValid(localStream)) {
-      localStream.getTracks().forEach(t => t.stop())
-      this.options.localStream = null
-    }
-    detachMediaStream(localElement)
+    stopStream(remoteStream)
+    stopStream(localStream)
     detachMediaStream(remoteElement)
+    detachMediaStream(localElement)
 
     deRegister(SwEvent.MediaError, null, this.id)
     this.peer = null

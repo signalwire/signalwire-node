@@ -21,12 +21,15 @@ const attachMediaStream = (htmlElementId: string, stream: MediaStream) => null
 const detachMediaStream = (htmlElementId: string) => null
 
 const sdpToJsonHack = sdp => {
-  Object.defineProperty(sdp, 'toJSON', {
-    writable: false,
-    value: () => sdp
-  })
-
+  Object.defineProperty(sdp, 'toJSON', { value: () => sdp })
   return sdp
+}
+
+const stopStream = (stream: MediaStream) => {
+  if (streamIsValid(stream)) {
+    stream.getTracks().forEach(t => t.stop())
+  }
+  stream = null
 }
 
 export {
@@ -37,5 +40,6 @@ export {
   streamIsValid,
   attachMediaStream,
   detachMediaStream,
-  sdpToJsonHack
+  sdpToJsonHack,
+  stopStream
 }

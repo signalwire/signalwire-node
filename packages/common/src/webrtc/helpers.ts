@@ -3,6 +3,7 @@ import * as Storage from '../util/storage'
 import * as WebRTC from '../util/webrtc'
 import { isDefined } from '../util/helpers'
 import { DialogOptions, ICacheDevices, ICacheResolution } from '../util/interfaces'
+import { stopStream } from '../util/webrtc'
 
 const getUserMedia = async (constraints: MediaStreamConstraints): Promise<MediaStream | null> => {
   logger.debug('RTCService.getUserMedia', constraints)
@@ -65,7 +66,7 @@ const getResolutions = async (): Promise<ICacheResolution[]> => {
         try {
           const constraints = { video: { width: { exact: width }, height: { exact: height }, deviceId: { exact: videoDevices[y].deviceId } } }
           const stream = await getUserMedia(constraints)
-          stream.getVideoTracks().forEach(t => t.stop())
+          stopStream(stream)
           resolution.devices.push(videoDevices[y])
         } catch {}
       }
@@ -113,7 +114,7 @@ const assureDeviceId = async (id: string, label: string, kind: MediaDeviceInfo['
 const checkPermissions = async (constraints: MediaStreamConstraints = { audio: true, video: true }): Promise<boolean> => {
   try {
     const stream = await getUserMedia(constraints)
-    stream.getTracks().forEach(t => t.stop())
+    stopStream(stream)
     return true
   } catch {
     if (constraints.video) {

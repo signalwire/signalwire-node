@@ -58,21 +58,26 @@ const getResolutions = async (): Promise<ICacheResolution[]> => {
   }
   const resolutionHashMap = {}
   for (let y = 0; y < videoDevices.length; y++) {
-    try {
-      const constraints = { video: { deviceId: { exact: videoDevices[y].deviceId } } }
-      const stream = await getUserMedia(constraints)
-      const videoTrack = stream.getVideoTracks()[0]
-      for (let i = 0; i < resolutionList.length; i++) {
-        const [width, height] = resolutionList[i]
-        const resolution = `${width}x${height}`
-        if (!resolutionHashMap.hasOwnProperty(resolution)) {
-          resolutionHashMap[resolution] = { resolution, width, height, devices: [] }
-        }
-        await videoTrack.applyConstraints({ width: { exact: width }, height: { exact: height } })
+    const constraints = { video: { deviceId: { exact: videoDevices[y].deviceId } } }
+    const stream = await getUserMedia(constraints).catch(error => null)
+    if (stream === null) {
+      continue
+    }
+    const videoTrack = stream.getVideoTracks()[0]
+    for (let i = 0; i < resolutionList.length; i++) {
+      const [width, height] = resolutionList[i]
+      const resolution = `${width}x${height}`
+      if (!resolutionHashMap.hasOwnProperty(resolution)) {
+        resolutionHashMap[resolution] = { resolution, width, height, devices: [] }
+      }
+      const success = await videoTrack.applyConstraints({ width: { exact: width }, height: { exact: height } })
+        .then(() => true)
+        .catch(() => false)
+      if (success) {
         resolutionHashMap[resolution].devices.push(videoDevices[y])
       }
-      videoTrack.stop()
-    } catch {}
+    }
+    videoTrack.stop()
   }
 
   Object.keys(resolutionHashMap).forEach(resolution => {

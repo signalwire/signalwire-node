@@ -27,15 +27,14 @@ export default abstract class BrowserSession extends BaseSession {
     const devicePromise = this.refreshDevices()
 
     const success = await permissionPromise
-    await devicePromise
-
-    this.connection = new Connection(this)
-
     if (success) {
       this.refreshResolutions()
     } else {
       trigger(SwEvent.Notification, { type: NOTIFICATION_TYPE.userMediaError, error: 'Permission denied' }, this.uuid)
     }
+    await devicePromise
+
+    this.connection = new Connection(this)
   }
 
   /**

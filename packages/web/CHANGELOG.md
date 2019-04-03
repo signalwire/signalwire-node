@@ -17,6 +17,9 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - Set default iceServers.
 - User can now join conferences without audio & video.
 - Expose static method uuid().
+- Retrieve supported resolution during client init
+- Add property `resolutions` to get supported resolutions.
+- Add async method `refreshResolutions()` to refresh cached resolutions
 ### Changed
 - client.connect() is now async to check browser permissions before open the websocket connection.
 - client.supportedResolutions() now returns a device list for each resolution supported.

@@ -549,7 +549,7 @@ export default class Dialog {
     }
     this._execute(msg)
       .then(response => {
-        const { result: { node_id = null } = {} } = response
+        const { node_id = null } = response
         this._targetNodeId = node_id
         type === PeerType.Offer ? this.setState(State.Trying) : this.setState(State.Active)
       })

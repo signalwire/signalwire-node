@@ -7,7 +7,7 @@ import { BroadcastHandler } from './services/Broadcast'
 import { ADD, REMOVE, SwEvent, BladeMethod, NOTIFICATION_TYPE } from './util/constants'
 import Cache from './util/Cache'
 import { BroadcastParams, ISignalWireOptions, SubscribeParams, Constructable } from './util/interfaces'
-import { Subscription, Connect } from './messages/Blade'
+import { Subscription, Connect, Reauthenticate } from './messages/Blade'
 import { isFunction } from './util/helpers'
 import Relay from './relay/Relay'
 
@@ -26,6 +26,7 @@ export default abstract class BaseSession {
   private _idle: boolean = false
   private _executeQueue: { resolve?: Function, msg: any}[] = []
   private _autoReconnect: boolean = true
+  private _expirationTimeout: number = null
 
   constructor(public options: ISignalWireOptions) {
     if (!this.validateOptions()) {
@@ -165,6 +166,23 @@ export default abstract class BaseSession {
   }
 
   /**
+   * Refresh the
+   * @return void
+   */
+  async refreshToken(jwt_token: string) {
+    try {
+      const br = new Reauthenticate(this.options.project, jwt_token, this.sessionid)
+      const response = await this.execute(br)
+      const { authorization: { expires_at = null } = {} } = response
+      this.options.token = jwt_token
+      this._setExpirationTimeout(expires_at)
+    } catch (error) {
+      // TODO: handle error
+      logger.error('blade.reauth error', error)
+    }
+  }
+
+  /**
    * Define the method to connect the session
    * @abstract
    * @async
@@ -212,7 +230,7 @@ export default abstract class BaseSession {
     if (response) {
       this._autoReconnect = true
       const { sessionid, nodeid, master_nodeid, authorization: { expires_at = null } = {} } = response
-      this._setExpirationTimer(expires_at)
+      this._setExpirationTimeout(expires_at)
       this.sessionid = sessionid
       this.nodeid = nodeid
       this.master_nodeid = master_nodeid
@@ -379,7 +397,7 @@ export default abstract class BaseSession {
    * Set a timer to dispatch a notification when the JWT is going to expire.
    * @return void
    */
-  private _setExpirationTimer(expiresAt: number = null) {
+  private _setExpirationTimeout(expiresAt: number = null) {
     const now = Date.now() / 1000
     const expires = +expiresAt
     if (isNaN(expires) || !expires) {
@@ -389,10 +407,11 @@ export default abstract class BaseSession {
     if (diff <= 0) {
       diff = 60
     }
-    setTimeout(() => {
+    clearTimeout(this._expirationTimeout)
+    this._expirationTimeout = setTimeout(() => {
       logger.debug('jwt is going to expire..')
       if (!trigger(SwEvent.Notification, { type: NOTIFICATION_TYPE.refreshToken, session: this }, this.uuid, false)) {
-        logger.error('Your JWT is going to expire. You shoudl register a callback to refresh the token and keep you session live.')
+        logger.error('Your JWT is going to expire. You should register a callback to refresh the token to keep the session live.')
       }
     }, diff * 1000)
   }

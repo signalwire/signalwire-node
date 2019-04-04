@@ -4,7 +4,7 @@ import Connection from './services/Connection'
 import BaseMessage from '../../common/src/messages/BaseMessage'
 import { deRegister, register, trigger, deRegisterAll } from './services/Handler'
 import { BroadcastHandler } from './services/Broadcast'
-import { ADD, REMOVE, SwEvent, BladeMethod } from './util/constants'
+import { ADD, REMOVE, SwEvent, BladeMethod, NOTIFICATION_TYPE } from './util/constants'
 import Cache from './util/Cache'
 import { BroadcastParams, ISignalWireOptions, SubscribeParams, Constructable } from './util/interfaces'
 import { Subscription, Connect } from './messages/Blade'
@@ -211,9 +211,11 @@ export default abstract class BaseSession {
     const response = await this.execute(bc).catch(this._handleLoginError)
     if (response) {
       this._autoReconnect = true
-      this.sessionid = response.sessionid
-      this.nodeid = response.nodeid
-      this.master_nodeid = response.master_nodeid
+      const { sessionid, nodeid, master_nodeid, authorization: { expires_at = null } = {} } = response
+      this._setExpirationTimer(expires_at)
+      this.sessionid = sessionid
+      this.nodeid = nodeid
+      this.master_nodeid = master_nodeid
       this._cache = new Cache()
       this._cache.populateFromConnect(response)
       trigger(SwEvent.Connect, null, this.uuid, false)
@@ -371,6 +373,28 @@ export default abstract class BaseSession {
       this.connection.close()
     }
     this.connection = null
+  }
+
+  /**
+   * Set a timer to dispatch a notification when the JWT is going to expire.
+   * @return void
+   */
+  private _setExpirationTimer(expiresAt: number = null) {
+    const now = Date.now() / 1000
+    const expires = +expiresAt
+    if (isNaN(expires) || !expires) {
+      return
+    }
+    let diff = Math.floor(expires - now) - 60
+    if (diff <= 0) {
+      diff = 60
+    }
+    setTimeout(() => {
+      logger.debug('jwt is going to expire..')
+      if (!trigger(SwEvent.Notification, { type: NOTIFICATION_TYPE.refreshToken, session: this }, this.uuid, false)) {
+        logger.error('Your JWT is going to expire. You shoudl register a callback to refresh the token and keep you session live.')
+      }
+    }, diff * 1000)
   }
 
   /**

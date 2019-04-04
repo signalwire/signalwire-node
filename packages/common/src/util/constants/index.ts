@@ -66,7 +66,8 @@ export const NOTIFICATION_TYPE = {
   conferenceUpdate: 'conferenceUpdate',
   dialogUpdate: 'dialogUpdate',
   vertoClientReady: 'vertoClientReady',
-  userMediaError: 'userMediaError'
+  userMediaError: 'userMediaError',
+  refreshToken: 'refreshToken',
 }
 
 export enum BladeMethod {

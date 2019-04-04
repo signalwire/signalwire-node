@@ -1,7 +1,7 @@
 import BaseSession from './BaseSession'
 import Connection from './services/Connection'
 import Dialog from './webrtc/Dialog'
-import { ICacheDevices, IAudioSettings, IVideoSettings, BroadcastParams, SubscribeParams } from './util/interfaces'
+import { ICacheDevices, IAudioSettings, IVideoSettings, BroadcastParams, SubscribeParams, ICacheResolution } from './util/interfaces'
 import { trigger, registerOnce } from './services/Handler'
 import { SwEvent, NOTIFICATION_TYPE } from './util/constants'
 import { State } from './util/constants/dialog'
@@ -19,6 +19,7 @@ export default abstract class BrowserSession extends BaseSession {
   protected _devices: ICacheDevices = {}
   protected _audioConstraints: boolean | MediaTrackConstraints = true
   protected _videoConstraints: boolean | MediaTrackConstraints = false
+  protected _resolutions: ICacheResolution[]
 
   async connect(): Promise<void> {
     super.setup()
@@ -26,13 +27,14 @@ export default abstract class BrowserSession extends BaseSession {
     const devicePromise = this.refreshDevices()
 
     const success = await permissionPromise
+    if (success) {
+      this.refreshResolutions()
+    } else {
+      trigger(SwEvent.Notification, { type: NOTIFICATION_TYPE.userMediaError, error: 'Permission denied' }, this.uuid)
+    }
     await devicePromise
 
     this.connection = new Connection(this)
-
-    if (!success) {
-      trigger(SwEvent.Notification, { type: NOTIFICATION_TYPE.userMediaError, error: 'Permission denied' }, this.uuid)
-    }
   }
 
   /**
@@ -83,7 +85,25 @@ export default abstract class BrowserSession extends BaseSession {
 
   async refreshDevices() {
     this._devices = await getDevices()
-    return Object.assign({}, this._devices)
+    return this.devices
+  }
+
+  get devices() {
+    return this._devices
+  }
+
+  async refreshResolutions() {
+    this._resolutions = await getResolutions()
+    return this.resolutions
+  }
+
+  get resolutions() {
+    return this._resolutions
+  }
+
+  /** Backwards compatibility */
+  supportedResolutions() {
+    return Promise.resolve(this.resolutions)
   }
 
   get videoDevices() {
@@ -130,10 +150,6 @@ export default abstract class BrowserSession extends BaseSession {
 
   enableWebcam() {
     this._videoConstraints = true
-  }
-
-  supportedResolutions() {
-    return getResolutions()
   }
 
   set iceServers(servers: RTCIceServer[] | boolean) {

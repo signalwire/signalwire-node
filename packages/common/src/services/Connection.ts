@@ -91,8 +91,15 @@ export default class Connection {
           return reject(error)
         }
         if (result) {
-          const { result: { code = null } = {} } = result
-          code && code !== '200' ? reject(result) : resolve(result)
+          const { result: { code = null, node_id = null, result: nestedResult = null } = {} } = result
+          if (code && code !== '200') {
+            reject(result)
+          } else if (nestedResult) {
+            nestedResult.node_id = node_id
+            resolve(nestedResult)
+          } else {
+            resolve(result)
+          }
         }
       })
       this._setTimer(request.id)

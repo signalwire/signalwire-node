@@ -26,7 +26,7 @@ export default abstract class BaseSession {
   private _cache: Cache
   private _idle: boolean = false
   private _executeQueue: { resolve?: Function, msg: any}[] = []
-  private _autoReconnect: boolean = true
+  private _autoReconnect: boolean = false
 
   constructor(public options: ISignalWireOptions) {
     if (!this.validateOptions()) {

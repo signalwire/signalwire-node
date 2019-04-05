@@ -17,6 +17,7 @@ export default abstract class BaseSession {
   public subscriptions: { [channel: string]: any } = {}
   public nodeid: string
   public master_nodeid: string
+  public expiresAt: number = null
 
   protected connection: Connection = null
   protected _relayInstances: { [service: string]: Relay } = {}
@@ -26,7 +27,7 @@ export default abstract class BaseSession {
   private _idle: boolean = false
   private _executeQueue: { resolve?: Function, msg: any}[] = []
   private _autoReconnect: boolean = true
-  private _expirationTimeout: number = null
+  private _expirationTimeout: any = null
 
   constructor(public options: ISignalWireOptions) {
     if (!this.validateOptions()) {
@@ -48,6 +49,10 @@ export default abstract class BaseSession {
 
   get connected() {
     return this.connection && this.connection.connected
+  }
+
+  get expired() {
+    return this.expiresAt && this.expiresAt <= (Date.now() / 1000)
   }
 
   /**
@@ -248,7 +253,7 @@ export default abstract class BaseSession {
    */
   protected _onSocketClose() {
     this._destroyRelayInstances()
-    if (this._autoReconnect) {
+    if (this._autoReconnect && !this.expired) {
       setTimeout(() => this.connect(), 1000)
     }
   }
@@ -403,6 +408,7 @@ export default abstract class BaseSession {
     if (isNaN(expires) || !expires) {
       return
     }
+    this.expiresAt = expires
     let diff = Math.floor(expires - now) - 60
     if (diff <= 0) {
       diff = 60
@@ -411,7 +417,7 @@ export default abstract class BaseSession {
     this._expirationTimeout = setTimeout(() => {
       logger.debug('jwt is going to expire..')
       if (!trigger(SwEvent.Notification, { type: NOTIFICATION_TYPE.refreshToken, session: this }, this.uuid, false)) {
-        logger.error('Your JWT is going to expire. You should register a callback to refresh the token to keep the session live.')
+        logger.error('Your JWT is going to expire. You should refresh your token to keep the session live.')
       }
     }, diff * 1000)
   }

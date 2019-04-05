@@ -17,7 +17,7 @@ export default abstract class BaseSession {
   public subscriptions: { [channel: string]: any } = {}
   public nodeid: string
   public master_nodeid: string
-  public expiresAt: number = null
+  public expiresAt: number = 0
 
   protected connection: Connection = null
   protected _relayInstances: { [service: string]: Relay } = {}
@@ -27,7 +27,6 @@ export default abstract class BaseSession {
   private _idle: boolean = false
   private _executeQueue: { resolve?: Function, msg: any}[] = []
   private _autoReconnect: boolean = true
-  private _expirationTimeout: any = null
 
   constructor(public options: ISignalWireOptions) {
     if (!this.validateOptions()) {
@@ -41,6 +40,7 @@ export default abstract class BaseSession {
       this._onSessionConnect = this._onSessionConnect.bind(this)
     }
     this._handleLoginError = this._handleLoginError.bind(this)
+    this._checkTokenExpiration = this._checkTokenExpiration.bind(this)
   }
 
   get __logger() {
@@ -174,16 +174,20 @@ export default abstract class BaseSession {
    * Refresh the
    * @return void
    */
-  async refreshToken(jwt_token: string) {
+  async refreshToken(token: string) {
+    this.options.token = token
     try {
-      const br = new Reauthenticate(this.options.project, jwt_token, this.sessionid)
-      const response = await this.execute(br)
-      const { authorization: { expires_at = null } = {} } = response
-      this.options.token = jwt_token
-      this._setExpirationTimeout(expires_at)
+      if (this.expired) {
+        await this.connect()
+      } else {
+        const br = new Reauthenticate(this.options.project, token, this.sessionid)
+        const response = await this.execute(br)
+        const { authorization: { expires_at = null } = {} } = response
+        this.expiresAt = +expires_at || 0
+      }
     } catch (error) {
-      // TODO: handle error
-      logger.error('blade.reauth error', error)
+      logger.error('refreshToken error:', error)
+      trigger(SwEvent.Error, error, this.uuid, false)
     }
   }
 
@@ -235,7 +239,8 @@ export default abstract class BaseSession {
     if (response) {
       this._autoReconnect = true
       const { sessionid, nodeid, master_nodeid, authorization: { expires_at = null } = {} } = response
-      this._setExpirationTimeout(expires_at)
+      this.expiresAt = +expires_at || 0
+      this._checkTokenExpiration()
       this.sessionid = sessionid
       this.nodeid = nodeid
       this.master_nodeid = master_nodeid
@@ -253,7 +258,11 @@ export default abstract class BaseSession {
    */
   protected _onSocketClose() {
     this._destroyRelayInstances()
-    if (this._autoReconnect && !this.expired) {
+    if (this.expired) {
+      this._idle = true
+      this._autoReconnect = false
+    }
+    if (this._autoReconnect) {
       setTimeout(() => this.connect(), 1000)
     }
   }
@@ -402,24 +411,17 @@ export default abstract class BaseSession {
    * Set a timer to dispatch a notification when the JWT is going to expire.
    * @return void
    */
-  private _setExpirationTimeout(expiresAt: number = null) {
-    const now = Date.now() / 1000
-    const expires = +expiresAt
-    if (isNaN(expires) || !expires) {
+  private _checkTokenExpiration() {
+    if (!this.expiresAt) {
       return
     }
-    this.expiresAt = expires
-    let diff = Math.floor(expires - now) - 60
-    if (diff <= 0) {
-      diff = 60
+    const diff = this.expiresAt - (Date.now() / 1000)
+    if (diff <= 60) {
+      logger.warn('Your JWT is going to expire. You should refresh it to keep the session live.')
+      trigger(SwEvent.Notification, { type: NOTIFICATION_TYPE.refreshToken, session: this }, this.uuid, false)
+    } else {
+      setTimeout(this._checkTokenExpiration, 30 * 1000)
     }
-    clearTimeout(this._expirationTimeout)
-    this._expirationTimeout = setTimeout(() => {
-      logger.debug('jwt is going to expire..')
-      if (!trigger(SwEvent.Notification, { type: NOTIFICATION_TYPE.refreshToken, session: this }, this.uuid, false)) {
-        logger.error('Your JWT is going to expire. You should refresh your token to keep the session live.')
-      }
-    }, diff * 1000)
   }
 
   /**

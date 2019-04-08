@@ -4,6 +4,7 @@ This package provides a client for the Signalwire services.
 
 ## Contents
 * [Getting Started](#getting-started)
+* [WebRTC Engine](#webrtc-engine)
 * [Relay](#setup)
 
 ## Getting Started
@@ -13,7 +14,17 @@ Install the package using [NPM](https://www.npmjs.com/):
 npm install @signalwire/react-native
 ```
 
-## Setup
+## WebRTC Engine
+
+Our package `@signalwire/react-native` depends on [react-native-webrtc](https://github.com/react-native-webrtc/react-native-webrtc) and will try to install it automatically for you in the `postinstall` script.\
+It could happen that something goes wrong during the linking process of the native libraries. If your app does not compile you must follow these steps to troubleshoot:
+
+- [iOS](https://github.com/react-native-webrtc/react-native-webrtc/blob/master/Documentation/iOSInstallation.md)
+- [Android](https://github.com/react-native-webrtc/react-native-webrtc/blob/master/Documentation/AndroidInstallation.md)
+
+> Make sure to check the app permissions in `AndroidManifest.xml` and `Info.plist` to access the device camera and microphone!
+
+## Relay
 
 If you are using the ES6 version:
 ```javascript
@@ -23,12 +34,15 @@ import { Relay } from '@signalwire/react-native'
 Then instantiate the client:
 > Note: host / project / token are required
 
+Make sure to subscribe to the `signalwire.notification` of type `refreshToken` to know when the client needs to refresh you JWT to keep the session live!\
+For more JWT info read ...
+
 ```javascript
 // Create a new instance
 const client = new Verto({
-  host: 'your-space.signalwire.com',
+  host: 'example.signalwire.com',
   project: 'your-project',
-  token: 'jwt-token'
+  token: 'a-valid-jwt'
 })
 
 // ..add listeners you need
@@ -76,6 +90,9 @@ client.on('signalwire.ready', function(){
 ```javascript
 client.on('signalwire.notification', function(notification){
   switch (notification.type) {
+    case 'refreshToken':
+      // The JWT is going to expire. Refresh it and then update the client using refreshToken('new-jwt') method to keep your session live.
+      break
     case 'dialogUpdate':
       // A dialog's state changed. Update the UI accordingly..
       break
@@ -127,10 +144,16 @@ Hangup all the dialogs, remove subscriptions to the channels and then disconnect
 client.logout()
 ```
 
-#### supportedResolutions()
-Returns a promise with all supported resolution:
+#### resolutions
+Returns all supported resolutions by the host.
 ```javascript
-client.supportedResolutions()
+const resolutions = client.resolutions
+```
+
+#### refreshResolutions()
+Refresh the list of supported resolution:
+```javascript
+client.refreshResolutions()
   .then(function(resolutions){
     // ...
   })

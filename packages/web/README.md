@@ -4,23 +4,23 @@ This package provides a client for the Signalwire services.
 
 ## Contents
 * [Getting Started](#getting-started)
-* [Verto](#setup-verto)
 * [Relay](#relay)
+* [Verto](#verto)
 
 ## Getting Started
 
 Install the package using [NPM](https://www.npmjs.com/):
 ```bash
-npm install signalwire
+npm install @signalwire/web
 ```
 
 Or download it from our CDN.
 
-## Setup Verto
+# Relay
 
 If you are using the ES6 version:
 ```javascript
-import { Verto } from 'signalwire'
+import { Relay } from '@signalwire/web'
 ```
 
 If you are using the minified version add a script tag referencing the SignalWire library:
@@ -29,20 +29,20 @@ If you are using the minified version add a script tag referencing the SignalWir
 ```
 
 Then instantiate the client:
-> Note: host / login / password are required
+> Note: host / project / token are required\
+
+Make sure to subscribe to the `signalwire.notification` of type `refreshToken` to know when the client needs to refresh you JWT to keep the session live!\
+For more JWT info read ...
 
 ```javascript
 // Create a new instance
-const client = new Verto({
-  host: 'freeswitch.example.com:8082',
-  login: '1008@freeswitch.example.com',
-  password: 'your-super-password',
-  userVariables: {
-    // Custom properties: email/gravatar/userName that will be sent to remote peer on call or conference call.
-  }
+const client = new Relay({
+  host: 'example.signalwire.com',
+  project: 'your-project',
+  token: 'a-valid-jwt'
 })
 
-// ..add listeners you need
+// add defaults listeners..
 client.on('signalwire.ready', function(){
   // Client is now ready!
 })
@@ -87,6 +87,9 @@ client.on('signalwire.ready', function(){
 ```javascript
 client.on('signalwire.notification', function(notification){
   switch (notification.type) {
+    case 'refreshToken':
+      // The JWT is going to expire. Refresh it and then update the client using refreshToken('new-jwt') method to keep your session live.
+      break
     case 'dialogUpdate':
       // A dialog's state changed. Update the UI accordingly..
       break
@@ -138,10 +141,16 @@ Hangup all the dialogs, remove subscriptions to the channels and then disconnect
 client.logout()
 ```
 
-#### supportedResolutions()
-Returns a promise with all supported resolution:
+#### resolutions
+Returns all supported resolutions by the host.
 ```javascript
-client.supportedResolutions()
+const resolutions = client.resolutions
+```
+
+#### refreshResolutions()
+Refresh the list of supported resolution:
+```javascript
+client.refreshResolutions()
   .then(function(resolutions){
     // ...
   })
@@ -390,7 +399,22 @@ const dialog = client.newCall(params)
 
 See [Dialog](https://github.com/signalwire/signalwire-client-js/wiki/Dialog) to discover all the properties and methods available on a Dialog object.
 
+## Verto
+You can also use this lib with a stand alone FreeSWITCH!
 
-# Relay
+```javascript
+import { Verto } from '@signalwire/web'
 
-Coming soon..
+// Create a new instance
+const client = new Verto({
+  host: 'domain.example.com:8082',
+  login: '1008@domain.example.com',
+  password: 'your-super-password',
+  userVariables: {
+    // Custom properties: email/gravatar/userName that will be sent to remote peer on call or conference call.
+  }
+})
+
+// Now use all the above methods on the client object...
+client.connect()
+```

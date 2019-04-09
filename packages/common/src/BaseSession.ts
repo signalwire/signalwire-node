@@ -4,10 +4,10 @@ import Connection from './services/Connection'
 import BaseMessage from '../../common/src/messages/BaseMessage'
 import { deRegister, register, trigger, deRegisterAll } from './services/Handler'
 import { BroadcastHandler } from './services/Broadcast'
-import { ADD, REMOVE, SwEvent, BladeMethod } from './util/constants'
+import { ADD, REMOVE, SwEvent, BladeMethod, NOTIFICATION_TYPE } from './util/constants'
 import Cache from './util/Cache'
 import { BroadcastParams, ISignalWireOptions, SubscribeParams, Constructable } from './util/interfaces'
-import { Subscription, Connect } from './messages/Blade'
+import { Subscription, Connect, Reauthenticate } from './messages/Blade'
 import { isFunction } from './util/helpers'
 import Relay from './relay/Relay'
 
@@ -17,6 +17,7 @@ export default abstract class BaseSession {
   public subscriptions: { [channel: string]: any } = {}
   public nodeid: string
   public master_nodeid: string
+  public expiresAt: number = 0
 
   protected connection: Connection = null
   protected _relayInstances: { [service: string]: Relay } = {}
@@ -25,7 +26,7 @@ export default abstract class BaseSession {
   private _cache: Cache
   private _idle: boolean = false
   private _executeQueue: { resolve?: Function, msg: any}[] = []
-  private _autoReconnect: boolean = true
+  private _autoReconnect: boolean = false
 
   constructor(public options: ISignalWireOptions) {
     if (!this.validateOptions()) {
@@ -39,6 +40,7 @@ export default abstract class BaseSession {
       this._onSessionConnect = this._onSessionConnect.bind(this)
     }
     this._handleLoginError = this._handleLoginError.bind(this)
+    this._checkTokenExpiration = this._checkTokenExpiration.bind(this)
   }
 
   get __logger() {
@@ -47,6 +49,10 @@ export default abstract class BaseSession {
 
   get connected() {
     return this.connection && this.connection.connected
+  }
+
+  get expired() {
+    return this.expiresAt && this.expiresAt <= (Date.now() / 1000)
   }
 
   /**
@@ -165,6 +171,27 @@ export default abstract class BaseSession {
   }
 
   /**
+   * Refresh the
+   * @return void
+   */
+  async refreshToken(token: string) {
+    this.options.token = token
+    try {
+      if (this.expired) {
+        await this.connect()
+      } else {
+        const br = new Reauthenticate(this.options.project, token, this.sessionid)
+        const response = await this.execute(br)
+        const { authorization: { expires_at = null } = {} } = response
+        this.expiresAt = +expires_at || 0
+      }
+    } catch (error) {
+      logger.error('refreshToken error:', error)
+      trigger(SwEvent.Error, error, this.uuid, false)
+    }
+  }
+
+  /**
    * Define the method to connect the session
    * @abstract
    * @async
@@ -211,9 +238,12 @@ export default abstract class BaseSession {
     const response = await this.execute(bc).catch(this._handleLoginError)
     if (response) {
       this._autoReconnect = true
-      this.sessionid = response.sessionid
-      this.nodeid = response.nodeid
-      this.master_nodeid = response.master_nodeid
+      const { sessionid, nodeid, master_nodeid, authorization: { expires_at = null } = {} } = response
+      this.expiresAt = +expires_at || 0
+      this._checkTokenExpiration()
+      this.sessionid = sessionid
+      this.nodeid = nodeid
+      this.master_nodeid = master_nodeid
       this._cache = new Cache()
       this._cache.populateFromConnect(response)
       trigger(SwEvent.Connect, null, this.uuid, false)
@@ -228,6 +258,10 @@ export default abstract class BaseSession {
    */
   protected _onSocketClose() {
     this._destroyRelayInstances()
+    if (this.expired) {
+      this._idle = true
+      this._autoReconnect = false
+    }
     if (this._autoReconnect) {
       setTimeout(() => this.connect(), 1000)
     }
@@ -371,6 +405,24 @@ export default abstract class BaseSession {
       this.connection.close()
     }
     this.connection = null
+  }
+
+  /**
+   * Set a timer to dispatch a notification when the JWT is going to expire.
+   * @return void
+   */
+  private _checkTokenExpiration() {
+    if (!this.expiresAt) {
+      return
+    }
+    const diff = this.expiresAt - (Date.now() / 1000)
+    if (diff <= 60) {
+      logger.warn('Your JWT is going to expire. You should refresh it to keep the session live.')
+      trigger(SwEvent.Notification, { type: NOTIFICATION_TYPE.refreshToken, session: this }, this.uuid, false)
+    }
+    if (!this.expired) {
+      setTimeout(this._checkTokenExpiration, 30 * 1000)
+    }
   }
 
   /**

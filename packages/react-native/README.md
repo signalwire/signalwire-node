@@ -17,7 +17,7 @@ npm install @signalwire/react-native
 ## WebRTC Engine
 
 Our package `@signalwire/react-native` depends on [react-native-webrtc](https://github.com/react-native-webrtc/react-native-webrtc) and will try to install it automatically for you in the `postinstall` script.\
-It could happen that something goes wrong during the linking process of the native libraries. If your app does not compile you must follow these steps to troubleshoot:
+It's possible that an error will occur during the linking process of the native libraries. If your app does not compile, follow these steps to troubleshoot:
 
 - [iOS](https://github.com/react-native-webrtc/react-native-webrtc/blob/master/Documentation/iOSInstallation.md)
 - [Android](https://github.com/react-native-webrtc/react-native-webrtc/blob/master/Documentation/AndroidInstallation.md)

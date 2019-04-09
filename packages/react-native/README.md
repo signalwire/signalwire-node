@@ -34,7 +34,7 @@ import { Relay } from '@signalwire/react-native'
 Then instantiate the client:
 > Note: host / project / token are required
 
-Make sure to subscribe to the `signalwire.notification` of type `refreshToken` to know when the client needs to refresh you JWT to keep the session live!\
+Make sure to subscribe to the `signalwire.notification` of type `refreshToken` to know when the client needs to refresh you JWT to keep the session live!
 For more JWT info read ...
 
 ```javascript

@@ -419,7 +419,8 @@ export default abstract class BaseSession {
     if (diff <= 60) {
       logger.warn('Your JWT is going to expire. You should refresh it to keep the session live.')
       trigger(SwEvent.Notification, { type: NOTIFICATION_TYPE.refreshToken, session: this }, this.uuid, false)
-    } else {
+    }
+    if (!this.expired) {
       setTimeout(this._checkTokenExpiration, 30 * 1000)
     }
   }

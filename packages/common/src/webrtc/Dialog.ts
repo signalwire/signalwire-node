@@ -31,6 +31,9 @@ export default class Dialog {
   private _lastSerno: number = 0
   private _targetNodeId: string = null
 
+  private _conferenceChannel = null
+  private _conferenceInfoChannel = null
+
   constructor(private session: BrowserSession, opts?: DialogOptions) {
     const { iceServers, localElement, remoteElement, mediaConstraints: { audio, video } } = session
     this.options = Object.assign({}, DEFAULT_DIALOG_OPTIONS, { audio, video, iceServers, localElement, remoteElement }, opts)
@@ -110,6 +113,11 @@ export default class Dialog {
     this._execute(msg)
   }
 
+  conferenceControl(action: string) {
+    const msg = new Info({ sessid: this.session.sessionid, conferenceAction: action, dialogParams: this.options })
+    this._execute(msg)
+  }
+
   message(to: string, body: string) {
     const msg = { from: this.session.options.login, to, body }
     const info = new Info({ sessid: this.session.sessionid, msg, dialogParams: this.options })
@@ -157,6 +165,18 @@ export default class Dialog {
         this._finalize()
         break
     }
+  }
+
+  /* conference commands */
+
+  _conferenceCommand(action: string, value: any = null) {
+    const application = 'conf-control'
+    // const id = parseInt(memberID) || null
+    this.session.vertoBroadcast({ nodeId: this.nodeId, channel: this._conferenceChannel, data: { application, action, value, callID: this.options.id } })
+  }
+
+  conferenceControl2(action: string) {
+    this._conferenceCommand(action);
   }
 
   handleMessage(msg: any) {
@@ -213,13 +233,17 @@ export default class Dialog {
     switch (action) {
       case 'bootObj': {
         this._lastSerno = 0
-        const { chatID, chatChannel, infoChannel, modChannel, laName, conferenceMemberID, role } = initialPvtData
+        const { chatID, chatChannel, infoChannel, conferenceChannel, modChannel, laName, conferenceMemberID, role } = initialPvtData
         this._dispatchConferenceUpdate({ action: ConferenceAction.Join, conferenceName: laName, participantId: Number(conferenceMemberID), role })
         if (chatChannel) {
           await this._subscribeConferenceChat(chatChannel)
         }
         if (infoChannel) {
+          this._conferenceInfoChannel = infoChannel
           await this._subscribeConferenceInfo(infoChannel)
+        }
+        if (conferenceChannel) {
+          this._conferenceChannel = conferenceChannel
         }
         if (modChannel && role === Role.Moderator) {
           await this._subscribeConferenceModerator(modChannel)

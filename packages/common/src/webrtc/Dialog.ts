@@ -202,6 +202,18 @@ export default class Dialog {
     }
   }
 
+  /* conference commands */
+
+  _conferenceCommand(action: string, value: any = null) {
+    const application = 'conf-control'
+    const conferenceChannel = "conference-member." + this.options.id;
+    this.session.vertoBroadcast({ nodeId: this.nodeId, channel: conferenceChannel, data: { application, action, value, callID: this.options.id } })
+  }
+
+  conferenceControl(action: string) {
+    this._conferenceCommand(action);
+  }
+
   handleMessage(msg: any) {
     const { method, params } = msg
     switch (method) {

@@ -47,6 +47,17 @@
 
 	<button id="startCall" onClick="makeCall()" disabled="true">Call</button>
 	<button id="hangupCall" onClick="hangup()" disabled="true">Hangup</button>
+	<button onClick="conferenceControl('mute')" >Mute</button>
+	<button onClick="conferenceControl('unmute')" >unMute</button>
+	<button onClick="conferenceControl('tmute')" >Toggle Mute</button>
+	<button onClick="conferenceControl('deaf')" >Deaf</button>
+	<button onClick="conferenceControl('undeaf')" >unDeaf</button>
+	<button onClick="conferenceControl('vmute')" >VMute</button>
+	<button onClick="conferenceControl('unvmute')" >unVMute</button>
+	<button onClick="conferenceControl('tvmute')" >Toggle VMute</button>
+
+	<button class="dtmf" onClick="sendDTMF('0')" >DTMF-0</button>
+
 	<br />
 	<br />
 	<!-- <div class="half-page">

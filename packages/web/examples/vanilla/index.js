@@ -229,6 +229,14 @@ function hangup() {
   cur_call.hangup()
 }
 
+function conferenceControl(action) {
+  cur_call.conferenceControl(action);
+}
+
+function sendDTMF(dtmf) {
+  cur_call.dtmf(dtmf);
+}
+
 function save_params(e) {
   var key = e.target.name || e.target.id
   localStorage.setItem('verto.example.' + key, e.target.value);

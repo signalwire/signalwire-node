@@ -21,6 +21,15 @@ export default abstract class BrowserSession extends BaseSession {
   protected _videoConstraints: boolean | MediaTrackConstraints = false
   protected _resolutions: ICacheResolution[]
 
+  /**
+   * Override: webrtc client needs domain and resourse
+   * @return boolean
+   */
+  validateOptions() {
+    const { host, project, token, domain, resource } = this.options
+    return Boolean(host) && Boolean(project && token && domain && resource)
+  }
+
   async connect(): Promise<void> {
     super.setup()
     const permissionPromise = checkPermissions()

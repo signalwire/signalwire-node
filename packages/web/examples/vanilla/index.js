@@ -4,6 +4,7 @@ var cur_call = null;
 var username = localStorage.getItem('verto.example.username');
 var password = localStorage.getItem('verto.example.password');
 var domain   = localStorage.getItem('verto.example.domain');
+var resource = localStorage.getItem('verto.example.resource');
 var host     = localStorage.getItem('verto.example.host');
 var client = localStorage.getItem('verto.example.client');
 var number   = localStorage.getItem('verto.example.number');
@@ -15,10 +16,12 @@ ready(function() {
   if (!password) password = '1234';
   if (!number)   number   = '9196';
   if (!client)   client   = 'sw';
+  if (!resource) resource = 'test';
 
   document.getElementById('username').value = username;
   document.getElementById('password').value = password;
   document.getElementById('domain').value = domain;
+  document.getElementById('resource').value = resource;
   document.getElementById('host').value = host;
   document.getElementById('number').value = number;
   document.getElementById('client_' + client).checked = true;
@@ -32,9 +35,10 @@ function disconnect() {
 function connect() {
   host     = document.getElementById('host').value;
   domain   = document.getElementById('domain').value;
+  resource = document.getElementById('resource').value;
   username = document.getElementById('username').value;
   password = document.getElementById('password').value;
-  client = document.querySelector('input[name="client"]:checked').value;
+  client   = document.querySelector('input[name="client"]:checked').value;
   login    = username + '@' + domain;
 
   var klass = client === 'sw' ? Relay : Verto
@@ -44,7 +48,9 @@ function connect() {
     login: login,
     password: password,
     project: username,
-    token: password
+    token: password,
+    domain: domain,
+    resource: resource,
   });
 
   client.on('signalwire.ready', function() {
@@ -183,13 +189,15 @@ function handleConferenceUpdate(notification) {
 }
 
 function makeCall() {
+  var resource = document.getElementById('resource').value;
+  var domain = document.getElementById('domain').value;
   const params = {
     // Required:
     destinationNumber: document.getElementById('number').value,
     remoteCallerName: 'Joe Example',
     remoteCallerNumber: 'joe@example.com',
-    callerName: 'J. Smith',
-    callerNumber: 'smith@example.com',
+    callerName: resource,
+    callerNumber: resource + '@' + domain,
 
     // Optional:
     // localStream: MediaStream, // Use this stream instead of retrieving a new one. Useful if you have a stream from a canvas.captureStream() or from a screen share extension.

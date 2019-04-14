@@ -23,8 +23,11 @@ class VertoHandler {
   handleMessage(msg: any) {
     const { session } = this
     const { id, method, params } = msg
-    const { callID: dialogId, eventChannel } = params
+    const { callID: dialogId, eventChannel, eventType } = params
     const attach = method === VertoMethod.Attach
+    if (eventType === 'channelPvtData') {
+      return this._handlePvtEvent(params.pvtData, dialogId)
+    }
 
     if (dialogId && session.dialogs.hasOwnProperty(dialogId)) {
       if (attach) {
@@ -35,7 +38,6 @@ class VertoHandler {
         return
       }
     }
-
     switch (method) {
       case VertoMethod.Punt:
         session.disconnect()
@@ -71,10 +73,7 @@ class VertoHandler {
         }
         const protocol = session.webRtcProtocol
         const firstValue = eventChannel.split('.')[0]
-        // if (session.sessionid === eventChannel && params.eventType === 'channelPvtData') {
-        if (params.eventType === 'channelPvtData') {
-          this._handlePvtEvent(params.pvtData)
-        } else if (session._existsSubscription(protocol, eventChannel)) {
+        if (session._existsSubscription(protocol, eventChannel)) {
           trigger(protocol, params, eventChannel)
         } else if (eventChannel === session.sessionid) {
           this._handleSessionEvent(params.eventData)
@@ -99,7 +98,19 @@ class VertoHandler {
     }
   }
 
-  private async _handlePvtEvent(pvtData: any) {
+  private _retrieveDialogId(packet: any, laChannel: string) {
+    const dialogIds = Object.keys(this.session.dialogs)
+    if (packet.action === 'bootObj') {
+      const me = packet.data.find((pr: [string, []]) => dialogIds.includes(pr[0]))
+      if (me instanceof Array) {
+        return me[0]
+      }
+    } else {
+      return dialogIds.find((id: string) => this.session.dialogs[id].channels.includes(laChannel))
+    }
+  }
+
+  private async _handlePvtEvent(pvtData: any, dialogId: string = null) {
     const { session } = this
     const protocol = session.webRtcProtocol
     const { action, laChannel, laName, chatChannel, infoChannel, modChannel, conferenceMemberID, role } = pvtData
@@ -112,19 +123,9 @@ class VertoHandler {
           nodeId: this.nodeId,
           channels: [laChannel],
           handler: ({ data: packet }: any) => {
-            let dialogId: string = null
-            const dialogIds = Object.keys(session.dialogs)
-            if (packet.action === 'bootObj') {
-              const me = packet.data.find((pr: [string, []]) => dialogIds.includes(pr[0]))
-              if (me instanceof Array) {
-                dialogId = me[0]
-              }
-            } else {
-              dialogId = dialogIds.find((id: string) => session.dialogs[id].channels.includes(laChannel))
-              // dialogId = dialogIds.find((id: string) => packet.hashKey === id)
-            }
-            if (dialogId && session.dialogs.hasOwnProperty(dialogId)) {
-              const dialog = session.dialogs[dialogId]
+            const id = dialogId || this._retrieveDialogId(packet, laChannel)
+            if (id && session.dialogs.hasOwnProperty(id)) {
+              const dialog = session.dialogs[id]
               dialog._addChannel(laChannel)
               dialog.handleConferenceUpdate(packet, pvtData)
                 .then(error => {

@@ -76,6 +76,8 @@ export interface ISignalWireOptions {
   host: string,
   project?: string
   token?: string
+  domain?: string
+  resource?: string
   login?: string
   passwd?: string
   password?: string

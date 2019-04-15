@@ -22,7 +22,7 @@ export default abstract class BrowserSession extends BaseSession {
   protected _resolutions: ICacheResolution[]
 
   /**
-   * Override: webrtc client needs domain and resourse
+   * Override: webrtc client needs domain and resource
    * @return boolean
    */
   validateOptions() {

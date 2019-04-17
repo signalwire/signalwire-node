@@ -178,6 +178,7 @@ describe('Call', () => {
       })
 
       it('should execute the right message', () => {
+        Connection.mockSend.mockClear()
         const opts = { format: 'mp3', beep: true }
         call.startRecord(opts)
         expect(Connection.mockSend).toHaveBeenCalledTimes(1)

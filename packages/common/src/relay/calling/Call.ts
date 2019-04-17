@@ -101,6 +101,38 @@ export default class Call implements ICall {
     return this._execute(msg)
   }
 
+  async startRecord(options: any = {}) {
+    this._callIdRequired()
+    const msg = new Execute({
+      protocol: this.relayInstance.protocol,
+      method: 'call.record',
+      params: {
+        node_id: this.nodeId,
+        call_id: this.id,
+        control_id: uuidv4(),
+        type: 'audio',
+        params: options
+      }
+    })
+
+    return this._execute(msg)
+  }
+
+  stopRecord(control_id: string) {
+    this._callIdRequired()
+    const msg = new Execute({
+      protocol: this.relayInstance.protocol,
+      method: 'call.record.stop',
+      params: {
+        node_id: this.nodeId,
+        call_id: this.id,
+        control_id
+      }
+    })
+
+    return this._execute(msg)
+  }
+
   /*
   async join(callsToJoin: Call | Call[]) { // TODO: wip
     this._callIdRequired()

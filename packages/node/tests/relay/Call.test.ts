@@ -32,6 +32,7 @@ describe('Call', () => {
   describe('creating outbound calls', () => {
     let call: Call = null
     beforeEach(() => {
+      Connection.mockSend.mockClear()
       mockSetupResponses()
       session.calling.addCall = jest.fn()
       const device: ICallDevice = { type: 'phone', params: { from_number: '2345', to_number: '6789', timeout: 30 } }
@@ -177,7 +178,6 @@ describe('Call', () => {
       })
 
       it('should execute the right message', () => {
-        Connection.mockSend.mockClear()
         const opts = { format: 'mp3', beep: true }
         call.startRecord(opts)
         expect(Connection.mockSend).toHaveBeenCalledTimes(1)
@@ -190,6 +190,31 @@ describe('Call', () => {
             control_id: 'mocked-uuid',
             type: 'audio',
             params: opts
+          }
+        })
+        expect(Connection.mockSend).toHaveBeenCalledWith(msg)
+      })
+    })
+
+    describe('.stopRecord()', () => {
+      beforeEach(() => {
+        call.id = 'testing-on-method'
+      })
+
+      afterEach(() => {
+        call.id = undefined
+      })
+
+      it('should execute the right message', () => {
+        call.stopRecord('control-id')
+        expect(Connection.mockSend).toHaveBeenCalledTimes(1)
+        const msg = new Execute({
+          protocol: 'signalwire_service_random_uuid',
+          method: 'call.record',
+          params: {
+            node_id: undefined,
+            call_id: call.id,
+            control_id: 'control-id'
           }
         })
         expect(Connection.mockSend).toHaveBeenCalledWith(msg)

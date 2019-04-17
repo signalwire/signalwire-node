@@ -7,6 +7,9 @@ import { ICall, ICallOptions, ICallDevice, IMakeCallParams } from '../../util/in
 import { reduceConnectParams } from '../helpers'
 import Calling from './Calling'
 
+/** This function will check play/collect events too. */
+const _validControlEvents = (event: string): boolean  => /^record./.test(event)
+
 export default class Call implements ICall {
   public id: string
   public nodeId: string
@@ -17,6 +20,7 @@ export default class Call implements ICall {
   private _prevConnectState: number = 0
   private _connectState: number = 0
   private _cbQueues: { [state: string]: Function } = {}
+  private _controls: any[] = []
   // private _mediaControlId: string = ''
 
   constructor(protected relayInstance: Calling, protected options: ICallOptions) {
@@ -101,7 +105,7 @@ export default class Call implements ICall {
     return this._execute(msg)
   }
 
-  async startRecord(options: any = {}) {
+  startRecord(options: any = {}) {
     this._callIdRequired()
     const msg = new Execute({
       protocol: this.relayInstance.protocol,
@@ -275,6 +279,27 @@ export default class Call implements ICall {
     this.options = { ...this.options, ...opts }
   }
 
+  private _getControlIndex(control_id: string): number {
+    return this._controls.findIndex(t => t.control_id === control_id)
+  }
+
+  _addControlParams(params: any) {
+    const { control_id, event_type } = params
+    if (!control_id || !event_type) {
+      return
+    }
+    const index = this._getControlIndex(control_id)
+    if (index >= 0) {
+      this._controls[index] = params
+    } else {
+      this._controls.push(params)
+    }
+  }
+
+  get recordings(): Object[] {
+    return this._controls.filter(t => t.event_type === 'calling.call.record')
+  }
+
   get device(): ICallDevice {
     return this.options.device
   }
@@ -347,6 +372,10 @@ export default class Call implements ICall {
   private _attachListeners() {
     registerOnce(this.id, this._detachListeners, CALL_STATES[CALL_STATES.length - 1])
     CALL_STATES.forEach(state => registerOnce(this.id, this._onStateChange.bind(this, state), state))
+
+    Object.keys(this._cbQueues)
+      .filter(_validControlEvents)
+      .forEach(event => registerOnce(this.id, this._cbQueues[event].bind(this), event))
   }
 
   private _detachListeners() {

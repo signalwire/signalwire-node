@@ -210,7 +210,7 @@ describe('Call', () => {
         expect(Connection.mockSend).toHaveBeenCalledTimes(1)
         const msg = new Execute({
           protocol: 'signalwire_service_random_uuid',
-          method: 'call.record',
+          method: 'call.record.stop',
           params: {
             node_id: undefined,
             call_id: call.id,

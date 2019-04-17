@@ -178,7 +178,6 @@ describe('Call', () => {
       })
 
       it('should execute the right message', () => {
-        Connection.mockSend.mockClear()
         const opts = { format: 'mp3', beep: true }
         call.startRecord(opts)
         expect(Connection.mockSend).toHaveBeenCalledTimes(1)
@@ -211,7 +210,7 @@ describe('Call', () => {
         expect(Connection.mockSend).toHaveBeenCalledTimes(1)
         const msg = new Execute({
           protocol: 'signalwire_service_random_uuid',
-          method: 'call.record.stop',
+          method: 'call.record',
           params: {
             node_id: undefined,
             call_id: call.id,

@@ -7,9 +7,6 @@ import { ICall, ICallOptions, ICallDevice, IMakeCallParams } from '../../util/in
 import { reduceConnectParams } from '../helpers'
 import Calling from './Calling'
 
-/** This function will check play/collect events too. */
-const _validControlEvents = (event: string): boolean  => /^record./.test(event)
-
 export default class Call implements ICall {
   public id: string
   public nodeId: string
@@ -370,11 +367,7 @@ export default class Call implements ICall {
     CALL_STATES.forEach(state => registerOnce(this.id, this._onStateChange.bind(this, state), state))
 
     Object.keys(this._cbQueues)
-<<<<<<< HEAD
       .filter(event => /^record./.test(event))
-=======
-      .filter(_validControlEvents)
->>>>>>> Handle call.record notifications and dispatch them to the end
       .forEach(event => registerOnce(this.id, this._cbQueues[event].bind(this), event))
   }
 

@@ -276,16 +276,12 @@ export default class Call implements ICall {
     this.options = { ...this.options, ...opts }
   }
 
-  private _getControlIndex(control_id: string): number {
-    return this._controls.findIndex(t => t.control_id === control_id)
-  }
-
   _addControlParams(params: any) {
     const { control_id, event_type } = params
     if (!control_id || !event_type) {
       return
     }
-    const index = this._getControlIndex(control_id)
+    const index = this._controls.findIndex(t => t.control_id === control_id)
     if (index >= 0) {
       this._controls[index] = params
     } else {

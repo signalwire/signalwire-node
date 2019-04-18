@@ -69,6 +69,18 @@ export default class Calling extends Relay {
         trigger(call_id, params, `record.${state}`)
         break
       }
+      case CallNotification.Play: {
+        const { call_id, state } = params
+        const call = this.getCallById(call_id)
+        if (!call) {
+          logger.error('Unknown call:', params)
+          return
+        }
+        params.event_type = event_type
+        call._addControlParams(params)
+        trigger(call_id, params, `play.${state}`)
+        break
+      }
     }
   }
 

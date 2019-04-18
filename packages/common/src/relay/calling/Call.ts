@@ -18,7 +18,6 @@ export default class Call implements ICall {
   private _connectState: number = 0
   private _cbQueues: { [state: string]: Function } = {}
   private _controls: any[] = []
-  // private _mediaControlId: string = ''
 
   constructor(protected relayInstance: Calling, protected options: ICallOptions) {
     this._attachListeners = this._attachListeners.bind(this)
@@ -186,6 +185,7 @@ export default class Call implements ICall {
 
     return this._execute(msg)
   }
+  */
 
   playAudio(location: string) {
     const params = { type: 'audio', params: { location } }
@@ -203,24 +203,19 @@ export default class Call implements ICall {
   }
 
   playTTS(options: { text: string, language: string, gender: string, name: string }) {
-    const { text = null, language = 'en-US', gender = 'male', name = 'bob' } = options
-    const params = { type: 'tts', params: { text, language, gender, name } }
+    const params = { type: 'tts', params: options }
     return this.playMedia(params)
   }
 
   async playMedia(...play: { type: string, params: any }[]) {
     this._callIdRequired()
-    if (!play.length) {
-      return
-    }
-    this._mediaControlId = uuidv4()
     const msg = new Execute({
       protocol: this.relayInstance.protocol,
       method: 'call.play',
       params: {
         node_id: this.nodeId,
         call_id: this.id,
-        control_id: this._mediaControlId,
+        control_id: uuidv4(),
         play
       }
     })
@@ -228,24 +223,20 @@ export default class Call implements ICall {
     return this._execute(msg)
   }
 
-  async stopMedia() {
+  async stopMedia(control_id: string) {
     this._callIdRequired()
-    if (!this._mediaControlId) {
-      return
-    }
     const msg = new Execute({
       protocol: this.relayInstance.protocol,
       method: 'call.play.stop',
       params: {
         node_id: this.nodeId,
         call_id: this.id,
-        control_id: this._mediaControlId
+        control_id
       }
     })
 
     return this._execute(msg)
   }
-  */
 
   get prevState() {
     return CallState[this._prevState]
@@ -367,7 +358,7 @@ export default class Call implements ICall {
     CALL_STATES.forEach(state => registerOnce(this.id, this._onStateChange.bind(this, state), state))
 
     Object.keys(this._cbQueues)
-      .filter(event => /^record./.test(event))
+      .filter(event => /^(?:record|play)\./.test(event))
       .forEach(event => registerOnce(this.id, this._cbQueues[event].bind(this), event))
   }
 

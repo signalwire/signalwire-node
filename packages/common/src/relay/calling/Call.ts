@@ -102,7 +102,7 @@ export default class Call implements ICall {
     return this._execute(msg)
   }
 
-  startRecord(options: any = {}) {
+  async startRecord(options: any = {}) {
     this._callIdRequired()
     const msg = new Execute({
       protocol: this.relayInstance.protocol,

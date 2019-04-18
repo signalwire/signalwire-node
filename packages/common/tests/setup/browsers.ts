@@ -44,6 +44,7 @@ const ENUMERATED_MEDIA_DEVICES = [
 Object.defineProperty(navigator, 'mediaDevices', {
   value: {
     enumerateDevices: jest.fn().mockResolvedValue(ENUMERATED_MEDIA_DEVICES),
-    getSupportedConstraints: jest.fn().mockReturnValue(SUPPORTED_CONSTRAINTS)
+    getSupportedConstraints: jest.fn().mockReturnValue(SUPPORTED_CONSTRAINTS),
+    getUserMedia: jest.fn().mockReturnValue({})
   }
 })

@@ -8,7 +8,7 @@ jest.mock('../../common/src/services/Connection')
 describe('Setup', () => {
   const fnMock = jest.fn()
   const service = 'service'
-  const swOptions = { host: 'example.signalwire.com', project: 'project', token: 'token' }
+  const swOptions = { host: 'example.signalwire.com', project: 'project', token: 'token', domain: 'domain', resource: 'resource' }
   let session = null
   const _test = async done => {
     const protocol = await Setup(session, service, fnMock)
@@ -20,7 +20,6 @@ describe('Setup', () => {
   }
 
   beforeEach(() => {
-    fnMock.mockClear()
     Connection.mockSend.mockClear()
     Connection.mockResponse
       .mockImplementationOnce(() => JSON.parse('{"id":"c04d725a-c8bc-4b9e-bf1e-9c05150797cc","jsonrpc":"2.0","result":{"requester_nodeid":"05b1114c-XXXX-YYYY-ZZZZ-feaa30afad6c","responder_nodeid":"9811eb32-XXXX-YYYY-ZZZZ-ab56fa3b83c9","result":{"protocol":"signalwire_service_random_uuid"}}}'))

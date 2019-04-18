@@ -248,21 +248,21 @@ describe('Call', () => {
         expect(Connection.mockSend).toHaveBeenCalledWith(msg)
       })
 
-      it('.playVideo() should execute the correct message', () => {
-        call.playVideo('video.mp4')
-        expect(Connection.mockSend).toHaveBeenCalledTimes(1)
-        const msg = new Execute({
-          protocol: 'signalwire_service_random_uuid',
-          method: 'call.play',
-          params: {
-            node_id: call.nodeId,
-            call_id: call.id,
-            control_id: 'mocked-uuid',
-            play: [{ type: 'video', params: { url: 'video.mp4' } }]
-          }
-        })
-        expect(Connection.mockSend).toHaveBeenCalledWith(msg)
-      })
+      // it('.playVideo() should execute the correct message', () => {
+      //   call.playVideo('video.mp4')
+      //   expect(Connection.mockSend).toHaveBeenCalledTimes(1)
+      //   const msg = new Execute({
+      //     protocol: 'signalwire_service_random_uuid',
+      //     method: 'call.play',
+      //     params: {
+      //       node_id: call.nodeId,
+      //       call_id: call.id,
+      //       control_id: 'mocked-uuid',
+      //       play: [{ type: 'video', params: { url: 'video.mp4' } }]
+      //     }
+      //   })
+      //   expect(Connection.mockSend).toHaveBeenCalledWith(msg)
+      // })
 
       it('.playSilence() should execute the correct message', () => {
         call.playSilence(5)

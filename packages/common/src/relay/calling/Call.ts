@@ -192,10 +192,10 @@ export default class Call implements ICall {
     return this.playMedia(params)
   }
 
-  playVideo(url: string) {
-    const params = { type: 'video', params: { url } }
-    return this.playMedia(params)
-  }
+  // playVideo(url: string) {
+  //   const params = { type: 'video', params: { url } }
+  //   return this.playMedia(params)
+  // }
 
   playSilence(duration: number) {
     const params = { type: 'silence', params: { duration } }

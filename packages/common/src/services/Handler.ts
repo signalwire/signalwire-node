@@ -34,6 +34,7 @@ const register = (eventName: string, callback: Function, uniqueId: string = GLOB
  * Subscribes the callback to the passed eventName only once. Use uniqueId to render unique the event.
  */
 const registerOnce = (eventName: string, callback: Function, uniqueId: string = GLOBAL) => {
+  /* tslint:disable-next-line */
   const cb = function(data) {
     deRegister(eventName, cb, uniqueId)
     callback(data)

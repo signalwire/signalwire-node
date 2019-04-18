@@ -11,4 +11,6 @@ async function main() {
   await new Listr(tasks, { showSubtasks: true }).run()
 }
 
-main()
+main().catch(error => {
+  console.error('Setup failed!')
+})

@@ -15,6 +15,10 @@ export default (instance: any) => {
       // TODO: implement all these specs
       describe('execute', () => {
         const payload = { request: { fake: 'data' } }
+        it('force failed', () => {
+          expect(1).toEqual(3)
+        })
+
         it('should send the message through the socket if the connection is live', async done => {
           await instance.connect()
           const response = await instance.execute(payload)

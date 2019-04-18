@@ -1,4 +1,4 @@
-import { isQueued } from '../../common/src/services/Handler'
+import { isQueued } from '../src/services/Handler'
 import RelayClientNode from '../../node/src/relay'
 import RelayClientWeb from '../../web/src/SignalWire'
 import { Setup } from '../src/services/Setup'

@@ -101,7 +101,7 @@ export default class Call implements ICall {
     return this._execute(msg)
   }
 
-  startRecord(options: any = {}) {
+  async startRecord(options: any = {}) {
     this._callIdRequired()
     const msg = new Execute({
       protocol: this.relayInstance.protocol,
@@ -202,7 +202,7 @@ export default class Call implements ICall {
     return this.playMedia(params)
   }
 
-  playTTS(options: { text: string, language: string, gender: string, name: string }) {
+  playTTS(options: { text: string, language?: string, gender?: string, name?: string }) {
     const params = { type: 'tts', params: options }
     return this.playMedia(params)
   }

@@ -5,20 +5,20 @@ import Verto, { VERTO_PROTOCOL } from '../src/Verto'
 const Connection = require('../../common/src/services/Connection')
 
 describe('Verto', () => {
-  behaveLikeBaseSession.call(this, Verto)
+  const _verto = new Verto({ host: 'example.signalwire.com', login: 'login', password: 'password' })
+  behaveLikeBaseSession.call(this, _verto)
   VertoHandler.call(this, Verto)
 
   let instance: Verto
   const noop = (): void => { }
 
-  beforeEach(async done => {
+  beforeEach(done => {
     Connection.mockSend.mockClear()
     Connection.default.mockClear()
     Connection.mockClose.mockClear()
     instance = new Verto({ host: 'example.fs.edo', login: 'login', password: 'passwd' })
     instance.subscriptions = {}
-    await instance.connect()
-    done()
+    instance.connect().then(done)
   })
 
   it('should instantiate Verto with default methods', () => {
@@ -166,10 +166,10 @@ describe('Verto', () => {
     const MIC_ID = 'c3d0a4cb47f5efd7af14c2c3860d12f0199042db6cbdf0c690c38644a24a6ba7'
     const CAM_ID = '2060bf50ab9c29c12598bf4eafeafa71d4837c667c7c172bb4407ec6c5150206'
 
-    it('should throw an error with invalid micId', () => {
+    it('should not set deviceId with an invalid micId', () => {
       expect(
         instance.setAudioSettings({ micId: CAM_ID, micLabel: 'Random Mic', volume: 1, echoCancellation: false })
-      ).rejects.toMatch(/Unknown\ device\ with/)
+      ).resolves.toMatchObject({ volume: 1, echoCancellation: false })
     })
 
     it('should set deviceId', () => {
@@ -190,10 +190,10 @@ describe('Verto', () => {
     const MIC_ID = 'c3d0a4cb47f5efd7af14c2c3860d12f0199042db6cbdf0c690c38644a24a6ba7'
     const CAM_ID = '2060bf50ab9c29c12598bf4eafeafa71d4837c667c7c172bb4407ec6c5150206'
 
-    it('should throw an error with invalid camId', () => {
+    it('should not set deviceId with an invalid camId', () => {
       expect(
         instance.setVideoSettings({ camId: MIC_ID, camLabel: 'Random cam', width: 1280, height: 720 })
-      ).rejects.toMatch(/Unknown\ device\ with/)
+      ).resolves.toMatchObject({ width: 1280, height: 720 })
     })
 
     it('should set deviceId', () => {

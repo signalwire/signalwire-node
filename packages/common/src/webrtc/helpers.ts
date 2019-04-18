@@ -146,11 +146,9 @@ const removeUnsupportedConstraints = (constraints: MediaTrackConstraints): void 
 const checkDeviceIdConstraints = async (id: string, label: string, kind: MediaDeviceInfo['kind'], constraints: MediaTrackConstraints) => {
   const { deviceId } = constraints
   if (!isDefined(deviceId) && (id || label)) {
-    try {
-      const deviceId = await assureDeviceId(id, label, kind)
+    const deviceId = await assureDeviceId(id, label, kind)
+    if (deviceId) {
       constraints.deviceId = { exact: deviceId }
-    } catch {
-      logger.warn(`Unknown device with id: '${id}' and label: '${label}'`)
     }
   }
   return constraints

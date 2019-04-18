@@ -11,4 +11,4 @@ async function main() {
   await new Listr(tasks, { showSubtasks: true }).run()
 }
 
-main()
+main().catch(error => process.exit(1))

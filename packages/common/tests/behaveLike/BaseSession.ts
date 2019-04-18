@@ -1,14 +1,9 @@
 import { isQueued } from '../../src/services/Handler'
 import BaseSession from '../../src/BaseSession'
-import { ISignalWireOptions } from '../../src/util/interfaces'
 const Connection = require('../../src/services/Connection')
-// jest.mock('../../src/services/Connection')
 
-export default (klass: any) => {
+export default (instance: any) => {
   describe('Inherit BaseClass', () => {
-    const OPTIONS: ISignalWireOptions = { host: 'example.signalwire.com', login: 'login', password: 'password', project: 'project', token: 'token' }
-    const instance = new klass(OPTIONS)
-
     afterEach(() => {
       instance.disconnect()
       instance._idle = false
@@ -20,6 +15,7 @@ export default (klass: any) => {
       // TODO: implement all these specs
       describe('execute', () => {
         const payload = { request: { fake: 'data' } }
+
         it('should send the message through the socket if the connection is live', async done => {
           await instance.connect()
           const response = await instance.execute(payload)

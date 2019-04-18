@@ -5,7 +5,7 @@ import { ICallDevice, IMakeCallParams } from '../../util/interfaces'
 import logger from '../../util/logger'
 import Relay from '../Relay'
 import Call from './Call'
-import { DEFAULT_CALL_TIMEOUT } from '../../util/constants/relay'
+import { DEFAULT_CALL_TIMEOUT, CallNotification } from '../../util/constants/relay'
 
 const _ctxUniqueId = (context: string): string => `ctx:${context}`
 
@@ -19,7 +19,7 @@ export default class Calling extends Relay {
   notificationHandler(notification: any) {
     const { event_type, params } = notification
     switch (event_type) {
-      case 'calling.call.state': {
+      case CallNotification.State: {
         const { call_id, node_id, call_state, tag, peer } = params
         let call = this.getCallById(call_id)
         if (call) {
@@ -39,12 +39,12 @@ export default class Calling extends Relay {
         logger.error('\t - Unknown call:', params, '\n\n')
         break
       }
-      case 'calling.call.receive': {
+      case CallNotification.Receive: {
         const call = new Call(this, params)
         trigger(this.protocol, call, _ctxUniqueId(call.context))
         break
       }
-      case 'calling.call.connect': {
+      case CallNotification.Connect: {
         const { call_id, connect_state, peer } = params
         const call = this.getCallById(call_id)
         if (!call) {
@@ -57,7 +57,7 @@ export default class Calling extends Relay {
         trigger(call_id, call, connect_state)
         break
       }
-      case 'calling.call.record': {
+      case CallNotification.Record: {
         const { call_id, state } = params
         const call = this.getCallById(call_id)
         if (!call) {

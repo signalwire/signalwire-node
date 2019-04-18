@@ -1,14 +1,11 @@
 import { v4 as uuidv4 } from 'uuid'
 import { Execute } from '../../messages/Blade'
 import { deRegister, registerOnce, deRegisterAll } from '../../services/Handler'
-import { CallState, CALL_STATES, DisconnectReason, CallConnectState, CALL_CONNECT_STATES, DEFAULT_CALL_TIMEOUT } from '../../util/constants/relay'
+import { CallState, CALL_STATES, DisconnectReason, CallConnectState, CALL_CONNECT_STATES, DEFAULT_CALL_TIMEOUT, CallNotification } from '../../util/constants/relay'
 import { ICall, ICallOptions, ICallDevice, IMakeCallParams } from '../../util/interfaces'
 // import logger from '../../util/logger'
 import { reduceConnectParams } from '../helpers'
 import Calling from './Calling'
-
-/** This function will check play/collect events too. */
-const _validControlEvents = (event: string): boolean  => /^record./.test(event)
 
 export default class Call implements ICall {
   public id: string
@@ -297,7 +294,7 @@ export default class Call implements ICall {
   }
 
   get recordings(): Object[] {
-    return this._controls.filter(t => t.event_type === 'calling.call.record')
+    return this._controls.filter(t => t.event_type === CallNotification.Record)
   }
 
   get device(): ICallDevice {
@@ -374,7 +371,7 @@ export default class Call implements ICall {
     CALL_STATES.forEach(state => registerOnce(this.id, this._onStateChange.bind(this, state), state))
 
     Object.keys(this._cbQueues)
-      .filter(_validControlEvents)
+      .filter(event => /^record./.test(event))
       .forEach(event => registerOnce(this.id, this._cbQueues[event].bind(this), event))
   }
 

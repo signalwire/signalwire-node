@@ -39,4 +39,11 @@ export enum CallConnectState {
   failed
 }
 
+export enum CallNotification {
+  State = 'calling.call.state',
+  Receive = 'calling.call.receive',
+  Connect = 'calling.call.connect',
+  Record = 'calling.call.record'
+}
+
 export const CALL_CONNECT_STATES = Object.keys(CallConnectState).filter(k => isNaN(Number(k)))

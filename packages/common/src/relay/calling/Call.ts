@@ -187,13 +187,13 @@ export default class Call implements ICall {
   }
   */
 
-  playAudio(location: string) {
-    const params = { type: 'audio', params: { location } }
+  playAudio(url: string) {
+    const params = { type: 'audio', params: { url } }
     return this.playMedia(params)
   }
 
-  playVideo(location: string) {
-    const params = { type: 'video', params: { location } }
+  playVideo(url: string) {
+    const params = { type: 'video', params: { url } }
     return this.playMedia(params)
   }
 

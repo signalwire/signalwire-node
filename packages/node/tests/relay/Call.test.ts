@@ -242,7 +242,7 @@ describe('Call', () => {
             node_id: call.nodeId,
             call_id: call.id,
             control_id: 'mocked-uuid',
-            play: [{ type: 'audio', params: { location: 'audio.mp3' } }]
+            play: [{ type: 'audio', params: { url: 'audio.mp3' } }]
           }
         })
         expect(Connection.mockSend).toHaveBeenCalledWith(msg)
@@ -258,7 +258,7 @@ describe('Call', () => {
             node_id: call.nodeId,
             call_id: call.id,
             control_id: 'mocked-uuid',
-            play: [{ type: 'video', params: { location: 'video.mp4' } }]
+            play: [{ type: 'video', params: { url: 'video.mp4' } }]
           }
         })
         expect(Connection.mockSend).toHaveBeenCalledWith(msg)

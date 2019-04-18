@@ -12,5 +12,5 @@ async function main() {
 }
 
 main().catch(error => {
-  console.error('Setup failed!')
+  process.exit(1)
 })

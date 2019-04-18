@@ -6,11 +6,9 @@ import { Execute } from '../../src/messages/Blade'
  * Module to test "blade.xxx" messages in both browser/node following DRY principle.
  */
 
-const BladeDisconnect = (klass: any) => {
+const BladeDisconnect = (instance: any) => {
   describe('blade.disconnect', () => {
-    let instance: any
     beforeAll(async done => {
-      instance = new klass({ host: 'example.signalwire.com', project: 'project', token: 'token' })
       await instance.connect()
 
       const msg = JSON.parse('{"id":"378d7dea-e581-4305-a7e7-d29173797f32","jsonrpc":"2.0","method":"blade.disconnect"}')

@@ -1,14 +1,9 @@
 import { isQueued } from '../../src/services/Handler'
 import BaseSession from '../../src/BaseSession'
-import { ISignalWireOptions } from '../../src/util/interfaces'
 const Connection = require('../../src/services/Connection')
-// jest.mock('../../src/services/Connection')
 
-export default (klass: any) => {
+export default (instance: any) => {
   describe('Inherit BaseClass', () => {
-    const OPTIONS: ISignalWireOptions = { host: 'example.signalwire.com', login: 'login', password: 'password', project: 'project', token: 'token' }
-    const instance = new klass(OPTIONS)
-
     afterEach(() => {
       instance.disconnect()
       instance._idle = false

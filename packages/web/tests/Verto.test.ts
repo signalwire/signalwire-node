@@ -5,7 +5,8 @@ import Verto, { VERTO_PROTOCOL } from '../src/Verto'
 const Connection = require('../../common/src/services/Connection')
 
 describe('Verto', () => {
-  behaveLikeBaseSession.call(this, Verto)
+  const _verto = new Verto({ host: 'example.signalwire.com', login: 'login', password: 'password' })
+  behaveLikeBaseSession.call(this, _verto)
   VertoHandler.call(this, Verto)
 
   let instance: Verto

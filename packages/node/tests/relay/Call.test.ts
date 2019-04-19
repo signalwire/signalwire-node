@@ -168,59 +168,6 @@ describe('Call', () => {
       })
     })
 
-    describe('.startRecord()', () => {
-      beforeEach(() => {
-        call.id = 'testing-on-method'
-      })
-
-      afterEach(() => {
-        call.id = undefined
-      })
-
-      it('should execute the right message', () => {
-        const opts = { format: 'mp3', beep: true }
-        call.startRecord(opts)
-        expect(Connection.mockSend).toHaveBeenCalledTimes(1)
-        const msg = new Execute({
-          protocol: 'signalwire_service_random_uuid',
-          method: 'call.record',
-          params: {
-            node_id: undefined,
-            call_id: call.id,
-            control_id: 'mocked-uuid',
-            type: 'audio',
-            params: opts
-          }
-        })
-        expect(Connection.mockSend).toHaveBeenCalledWith(msg)
-      })
-    })
-
-    describe('.stopRecord()', () => {
-      beforeEach(() => {
-        call.id = 'testing-on-method'
-      })
-
-      afterEach(() => {
-        call.id = undefined
-      })
-
-      it('should execute the right message', () => {
-        call.stopRecord('control-id')
-        expect(Connection.mockSend).toHaveBeenCalledTimes(1)
-        const msg = new Execute({
-          protocol: 'signalwire_service_random_uuid',
-          method: 'call.record.stop',
-          params: {
-            node_id: undefined,
-            call_id: call.id,
-            control_id: 'control-id'
-          }
-        })
-        expect(Connection.mockSend).toHaveBeenCalledWith(msg)
-      })
-    })
-
     describe('when call is ready', () => {
       beforeEach(() => {
         call.id = 'call-id'
@@ -230,6 +177,39 @@ describe('Call', () => {
       afterAll(() => {
         call.id = undefined
         call.nodeId = undefined
+      })
+
+      it('.startRecord() should execute the right message', () => {
+        const opts = { format: 'mp3', beep: true }
+        call.startRecord(opts)
+        expect(Connection.mockSend).toHaveBeenCalledTimes(1)
+        const msg = new Execute({
+          protocol: 'signalwire_service_random_uuid',
+          method: 'call.record',
+          params: {
+            node_id: call.nodeId,
+            call_id: call.id,
+            control_id: 'mocked-uuid',
+            type: 'audio',
+            params: opts
+          }
+        })
+        expect(Connection.mockSend).toHaveBeenCalledWith(msg)
+      })
+
+      it('.stopRecord() should execute the right message', () => {
+        call.stopRecord('control-id')
+        expect(Connection.mockSend).toHaveBeenCalledTimes(1)
+        const msg = new Execute({
+          protocol: 'signalwire_service_random_uuid',
+          method: 'call.record.stop',
+          params: {
+            node_id: call.nodeId,
+            call_id: call.id,
+            control_id: 'control-id'
+          }
+        })
+        expect(Connection.mockSend).toHaveBeenCalledWith(msg)
       })
 
       it('.playAudio() should execute the correct message', () => {

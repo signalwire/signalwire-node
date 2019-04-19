@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { Execute } from '../../messages/Blade'
 import { deRegister, registerOnce, deRegisterAll } from '../../services/Handler'
 import { CallState, CALL_STATES, DisconnectReason, CallConnectState, CALL_CONNECT_STATES, DEFAULT_CALL_TIMEOUT, CallNotification } from '../../util/constants/relay'
-import { ICall, ICallOptions, ICallDevice, IMakeCallParams } from '../../util/interfaces'
+import { ICall, ICallOptions, ICallDevice, IMakeCallParams, ICallingPlay, ICallingCollect } from '../../util/interfaces'
 // import logger from '../../util/logger'
 import { reduceConnectParams } from '../helpers'
 import Calling from './Calling'
@@ -118,7 +118,7 @@ export default class Call implements ICall {
     return this._execute(msg)
   }
 
-  stopRecord(control_id: string) {
+  async stopRecord(control_id: string) {
     this._callIdRequired()
     const msg = new Execute({
       protocol: this.relayInstance.protocol,
@@ -202,12 +202,12 @@ export default class Call implements ICall {
     return this.playMedia(params)
   }
 
-  playTTS(options: { text: string, language?: string, gender?: string }) {
+  playTTS(options: ICallingPlay['params']) {
     const params = { type: 'tts', params: options }
     return this.playMedia(params)
   }
 
-  async playMedia(...play: { type: string, params: any }[]) {
+  async playMedia(...play: ICallingPlay[]) {
     this._callIdRequired()
     const msg = new Execute({
       protocol: this.relayInstance.protocol,

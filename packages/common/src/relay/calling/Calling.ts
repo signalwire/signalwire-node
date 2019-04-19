@@ -18,6 +18,7 @@ export default class Calling extends Relay {
 
   notificationHandler(notification: any) {
     const { event_type, params } = notification
+    params.event_type = event_type
     switch (event_type) {
       case CallNotification.State: {
         const { call_id, node_id, call_state, tag, peer } = params
@@ -60,25 +61,19 @@ export default class Calling extends Relay {
       case CallNotification.Record: {
         const { call_id, state } = params
         const call = this.getCallById(call_id)
-        if (!call) {
-          logger.error('Unknown call:', params)
-          return
+        if (call) {
+          call._addControlParams(params)
+          trigger(call_id, params, `record.${state}`)
         }
-        params.event_type = event_type
-        call._addControlParams(params)
-        trigger(call_id, params, `record.${state}`)
         break
       }
       case CallNotification.Play: {
         const { call_id, state } = params
         const call = this.getCallById(call_id)
-        if (!call) {
-          logger.error('Unknown call:', params)
-          return
+        if (call) {
+          call._addControlParams(params)
+          trigger(call_id, params, `play.${state}`)
         }
-        params.event_type = event_type
-        call._addControlParams(params)
-        trigger(call_id, params, `play.${state}`)
         break
       }
     }

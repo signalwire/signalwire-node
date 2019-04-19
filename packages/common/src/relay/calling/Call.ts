@@ -202,7 +202,7 @@ export default class Call implements ICall {
     return this.playMedia(params)
   }
 
-  playTTS(options: { text: string, language?: string, gender?: string, name?: string }) {
+  playTTS(options: { text: string, language?: string, gender?: string }) {
     const params = { type: 'tts', params: options }
     return this.playMedia(params)
   }

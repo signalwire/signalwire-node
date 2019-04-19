@@ -238,6 +238,38 @@ export default class Call implements ICall {
     return this._execute(msg)
   }
 
+  playAudioAndCollect(collect: ICallingCollect, url: string) {
+    const params = { type: 'audio', params: { url } }
+    return this.playAndCollect(collect, params)
+  }
+
+  playSilenceAndCollect(collect: ICallingCollect, duration: number) {
+    const params = { type: 'silence', params: { duration } }
+    return this.playAndCollect(collect, params)
+  }
+
+  playTTSAndCollect(collect: ICallingCollect, options: ICallingPlay['params']) {
+    const params = { type: 'tts', params: options }
+    return this.playAndCollect(collect, params)
+  }
+
+  async playAndCollect(collect: ICallingCollect, ...play: ICallingPlay[]) {
+    this._callIdRequired()
+    const msg = new Execute({
+      protocol: this.relayInstance.protocol,
+      method: 'call.play_and_collect',
+      params: {
+        node_id: this.nodeId,
+        call_id: this.id,
+        control_id: uuidv4(),
+        play,
+        collect
+      }
+    })
+
+    return this._execute(msg)
+  }
+
   get prevState() {
     return CallState[this._prevState]
   }
@@ -358,7 +390,7 @@ export default class Call implements ICall {
     CALL_STATES.forEach(state => registerOnce(this.id, this._onStateChange.bind(this, state), state))
 
     Object.keys(this._cbQueues)
-      .filter(event => /^(?:record|play)\./.test(event))
+      .filter(event => /^(?:record\.|play\.|collect$)/.test(event))
       .forEach(event => registerOnce(this.id, this._cbQueues[event].bind(this), event))
   }
 

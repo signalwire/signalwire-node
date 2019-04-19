@@ -309,6 +309,85 @@ describe('Call', () => {
         })
         expect(Connection.mockSend).toHaveBeenCalledWith(msg)
       })
+
+      describe('play_and_collect', () => {
+        const collect = { initial_timeout: 10, digits: { max: 5, terminators: '#', digit_timeout: 10 } }
+
+        it('.playAudioAndCollect() should execute the correct message', () => {
+          call.playAudioAndCollect(collect, 'audio.mp3')
+          expect(Connection.mockSend).toHaveBeenCalledTimes(1)
+          const msg = new Execute({
+            protocol: 'signalwire_service_random_uuid',
+            method: 'call.play_and_collect',
+            params: {
+              node_id: call.nodeId,
+              call_id: call.id,
+              control_id: 'mocked-uuid',
+              play: [{ type: 'audio', params: { url: 'audio.mp3' } }],
+              collect
+            }
+          })
+          expect(Connection.mockSend).toHaveBeenCalledWith(msg)
+        })
+
+        it('.playSilenceAndCollect() should execute the correct message', () => {
+          call.playSilenceAndCollect(collect, 5)
+          expect(Connection.mockSend).toHaveBeenCalledTimes(1)
+          const msg = new Execute({
+            protocol: 'signalwire_service_random_uuid',
+            method: 'call.play_and_collect',
+            params: {
+              node_id: call.nodeId,
+              call_id: call.id,
+              control_id: 'mocked-uuid',
+              play: [{ type: 'silence', params: { duration: 5 } }],
+              collect
+            }
+          })
+          expect(Connection.mockSend).toHaveBeenCalledWith(msg)
+        })
+
+        it('.playTTSAndCollect() should execute the correct message', () => {
+          call.playTTSAndCollect(collect, { text: 'digit something' })
+          expect(Connection.mockSend).toHaveBeenCalledTimes(1)
+          const msg = new Execute({
+            protocol: 'signalwire_service_random_uuid',
+            method: 'call.play_and_collect',
+            params: {
+              node_id: call.nodeId,
+              call_id: call.id,
+              control_id: 'mocked-uuid',
+              play: [{ type: 'tts', params: { text: 'digit something' } }],
+              collect
+            }
+          })
+          expect(Connection.mockSend).toHaveBeenCalledWith(msg)
+        })
+
+        it('.playAndCollect() should execute the correct message', () => {
+          call.playAndCollect(
+            collect,
+            { type: 'silence', params: { duration: 5 } },
+            { type: 'tts', params: { text: 'digit something' } }
+          )
+          expect(Connection.mockSend).toHaveBeenCalledTimes(1)
+          const msg = new Execute({
+            protocol: 'signalwire_service_random_uuid',
+            method: 'call.play_and_collect',
+            params: {
+              node_id: call.nodeId,
+              call_id: call.id,
+              control_id: 'mocked-uuid',
+              play: [
+                { type: 'silence', params: { duration: 5 } },
+                { type: 'tts', params: { text: 'digit something' } }
+              ],
+              collect
+            }
+          })
+          expect(Connection.mockSend).toHaveBeenCalledWith(msg)
+        })
+      })
     })
   })
 

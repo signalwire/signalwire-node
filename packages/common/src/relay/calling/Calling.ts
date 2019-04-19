@@ -76,6 +76,15 @@ export default class Calling extends Relay {
         }
         break
       }
+      case CallNotification.Collect: {
+        const { call_id } = params
+        const call = this.getCallById(call_id)
+        if (call) {
+          call._addControlParams(params)
+          trigger(call_id, params, 'collect')
+        }
+        break
+      }
     }
   }
 

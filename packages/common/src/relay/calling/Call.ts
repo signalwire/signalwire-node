@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid'
 import { Execute } from '../../messages/Blade'
 import { deRegister, registerOnce, deRegisterAll } from '../../services/Handler'
-import { CallState, CALL_STATES, DisconnectReason, CallConnectState, CALL_CONNECT_STATES, DEFAULT_CALL_TIMEOUT } from '../../util/constants/relay'
+import { CallState, CALL_STATES, DisconnectReason, CallConnectState, CALL_CONNECT_STATES, DEFAULT_CALL_TIMEOUT, CallNotification } from '../../util/constants/relay'
 import { ICall, ICallOptions, ICallDevice, IMakeCallParams } from '../../util/interfaces'
 // import logger from '../../util/logger'
 import { reduceConnectParams } from '../helpers'
@@ -17,6 +17,7 @@ export default class Call implements ICall {
   private _prevConnectState: number = 0
   private _connectState: number = 0
   private _cbQueues: { [state: string]: Function } = {}
+  private _controls: any[] = []
   // private _mediaControlId: string = ''
 
   constructor(protected relayInstance: Calling, protected options: ICallOptions) {
@@ -96,6 +97,38 @@ export default class Call implements ICall {
     CALL_CONNECT_STATES.forEach(state => {
       deRegister(this.id, null, state)
       registerOnce(this.id, this._onConnectStateChange.bind(this, state), state)
+    })
+
+    return this._execute(msg)
+  }
+
+  async startRecord(options: any = {}) {
+    this._callIdRequired()
+    const msg = new Execute({
+      protocol: this.relayInstance.protocol,
+      method: 'call.record',
+      params: {
+        node_id: this.nodeId,
+        call_id: this.id,
+        control_id: uuidv4(),
+        type: 'audio',
+        params: options
+      }
+    })
+
+    return this._execute(msg)
+  }
+
+  stopRecord(control_id: string) {
+    this._callIdRequired()
+    const msg = new Execute({
+      protocol: this.relayInstance.protocol,
+      method: 'call.record.stop',
+      params: {
+        node_id: this.nodeId,
+        call_id: this.id,
+        control_id
+      }
     })
 
     return this._execute(msg)
@@ -243,6 +276,23 @@ export default class Call implements ICall {
     this.options = { ...this.options, ...opts }
   }
 
+  _addControlParams(params: any) {
+    const { control_id, event_type } = params
+    if (!control_id || !event_type) {
+      return
+    }
+    const index = this._controls.findIndex(t => t.control_id === control_id)
+    if (index >= 0) {
+      this._controls[index] = params
+    } else {
+      this._controls.push(params)
+    }
+  }
+
+  get recordings(): Object[] {
+    return this._controls.filter(t => t.event_type === CallNotification.Record)
+  }
+
   get device(): ICallDevice {
     return this.options.device
   }
@@ -315,6 +365,10 @@ export default class Call implements ICall {
   private _attachListeners() {
     registerOnce(this.id, this._detachListeners, CALL_STATES[CALL_STATES.length - 1])
     CALL_STATES.forEach(state => registerOnce(this.id, this._onStateChange.bind(this, state), state))
+
+    Object.keys(this._cbQueues)
+      .filter(event => /^record./.test(event))
+      .forEach(event => registerOnce(this.id, this._cbQueues[event].bind(this), event))
   }
 
   private _detachListeners() {

@@ -3,6 +3,7 @@ import { ICallDevice } from '../../../common/src/util/interfaces'
 import Call from '../../../common/src/relay/calling/Call'
 import { CallState } from '../../../common/src/util/constants/relay'
 import { isQueued } from '../../../common/src/services/Handler'
+import { Execute } from '../../../common/src/messages/Blade';
 const Connection = require('../../../common/src/services/Connection')
 jest.mock('../../../common/src/services/Connection')
 
@@ -31,6 +32,7 @@ describe('Call', () => {
   describe('creating outbound calls', () => {
     let call: Call = null
     beforeEach(() => {
+      Connection.mockSend.mockClear()
       mockSetupResponses()
       session.calling.addCall = jest.fn()
       const device: ICallDevice = { type: 'phone', params: { from_number: '2345', to_number: '6789', timeout: 30 } }
@@ -70,6 +72,10 @@ describe('Call', () => {
 
     it('should throw with .connect()', async () => {
       await expect(call.connect({ type: 'phone', to: '234599' })).rejects.toThrowError('Call has not started')
+    })
+
+    it('should throw with .startRecord()', async () => {
+      await expect(call.startRecord({ format: 'mp3' })).rejects.toThrowError('Call has not started')
     })
 
     // it('should throw with .playMedia()', async () => {
@@ -162,6 +168,58 @@ describe('Call', () => {
       })
     })
 
+    describe('.startRecord()', () => {
+      beforeEach(() => {
+        call.id = 'testing-on-method'
+      })
+
+      afterEach(() => {
+        call.id = undefined
+      })
+
+      it('should execute the right message', () => {
+        const opts = { format: 'mp3', beep: true }
+        call.startRecord(opts)
+        expect(Connection.mockSend).toHaveBeenCalledTimes(1)
+        const msg = new Execute({
+          protocol: 'signalwire_service_random_uuid',
+          method: 'call.record',
+          params: {
+            node_id: undefined,
+            call_id: call.id,
+            control_id: 'mocked-uuid',
+            type: 'audio',
+            params: opts
+          }
+        })
+        expect(Connection.mockSend).toHaveBeenCalledWith(msg)
+      })
+    })
+
+    describe('.stopRecord()', () => {
+      beforeEach(() => {
+        call.id = 'testing-on-method'
+      })
+
+      afterEach(() => {
+        call.id = undefined
+      })
+
+      it('should execute the right message', () => {
+        call.stopRecord('control-id')
+        expect(Connection.mockSend).toHaveBeenCalledTimes(1)
+        const msg = new Execute({
+          protocol: 'signalwire_service_random_uuid',
+          method: 'call.record.stop',
+          params: {
+            node_id: undefined,
+            call_id: call.id,
+            control_id: 'control-id'
+          }
+        })
+        expect(Connection.mockSend).toHaveBeenCalledWith(msg)
+      })
+    })
   })
 
   // describe('inbound', () => {

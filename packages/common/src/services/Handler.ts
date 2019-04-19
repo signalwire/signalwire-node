@@ -34,7 +34,8 @@ const register = (eventName: string, callback: Function, uniqueId: string = GLOB
  * Subscribes the callback to the passed eventName only once. Use uniqueId to render unique the event.
  */
 const registerOnce = (eventName: string, callback: Function, uniqueId: string = GLOBAL) => {
-  const cb = data => {
+  /* tslint:disable-next-line */
+  const cb = function(data) {
     deRegister(eventName, cb, uniqueId)
     callback(data)
   }
@@ -53,7 +54,7 @@ const deRegister = (eventName: string, callback?: Function | null, uniqueId: str
     const len = queue[eventName][uniqueId].length
     for (let i = len - 1; i >= 0; i--) {
       const fn = queue[eventName][uniqueId][i]
-      if (callback === fn || callback === fn.prototype.targetRef) {
+      if (callback === fn || (fn.prototype && callback === fn.prototype.targetRef)) {
         queue[eventName][uniqueId].splice(i, 1)
       }
     }

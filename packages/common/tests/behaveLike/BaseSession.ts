@@ -147,11 +147,6 @@ export default (instance: any) => {
     describe('static methods', () => {
       const mockFn = jest.fn()
 
-      it('.uuid() should returns UUID v4', () => {
-        const pattern = new RegExp(/^[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i)
-        expect(BaseSession.uuid()).toMatch(pattern)
-      })
-
       it('.on() should add a listener into the internal queue', () => {
         BaseSession.on('event', mockFn)
         expect(isQueued('event')).toEqual(true)

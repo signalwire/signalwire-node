@@ -79,6 +79,19 @@ async function createCall(to) {
     console.log(`\t ${call.id} failed to connect!`, '\n')
   })
 
+  leg.on('record.recording', params => {
+    console.log(`\t Record state changed for ${params.call_id} in ${params.state} - ${params.control_id}`)
+  })
+  leg.on('record.paused', params => {
+    console.log(`\t Record state changed for ${params.call_id} in ${params.state} - ${params.control_id}`)
+  })
+  leg.on('record.finished', params => {
+    console.log(`\t Record state changed for ${params.call_id} in ${params.state} - ${params.control_id}`)
+  })
+  leg.on('record.no_input', params => {
+    console.log(`\t Record state changed for ${params.call_id} in ${params.state} - ${params.control_id}`)
+  })
+
   return leg
 }
 
@@ -184,6 +197,28 @@ function _init() {
           })
         })
       }
+
+      if (true) { // TODO:
+        call.on('answered', call => {
+          const recordOpts = {
+            beep: false,
+            format: 'mp3',
+            stereo: false,
+            direction: 'both',
+            // initial_timeout: 0.0,
+            // end_silence_timeout: 0.0,
+            // terminators: ''
+          }
+          call.startRecord(recordOpts)
+            .then(response => {
+              console.log(`\t Record Success!`, response)
+            })
+            .catch(error => {
+              console.error(`\t Record failed?`, error)
+            })
+        })
+      }
+
       console.warn(`\tCall to ${answers.to_number} starts now!\n`)
       call.begin()
         .catch(error => {

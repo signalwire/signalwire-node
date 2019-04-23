@@ -3,7 +3,6 @@ import { Execute } from '../../messages/Blade'
 import { deRegister, registerOnce, deRegisterAll } from '../../services/Handler'
 import { CallState, CALL_STATES, DisconnectReason, CallConnectState, CALL_CONNECT_STATES, DEFAULT_CALL_TIMEOUT, CallNotification } from '../../util/constants/relay'
 import { ICall, ICallOptions, ICallDevice, IMakeCallParams, ICallingPlay, ICallingCollect } from '../../util/interfaces'
-// import logger from '../../util/logger'
 import { reduceConnectParams } from '../helpers'
 import Calling from './Calling'
 
@@ -133,69 +132,10 @@ export default class Call implements ICall {
     return this._execute(msg)
   }
 
-  /*
-  async join(callsToJoin: Call | Call[]) { // TODO: wip
-    this._callIdRequired()
-    let calls = []
-    if (callsToJoin instanceof Array) {
-      calls = callsToJoin.map((c: Call) => c.id)
-    } else if (callsToJoin instanceof Call) {
-      calls = [callsToJoin.id]
-    } else {
-      throw new Error(`Unknow parameter type for join. ${callsToJoin}`)
-    }
-    if (!calls.length) {
-      throw new Error('No Calls to join')
-    }
-    const msg = new Execute({
-      protocol: this.relayInstance.protocol,
-      method: 'call.join',
-      params: {
-        node_id: this.nodeId,
-        call_id: this.id,
-        calls
-      }
-    })
-
-    return this._execute(msg)
-  }
-
-  async leave(callsToLeave: Call | Call[]) { // TODO: wip
-    this._callIdRequired()
-    let calls = []
-    if (callsToLeave instanceof Array) {
-      calls = callsToLeave.map((c: Call) => c.id)
-    } else if (callsToLeave instanceof Call) {
-      calls = [callsToLeave.id]
-    } else {
-      throw new Error(`Unknow parameter type for leave. ${callsToLeave}`)
-    }
-    if (!calls.length) {
-      throw new Error('No Calls to leave')
-    }
-    const msg = new Execute({
-      protocol: this.relayInstance.protocol,
-      method: 'call.leave',
-      params: {
-        node_id: this.nodeId,
-        call_id: this.id,
-        calls
-      }
-    })
-
-    return this._execute(msg)
-  }
-  */
-
   playAudio(url: string) {
     const params = { type: 'audio', params: { url } }
     return this.playMedia(params)
   }
-
-  // playVideo(url: string) {
-  //   const params = { type: 'video', params: { url } }
-  //   return this.playMedia(params)
-  // }
 
   playSilence(duration: number) {
     const params = { type: 'silence', params: { duration } }

@@ -191,3 +191,28 @@ export interface Constructable<T> {
 
 export interface StringTMap<T> { [key: string]: T }
 export interface StringStringMap extends StringTMap<string> { }
+
+export interface ICallingPlay {
+  type: string
+  params: {
+    url?: string
+    text?: string
+    language?: string
+    gender?: 'male' | 'female'
+    duration?: number
+  }
+}
+
+export interface ICallingCollect {
+  initial_timeout: number
+  digits?: {
+    max: number
+    terminators?: string
+    digit_timeout: number
+  },
+  speech?: {
+    end_silence_timeout?: number,
+    language?: string
+    hints?: string[]
+  }
+}

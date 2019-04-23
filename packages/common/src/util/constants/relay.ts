@@ -43,7 +43,9 @@ export enum CallNotification {
   State = 'calling.call.state',
   Receive = 'calling.call.receive',
   Connect = 'calling.call.connect',
-  Record = 'calling.call.record'
+  Record = 'calling.call.record',
+  Play = 'calling.call.play',
+  Collect = 'calling.call.collect',
 }
 
 export const CALL_CONNECT_STATES = Object.keys(CallConnectState).filter(k => isNaN(Number(k)))

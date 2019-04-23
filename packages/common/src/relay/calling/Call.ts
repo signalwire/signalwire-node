@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { Execute } from '../../messages/Blade'
 import { deRegister, registerOnce, deRegisterAll } from '../../services/Handler'
 import { CallState, CALL_STATES, DisconnectReason, CallConnectState, CALL_CONNECT_STATES, DEFAULT_CALL_TIMEOUT, CallNotification } from '../../util/constants/relay'
-import { ICall, ICallOptions, ICallDevice, IMakeCallParams } from '../../util/interfaces'
+import { ICall, ICallOptions, ICallDevice, IMakeCallParams, ICallingPlay, ICallingCollect } from '../../util/interfaces'
 // import logger from '../../util/logger'
 import { reduceConnectParams } from '../helpers'
 import Calling from './Calling'
@@ -18,7 +18,6 @@ export default class Call implements ICall {
   private _connectState: number = 0
   private _cbQueues: { [state: string]: Function } = {}
   private _controls: any[] = []
-  // private _mediaControlId: string = ''
 
   constructor(protected relayInstance: Calling, protected options: ICallOptions) {
     this._attachListeners = this._attachListeners.bind(this)
@@ -119,7 +118,7 @@ export default class Call implements ICall {
     return this._execute(msg)
   }
 
-  stopRecord(control_id: string) {
+  async stopRecord(control_id: string) {
     this._callIdRequired()
     const msg = new Execute({
       protocol: this.relayInstance.protocol,
@@ -186,41 +185,37 @@ export default class Call implements ICall {
 
     return this._execute(msg)
   }
+  */
 
-  playAudio(location: string) {
-    const params = { type: 'audio', params: { location } }
+  playAudio(url: string) {
+    const params = { type: 'audio', params: { url } }
     return this.playMedia(params)
   }
 
-  playVideo(location: string) {
-    const params = { type: 'video', params: { location } }
-    return this.playMedia(params)
-  }
+  // playVideo(url: string) {
+  //   const params = { type: 'video', params: { url } }
+  //   return this.playMedia(params)
+  // }
 
   playSilence(duration: number) {
     const params = { type: 'silence', params: { duration } }
     return this.playMedia(params)
   }
 
-  playTTS(options: { text: string, language: string, gender: string, name: string }) {
-    const { text = null, language = 'en-US', gender = 'male', name = 'bob' } = options
-    const params = { type: 'tts', params: { text, language, gender, name } }
+  playTTS(options: ICallingPlay['params']) {
+    const params = { type: 'tts', params: options }
     return this.playMedia(params)
   }
 
-  async playMedia(...play: { type: string, params: any }[]) {
+  async playMedia(...play: ICallingPlay[]) {
     this._callIdRequired()
-    if (!play.length) {
-      return
-    }
-    this._mediaControlId = uuidv4()
     const msg = new Execute({
       protocol: this.relayInstance.protocol,
       method: 'call.play',
       params: {
         node_id: this.nodeId,
         call_id: this.id,
-        control_id: this._mediaControlId,
+        control_id: uuidv4(),
         play
       }
     })
@@ -228,24 +223,52 @@ export default class Call implements ICall {
     return this._execute(msg)
   }
 
-  async stopMedia() {
+  async stopPlay(control_id: string) {
     this._callIdRequired()
-    if (!this._mediaControlId) {
-      return
-    }
     const msg = new Execute({
       protocol: this.relayInstance.protocol,
       method: 'call.play.stop',
       params: {
         node_id: this.nodeId,
         call_id: this.id,
-        control_id: this._mediaControlId
+        control_id
       }
     })
 
     return this._execute(msg)
   }
-  */
+
+  playAudioAndCollect(collect: ICallingCollect, url: string) {
+    const params = { type: 'audio', params: { url } }
+    return this.playAndCollect(collect, params)
+  }
+
+  playSilenceAndCollect(collect: ICallingCollect, duration: number) {
+    const params = { type: 'silence', params: { duration } }
+    return this.playAndCollect(collect, params)
+  }
+
+  playTTSAndCollect(collect: ICallingCollect, options: ICallingPlay['params']) {
+    const params = { type: 'tts', params: options }
+    return this.playAndCollect(collect, params)
+  }
+
+  async playAndCollect(collect: ICallingCollect, ...play: ICallingPlay[]) {
+    this._callIdRequired()
+    const msg = new Execute({
+      protocol: this.relayInstance.protocol,
+      method: 'call.play_and_collect',
+      params: {
+        node_id: this.nodeId,
+        call_id: this.id,
+        control_id: uuidv4(),
+        play,
+        collect
+      }
+    })
+
+    return this._execute(msg)
+  }
 
   get prevState() {
     return CallState[this._prevState]
@@ -367,7 +390,7 @@ export default class Call implements ICall {
     CALL_STATES.forEach(state => registerOnce(this.id, this._onStateChange.bind(this, state), state))
 
     Object.keys(this._cbQueues)
-      .filter(event => /^record./.test(event))
+      .filter(event => /^(?:record\.|play\.|collect$)/.test(event))
       .forEach(event => registerOnce(this.id, this._cbQueues[event].bind(this), event))
   }
 

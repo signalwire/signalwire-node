@@ -34,6 +34,43 @@ export default class Call implements ICall {
     this._attachListeners()
   }
 
+  /**
+   * Registers a callback to dispatch when the 'event' occur.
+   * @param event - Event to listen to.
+   * @param callback - Function to dispatch.
+   * @return this
+   */
+  on(event: string, callback: Function) {
+    const eventPermitted = CallState[event] && !isNaN(Number(CallState[event]))
+    if (this.ready && eventPermitted) {
+      if (this._state >= CallState[event]) {
+        callback(this)
+      } else {
+        registerOnce(this.id, callback, event)
+      }
+    }
+    this._cbQueues[event] = callback
+    return this
+  }
+
+  /**
+   * Removes the callback registered for the 'event'.
+   * @param event - Event to listen to.
+   * @param callback - Function to remove.
+   * @return this
+   */
+  off(event: string, callback?: Function) {
+    if (this.ready) {
+      deRegister(this.id, callback, event)
+    }
+    delete this._cbQueues[event]
+    return this
+  }
+
+  /**
+   * Begin the call
+   * @return Promise
+   */
   begin() {
     const msg = new Execute({
       protocol: this.relayInstance.protocol,
@@ -47,6 +84,10 @@ export default class Call implements ICall {
     return this._execute(msg)
   }
 
+  /**
+   * Hangup the call. The call must be 'ready'
+   * @return Promise
+   */
   async hangup() {
     this._callIdRequired()
     const msg = new Execute({
@@ -62,6 +103,10 @@ export default class Call implements ICall {
     return this._execute(msg)
   }
 
+  /**
+   * Answer the inbound call. The call must be 'ready'
+   * @return Promise
+   */
   async answer() {
     this._callIdRequired()
     const msg = new Execute({
@@ -76,6 +121,11 @@ export default class Call implements ICall {
     return this._execute(msg)
   }
 
+  /**
+   * Connect the call with a new call. The current call must be 'ready'
+   * @param peers - One or more peers to connect { type, from, to, timeout }
+   * @return Promise
+   */
   async connect(...peers: IMakeCallParams[]) {
     this._callIdRequired()
     const devices = reduceConnectParams(peers, this.device)
@@ -100,6 +150,12 @@ export default class Call implements ICall {
     return this._execute(msg)
   }
 
+  /**
+   * Start recording the call. The call must be 'ready'.
+   * Note: At this moment hard coded to type: 'audio'.
+   * @param options - Params object for the recording { beep, format, stereo, direction, initial_timeout, end_silence_timeout, terminators }
+   * @return Promise
+   */
   async startRecord(options: any = {}) {
     this._callIdRequired()
     const msg = new Execute({
@@ -117,6 +173,11 @@ export default class Call implements ICall {
     return this._execute(msg)
   }
 
+  /**
+   * Stop a recording of the call. The call must be 'ready'.
+   * @param control_id - Identifier of the recording to stop.
+   * @return Promise
+   */
   async stopRecord(control_id: string) {
     this._callIdRequired()
     const msg = new Execute({
@@ -132,21 +193,41 @@ export default class Call implements ICall {
     return this._execute(msg)
   }
 
+  /**
+   * Play an audio file to the call. The call must be 'ready'.
+   * @param url - URL of the audio file to play.
+   * @return Promise
+   */
   playAudio(url: string) {
     const params = { type: 'audio', params: { url } }
     return this.playMedia(params)
   }
 
+  /**
+   * Play seconds of silence to the call. The call must be 'ready'.
+   * @param duration - Num. of seconds of silence to play.
+   * @return Promise
+   */
   playSilence(duration: number) {
     const params = { type: 'silence', params: { duration } }
     return this.playMedia(params)
   }
 
+  /**
+   * Play text-to-speech to the call. The call must be 'ready'.
+   * @param options - Params object for the TTS { text, language, gender }
+   * @return Promise
+   */
   playTTS(options: ICallingPlay['params']) {
     const params = { type: 'tts', params: options }
     return this.playMedia(params)
   }
 
+  /**
+   * Play multiple medias in the call in a serial way. The call must be 'ready'.
+   * @param play - One or more media to play { type, params: { } }
+   * @return Promise
+   */
   async playMedia(...play: ICallingPlay[]) {
     this._callIdRequired()
     const msg = new Execute({
@@ -163,6 +244,11 @@ export default class Call implements ICall {
     return this._execute(msg)
   }
 
+  /**
+   * Stop a play on the call. The call must be 'ready'.
+   * @param control_id - Identifier of the playing to stop.
+   * @return Promise
+   */
   async stopPlay(control_id: string) {
     this._callIdRequired()
     const msg = new Execute({
@@ -178,21 +264,45 @@ export default class Call implements ICall {
     return this._execute(msg)
   }
 
+  /**
+   * Play an audio file and collect digits/speech. The call must be 'ready'.
+   * @param collect - Specify collect options
+   * @param url - URL of the audio file to play.
+   * @return Promise
+   */
   playAudioAndCollect(collect: ICallingCollect, url: string) {
     const params = { type: 'audio', params: { url } }
     return this.playAndCollect(collect, params)
   }
 
+  /**
+   * Play silence to the call and collect digits/speech. The call must be 'ready'.
+   * @param collect - Specify collect options
+   * @param duration - Num. of seconds of silence to play.
+   * @return Promise
+   */
   playSilenceAndCollect(collect: ICallingCollect, duration: number) {
     const params = { type: 'silence', params: { duration } }
     return this.playAndCollect(collect, params)
   }
 
+  /**
+   * Play text-to-speech and collect digits/speech. The call must be 'ready'.
+   * @param collect - Specify collect options
+   * @param options - Params object for the TTS { text, language, gender }
+   * @return Promise
+  */
   playTTSAndCollect(collect: ICallingCollect, options: ICallingPlay['params']) {
     const params = { type: 'tts', params: options }
     return this.playAndCollect(collect, params)
   }
 
+  /**
+   * Play multiple medias in the call and start collecting digits/speech. The call must be 'ready'.
+   * @param collect - Specify collect options
+   * @param play - One or more media to play { type, params: { } }
+   * @return Promise
+   */
   async playAndCollect(collect: ICallingCollect, ...play: ICallingPlay[]) {
     this._callIdRequired()
     const msg = new Execute({
@@ -235,27 +345,6 @@ export default class Call implements ICall {
     return this.relayInstance.getCallById(call_id)
   }
 
-  setOptions(opts: ICallOptions) {
-    this.options = { ...this.options, ...opts }
-  }
-
-  _addControlParams(params: any) {
-    const { control_id, event_type } = params
-    if (!control_id || !event_type) {
-      return
-    }
-    const index = this._controls.findIndex(t => t.control_id === control_id)
-    if (index >= 0) {
-      this._controls[index] = params
-    } else {
-      this._controls.push(params)
-    }
-  }
-
-  get recordings(): Object[] {
-    return this._controls.filter(t => t.event_type === CallNotification.Record)
-  }
-
   get device(): ICallDevice {
     return this.options.device
   }
@@ -284,25 +373,25 @@ export default class Call implements ICall {
     return timeout
   }
 
-  on(eventName: string, callback: Function) {
-    const eventPermitted = CallState[eventName] && !isNaN(Number(CallState[eventName]))
-    if (this.ready && eventPermitted) {
-      if (this._state >= CallState[eventName]) {
-        callback(this)
-      } else {
-        registerOnce(this.id, callback, eventName)
-      }
-    }
-    this._cbQueues[eventName] = callback
-    return this
+  get recordings() {
+    return this._controls.filter(t => t.event_type === CallNotification.Record)
   }
 
-  off(eventName: string, callback?: Function) {
-    if (this.ready) {
-      deRegister(this.id, callback, eventName)
+  setOptions(opts: ICallOptions) {
+    this.options = { ...this.options, ...opts }
+  }
+
+  _addControlParams(params: any) {
+    const { control_id, event_type } = params
+    if (!control_id || !event_type) {
+      return
     }
-    delete this._cbQueues[eventName]
-    return this
+    const index = this._controls.findIndex(t => t.control_id === control_id)
+    if (index >= 0) {
+      this._controls[index] = params
+    } else {
+      this._controls.push(params)
+    }
   }
 
   private _onStateChange(newState: string) {

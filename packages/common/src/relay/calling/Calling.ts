@@ -141,11 +141,9 @@ export default class Calling extends Relay {
    * @return void
    */
   private _onRecord(params: any): void {
-    const { call_id, state } = params
-    const call = this.getCallById(call_id)
+    const call = this.getCallById(params.call_id)
     if (call) {
-      call._addControlParams(params)
-      trigger(call_id, params, `record.${state}`)
+      call._recordStateChange(params)
     }
   }
 
@@ -155,11 +153,9 @@ export default class Calling extends Relay {
    * @return void
    */
   private _onPlay(params: any): void {
-    const { call_id, state } = params
-    const call = this.getCallById(call_id)
+    const call = this.getCallById(params.call_id)
     if (call) {
-      call._addControlParams(params)
-      trigger(call_id, params, `play.${state}`)
+      call._playStateChange(params)
     }
   }
 
@@ -169,11 +165,9 @@ export default class Calling extends Relay {
    * @return void
    */
   private _onCollect(params: any): void {
-    const { call_id } = params
-    const call = this.getCallById(call_id)
+    const call = this.getCallById(params.call_id)
     if (call) {
-      call._addControlParams(params)
-      trigger(call_id, params, 'collect')
+      call._collectStateChange(params)
     }
   }
 }

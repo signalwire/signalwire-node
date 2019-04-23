@@ -359,19 +359,6 @@ export default class Call implements ICall {
     this.options = { ...this.options, ...opts }
   }
 
-  _addControlParams(params: any) {
-    const { control_id, event_type } = params
-    if (!control_id || !event_type) {
-      return
-    }
-    const index = this._controls.findIndex(t => t.control_id === control_id)
-    if (index >= 0) {
-      this._controls[index] = params
-    } else {
-      this._controls.push(params)
-    }
-  }
-
   _stateChange(newState: string) {
     this._prevState = this._state
     this._state = CallState[newState]
@@ -394,10 +381,27 @@ export default class Call implements ICall {
     return this
   }
 
-  private _dispatchCallback(key: string) {
+  _recordStateChange(params: any) {
+    this._addControlParams(params)
+    this._dispatchCallback('record.stateChange', params)
+    this._dispatchCallback(`record.${params.state}`, params)
+  }
+
+  _playStateChange(params: any) {
+    this._addControlParams(params)
+    this._dispatchCallback('play.stateChange', params)
+    this._dispatchCallback(`play.${params.state}`, params)
+  }
+
+  _collectStateChange(params: any) {
+    this._addControlParams(params)
+    this._dispatchCallback('collect', params)
+  }
+
+  private _dispatchCallback(key: string, ...params: any) {
     const { [key]: handler } = this._cbQueue
     if (isFunction(handler)) {
-      handler(this)
+      handler(this, ...params)
       return true
     }
     return false
@@ -421,8 +425,17 @@ export default class Call implements ICall {
       throw error
     }
   }
-}
 
-// Object.keys(this._cbQueue)
-//   .filter(event => /^(?:record\.|play\.|collect$)/.test(event))
-//   .forEach(event => registerOnce(this.id, this._cbQueue[event].bind(this), event))
+  private _addControlParams(params: any) {
+    const { control_id, event_type } = params
+    if (!control_id || !event_type) {
+      return
+    }
+    const index = this._controls.findIndex(t => t.control_id === control_id)
+    if (index >= 0) {
+      this._controls[index] = params
+    } else {
+      this._controls.push(params)
+    }
+  }
+}

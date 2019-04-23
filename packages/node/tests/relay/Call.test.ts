@@ -89,8 +89,8 @@ describe('Call', () => {
       const mockFn = jest.fn()
       call.on('created', mockFn)
       call.on('answered', mockFn)
-      call.stateChange('created')
-      call.stateChange('answered')
+      call._stateChange('created')
+      call._stateChange('answered')
       expect(mockFn).toHaveBeenCalledTimes(2)
     })
 
@@ -125,7 +125,7 @@ describe('Call', () => {
       const mockFn = jest.fn()
       call.on('created', mockFn)
       call.off('created', mockFn)
-      call.stateChange('created')
+      call._stateChange('created')
       expect(mockFn).not.toHaveBeenCalled()
     })
 

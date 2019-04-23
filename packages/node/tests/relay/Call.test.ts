@@ -85,14 +85,13 @@ describe('Call', () => {
       expect(call.on('created', jest.fn())).toBe(call)
     })
 
-    it('should save callback in _cbQueues object if the call has not started yet', () => {
+    it('should save callback in the stack if the call has not started yet', () => {
       const mockFn = jest.fn()
       call.on('created', mockFn)
       call.on('answered', mockFn)
-      // @ts-ignore
-      expect(call._cbQueues['answered']).toEqual(mockFn)
-      // @ts-ignore
-      expect(call._cbQueues['created']).toEqual(mockFn)
+      call.stateChange('created')
+      call.stateChange('answered')
+      expect(mockFn).toHaveBeenCalledTimes(2)
     })
 
     describe('with the call ready', () => {
@@ -122,13 +121,12 @@ describe('Call', () => {
       expect(call.off('created', jest.fn())).toBe(call)
     })
 
-    it('should remove callback from _cbQueues object if the call has not started yet', () => {
+    it('should remove callback from the stack if the call has not started yet', () => {
       const mockFn = jest.fn()
       call.on('created', mockFn)
-
       call.off('created', mockFn)
-      // @ts-ignore
-      expect(call._cbQueues).not.toHaveProperty('created')
+      call.stateChange('created')
+      expect(mockFn).not.toHaveBeenCalled()
     })
 
     describe('with ', () => {

@@ -4,6 +4,7 @@ import { CallState, DisconnectReason, CallConnectState, DEFAULT_CALL_TIMEOUT, Ca
 import { ICall, ICallOptions, ICallDevice, IMakeCallParams, ICallingPlay, ICallingCollect } from '../../util/interfaces'
 import { reduceConnectParams } from '../helpers'
 import Calling from './Calling'
+import { isFunction } from '../../util/helpers'
 
 export default class Call implements ICall {
   public id: string
@@ -14,7 +15,7 @@ export default class Call implements ICall {
   private _state: number = 0
   private _prevConnectState: number = 0
   private _connectState: number = 0
-  private _cbQueues: { [state: string]: Function } = {}
+  private _cbQueue: { [state: string]: Function } = {}
   private _controls: any[] = []
 
   constructor(protected relayInstance: Calling, protected options: ICallOptions) {
@@ -34,7 +35,7 @@ export default class Call implements ICall {
     if (this.ready && !isNaN(Number(CallState[event])) && this._state >= CallState[event]) {
       callback(this)
     }
-    this._cbQueues[event] = callback
+    this._cbQueue[event] = callback
     return this
   }
 
@@ -45,7 +46,7 @@ export default class Call implements ICall {
    * @return this
    */
   off(event: string, callback?: Function) {
-    delete this._cbQueues[event]
+    delete this._cbQueue[event]
     return this
   }
 
@@ -268,7 +269,7 @@ export default class Call implements ICall {
    * @param collect - Specify collect options
    * @param options - Params object for the TTS { text, language, gender }
    * @return Promise
-  */
+   */
   playTTSAndCollect(collect: ICallingCollect, options: ICallingPlay['params']) {
     const params = { type: 'tts', params: options }
     return this.playAndCollect(collect, params)
@@ -389,8 +390,9 @@ export default class Call implements ICall {
   }
 
   private _dispatchCallback(key: string) {
-    if (this._cbQueues.hasOwnProperty(key)) {
-      this._cbQueues[key](this)
+    const { [key]: handler } = this._cbQueue
+    if (isFunction(handler)) {
+      handler(this)
     }
   }
 
@@ -414,6 +416,6 @@ export default class Call implements ICall {
   }
 }
 
-// Object.keys(this._cbQueues)
+// Object.keys(this._cbQueue)
 //   .filter(event => /^(?:record\.|play\.|collect$)/.test(event))
-//   .forEach(event => registerOnce(this.id, this._cbQueues[event].bind(this), event))
+//   .forEach(event => registerOnce(this.id, this._cbQueue[event].bind(this), event))

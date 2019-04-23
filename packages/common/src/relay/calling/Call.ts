@@ -223,7 +223,7 @@ export default class Call implements ICall {
     return this._execute(msg)
   }
 
-  async stopMedia(control_id: string) {
+  async stopPlay(control_id: string) {
     this._callIdRequired()
     const msg = new Execute({
       protocol: this.relayInstance.protocol,

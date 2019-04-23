@@ -83,8 +83,8 @@ describe('Call', () => {
       await expect(call.playMedia(silence)).rejects.toThrowError('Call has not started')
     })
 
-    it('should throw with .stopMedia()', async () => {
-      await expect(call.stopMedia('control-id')).rejects.toThrowError('Call has not started')
+    it('should throw with .stopPlay()', async () => {
+      await expect(call.stopPlay('control-id')).rejects.toThrowError('Call has not started')
     })
 
     describe('.on()', () => {
@@ -295,8 +295,8 @@ describe('Call', () => {
         expect(Connection.mockSend).toHaveBeenCalledWith(msg)
       })
 
-      it('.stopMedia() should execute the correct message', () => {
-        call.stopMedia('control-id')
+      it('.stopPlay() should execute the correct message', () => {
+        call.stopPlay('control-id')
         expect(Connection.mockSend).toHaveBeenCalledTimes(1)
         const msg = new Execute({
           protocol: 'signalwire_service_random_uuid',

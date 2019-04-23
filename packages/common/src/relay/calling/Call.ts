@@ -372,9 +372,10 @@ export default class Call implements ICall {
     }
   }
 
-  stateChange(newState: string) {
+  _stateChange(newState: string) {
     this._prevState = this._state
     this._state = CallState[newState]
+    this._dispatchCallback('stateChange')
     this._dispatchCallback(newState)
     if (this._state === CallState.ended) {
       this.relayInstance.removeCall(this)
@@ -382,10 +383,14 @@ export default class Call implements ICall {
     return this
   }
 
-  connectStateChange(newState: string) {
+  _connectStateChange(newState: string) {
     this._prevConnectState = this._connectState
     this._connectState = CallConnectState[newState]
-    this._dispatchCallback(newState)
+    this._dispatchCallback('connect.stateChange')
+    if (!this._dispatchCallback(`connect.${newState}`)) {
+      // Backward compat: connect state not scoped with 'connect.'
+      this._dispatchCallback(newState)
+    }
     return this
   }
 
@@ -393,7 +398,9 @@ export default class Call implements ICall {
     const { [key]: handler } = this._cbQueue
     if (isFunction(handler)) {
       handler(this)
+      return true
     }
+    return false
   }
 
   private _callIdRequired() {

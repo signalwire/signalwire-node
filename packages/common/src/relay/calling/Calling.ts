@@ -101,7 +101,7 @@ export default class Calling extends Relay {
         call.id = call_id
         call.nodeId = node_id
       }
-      call.stateChange(call_state)
+      call._stateChange(call_state)
     } else if (call_id && peer) {
       const peerCall = new Call(this, params)
     } else {
@@ -121,7 +121,7 @@ export default class Calling extends Relay {
       if (peer) {
         call.setOptions({ peer })
       }
-      call.connectStateChange(connect_state)
+      call._connectStateChange(connect_state)
     }
   }
 

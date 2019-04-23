@@ -114,11 +114,6 @@ describe('Call', () => {
         expect(isQueued(call.id)).toEqual(false)
         expect(mockFn).toHaveBeenCalledTimes(1)
       })
-
-      it('should register the callback once if the event has not already passed', () => {
-        call.on('ended', jest.fn())
-        expect(isQueued(call.id, 'ended')).toEqual(true)
-      })
     })
   })
 

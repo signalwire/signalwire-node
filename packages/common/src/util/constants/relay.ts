@@ -7,7 +7,7 @@ export enum CallState {
   ended
 }
 
-export const CALL_STATES = Object.keys(CallState).filter(k => isNaN(Number(k)))
+// export const CALL_STATES = Object.keys(CallState).filter(k => isNaN(Number(k)))
 export const DEFAULT_CALL_TIMEOUT = 30
 
 export enum DisconnectReason {
@@ -48,4 +48,4 @@ export enum CallNotification {
   Collect = 'calling.call.collect',
 }
 
-export const CALL_CONNECT_STATES = Object.keys(CallConnectState).filter(k => isNaN(Number(k)))
+// export const CALL_CONNECT_STATES = Object.keys(CallConnectState).filter(k => isNaN(Number(k)))

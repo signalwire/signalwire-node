@@ -1,7 +1,6 @@
 import { v4 as uuidv4 } from 'uuid'
 import { Execute } from '../../messages/Blade'
-import { deRegister, registerOnce, deRegisterAll } from '../../services/Handler'
-import { CallState, CALL_STATES, DisconnectReason, CallConnectState, CALL_CONNECT_STATES, DEFAULT_CALL_TIMEOUT, CallNotification } from '../../util/constants/relay'
+import { CallState, DisconnectReason, CallConnectState, DEFAULT_CALL_TIMEOUT, CallNotification } from '../../util/constants/relay'
 import { ICall, ICallOptions, ICallDevice, IMakeCallParams, ICallingPlay, ICallingCollect } from '../../util/interfaces'
 import { reduceConnectParams } from '../helpers'
 import Calling from './Calling'
@@ -19,19 +18,10 @@ export default class Call implements ICall {
   private _controls: any[] = []
 
   constructor(protected relayInstance: Calling, protected options: ICallOptions) {
-    this._attachListeners = this._attachListeners.bind(this)
-    this._detachListeners = this._detachListeners.bind(this)
     const { call_id, node_id } = options
-    if (call_id && node_id) {
-      this.setup(call_id, node_id)
-    }
+    this.id = call_id
+    this.nodeId = node_id
     this.relayInstance.addCall(this)
-  }
-
-  setup(callId: string, nodeId: string) {
-    this.id = callId
-    this.nodeId = nodeId
-    this._attachListeners()
   }
 
   /**
@@ -41,13 +31,8 @@ export default class Call implements ICall {
    * @return this
    */
   on(event: string, callback: Function) {
-    const eventPermitted = CallState[event] && !isNaN(Number(CallState[event]))
-    if (this.ready && eventPermitted) {
-      if (this._state >= CallState[event]) {
-        callback(this)
-      } else {
-        registerOnce(this.id, callback, event)
-      }
+    if (this.ready && !isNaN(Number(CallState[event])) && this._state >= CallState[event]) {
+      callback(this)
     }
     this._cbQueues[event] = callback
     return this
@@ -60,9 +45,6 @@ export default class Call implements ICall {
    * @return this
    */
   off(event: string, callback?: Function) {
-    if (this.ready) {
-      deRegister(this.id, callback, event)
-    }
     delete this._cbQueues[event]
     return this
   }
@@ -140,11 +122,6 @@ export default class Call implements ICall {
         call_id: this.id,
         devices
       }
-    })
-
-    CALL_CONNECT_STATES.forEach(state => {
-      deRegister(this.id, null, state)
-      registerOnce(this.id, this._onConnectStateChange.bind(this, state), state)
     })
 
     return this._execute(msg)
@@ -394,14 +371,17 @@ export default class Call implements ICall {
     }
   }
 
-  private _onStateChange(newState: string) {
+  stateChange(newState: string) {
     this._prevState = this._state
     this._state = CallState[newState]
     this._dispatchCallback(newState)
+    if (this._state === CallState.ended) {
+      this.relayInstance.removeCall(this)
+    }
     return this
   }
 
-  private _onConnectStateChange(newState: string) {
+  connectStateChange(newState: string) {
     this._prevConnectState = this._connectState
     this._connectState = CallConnectState[newState]
     this._dispatchCallback(newState)
@@ -412,20 +392,6 @@ export default class Call implements ICall {
     if (this._cbQueues.hasOwnProperty(key)) {
       this._cbQueues[key](this)
     }
-  }
-
-  private _attachListeners() {
-    registerOnce(this.id, this._detachListeners, CALL_STATES[CALL_STATES.length - 1])
-    CALL_STATES.forEach(state => registerOnce(this.id, this._onStateChange.bind(this, state), state))
-
-    Object.keys(this._cbQueues)
-      .filter(event => /^(?:record\.|play\.|collect$)/.test(event))
-      .forEach(event => registerOnce(this.id, this._cbQueues[event].bind(this), event))
-  }
-
-  private _detachListeners() {
-    deRegisterAll(this.id)
-    this.relayInstance.removeCall(this)
   }
 
   private _callIdRequired() {
@@ -447,3 +413,7 @@ export default class Call implements ICall {
     }
   }
 }
+
+// Object.keys(this._cbQueues)
+//   .filter(event => /^(?:record\.|play\.|collect$)/.test(event))
+//   .forEach(event => registerOnce(this.id, this._cbQueues[event].bind(this), event))

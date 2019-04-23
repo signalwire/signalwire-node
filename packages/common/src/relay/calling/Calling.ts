@@ -20,71 +20,18 @@ export default class Calling extends Relay {
     const { event_type, params } = notification
     params.event_type = event_type
     switch (event_type) {
-      case CallNotification.State: {
-        const { call_id, node_id, call_state, tag, peer } = params
-        let call = this.getCallById(call_id)
-        if (call) {
-          return trigger(call_id, call, call_state, false)
-        }
-        call = this.getCallByTag(tag)
-        if (call) {
-          if (!call.ready) {
-            call.setup(call_id, node_id)
-          }
-          return trigger(call_id, call, call_state, false)
-        }
-        if (call_id && peer) {
-          call = new Call(this, params)
-          return
-        }
-        logger.error('\t - Unknown call:', params, '\n\n')
-        break
-      }
-      case CallNotification.Receive: {
-        const call = new Call(this, params)
-        trigger(this.protocol, call, _ctxUniqueId(call.context))
-        break
-      }
-      case CallNotification.Connect: {
-        const { call_id, connect_state, peer } = params
-        const call = this.getCallById(call_id)
-        if (!call) {
-          logger.error('Unknown call:', params)
-          return
-        }
-        if (peer) {
-          call.setOptions({ peer })
-        }
-        trigger(call_id, call, connect_state)
-        break
-      }
-      case CallNotification.Record: {
-        const { call_id, state } = params
-        const call = this.getCallById(call_id)
-        if (call) {
-          call._addControlParams(params)
-          trigger(call_id, params, `record.${state}`)
-        }
-        break
-      }
-      case CallNotification.Play: {
-        const { call_id, state } = params
-        const call = this.getCallById(call_id)
-        if (call) {
-          call._addControlParams(params)
-          trigger(call_id, params, `play.${state}`)
-        }
-        break
-      }
-      case CallNotification.Collect: {
-        const { call_id } = params
-        const call = this.getCallById(call_id)
-        if (call) {
-          call._addControlParams(params)
-          trigger(call_id, params, 'collect')
-        }
-        break
-      }
+      case CallNotification.State:
+        return this._onState(params)
+      case CallNotification.Receive:
+        return this._onReceive(params)
+      case CallNotification.Connect:
+        return this._onConnect(params)
+      case CallNotification.Record:
+        return this._onRecord(params)
+      case CallNotification.Play:
+        return this._onPlay(params)
+      case CallNotification.Collect:
+        return this._onCollect(params)
     }
   }
 
@@ -139,5 +86,94 @@ export default class Calling extends Relay {
       }
     })
     super._disconnect()
+  }
+
+  /**
+   * Handle calling.call.state notification params
+   * @param params - Inner params of calling.call.state notification
+   * @return void
+   */
+  private _onState(params: any): void {
+    const { call_id, node_id, call_state, tag, peer } = params
+    const call = this.getCallById(call_id) || this.getCallByTag(tag)
+    if (call) {
+      if (!call.ready) {
+        call.id = call_id
+        call.nodeId = node_id
+      }
+      call.stateChange(call_state)
+    } else if (call_id && peer) {
+      const peerCall = new Call(this, params)
+    } else {
+      logger.error('\t - Unknown call:', params, '\n\n')
+    }
+  }
+
+  /**
+   * Handle calling.call.connect notification params
+   * @param params - Inner params of calling.call.connect notification
+   * @return void
+   */
+  private _onConnect(params: any): void {
+    const { call_id, connect_state, peer } = params
+    const call = this.getCallById(call_id)
+    if (call) {
+      if (peer) {
+        call.setOptions({ peer })
+      }
+      call.connectStateChange(connect_state)
+    }
+  }
+
+  /**
+   * Handle calling.call.receive notification params
+   * @param params - Inner params of calling.call.receive notification
+   * @return void
+   */
+  private _onReceive(params: any): void {
+    const call = new Call(this, params)
+    trigger(this.protocol, call, _ctxUniqueId(call.context))
+  }
+
+  /**
+   * Handle calling.call.record notification params
+   * @param params - Inner params of calling.call.record notification
+   * @return void
+   */
+  private _onRecord(params: any): void {
+    const { call_id, state } = params
+    const call = this.getCallById(call_id)
+    if (call) {
+      call._addControlParams(params)
+      trigger(call_id, params, `record.${state}`)
+    }
+  }
+
+  /**
+   * Handle calling.call.play notification params
+   * @param params - Inner params of calling.call.play notification
+   * @return void
+   */
+  private _onPlay(params: any): void {
+    const { call_id, state } = params
+    const call = this.getCallById(call_id)
+    if (call) {
+      call._addControlParams(params)
+      trigger(call_id, params, `play.${state}`)
+    }
+  }
+
+  /**
+   * Handle calling.call.collect notification params
+   * @param params - Inner params of calling.call.collect notification
+   * @return void
+   */
+  private _onCollect(params: any): void {
+    const { call_id } = params
+    const call = this.getCallById(call_id)
+    if (call) {
+      call._addControlParams(params)
+      trigger(call_id, params, 'collect')
+    }
   }
 }

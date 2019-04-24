@@ -80,9 +80,9 @@ export default class Calling extends Relay {
   }
 
   protected _disconnect() {
-    this._calls.forEach(async call => {
+    this._calls.forEach(call => {
       if (call.ready) {
-        await call.hangup().catch(logger.warn)
+        call.hangup().catch(logger.warn)
       }
     })
     super._disconnect()

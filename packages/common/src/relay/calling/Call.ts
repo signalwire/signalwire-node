@@ -355,6 +355,10 @@ export default class Call implements ICall {
     return this._controls.filter(t => t.event_type === CallNotification.Record)
   }
 
+  get playbacks() {
+    return this._controls.filter(t => t.event_type === CallNotification.Play)
+  }
+
   setOptions(opts: ICallOptions) {
     this.options = { ...this.options, ...opts }
   }

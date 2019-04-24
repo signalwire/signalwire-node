@@ -136,26 +136,26 @@ describe('Calling', () => {
   describe('.onInbound()', () => {
     _common.call(this)
 
-    const fnMock = jest.fn()
-    const context = 'context'
-
     it('should register the inbound listener', async done => {
       Connection.mockSend.mockClear()
-      await session.calling.onInbound(context, fnMock)
+      await session.calling.onInbound('context', jest.fn())
 
       expect(Connection.mockSend).toHaveBeenCalledTimes(1)
       const { method } = Connection.mockSend.mock.calls[0][0].request.params
       expect(method).toEqual('call.receive')
-      expect(isQueued(session.calling.protocol, `ctx:${context}`)).toEqual(true)
+      expect(isQueued(session.calling.protocol, `ctx:context`)).toEqual(true)
 
       done()
     })
 
-    it('should handle the calling.call.receive notification', () => {
+    it('should handle the calling.call.receive notification', async done => {
+      const fnMock = jest.fn()
+      await session.calling.onInbound('context', fnMock)
       const msg = JSON.parse('{"id":"a16dae67-212b-4391-bb78-a0b9e45310b9","jsonrpc":"2.0","method":"blade.broadcast","params":{"broadcaster_nodeid":"9811eb32-1234-1234-1234-ab56fa3b83c9","channel":"notifications","event":"relay","params":{"event_channel":"signalwire_service_random_uuid","event_type":"calling.call.receive","params":{"call_id":"849982ab-1234-5678-1234-311534fa20d6","call_state":"created","context":"context","device":{"params":{"from_number":"+12222222222","to_number":"+12222222223"},"type":"phone"},"node_id":"9811eb32-1234-5678-XXXX-ab56fa3b83c9"},"project_id":"project","space_id":"space","timestamp":1149889452.302629},"protocol":"signalwire_service_random_uuid"}}')
       trigger(SwEvent.SocketMessage, msg, session.uuid)
       expect(fnMock).toHaveBeenCalledTimes(1)
       expect(fnMock).toBeCalledWith(expect.any(Call))
+      done()
     })
   })
 })

@@ -314,8 +314,8 @@ describe('Call', () => {
         expect(Connection.mockSend).toHaveBeenCalledWith(msg)
       })
 
-      it('.playAndCollect() should execute the correct message', () => {
-        call.playAndCollect(
+      it('.playMediaAndCollect() should execute the correct message', () => {
+        call.playMediaAndCollect(
           collect,
           { type: 'silence', params: { duration: 5 } },
           { type: 'tts', params: { text: 'digit something' } }

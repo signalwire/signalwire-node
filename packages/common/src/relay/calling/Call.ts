@@ -250,7 +250,7 @@ export default class Call implements ICall {
    */
   playAudioAndCollect(collect: ICallingCollect, url: string) {
     const params = { type: 'audio', params: { url } }
-    return this.playAndCollect(collect, params)
+    return this.playMediaAndCollect(collect, params)
   }
 
   /**
@@ -261,7 +261,7 @@ export default class Call implements ICall {
    */
   playSilenceAndCollect(collect: ICallingCollect, duration: number) {
     const params = { type: 'silence', params: { duration } }
-    return this.playAndCollect(collect, params)
+    return this.playMediaAndCollect(collect, params)
   }
 
   /**
@@ -272,7 +272,7 @@ export default class Call implements ICall {
    */
   playTTSAndCollect(collect: ICallingCollect, options: ICallingPlay['params']) {
     const params = { type: 'tts', params: options }
-    return this.playAndCollect(collect, params)
+    return this.playMediaAndCollect(collect, params)
   }
 
   /**
@@ -281,7 +281,7 @@ export default class Call implements ICall {
    * @param play - One or more media to play { type, params: { } }
    * @return Promise
    */
-  async playAndCollect(collect: ICallingCollect, ...play: ICallingPlay[]) {
+  async playMediaAndCollect(collect: ICallingCollect, ...play: ICallingPlay[]) {
     this._callIdRequired()
     const msg = new Execute({
       protocol: this.relayInstance.protocol,

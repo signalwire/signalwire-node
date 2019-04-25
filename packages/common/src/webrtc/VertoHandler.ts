@@ -31,7 +31,7 @@ class VertoHandler {
 
     if (dialogId && session.dialogs.hasOwnProperty(dialogId)) {
       if (attach) {
-        session.dialogs[dialogId].hangup()
+        session.dialogs[dialogId].hangup({}, false)
       } else {
         session.dialogs[dialogId].handleMessage(msg)
         this._ack(id, method)

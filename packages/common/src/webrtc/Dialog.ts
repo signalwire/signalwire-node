@@ -43,6 +43,10 @@ export default class Dialog {
     return this._targetNodeId
   }
 
+  set nodeId(what: string) {
+    this._targetNodeId = what
+  }
+
   invite() {
     this.direction = Direction.Outbound
     this.peer = new Peer(PeerType.Offer, this.options)

@@ -57,6 +57,7 @@ class VertoHandler {
           attach
         })
         if (attach) {
+          dialog.nodeId = this.nodeId
           dialog.setState(State.Recovering)
           dialog.answer()
           dialog.handleMessage(msg)

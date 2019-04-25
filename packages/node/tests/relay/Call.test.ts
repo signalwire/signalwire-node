@@ -60,7 +60,7 @@ describe('Call', () => {
   })
 
   it('should throw with .startRecord()', async () => {
-    await expect(call.startRecord({ format: 'mp3' })).rejects.toThrowError('Call has not started')
+    await expect(call.startRecord('audio', { format: 'mp3' })).rejects.toThrowError('Call has not started')
   })
 
   it('should throw with .playMedia()', async () => {
@@ -147,7 +147,7 @@ describe('Call', () => {
 
     it('.startRecord() should execute the right message', () => {
       const opts = { format: 'mp3', beep: true }
-      call.startRecord(opts)
+      call.startRecord('audi', opts)
       const msg = new Execute({
         protocol: 'signalwire_service_random_uuid',
         method: 'call.record',
@@ -155,7 +155,7 @@ describe('Call', () => {
           node_id: call.nodeId,
           call_id: call.id,
           control_id: 'mocked-uuid',
-          type: 'audio',
+          type: 'audi',
           params: opts
         }
       })

@@ -3,8 +3,9 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.1.0] - 2019-04-27
 ### Added
+- Relay SDK to connect and use SignalWire's Relay APIs.
 - Ability to set SignalWire Space URL in `RestClient` constructor via `signalwireSpaceUrl` property.
 
 ## [1.0.1] - 2019-03-12

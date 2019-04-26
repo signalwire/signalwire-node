@@ -1,11 +1,10 @@
 import { v4 as uuidv4 } from 'uuid'
 import { Execute } from '../../messages/Blade'
-import { deRegister, registerOnce, deRegisterAll } from '../../services/Handler'
-import { CallState, CALL_STATES, DisconnectReason, CallConnectState, CALL_CONNECT_STATES, DEFAULT_CALL_TIMEOUT, CallNotification } from '../../util/constants/relay'
+import { CallState, DisconnectReason, CallConnectState, DEFAULT_CALL_TIMEOUT, CallNotification } from '../../util/constants/relay'
 import { ICall, ICallOptions, ICallDevice, IMakeCallParams, ICallingPlay, ICallingCollect } from '../../util/interfaces'
-// import logger from '../../util/logger'
 import { reduceConnectParams } from '../helpers'
 import Calling from './Calling'
+import { isFunction } from '../../util/helpers'
 
 export default class Call implements ICall {
   public id: string
@@ -16,25 +15,45 @@ export default class Call implements ICall {
   private _state: number = 0
   private _prevConnectState: number = 0
   private _connectState: number = 0
-  private _cbQueues: { [state: string]: Function } = {}
+  private _cbQueue: { [state: string]: Function } = {}
   private _controls: any[] = []
 
   constructor(protected relayInstance: Calling, protected options: ICallOptions) {
-    this._attachListeners = this._attachListeners.bind(this)
-    this._detachListeners = this._detachListeners.bind(this)
     const { call_id, node_id } = options
-    if (call_id && node_id) {
-      this.setup(call_id, node_id)
-    }
+    this.id = call_id
+    this.nodeId = node_id
     this.relayInstance.addCall(this)
   }
 
-  setup(callId: string, nodeId: string) {
-    this.id = callId
-    this.nodeId = nodeId
-    this._attachListeners()
+  /**
+   * Registers a callback to dispatch when the 'event' occur.
+   * @param event - Event to listen to.
+   * @param callback - Function to dispatch.
+   * @return this
+   */
+  on(event: string, callback: Function) {
+    if (this.ready && !isNaN(Number(CallState[event])) && this._state >= CallState[event]) {
+      callback(this)
+    }
+    this._cbQueue[event] = callback
+    return this
   }
 
+  /**
+   * Removes the callback registered for the 'event'.
+   * @param event - Event to listen to.
+   * @param callback - Function to remove.
+   * @return this
+   */
+  off(event: string, callback?: Function) {
+    delete this._cbQueue[event]
+    return this
+  }
+
+  /**
+   * Begin the call
+   * @return Promise
+   */
   begin() {
     const msg = new Execute({
       protocol: this.relayInstance.protocol,
@@ -48,6 +67,10 @@ export default class Call implements ICall {
     return this._execute(msg)
   }
 
+  /**
+   * Hangup the call. The call must be 'ready'
+   * @return Promise
+   */
   async hangup() {
     this._callIdRequired()
     const msg = new Execute({
@@ -63,6 +86,10 @@ export default class Call implements ICall {
     return this._execute(msg)
   }
 
+  /**
+   * Answer the inbound call. The call must be 'ready'
+   * @return Promise
+   */
   async answer() {
     this._callIdRequired()
     const msg = new Execute({
@@ -77,6 +104,11 @@ export default class Call implements ICall {
     return this._execute(msg)
   }
 
+  /**
+   * Connect the call with a new call. The current call must be 'ready'
+   * @param peers - One or more peers to connect { type, from, to, timeout }
+   * @return Promise
+   */
   async connect(...peers: IMakeCallParams[]) {
     this._callIdRequired()
     const devices = reduceConnectParams(peers, this.device)
@@ -93,15 +125,16 @@ export default class Call implements ICall {
       }
     })
 
-    CALL_CONNECT_STATES.forEach(state => {
-      deRegister(this.id, null, state)
-      registerOnce(this.id, this._onConnectStateChange.bind(this, state), state)
-    })
-
     return this._execute(msg)
   }
 
-  async startRecord(options: any = {}) {
+  /**
+   * Start recording the call. The call must be 'ready'.
+   * Note: At this moment hard coded to type: 'audio'.
+   * @param options - Params object for the recording { beep, format, stereo, direction, initial_timeout, end_silence_timeout, terminators }
+   * @return Promise
+   */
+  async startRecord(type: string = 'audio', params: any = {}) {
     this._callIdRequired()
     const msg = new Execute({
       protocol: this.relayInstance.protocol,
@@ -110,14 +143,19 @@ export default class Call implements ICall {
         node_id: this.nodeId,
         call_id: this.id,
         control_id: uuidv4(),
-        type: 'audio',
-        params: options
+        type,
+        params
       }
     })
 
     return this._execute(msg)
   }
 
+  /**
+   * Stop a recording of the call. The call must be 'ready'.
+   * @param control_id - Identifier of the recording to stop.
+   * @return Promise
+   */
   async stopRecord(control_id: string) {
     this._callIdRequired()
     const msg = new Execute({
@@ -133,80 +171,41 @@ export default class Call implements ICall {
     return this._execute(msg)
   }
 
-  /*
-  async join(callsToJoin: Call | Call[]) { // TODO: wip
-    this._callIdRequired()
-    let calls = []
-    if (callsToJoin instanceof Array) {
-      calls = callsToJoin.map((c: Call) => c.id)
-    } else if (callsToJoin instanceof Call) {
-      calls = [callsToJoin.id]
-    } else {
-      throw new Error(`Unknow parameter type for join. ${callsToJoin}`)
-    }
-    if (!calls.length) {
-      throw new Error('No Calls to join')
-    }
-    const msg = new Execute({
-      protocol: this.relayInstance.protocol,
-      method: 'call.join',
-      params: {
-        node_id: this.nodeId,
-        call_id: this.id,
-        calls
-      }
-    })
-
-    return this._execute(msg)
-  }
-
-  async leave(callsToLeave: Call | Call[]) { // TODO: wip
-    this._callIdRequired()
-    let calls = []
-    if (callsToLeave instanceof Array) {
-      calls = callsToLeave.map((c: Call) => c.id)
-    } else if (callsToLeave instanceof Call) {
-      calls = [callsToLeave.id]
-    } else {
-      throw new Error(`Unknow parameter type for leave. ${callsToLeave}`)
-    }
-    if (!calls.length) {
-      throw new Error('No Calls to leave')
-    }
-    const msg = new Execute({
-      protocol: this.relayInstance.protocol,
-      method: 'call.leave',
-      params: {
-        node_id: this.nodeId,
-        call_id: this.id,
-        calls
-      }
-    })
-
-    return this._execute(msg)
-  }
-  */
-
+  /**
+   * Play an audio file to the call. The call must be 'ready'.
+   * @param url - URL of the audio file to play.
+   * @return Promise
+   */
   playAudio(url: string) {
     const params = { type: 'audio', params: { url } }
     return this.playMedia(params)
   }
 
-  // playVideo(url: string) {
-  //   const params = { type: 'video', params: { url } }
-  //   return this.playMedia(params)
-  // }
-
+  /**
+   * Play seconds of silence to the call. The call must be 'ready'.
+   * @param duration - Num. of seconds of silence to play.
+   * @return Promise
+   */
   playSilence(duration: number) {
     const params = { type: 'silence', params: { duration } }
     return this.playMedia(params)
   }
 
+  /**
+   * Play text-to-speech to the call. The call must be 'ready'.
+   * @param options - Params object for the TTS { text, language, gender }
+   * @return Promise
+   */
   playTTS(options: ICallingPlay['params']) {
     const params = { type: 'tts', params: options }
     return this.playMedia(params)
   }
 
+  /**
+   * Play multiple medias in the call in a serial way. The call must be 'ready'.
+   * @param play - One or more media to play { type, params: { } }
+   * @return Promise
+   */
   async playMedia(...play: ICallingPlay[]) {
     this._callIdRequired()
     const msg = new Execute({
@@ -223,6 +222,11 @@ export default class Call implements ICall {
     return this._execute(msg)
   }
 
+  /**
+   * Stop a play on the call. The call must be 'ready'.
+   * @param control_id - Identifier of the playing to stop.
+   * @return Promise
+   */
   async stopPlay(control_id: string) {
     this._callIdRequired()
     const msg = new Execute({
@@ -238,22 +242,46 @@ export default class Call implements ICall {
     return this._execute(msg)
   }
 
+  /**
+   * Play an audio file and collect digits/speech. The call must be 'ready'.
+   * @param collect - Specify collect options
+   * @param url - URL of the audio file to play.
+   * @return Promise
+   */
   playAudioAndCollect(collect: ICallingCollect, url: string) {
     const params = { type: 'audio', params: { url } }
-    return this.playAndCollect(collect, params)
+    return this.playMediaAndCollect(collect, params)
   }
 
+  /**
+   * Play silence to the call and collect digits/speech. The call must be 'ready'.
+   * @param collect - Specify collect options
+   * @param duration - Num. of seconds of silence to play.
+   * @return Promise
+   */
   playSilenceAndCollect(collect: ICallingCollect, duration: number) {
     const params = { type: 'silence', params: { duration } }
-    return this.playAndCollect(collect, params)
+    return this.playMediaAndCollect(collect, params)
   }
 
+  /**
+   * Play text-to-speech and collect digits/speech. The call must be 'ready'.
+   * @param collect - Specify collect options
+   * @param options - Params object for the TTS { text, language, gender }
+   * @return Promise
+   */
   playTTSAndCollect(collect: ICallingCollect, options: ICallingPlay['params']) {
     const params = { type: 'tts', params: options }
-    return this.playAndCollect(collect, params)
+    return this.playMediaAndCollect(collect, params)
   }
 
-  async playAndCollect(collect: ICallingCollect, ...play: ICallingPlay[]) {
+  /**
+   * Play multiple medias in the call and start collecting digits/speech. The call must be 'ready'.
+   * @param collect - Specify collect options
+   * @param play - One or more media to play { type, params: { } }
+   * @return Promise
+   */
+  async playMediaAndCollect(collect: ICallingCollect, ...play: ICallingPlay[]) {
     this._callIdRequired()
     const msg = new Execute({
       protocol: this.relayInstance.protocol,
@@ -295,27 +323,6 @@ export default class Call implements ICall {
     return this.relayInstance.getCallById(call_id)
   }
 
-  setOptions(opts: ICallOptions) {
-    this.options = { ...this.options, ...opts }
-  }
-
-  _addControlParams(params: any) {
-    const { control_id, event_type } = params
-    if (!control_id || !event_type) {
-      return
-    }
-    const index = this._controls.findIndex(t => t.control_id === control_id)
-    if (index >= 0) {
-      this._controls[index] = params
-    } else {
-      this._controls.push(params)
-    }
-  }
-
-  get recordings(): Object[] {
-    return this._controls.filter(t => t.event_type === CallNotification.Record)
-  }
-
   get device(): ICallDevice {
     return this.options.device
   }
@@ -344,59 +351,64 @@ export default class Call implements ICall {
     return timeout
   }
 
-  on(eventName: string, callback: Function) {
-    const eventPermitted = CallState[eventName] && !isNaN(Number(CallState[eventName]))
-    if (this.ready && eventPermitted) {
-      if (this._state >= CallState[eventName]) {
-        callback(this)
-      } else {
-        registerOnce(this.id, callback, eventName)
-      }
-    }
-    this._cbQueues[eventName] = callback
-    return this
+  get recordings() {
+    return this._controls.filter(t => t.event_type === CallNotification.Record)
   }
 
-  off(eventName: string, callback?: Function) {
-    if (this.ready) {
-      deRegister(this.id, callback, eventName)
-    }
-    delete this._cbQueues[eventName]
-    return this
+  get playbacks() {
+    return this._controls.filter(t => t.event_type === CallNotification.Play)
   }
 
-  private _onStateChange(newState: string) {
+  setOptions(opts: ICallOptions) {
+    this.options = { ...this.options, ...opts }
+  }
+
+  _stateChange(newState: string) {
     this._prevState = this._state
     this._state = CallState[newState]
+    this._dispatchCallback('stateChange')
     this._dispatchCallback(newState)
+    if (this._state === CallState.ended) {
+      this.relayInstance.removeCall(this)
+    }
     return this
   }
 
-  private _onConnectStateChange(newState: string) {
+  _connectStateChange(newState: string) {
     this._prevConnectState = this._connectState
     this._connectState = CallConnectState[newState]
-    this._dispatchCallback(newState)
+    this._dispatchCallback('connect.stateChange')
+    if (!this._dispatchCallback(`connect.${newState}`)) {
+      // Backward compat: connect state not scoped with 'connect.'
+      this._dispatchCallback(newState)
+    }
     return this
   }
 
-  private _dispatchCallback(key: string) {
-    if (this._cbQueues.hasOwnProperty(key)) {
-      this._cbQueues[key](this)
+  _recordStateChange(params: any) {
+    this._addControlParams(params)
+    this._dispatchCallback('record.stateChange', params)
+    this._dispatchCallback(`record.${params.state}`, params)
+  }
+
+  _playStateChange(params: any) {
+    this._addControlParams(params)
+    this._dispatchCallback('play.stateChange', params)
+    this._dispatchCallback(`play.${params.state}`, params)
+  }
+
+  _collectStateChange(params: any) {
+    this._addControlParams(params)
+    this._dispatchCallback('collect', params)
+  }
+
+  private _dispatchCallback(key: string, ...params: any) {
+    const { [key]: handler } = this._cbQueue
+    if (isFunction(handler)) {
+      handler(this, ...params)
+      return true
     }
-  }
-
-  private _attachListeners() {
-    registerOnce(this.id, this._detachListeners, CALL_STATES[CALL_STATES.length - 1])
-    CALL_STATES.forEach(state => registerOnce(this.id, this._onStateChange.bind(this, state), state))
-
-    Object.keys(this._cbQueues)
-      .filter(event => /^(?:record\.|play\.|collect$)/.test(event))
-      .forEach(event => registerOnce(this.id, this._cbQueues[event].bind(this), event))
-  }
-
-  private _detachListeners() {
-    deRegisterAll(this.id)
-    this.relayInstance.removeCall(this)
+    return false
   }
 
   private _callIdRequired() {
@@ -415,6 +427,19 @@ export default class Call implements ICall {
         throw result
       }
       throw error
+    }
+  }
+
+  private _addControlParams(params: any) {
+    const { control_id, event_type } = params
+    if (!control_id || !event_type) {
+      return
+    }
+    const index = this._controls.findIndex(t => t.control_id === control_id)
+    if (index >= 0) {
+      this._controls[index] = params
+    } else {
+      this._controls.push(params)
     }
   }
 }

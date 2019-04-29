@@ -1,0 +1,24 @@
+{
+  "name": "signalwire-blade-ivr-example",
+  "version": "1.0.0",
+  "description": "",
+  "main": "ivr.js",
+  "scripts": {
+    "setup": "npm install && npm link ../../",
+    "start": "node ivr.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "author": "",
+  "license": "MPL",
+  "bugs": {
+    "url": ""
+  },
+  "homepage": "",
+  "dependencies": {
+    "@signalwire/node": "^1.1.0"
+  }
+}

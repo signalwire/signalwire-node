@@ -164,7 +164,16 @@ class VertoHandler {
             }
           }
         }
-        session.vertoUnsubscribe({ nodeId: this.nodeId, channels: [laChannel, chatChannel, infoChannel, modChannel] })
+        const channels = [laChannel, chatChannel, infoChannel, modChannel]
+        session.vertoUnsubscribe({ nodeId: this.nodeId, channels })
+          .then(({ unsubscribedChannels }) => {
+            if (dialog) {
+              dialog.channels = dialog.channels.filter(c => !unsubscribedChannels.includes(c))
+            }
+          })
+          .catch(error => {
+            logger.error('liveArray unsubscribe error:', error)
+          })
         break
       }
     }

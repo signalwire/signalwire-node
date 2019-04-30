@@ -150,14 +150,18 @@ class VertoHandler {
         // trigger Notification at a Dialog or Session level.
         // deregister Notification callback at the Dialog level.
         // Cleanup subscriptions for all channels
+        let dialog: Dialog = null
         if (laChannel && session._existsSubscription(protocol, laChannel)) {
           const { dialogId = null } = session.subscriptions[protocol][laChannel]
+          dialog = session.dialogs[dialogId] || null
           if (dialogId !== null) {
             const notification = { type: NOTIFICATION_TYPE.conferenceUpdate, action: ConferenceAction.Leave, conferenceName: laName, participantId: Number(conferenceMemberID), role }
             if (!trigger(SwEvent.Notification, notification, dialogId, false)) {
               trigger(SwEvent.Notification, notification, session.uuid)
             }
-            deRegister(SwEvent.Notification, null, dialogId)
+            if (dialog === null) {
+              deRegister(SwEvent.Notification, null, dialogId)
+            }
           }
         }
         session.vertoUnsubscribe({ nodeId: this.nodeId, channels: [laChannel, chatChannel, infoChannel, modChannel] })

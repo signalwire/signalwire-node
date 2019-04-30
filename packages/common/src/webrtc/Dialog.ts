@@ -302,8 +302,10 @@ export default class Dialog {
         const { eventData: data } = params
         switch (data.contentType) {
           case 'layout-info':
-            const tmp = JSON.stringify(data.canvasInfo).replace(/ID"/g, 'Id"').replace(/POS"/g, 'Pos"')
-            this._dispatchConferenceUpdate({ action: ConferenceAction.LayoutInfo, data: JSON.parse(tmp) })
+            if (typeof data.canvasInfo === 'object') {
+              const tmp = JSON.stringify(data.canvasInfo).replace(/ID"/g, 'Id"').replace(/POS"/g, 'Pos"')
+              this._dispatchConferenceUpdate({ action: ConferenceAction.LayoutInfo, data: JSON.parse(tmp) })
+            }
             break
           default:
             logger.error('Conference-Info unknown contentType', params)

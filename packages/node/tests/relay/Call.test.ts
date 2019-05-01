@@ -4,30 +4,27 @@ import Call from '../../../common/src/relay/calling/Call'
 import { CallState } from '../../../common/src/util/constants/relay'
 import { isQueued } from '../../../common/src/services/Handler'
 import { Execute } from '../../../common/src/messages/Blade'
+import { PlayMediaAction, PlayAudioAction, PlaySilenceAction, PlayTTSAction } from '../../../common/src/relay/calling/Actions'
 const Connection = require('../../../common/src/services/Connection')
 jest.mock('../../../common/src/services/Connection')
 
 describe('Call', () => {
   let session: RelayClient = null
 
-  beforeAll(done => {
+  beforeAll(async done => {
     session = new RelayClient({ host: 'example.signalwire.com', project: 'project', token: 'token' })
-    session.connect().then(done)
-  })
+    await session.connect()
 
-  afterAll(() => {
-    // session.disconnect()
-    session = null
+    Connection.mockResponse
+      .mockReturnValueOnce(JSON.parse('{"id":"c04d725a-c8bc-4b9e-bf1e-9c05150797cc","jsonrpc":"2.0","result":{"requester_nodeid":"05b1114c-XXXX-YYYY-ZZZZ-feaa30afad6c","responder_nodeid":"9811eb32-XXXX-YYYY-ZZZZ-ab56fa3b83c9","result":{"protocol":"signalwire_service_random_uuid"}}}'))
+      .mockReturnValueOnce(JSON.parse('{"id":"24f9b545-8bed-49e1-8214-5dbadb545f7d","jsonrpc":"2.0","result":{"command":"add","failed_channels":[],"protocol":"signalwire_service_random_uuid","subscribe_channels":["notifications"]}}'))
+    session.calling.addCall = jest.fn()
+    done()
   })
 
   let call: Call = null
   beforeEach(() => {
     Connection.mockSend.mockClear()
-    Connection.mockResponse
-      .mockReturnValueOnce(JSON.parse('{"id":"c04d725a-c8bc-4b9e-bf1e-9c05150797cc","jsonrpc":"2.0","result":{"requester_nodeid":"05b1114c-XXXX-YYYY-ZZZZ-feaa30afad6c","responder_nodeid":"9811eb32-XXXX-YYYY-ZZZZ-ab56fa3b83c9","result":{"protocol":"signalwire_service_random_uuid"}}}'))
-      .mockReturnValueOnce(JSON.parse('{"id":"24f9b545-8bed-49e1-8214-5dbadb545f7d","jsonrpc":"2.0","result":{"command":"add","failed_channels":[],"protocol":"signalwire_service_random_uuid","subscribe_channels":["notifications"]}}'))
-
-    session.calling.addCall = jest.fn()
     const device: ICallDevice = { type: 'phone', params: { from_number: '2345', to_number: '6789', timeout: 30 } }
     // @ts-ignore
     call = new Call(session.calling, { device })
@@ -66,10 +63,6 @@ describe('Call', () => {
   it('should throw with .playMedia()', async () => {
     const silence = { type: 'silence', params: { duration: 20 } }
     await expect(call.playMedia(silence)).rejects.toThrowError('Call has not started')
-  })
-
-  it('should throw with .stopPlay()', async () => {
-    await expect(call.stopPlay('control-id')).rejects.toThrowError('Call has not started')
   })
 
   describe('.on()', () => {
@@ -138,6 +131,7 @@ describe('Call', () => {
     beforeEach(() => {
       call.id = 'call-id'
       call.nodeId = 'node-id'
+      Connection.mockResponse.mockReturnValueOnce(JSON.parse('{"id":"c04d725a-c8bc-4b9e-bf1e-9c05150797cc","jsonrpc":"2.0","result":{"requester_nodeid":"05b1114c-XXXX-YYYY-ZZZZ-feaa30afad6c","responder_nodeid":"9811eb32-XXXX-YYYY-ZZZZ-ab56fa3b83c9","result":{"code":"200","message":"message","control_id":"control-id"}}}'))
     })
 
     afterAll(() => {
@@ -178,89 +172,84 @@ describe('Call', () => {
       expect(Connection.mockSend).toHaveBeenCalledWith(msg)
     })
 
-    it('.playAudio() should execute the correct message', () => {
-      call.playAudio('audio.mp3')
-      const msg = new Execute({
-        protocol: 'signalwire_service_random_uuid',
-        method: 'call.play',
-        params: {
-          node_id: call.nodeId,
-          call_id: call.id,
-          control_id: 'mocked-uuid',
-          play: [{ type: 'audio', params: { url: 'audio.mp3' } }]
-        }
+    describe('play methods', () => {
+      it('.playAudio() should execute the correct message', async done => {
+        const action = await call.playAudio('audio.mp3')
+        const msg = new Execute({
+          protocol: 'signalwire_service_random_uuid',
+          method: 'call.play',
+          params: {
+            node_id: call.nodeId,
+            call_id: call.id,
+            control_id: 'mocked-uuid',
+            play: [{ type: 'audio', params: { url: 'audio.mp3' } }]
+          }
+        })
+        expect(action).toBeInstanceOf(PlayAudioAction)
+        expect(Connection.mockSend).toHaveBeenCalledTimes(1)
+        expect(Connection.mockSend).toHaveBeenCalledWith(msg)
+        done()
       })
-      expect(Connection.mockSend).toHaveBeenCalledTimes(1)
-      expect(Connection.mockSend).toHaveBeenCalledWith(msg)
+
+      it('.playSilence() should execute the correct message', async done => {
+        const action = await call.playSilence(5)
+        const msg = new Execute({
+          protocol: 'signalwire_service_random_uuid',
+          method: 'call.play',
+          params: {
+            node_id: call.nodeId,
+            call_id: call.id,
+            control_id: 'mocked-uuid',
+            play: [{ type: 'silence', params: { duration: 5 } }]
+          }
+        })
+        expect(action).toBeInstanceOf(PlaySilenceAction)
+        expect(Connection.mockSend).toHaveBeenCalledTimes(1)
+        expect(Connection.mockSend).toHaveBeenCalledWith(msg)
+        done()
+      })
+
+      it('.playTTS() should execute the correct message', async done => {
+        const action = await call.playTTS({ text: 'Hello', gender: 'male' })
+        const msg = new Execute({
+          protocol: 'signalwire_service_random_uuid',
+          method: 'call.play',
+          params: {
+            node_id: call.nodeId,
+            call_id: call.id,
+            control_id: 'mocked-uuid',
+            play: [{ type: 'tts', params: { text: 'Hello', gender: 'male' } }]
+          }
+        })
+        expect(action).toBeInstanceOf(PlayTTSAction)
+        expect(Connection.mockSend).toHaveBeenCalledTimes(1)
+        expect(Connection.mockSend).toHaveBeenCalledWith(msg)
+        done()
+      })
+
+      it('.playMedia() should execute the correct message', async done => {
+        const action = await call.playMedia({ type: 'silence', params: { duration: 5 } }, { type: 'tts', params: { text: 'Example' } })
+        const msg = new Execute({
+          protocol: 'signalwire_service_random_uuid',
+          method: 'call.play',
+          params: {
+            node_id: call.nodeId,
+            call_id: call.id,
+            control_id: 'mocked-uuid',
+            play: [
+              { type: 'silence', params: { duration: 5 } },
+              { type: 'tts', params: { text: 'Example' } }
+            ]
+          }
+        })
+        expect(action).toBeInstanceOf(PlayMediaAction)
+        expect(Connection.mockSend).toHaveBeenCalledTimes(1)
+        expect(Connection.mockSend).toHaveBeenCalledWith(msg)
+        done()
+      })
     })
 
-    it('.playSilence() should execute the correct message', () => {
-      call.playSilence(5)
-      const msg = new Execute({
-        protocol: 'signalwire_service_random_uuid',
-        method: 'call.play',
-        params: {
-          node_id: call.nodeId,
-          call_id: call.id,
-          control_id: 'mocked-uuid',
-          play: [{ type: 'silence', params: { duration: 5 } }]
-        }
-      })
-      expect(Connection.mockSend).toHaveBeenCalledTimes(1)
-      expect(Connection.mockSend).toHaveBeenCalledWith(msg)
-    })
-
-    it('.playTTS() should execute the correct message', () => {
-      call.playTTS({ text: 'Hello', gender: 'male' })
-      const msg = new Execute({
-        protocol: 'signalwire_service_random_uuid',
-        method: 'call.play',
-        params: {
-          node_id: call.nodeId,
-          call_id: call.id,
-          control_id: 'mocked-uuid',
-          play: [{ type: 'tts', params: { text: 'Hello', gender: 'male' } }]
-        }
-      })
-      expect(Connection.mockSend).toHaveBeenCalledTimes(1)
-      expect(Connection.mockSend).toHaveBeenCalledWith(msg)
-    })
-
-    it('.playMedia() should execute the correct message', () => {
-      call.playMedia({ type: 'silence', params: { duration: 5 } }, { type: 'tts', params: { text: 'Example' } })
-      const msg = new Execute({
-        protocol: 'signalwire_service_random_uuid',
-        method: 'call.play',
-        params: {
-          node_id: call.nodeId,
-          call_id: call.id,
-          control_id: 'mocked-uuid',
-          play: [
-            { type: 'silence', params: { duration: 5 } },
-            { type: 'tts', params: { text: 'Example' } }
-          ]
-        }
-      })
-      expect(Connection.mockSend).toHaveBeenCalledTimes(1)
-      expect(Connection.mockSend).toHaveBeenCalledWith(msg)
-    })
-
-    it('.stopPlay() should execute the correct message', () => {
-      call.stopPlay('control-id')
-      const msg = new Execute({
-        protocol: 'signalwire_service_random_uuid',
-        method: 'call.play.stop',
-        params: {
-          node_id: call.nodeId,
-          call_id: call.id,
-          control_id: 'control-id'
-        }
-      })
-      expect(Connection.mockSend).toHaveBeenCalledTimes(1)
-      expect(Connection.mockSend).toHaveBeenCalledWith(msg)
-    })
-
-    describe('play_and_collect', () => {
+    describe('play_and_collect methods', () => {
       const collect = { initial_timeout: 10, digits: { max: 5, terminators: '#', digit_timeout: 10 } }
 
       it('.playAudioAndCollect() should execute the correct message', () => {

@@ -2,6 +2,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { Execute } from '../../messages/Blade'
 import { CallState, DisconnectReason, CallConnectState, DEFAULT_CALL_TIMEOUT, CallNotification } from '../../util/constants/relay'
 import { ICall, ICallOptions, ICallDevice, IMakeCallParams, ICallingPlay, ICallingCollect } from '../../util/interfaces'
+import { PlayMediaAction, PlayAudioAction, PlaySilenceAction, PlayTTSAction } from './Actions'
 import { reduceConnectParams } from '../helpers'
 import Calling from './Calling'
 import { isFunction } from '../../util/helpers'
@@ -176,9 +177,9 @@ export default class Call implements ICall {
    * @param url - URL of the audio file to play.
    * @return Promise
    */
-  playAudio(url: string) {
-    const params = { type: 'audio', params: { url } }
-    return this.playMedia(params)
+  async playAudio(url: string) {
+    const { control_id } = await this._play([{ type: 'audio', params: { url } }])
+    return new PlayAudioAction(this, control_id)
   }
 
   /**
@@ -186,9 +187,9 @@ export default class Call implements ICall {
    * @param duration - Num. of seconds of silence to play.
    * @return Promise
    */
-  playSilence(duration: number) {
-    const params = { type: 'silence', params: { duration } }
-    return this.playMedia(params)
+  async playSilence(duration: number) {
+    const { control_id } = await this._play([{ type: 'silence', params: { duration } }])
+    return new PlaySilenceAction(this, control_id)
   }
 
   /**
@@ -196,9 +197,9 @@ export default class Call implements ICall {
    * @param options - Params object for the TTS { text, language, gender }
    * @return Promise
    */
-  playTTS(options: ICallingPlay['params']) {
-    const params = { type: 'tts', params: options }
-    return this.playMedia(params)
+  async playTTS(options: ICallingPlay['params']) {
+    const { control_id } = await this._play([{ type: 'tts', params: options }])
+    return new PlayTTSAction(this, control_id)
   }
 
   /**
@@ -207,39 +208,8 @@ export default class Call implements ICall {
    * @return Promise
    */
   async playMedia(...play: ICallingPlay[]) {
-    this._callIdRequired()
-    const msg = new Execute({
-      protocol: this.relayInstance.protocol,
-      method: 'call.play',
-      params: {
-        node_id: this.nodeId,
-        call_id: this.id,
-        control_id: uuidv4(),
-        play
-      }
-    })
-
-    return this._execute(msg)
-  }
-
-  /**
-   * Stop a play on the call. The call must be 'ready'.
-   * @param control_id - Identifier of the playing to stop.
-   * @return Promise
-   */
-  async stopPlay(control_id: string) {
-    this._callIdRequired()
-    const msg = new Execute({
-      protocol: this.relayInstance.protocol,
-      method: 'call.play.stop',
-      params: {
-        node_id: this.nodeId,
-        call_id: this.id,
-        control_id
-      }
-    })
-
-    return this._execute(msg)
+    const { control_id } = await this._play(play)
+    return new PlayMediaAction(this, control_id)
   }
 
   /**
@@ -441,5 +411,26 @@ export default class Call implements ICall {
     } else {
       this._controls.push(params)
     }
+  }
+
+  /**
+   * Execute a 'call.play'
+   * @param play - One or more media to play { type: string, params: { } }
+   * @return Promise
+   */
+  private async _play(play: ICallingPlay[]) {
+    this._callIdRequired()
+    const msg = new Execute({
+      protocol: this.relayInstance.protocol,
+      method: 'call.play',
+      params: {
+        node_id: this.nodeId,
+        call_id: this.id,
+        control_id: uuidv4(),
+        play
+      }
+    })
+
+    return this._execute(msg)
   }
 }

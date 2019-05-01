@@ -5,11 +5,7 @@ abstract class BaseAction {
 
   protected abstract baseMethod: string
 
-  constructor(public call: Call, protected controlId: string) {
-    if (!controlId) {
-      throw new Error("Missing control_id")
-    }
-  }
+  constructor(public call: Call, protected controlId: string) {}
 
   stop() {
     const msg = new Execute({
@@ -35,22 +31,9 @@ class PlayAudioAction extends PlayAction {}
 class PlaySilenceAction extends PlayAction {}
 class PlayTTSAction extends PlayAction {}
 
-class PlayAndCollectAction extends BaseAction {
-  protected baseMethod = 'call.play_and_collect'
-}
-
-class PlayMediaAndCollectAction extends PlayAndCollectAction {}
-class PlayAudioAndCollectAction extends PlayAndCollectAction {}
-class PlaySilenceAndCollectAction extends PlayAndCollectAction {}
-class PlayTTSAndCollectAction extends PlayAndCollectAction {}
-
 export {
   PlayMediaAction,
   PlayAudioAction,
   PlaySilenceAction,
-  PlayTTSAction,
-  PlayMediaAndCollectAction,
-  PlayAudioAndCollectAction,
-  PlaySilenceAndCollectAction,
-  PlayTTSAndCollectAction
+  PlayTTSAction
 }

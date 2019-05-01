@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { Execute } from '../../messages/Blade'
 import { CallState, DisconnectReason, CallConnectState, DEFAULT_CALL_TIMEOUT, CallNotification } from '../../util/constants/relay'
 import { ICall, ICallOptions, ICallDevice, IMakeCallParams, ICallingPlay, ICallingCollect } from '../../util/interfaces'
-import { PlayMediaAction, PlayAudioAction, PlaySilenceAction, PlayTTSAction } from './Actions'
+import * as Actions from './Actions'
 import { reduceConnectParams } from '../helpers'
 import Calling from './Calling'
 import { isFunction } from '../../util/helpers'
@@ -179,7 +179,7 @@ export default class Call implements ICall {
    */
   async playAudio(url: string) {
     const { control_id } = await this._play([{ type: 'audio', params: { url } }])
-    return new PlayAudioAction(this, control_id)
+    return new Actions.PlayAudioAction(this, control_id)
   }
 
   /**
@@ -189,7 +189,7 @@ export default class Call implements ICall {
    */
   async playSilence(duration: number) {
     const { control_id } = await this._play([{ type: 'silence', params: { duration } }])
-    return new PlaySilenceAction(this, control_id)
+    return new Actions.PlaySilenceAction(this, control_id)
   }
 
   /**
@@ -199,7 +199,7 @@ export default class Call implements ICall {
    */
   async playTTS(options: ICallingPlay['params']) {
     const { control_id } = await this._play([{ type: 'tts', params: options }])
-    return new PlayTTSAction(this, control_id)
+    return new Actions.PlayTTSAction(this, control_id)
   }
 
   /**
@@ -209,7 +209,7 @@ export default class Call implements ICall {
    */
   async playMedia(...play: ICallingPlay[]) {
     const { control_id } = await this._play(play)
-    return new PlayMediaAction(this, control_id)
+    return new Actions.PlayMediaAction(this, control_id)
   }
 
   /**
@@ -218,9 +218,9 @@ export default class Call implements ICall {
    * @param url - URL of the audio file to play.
    * @return Promise
    */
-  playAudioAndCollect(collect: ICallingCollect, url: string) {
-    const params = { type: 'audio', params: { url } }
-    return this.playMediaAndCollect(collect, params)
+  async playAudioAndCollect(collect: ICallingCollect, url: string) {
+    const { control_id } = await this._playAndCollect(collect, [{ type: 'audio', params: { url } }])
+    return new Actions.PlayAudioAndCollectAction(this, control_id)
   }
 
   /**
@@ -229,9 +229,9 @@ export default class Call implements ICall {
    * @param duration - Num. of seconds of silence to play.
    * @return Promise
    */
-  playSilenceAndCollect(collect: ICallingCollect, duration: number) {
-    const params = { type: 'silence', params: { duration } }
-    return this.playMediaAndCollect(collect, params)
+  async playSilenceAndCollect(collect: ICallingCollect, duration: number) {
+    const { control_id } = await this._playAndCollect(collect, [{ type: 'silence', params: { duration } }])
+    return new Actions.PlaySilenceAndCollectAction(this, control_id)
   }
 
   /**
@@ -240,9 +240,9 @@ export default class Call implements ICall {
    * @param options - Params object for the TTS { text, language, gender }
    * @return Promise
    */
-  playTTSAndCollect(collect: ICallingCollect, options: ICallingPlay['params']) {
-    const params = { type: 'tts', params: options }
-    return this.playMediaAndCollect(collect, params)
+  async playTTSAndCollect(collect: ICallingCollect, options: ICallingPlay['params']) {
+    const { control_id } = await this._playAndCollect(collect, [{ type: 'tts', params: options }])
+    return new Actions.PlayTTSAndCollectAction(this, control_id)
   }
 
   /**
@@ -252,20 +252,8 @@ export default class Call implements ICall {
    * @return Promise
    */
   async playMediaAndCollect(collect: ICallingCollect, ...play: ICallingPlay[]) {
-    this._callIdRequired()
-    const msg = new Execute({
-      protocol: this.relayInstance.protocol,
-      method: 'call.play_and_collect',
-      params: {
-        node_id: this.nodeId,
-        call_id: this.id,
-        control_id: uuidv4(),
-        play,
-        collect
-      }
-    })
-
-    return this._execute(msg)
+    const { control_id } = await this._playAndCollect(collect, play)
+    return new Actions.PlayMediaAndCollectAction(this, control_id)
   }
 
   get prevState() {
@@ -428,6 +416,29 @@ export default class Call implements ICall {
         call_id: this.id,
         control_id: uuidv4(),
         play
+      }
+    })
+
+    return this._execute(msg)
+  }
+
+  /**
+   * Execute a 'call.play_and_collect'
+   * @param collect - Object with collect preferences
+   * @param play - One or more media to play { type: string, params: { } }
+   * @return Promise
+   */
+  private async _playAndCollect(collect: ICallingCollect, play: ICallingPlay[]) {
+    this._callIdRequired()
+    const msg = new Execute({
+      protocol: this.relayInstance.protocol,
+      method: 'call.play_and_collect',
+      params: {
+        node_id: this.nodeId,
+        call_id: this.id,
+        control_id: uuidv4(),
+        play,
+        collect
       }
     })
 

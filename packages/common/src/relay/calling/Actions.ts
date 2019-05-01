@@ -7,7 +7,7 @@ abstract class BaseAction {
 
   constructor(public call: Call, protected controlId: string) {
     if (!controlId) {
-      throw new Error("Missing control_id")
+      throw new Error('Missing control_id')
     }
   }
 

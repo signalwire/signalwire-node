@@ -18,7 +18,7 @@ export default class Call implements ICall {
   private _cbQueue: { [state: string]: Function } = {}
   private _controls: any[] = []
 
-  constructor(protected relayInstance: Calling, protected options: ICallOptions) {
+  constructor(public relayInstance: Calling, protected options: ICallOptions) {
     const { call_id, node_id } = options
     this.id = call_id
     this.nodeId = node_id
@@ -417,7 +417,7 @@ export default class Call implements ICall {
     }
   }
 
-  private async _execute(msg: Execute) {
+  public async _execute(msg: Execute) {
     try {
       const { result } = await this.relayInstance.session.execute(msg)
       return result

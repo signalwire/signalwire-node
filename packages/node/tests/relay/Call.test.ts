@@ -56,8 +56,8 @@ describe('Call', () => {
     await expect(call.connect({ type: 'phone', to: '234599' })).rejects.toThrowError('Call has not started')
   })
 
-  it('should throw with .startRecord()', async () => {
-    await expect(call.startRecord('audio', { format: 'mp3' })).rejects.toThrowError('Call has not started')
+  it('should throw with .record()', async () => {
+    await expect(call.record({ audio: { format: 'mp3' } })).rejects.toThrowError('Call has not started')
   })
 
   it('should throw with .playMedia()', async () => {
@@ -139,9 +139,9 @@ describe('Call', () => {
       call.nodeId = undefined
     })
 
-    it('.startRecord() should execute the right message', () => {
-      const opts = { format: 'mp3', beep: true }
-      call.startRecord('audi', opts)
+    it('.record() should execute the right message', async done => {
+      const record = { audio: { format: 'mp3', beep: true } }
+      const action = await call.record(record)
       const msg = new Execute({
         protocol: 'signalwire_service_random_uuid',
         method: 'call.record',
@@ -149,27 +149,13 @@ describe('Call', () => {
           node_id: call.nodeId,
           call_id: call.id,
           control_id: 'mocked-uuid',
-          type: 'audi',
-          params: opts
+          record
         }
       })
+      expect(action).toBeInstanceOf(Actions.RecordAction)
       expect(Connection.mockSend).toHaveBeenCalledTimes(1)
       expect(Connection.mockSend).toHaveBeenCalledWith(msg)
-    })
-
-    it('.stopRecord() should execute the right message', () => {
-      call.stopRecord('control-id')
-      const msg = new Execute({
-        protocol: 'signalwire_service_random_uuid',
-        method: 'call.record.stop',
-        params: {
-          node_id: call.nodeId,
-          call_id: call.id,
-          control_id: 'control-id'
-        }
-      })
-      expect(Connection.mockSend).toHaveBeenCalledTimes(1)
-      expect(Connection.mockSend).toHaveBeenCalledWith(msg)
+      done()
     })
 
     describe('play methods', () => {

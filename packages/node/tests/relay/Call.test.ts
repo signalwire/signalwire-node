@@ -157,21 +157,6 @@ describe('Call', () => {
       expect(Connection.mockSend).toHaveBeenCalledWith(msg)
     })
 
-    it('.stopRecord() should execute the right message', () => {
-      call.stopRecord('control-id')
-      const msg = new Execute({
-        protocol: 'signalwire_service_random_uuid',
-        method: 'call.record.stop',
-        params: {
-          node_id: call.nodeId,
-          call_id: call.id,
-          control_id: 'control-id'
-        }
-      })
-      expect(Connection.mockSend).toHaveBeenCalledTimes(1)
-      expect(Connection.mockSend).toHaveBeenCalledWith(msg)
-    })
-
     describe('play methods', () => {
       it('.playAudio() should execute the correct message', async done => {
         const action = await call.playAudio('audio.mp3')

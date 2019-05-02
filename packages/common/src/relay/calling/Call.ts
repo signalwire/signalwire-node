@@ -153,26 +153,6 @@ export default class Call implements ICall {
   }
 
   /**
-   * Stop a recording of the call. The call must be 'ready'.
-   * @param control_id - Identifier of the recording to stop.
-   * @return Promise
-   */
-  async stopRecord(control_id: string) {
-    this._callIdRequired()
-    const msg = new Execute({
-      protocol: this.relayInstance.protocol,
-      method: 'call.record.stop',
-      params: {
-        node_id: this.nodeId,
-        call_id: this.id,
-        control_id
-      }
-    })
-
-    return this._execute(msg)
-  }
-
-  /**
    * Play an audio file to the call. The call must be 'ready'.
    * @param url - URL of the audio file to play.
    * @return Promise

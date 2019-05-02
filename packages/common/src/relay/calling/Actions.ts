@@ -26,6 +26,10 @@ abstract class BaseAction {
   }
 }
 
+class RecordAction extends BaseAction {
+  protected baseMethod = 'call.record'
+}
+
 class PlayAction extends BaseAction {
   protected baseMethod = 'call.play'
 }
@@ -45,6 +49,7 @@ class PlaySilenceAndCollectAction extends PlayAndCollectAction {}
 class PlayTTSAndCollectAction extends PlayAndCollectAction {}
 
 export {
+  RecordAction,
   PlayMediaAction,
   PlayAudioAction,
   PlaySilenceAction,

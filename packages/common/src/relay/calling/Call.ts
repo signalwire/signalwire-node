@@ -135,7 +135,7 @@ export default class Call implements ICall {
    * @param options - Params object for the recording { beep, format, stereo, direction, initial_timeout, end_silence_timeout, terminators }
    * @return Promise
    */
-  async startRecord(type: string = 'audio', params: any = {}) {
+  async record(record: any) {
     this._callIdRequired()
     const msg = new Execute({
       protocol: this.relayInstance.protocol,
@@ -144,12 +144,12 @@ export default class Call implements ICall {
         node_id: this.nodeId,
         call_id: this.id,
         control_id: uuidv4(),
-        type,
-        params
+        record
       }
     })
 
-    return this._execute(msg)
+    const { control_id } = await this._execute(msg)
+    return new Actions.RecordAction(this, control_id)
   }
 
   /**

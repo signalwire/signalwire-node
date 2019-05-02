@@ -28,6 +28,25 @@ describe('Calling', () => {
     Connection.mockSend.mockClear()
   })
 
+  describe('RecordAction', () => {
+    it('should stop the current recording', async done => {
+      const action = new Actions.RecordAction(call, 'control-id')
+      await action.stop()
+      const msg = new Execute({
+        protocol: 'signalwire_service_random_uuid',
+        method: 'call.record.stop',
+        params: {
+          node_id: 'node-id',
+          call_id: 'call-id',
+          control_id: 'control-id'
+        }
+      })
+      expect(Connection.mockSend).toHaveBeenCalledTimes(1)
+      expect(Connection.mockSend).toHaveBeenCalledWith(msg)
+      done()
+    })
+  })
+
   describe('PlayMediaAction', () => {
     it('should stop the current media in play', async done => {
       const action = new Actions.PlayMediaAction(call, 'control-id')

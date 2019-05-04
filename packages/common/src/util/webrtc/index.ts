@@ -4,6 +4,9 @@ const RTCPeerConnection = (config: RTCPeerConnectionConfig) => new window.RTCPee
 
 const getUserMedia = (constraints: MediaStreamConstraints) => navigator.mediaDevices.getUserMedia(constraints)
 
+// @ts-ignore
+const getDisplayMedia = (constraints: MediaStreamConstraints) => navigator.mediaDevices.getDisplayMedia(constraints)
+
 const enumerateDevices = () => navigator.mediaDevices.enumerateDevices()
 
 const getSupportedConstraints = () => navigator.mediaDevices.getSupportedConstraints()
@@ -43,6 +46,7 @@ const stopStream = (stream: MediaStream) => {
 export {
   RTCPeerConnection,
   getUserMedia,
+  getDisplayMedia,
   enumerateDevices,
   getSupportedConstraints,
   streamIsValid,

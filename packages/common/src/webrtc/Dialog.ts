@@ -10,7 +10,7 @@ import { trigger, register, deRegister } from '../services/Handler'
 import { sdpStereoHack, sdpMediaOrderHack, checkSubscribeResponse } from './helpers'
 import { objEmpty, mutateLiveArrayData, isFunction } from '../util/helpers'
 import { DialogOptions } from '../util/interfaces'
-import { attachMediaStream, detachMediaStream, sdpToJsonHack, streamIsValid, stopStream } from '../util/webrtc'
+import { attachMediaStream, detachMediaStream, sdpToJsonHack, streamIsValid, stopStream, getDisplayMedia } from '../util/webrtc'
 
 export default class Dialog {
   public id: string = ''
@@ -23,6 +23,7 @@ export default class Dialog {
   public causeCode: number
   public channels: string[] = []
   public role: string = Role.Participant
+  public screenShare: Dialog
 
   private _state: State = State.New
   private _prevState: State = State.New
@@ -118,6 +119,25 @@ export default class Dialog {
     const msg = { from: this.session.options.login, to, body }
     const info = new Info({ sessid: this.session.sessionid, msg, dialogParams: this.options })
     this._execute(info)
+  }
+
+  async startScreenShare(opts?: DialogOptions) {
+    const options: DialogOptions = {
+      ...this.options, ...opts, id: null, destinationNumber: this.options.destinationNumber
+    }
+    const screenShareDialog = new Dialog(this.session, options)
+    const displayStream: MediaStream = await getDisplayMedia({ video: true })
+    displayStream.getVideoTracks()[0].addEventListener('ended', () => {
+      console.warn('displayStream ended')
+    })
+    screenShareDialog.options.localStream = displayStream
+    console.log('screenShareDialog', screenShareDialog)
+
+    this.screenShare = screenShareDialog
+  }
+
+  stopScreenShare() {
+
   }
 
   set audioState(what: boolean | string) {

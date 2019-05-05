@@ -146,11 +146,12 @@ export default class Dialog {
     return this.screenShare
   }
 
-    this.screenShare = screenShareDialog
-  }
+  async stopScreenShare() {
+    if (!this.screenShare || !(this.screenShare instanceof Dialog)) {
+      throw new Error('ScreenShare not active')
+    }
 
-  stopScreenShare() {
-
+    stopStream(this.screenShare.localStream)
   }
 
   set audioState(what: boolean | string) {

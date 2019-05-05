@@ -627,6 +627,9 @@ export default class Dialog {
   }
 
   private _dispatchNotification(notification: any) {
+    if (this.options.screenShare === true) {
+      return
+    }
     if (!trigger(SwEvent.Notification, notification, this.id, false)) {
       trigger(SwEvent.Notification, notification, this.session.uuid)
     }

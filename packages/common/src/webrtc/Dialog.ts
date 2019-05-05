@@ -122,16 +122,29 @@ export default class Dialog {
   }
 
   async startScreenShare(opts?: DialogOptions) {
-    const options: DialogOptions = {
-      ...this.options, ...opts, id: null, destinationNumber: this.options.destinationNumber
-    }
-    const screenShareDialog = new Dialog(this.session, options)
     const displayStream: MediaStream = await getDisplayMedia({ video: true })
-    displayStream.getVideoTracks()[0].addEventListener('ended', () => {
-      console.warn('displayStream ended')
+    displayStream.getTracks().forEach(t => {
+      t.addEventListener('ended', () => {
+        if (this.screenShare) {
+          this.screenShare.hangup()
+        }
+      })
     })
-    screenShareDialog.options.localStream = displayStream
-    console.log('screenShareDialog', screenShareDialog)
+    const { destinationNumber, remoteCallerName, remoteCallerNumber, callerName, callerNumber } = this.options
+    const options: DialogOptions = {
+      screenShare: true,
+      localStream: displayStream,
+      destinationNumber,
+      remoteCallerName,
+      remoteCallerNumber,
+      callerName,
+      callerNumber,
+      ...opts
+    }
+    this.screenShare = new Dialog(this.session, options)
+    this.screenShare.invite()
+    return this.screenShare
+  }
 
     this.screenShare = screenShareDialog
   }

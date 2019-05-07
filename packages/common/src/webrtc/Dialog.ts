@@ -325,7 +325,8 @@ export default class Dialog {
     const _modCommand = (command: string, memberID: any = null, value: any = null): void => {
       const application = 'conf-control'
       const id = parseInt(memberID) || null
-      this.session.vertoBroadcast({ nodeId: this.nodeId, channel, data: { application, command, id, value } })
+      const callID = this.id
+      this.session.vertoBroadcast({ nodeId: this.nodeId, channel, data: { application, command, id, value, callID} })
     }
 
     const _videoRequired = (): void => {

@@ -18,7 +18,7 @@ describe('Dialog', () => {
 
   beforeEach(async done => {
     session = new Verto({ host: 'example.fs.edo', login: 'login', passwd: 'passwd' })
-    await session.connect()
+    await session.connect().catch(console.error)
     dialog = new Dialog(session, defaultParams)
     done()
   })
@@ -308,6 +308,25 @@ describe('Dialog', () => {
         expect(dialog.causeCode).toEqual('Test01')
         expect(Connection.mockSend).not.toHaveBeenCalled()
       })
+    })
+  })
+
+  describe('.startScreenShare()', () => {
+    it('should attach a new screenShareDialog to the originator', async done => {
+      const ss = await dialog.startScreenShare()
+      expect(ss).toEqual(dialog.screenShare)
+      expect(ss.options.destinationNumber).toEqual(dialog.options.destinationNumber)
+      expect(ss.options.screenShare).toEqual(true)
+      expect(ss.peer.type).toEqual('offer')
+      expect(ss).toBeInstanceOf(Dialog)
+
+      done()
+    })
+  })
+
+  describe('.stopScreenShare()', () => {
+    it('should throw if screenShare has not started', async () => {
+      await expect(dialog.stopScreenShare()).rejects.toThrowError('ScreenShare not active')
     })
   })
 })

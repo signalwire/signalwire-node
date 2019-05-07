@@ -130,7 +130,11 @@ function handleDialogChange(dialog) {
       // Dialog has become active
       hangupCall.disabled = false
       remoteVideo.style.display = 'block'
+      confCommands.style.display = 'block'
       // localVideo.style.display = 'block'
+      startScreenShare.onclick = function() {
+        dialog.startScreenShare()
+      }
 
       break;
     case 'hangup':
@@ -139,6 +143,7 @@ function handleDialogChange(dialog) {
       startCall.disabled = false
 
       remoteVideo.style.display = 'none'
+      confCommands.style.display = 'none'
       // localVideo.style.display = 'none'
 
       break;

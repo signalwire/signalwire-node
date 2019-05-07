@@ -53,6 +53,8 @@ function connect() {
     resource: resource,
   });
 
+  client.remoteElement = 'remoteVideo';
+
   client.on('signalwire.ready', function() {
     btnConnect.disabled = true
     btnDisconnect.disabled = false

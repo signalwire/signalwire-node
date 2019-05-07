@@ -614,6 +614,9 @@ export default class Dialog {
     instance.ontrack = event => {
       this.options.remoteStream = event.streams[0]
 
+      if (this.options.screenShare === true) {
+        return
+      }
       const { remoteElement, remoteStream } = this.options
       attachMediaStream(remoteElement, remoteStream)
     }
@@ -684,8 +687,10 @@ export default class Dialog {
     const { remoteStream, localStream, remoteElement, localElement } = this.options
     stopStream(remoteStream)
     stopStream(localStream)
-    detachMediaStream(remoteElement)
-    detachMediaStream(localElement)
+    if (this.options.screenShare !== true) {
+      detachMediaStream(remoteElement)
+      detachMediaStream(localElement)
+    }
 
     deRegister(SwEvent.MediaError, null, this.id)
     this.peer = null

@@ -134,11 +134,11 @@ export default class Dialog {
     const options: DialogOptions = {
       screenShare: true,
       localStream: displayStream,
-      destinationNumber,
+      destinationNumber: `${destinationNumber}-screen`,
       remoteCallerName,
-      remoteCallerNumber,
-      callerName,
-      callerNumber,
+      remoteCallerNumber: `${remoteCallerNumber}-screen`,
+      callerName: `${callerName} (Screen)`,
+      callerNumber: `${callerNumber} (Screen)`,
       ...opts
     }
     this.screenShare = new Dialog(this.session, options)

@@ -151,7 +151,7 @@ export default class Dialog {
       throw new Error('ScreenShare not active')
     }
 
-    stopStream(this.screenShare.localStream)
+    this.screenShare.hangup()
   }
 
   set audioState(what: boolean | string) {

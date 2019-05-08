@@ -61,6 +61,9 @@ export default class Dialog {
   }
 
   hangup(params: any = {}, execute: boolean = true) {
+    if (this.screenShare && this.screenShare instanceof Dialog) {
+      this.screenShare.hangup(params, execute)
+    }
     this.cause = params.cause || 'NORMAL_CLEARING'
     this.causeCode = params.causeCode || 16
     this.setState(State.Hangup)

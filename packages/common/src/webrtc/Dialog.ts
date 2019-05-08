@@ -61,7 +61,7 @@ export default class Dialog {
   }
 
   hangup(params: any = {}, execute: boolean = true) {
-    if (this.screenShare && this.screenShare instanceof Dialog) {
+    if (this.screenShareActive) {
       this.screenShare.hangup(params, execute)
     }
     this.cause = params.cause || 'NORMAL_CLEARING'
@@ -150,11 +150,13 @@ export default class Dialog {
   }
 
   async stopScreenShare() {
-    if (!this.screenShare || !(this.screenShare instanceof Dialog)) {
-      throw new Error('ScreenShare not active')
+    if (this.screenShareActive) {
+      this.screenShare.hangup()
     }
+  }
 
-    this.screenShare.hangup()
+  get screenShareActive() {
+    return this.screenShare && this.screenShare instanceof Dialog
   }
 
   set audioState(what: boolean | string) {

@@ -149,7 +149,7 @@ export default class Dialog {
     return this.screenShare
   }
 
-  async stopScreenShare() {
+  stopScreenShare() {
     if (this.screenShareActive) {
       this.screenShare.hangup()
     }

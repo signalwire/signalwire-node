@@ -288,26 +288,32 @@ describe('Dialog', () => {
   })
 
   describe('.hangup()', () => {
-    describe('with params and execute true', () => {
-      it('should change the dialog state', () => {
-        Connection.mockSend.mockClear()
-        dialog.hangup({ cause: 'T01', causeCode: 'Test01' })
-        expect(dialog.state).toEqual('hangup')
-        expect(dialog.cause).toEqual('T01')
-        expect(dialog.causeCode).toEqual('Test01')
-        expect(Connection.mockSend).toHaveBeenCalledTimes(1)
-      })
+    it('should change the dialog state and send verto.bye with execute true', () => {
+      Connection.mockSend.mockClear()
+      dialog.hangup({ cause: 'T01', causeCode: 'Test01' })
+      expect(dialog.state).toEqual('hangup')
+      expect(dialog.cause).toEqual('T01')
+      expect(dialog.causeCode).toEqual('Test01')
+      expect(Connection.mockSend).toHaveBeenCalledTimes(1)
     })
 
-    describe('with params and execute false', () => {
-      it('should set the state to destroy without execute', () => {
-        Connection.mockSend.mockClear()
-        dialog.hangup({ cause: 'T01', causeCode: 'Test01' }, false)
-        expect(dialog.state).toEqual('destroy')
-        expect(dialog.cause).toEqual('T01')
-        expect(dialog.causeCode).toEqual('Test01')
-        expect(Connection.mockSend).not.toHaveBeenCalled()
-      })
+    it('should change the dialog state and not send verto.bye with execute false', () => {
+      Connection.mockSend.mockClear()
+      dialog.hangup({ cause: 'T01', causeCode: 'Test01' }, false)
+      expect(dialog.state).toEqual('destroy')
+      expect(dialog.cause).toEqual('T01')
+      expect(dialog.causeCode).toEqual('Test01')
+      expect(Connection.mockSend).not.toHaveBeenCalled()
+    })
+
+    it('should hangup SS if present', async done => {
+      Connection.mockSend.mockClear()
+      const ss = await dialog.startScreenShare()
+      ss.hangup = jest.fn()
+      dialog.hangup()
+      expect(dialog.state).toEqual('hangup')
+      expect(ss.hangup).toHaveBeenCalledTimes(1)
+      done()
     })
   })
 
@@ -325,8 +331,14 @@ describe('Dialog', () => {
   })
 
   describe('.stopScreenShare()', () => {
-    it('should throw if screenShare has not started', async () => {
-      await expect(dialog.stopScreenShare()).rejects.toThrowError('ScreenShare not active')
+    it('should hangup screenShare if present', async done => {
+      const ss = await dialog.startScreenShare()
+      ss.hangup = jest.fn()
+
+      dialog.stopScreenShare()
+
+      expect(ss.hangup).toHaveBeenCalledTimes(1)
+      done()
     })
   })
 })

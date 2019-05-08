@@ -315,7 +315,7 @@ describe('Dialog', () => {
     it('should attach a new screenShareDialog to the originator', async done => {
       const ss = await dialog.startScreenShare()
       expect(ss).toEqual(dialog.screenShare)
-      expect(ss.options.destinationNumber).toEqual(dialog.options.destinationNumber)
+      expect(ss.options.destinationNumber).toEqual(dialog.options.destinationNumber + '-screen')
       expect(ss.options.screenShare).toEqual(true)
       expect(ss.peer.type).toEqual('offer')
       expect(ss).toBeInstanceOf(Dialog)

@@ -77,7 +77,7 @@ export default class Peer {
         trigger(SwEvent.MediaError, error, this.options.id)
         return null
       })
-    const { localElement, mutateLocalStream = null } = this.options
+    const { localElement, mutateLocalStream = null, screenShare = false } = this.options
     let { localStream } = this.options
     if (mutateLocalStream && isFunction(mutateLocalStream)) {
       localStream = mutateLocalStream(localStream)
@@ -89,7 +89,9 @@ export default class Peer {
         // @ts-ignore
         this.instance.addStream(localStream)
       }
-      attachMediaStream(localElement, localStream)
+      if (screenShare !== true) {
+        attachMediaStream(localElement, localStream)
+      }
     } else if (localStream === null) {
       this.startNegotiation()
     }

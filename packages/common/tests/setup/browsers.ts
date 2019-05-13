@@ -1,3 +1,4 @@
+import * as webrtcMocks from './webrtcMocks'
 const localStorageMock = (() => {
   let store = {}
   return {
@@ -21,7 +22,28 @@ if (typeof window === 'undefined') {
   global.window = {}
 }
 
-Object.defineProperty(window, 'localStorage', { value: localStorageMock })
+Object.defineProperties(window, {
+  localStorage: {
+    value: localStorageMock
+  },
+  RTCPeerConnection: {
+    value: () => {
+      return {
+        close: () => { },
+        addTrack: () => { },
+        createOffer: () => { },
+        createAnswer: () => { },
+        setLocalDescription: () => { },
+        setRemoteDescription: () => { },
+      }
+    }
+  }
+})
+
+if (typeof MediaStream === 'undefined') {
+  // @ts-ignore
+  global.MediaStream = webrtcMocks.MediaStreamMock
+}
 
 if (typeof navigator === 'undefined') {
   // @ts-ignore
@@ -41,10 +63,34 @@ const ENUMERATED_MEDIA_DEVICES = [
   { 'deviceId': '45a9a69e28bcf77ab14092ccff118379930d4ae1c064321a8dbd30bc7d0482f5', 'kind': 'audiooutput', 'label': 'Headphones (Built-in)', 'groupId': '83ef347b97d14abd837e8c6dbb819c5be84cfe0756dd41455b375cfd4c0ddb4f' },
 ]
 
+const _newTrack = (kind: string) => {
+  const track = new webrtcMocks.MediaStreamTrackMock()
+  track.kind = kind
+
+  return track
+}
+
 Object.defineProperty(navigator, 'mediaDevices', {
   value: {
     enumerateDevices: jest.fn().mockResolvedValue(ENUMERATED_MEDIA_DEVICES),
     getSupportedConstraints: jest.fn().mockReturnValue(SUPPORTED_CONSTRAINTS),
-    getUserMedia: jest.fn().mockReturnValue({})
+    getUserMedia: jest.fn(constraints => {
+      // @ts-ignore
+      const stream = new global.MediaStream()
+      const { audio = null, video = null } = constraints
+      if (audio !== null) {
+        stream.addTrack(_newTrack('audio'))
+      }
+      if (video !== null) {
+        stream.addTrack(_newTrack('video'))
+      }
+      return stream
+    }),
+    getDisplayMedia: jest.fn(constraints => {
+      // @ts-ignore
+      const stream = new global.MediaStream()
+      stream.addTrack(_newTrack('video'))
+      return stream
+    })
   }
 })

@@ -35,6 +35,7 @@ const stopStream = (stream: MediaStream) => {
 export {
   _RTCPeerConnection as RTCPeerConnection,
   _getUserMedia as getUserMedia,
+  _getUserMedia as getDisplayMedia,
   _enumerateDevices as enumerateDevices,
   getSupportedConstraints,
   streamIsValid,

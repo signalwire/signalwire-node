@@ -10,7 +10,7 @@ import { trigger, register, deRegister } from '../services/Handler'
 import { sdpStereoHack, sdpMediaOrderHack, checkSubscribeResponse } from './helpers'
 import { objEmpty, mutateLiveArrayData, isFunction } from '../util/helpers'
 import { DialogOptions } from '../util/interfaces'
-import { attachMediaStream, detachMediaStream, sdpToJsonHack, streamIsValid, stopStream } from '../util/webrtc'
+import { attachMediaStream, detachMediaStream, sdpToJsonHack, streamIsValid, stopStream, getDisplayMedia } from '../util/webrtc'
 
 export default class Dialog {
   public id: string = ''
@@ -23,6 +23,7 @@ export default class Dialog {
   public causeCode: number
   public channels: string[] = []
   public role: string = Role.Participant
+  public screenShare: Dialog
 
   private _state: State = State.New
   private _prevState: State = State.New
@@ -60,6 +61,9 @@ export default class Dialog {
   }
 
   hangup(params: any = {}, execute: boolean = true) {
+    if (this.screenShareActive) {
+      this.screenShare.hangup(params, execute)
+    }
     this.cause = params.cause || 'NORMAL_CLEARING'
     this.causeCode = params.causeCode || 16
     this.setState(State.Hangup)
@@ -118,6 +122,41 @@ export default class Dialog {
     const msg = { from: this.session.options.login, to, body }
     const info = new Info({ sessid: this.session.sessionid, msg, dialogParams: this.options })
     this._execute(info)
+  }
+
+  async startScreenShare(opts?: DialogOptions) {
+    const displayStream: MediaStream = await getDisplayMedia({ video: true })
+    displayStream.getTracks().forEach(t => {
+      t.addEventListener('ended', () => {
+        if (this.screenShare) {
+          this.screenShare.hangup()
+        }
+      })
+    })
+    const { destinationNumber, remoteCallerName, remoteCallerNumber, callerName, callerNumber } = this.options
+    const options: DialogOptions = {
+      screenShare: true,
+      localStream: displayStream,
+      destinationNumber: `${destinationNumber}-screen`,
+      remoteCallerName,
+      remoteCallerNumber: `${remoteCallerNumber}-screen`,
+      callerName: `${callerName} (Screen)`,
+      callerNumber: `${callerNumber} (Screen)`,
+      ...opts
+    }
+    this.screenShare = new Dialog(this.session, options)
+    this.screenShare.invite()
+    return this.screenShare
+  }
+
+  stopScreenShare() {
+    if (this.screenShareActive) {
+      this.screenShare.hangup()
+    }
+  }
+
+  get screenShareActive() {
+    return this.screenShare && this.screenShare instanceof Dialog
   }
 
   set audioState(what: boolean | string) {
@@ -580,6 +619,9 @@ export default class Dialog {
     instance.ontrack = event => {
       this.options.remoteStream = event.streams[0]
 
+      if (this.options.screenShare === true) {
+        return
+      }
       const { remoteElement, remoteStream } = this.options
       attachMediaStream(remoteElement, remoteStream)
     }
@@ -607,6 +649,9 @@ export default class Dialog {
   }
 
   private _dispatchNotification(notification: any) {
+    if (this.options.screenShare === true) {
+      return
+    }
     if (!trigger(SwEvent.Notification, notification, this.id, false)) {
       trigger(SwEvent.Notification, notification, this.session.uuid)
     }
@@ -647,8 +692,10 @@ export default class Dialog {
     const { remoteStream, localStream, remoteElement, localElement } = this.options
     stopStream(remoteStream)
     stopStream(localStream)
-    detachMediaStream(remoteElement)
-    detachMediaStream(localElement)
+    if (this.options.screenShare !== true) {
+      detachMediaStream(remoteElement)
+      detachMediaStream(localElement)
+    }
 
     deRegister(SwEvent.MediaError, null, this.id)
     this.peer = null

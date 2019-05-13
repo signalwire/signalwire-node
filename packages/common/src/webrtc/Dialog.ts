@@ -183,6 +183,49 @@ export default class Dialog {
     return this.options.remoteStream
   }
 
+  get memberChannel() {
+    return `conference-member.${this.id}`
+  }
+
+  get microphone() {
+    return {
+      mute: () => {
+        this._confControl(this.memberChannel, { action: 'mute' })
+      },
+      unmute: () => {
+        this._confControl(this.memberChannel, { action: 'unmute' })
+      },
+      toggleMute: () => {
+        this._confControl(this.memberChannel, { action: 'tmute' })
+      }
+    }
+  }
+
+  get webcam() {
+    return {
+      mute: () => {
+        this._confControl(this.memberChannel, { action: 'vmute' })
+      },
+      unmute: () => {
+        this._confControl(this.memberChannel, { action: 'unvmute' })
+      },
+      toggleMute: () => {
+        this._confControl(this.memberChannel, { action: 'tvmute' })
+      }
+    }
+  }
+
+  get speaker() {
+    return {
+      mute: () => {
+        this._confControl(this.memberChannel, { action: 'deaf' })
+      },
+      unmute: () => {
+        this._confControl(this.memberChannel, { action: 'undeaf' })
+      }
+    }
+  }
+
   setState(state: State) {
     this._prevState = this._state
     this._state = state
@@ -200,18 +243,6 @@ export default class Dialog {
         this._finalize()
         break
     }
-  }
-
-  /* conference commands */
-
-  _conferenceCommand(action: string, value: any = null) {
-    const application = 'conf-control'
-    const conferenceChannel = "conference-member." + this.options.id;
-    this.session.vertoBroadcast({ nodeId: this.nodeId, channel: conferenceChannel, data: { application, action, value, callID: this.options.id } })
-  }
-
-  conferenceControl(action: string) {
-    this._conferenceCommand(action);
   }
 
   handleMessage(msg: any) {
@@ -370,6 +401,16 @@ export default class Dialog {
     if (checkSubscribeResponse(response, channel)) {
       this._addChannel(channel)
     }
+  }
+
+  private _confControl(channel: string, params: any = {}) {
+    const data = {
+      application: 'conf-control',
+      callID: this.id,
+      value: null,
+      ...params
+    }
+    this.session.vertoBroadcast({ nodeId: this.nodeId, channel, data })
   }
 
   private async _subscribeConferenceModerator(channel: string) {

@@ -415,10 +415,8 @@ export default class Dialog {
 
   private async _subscribeConferenceModerator(channel: string) {
     const _modCommand = (command: string, memberID: any = null, value: any = null): void => {
-      const application = 'conf-control'
       const id = parseInt(memberID) || null
-      const callID = this.id
-      this.session.vertoBroadcast({ nodeId: this.nodeId, channel, data: { application, command, id, value, callID} })
+      this._confControl(channel, { command, id, value })
     }
 
     const _videoRequired = (): void => {

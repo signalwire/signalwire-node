@@ -47,6 +47,17 @@
 
 	<button id="startCall" onClick="makeCall()" disabled="true">Call</button>
 	<button id="hangupCall" onClick="hangup()" disabled="true">Hangup</button>
+	<button onClick="cur_call.microphone.mute()" >Mute</button>
+	<button onClick="cur_call.microphone.unmute()" >unMute</button>
+	<button onClick="cur_call.microphone.toggleMute()" >Toggle Mute</button>
+	<button onClick="cur_call.speaker.mute()" >Deaf</button>
+	<button onClick="cur_call.speaker.unmute()" >unDeaf</button>
+	<button onClick="cur_call.webcam.mute()" >VMute</button>
+	<button onClick="cur_call.webcam.unmute()" >unVMute</button>
+	<button onClick="cur_call.webcam.toggleMute()" >Toggle VMute</button>
+
+	<button class="dtmf" onClick="cur_call.dtmf('0')" >DTMF-0</button>
+
 	<br />
 	<br />
 	<!-- <div class="half-page">

@@ -183,6 +183,49 @@ export default class Dialog {
     return this.options.remoteStream
   }
 
+  get memberChannel() {
+    return `conference-member.${this.id}`
+  }
+
+  get microphone() {
+    return {
+      mute: () => {
+        this._confControl(this.memberChannel, { action: 'mute' })
+      },
+      unmute: () => {
+        this._confControl(this.memberChannel, { action: 'unmute' })
+      },
+      toggleMute: () => {
+        this._confControl(this.memberChannel, { action: 'tmute' })
+      }
+    }
+  }
+
+  get webcam() {
+    return {
+      mute: () => {
+        this._confControl(this.memberChannel, { action: 'vmute' })
+      },
+      unmute: () => {
+        this._confControl(this.memberChannel, { action: 'unvmute' })
+      },
+      toggleMute: () => {
+        this._confControl(this.memberChannel, { action: 'tvmute' })
+      }
+    }
+  }
+
+  get speaker() {
+    return {
+      mute: () => {
+        this._confControl(this.memberChannel, { action: 'deaf' })
+      },
+      unmute: () => {
+        this._confControl(this.memberChannel, { action: 'undeaf' })
+      }
+    }
+  }
+
   setState(state: State) {
     this._prevState = this._state
     this._state = state
@@ -360,12 +403,20 @@ export default class Dialog {
     }
   }
 
+  private _confControl(channel: string, params: any = {}) {
+    const data = {
+      application: 'conf-control',
+      callID: this.id,
+      value: null,
+      ...params
+    }
+    this.session.vertoBroadcast({ nodeId: this.nodeId, channel, data })
+  }
+
   private async _subscribeConferenceModerator(channel: string) {
     const _modCommand = (command: string, memberID: any = null, value: any = null): void => {
-      const application = 'conf-control'
       const id = parseInt(memberID) || null
-      const callID = this.id
-      this.session.vertoBroadcast({ nodeId: this.nodeId, channel, data: { application, command, id, value, callID} })
+      this._confControl(channel, { command, id, value })
     }
 
     const _videoRequired = (): void => {

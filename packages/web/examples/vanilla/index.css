@@ -5,11 +5,12 @@ label {
 }
 
 input[type="text"] {
-  width: 200px;
+  width: 30%;
 }
 
 .row {
   position: relative;
+  overflow: auto;
 }
 
 .row .half-page {
@@ -28,4 +29,8 @@ video {
 
 .clear {
   clear: both;
+}
+
+.text-center {
+  text-align: center;
 }

@@ -1,23 +1,17 @@
 var client;
 var cur_call = null;
 
-var username = localStorage.getItem('verto.example.username');
-var password = localStorage.getItem('verto.example.password');
-var domain   = localStorage.getItem('verto.example.domain');
-var resource = localStorage.getItem('verto.example.resource');
-var host     = localStorage.getItem('verto.example.host');
-var client = localStorage.getItem('verto.example.client');
-var number   = localStorage.getItem('verto.example.number');
+var username = localStorage.getItem('verto.example.username') || '1008';
+var password = localStorage.getItem('verto.example.password') || '1234';
+var domain = localStorage.getItem('verto.example.domain') || window.location.hostname;
+var resource = localStorage.getItem('verto.example.resource') || 'test';
+var host = localStorage.getItem('verto.example.host') || window.location.host;
+var client = localStorage.getItem('verto.example.client') || 'sw';
+var number = localStorage.getItem('verto.example.number') || '9196';
+var audio = localStorage.getItem('verto.example.audio') || '1';
+var video = localStorage.getItem('verto.example.video') || '1';
 
 ready(function() {
-  if (!domain)   domain   = window.location.hostname;
-  if (!host)     host     = window.location.host;
-  if (!username) username = '1000';
-  if (!password) password = '1234';
-  if (!number)   number   = '9196';
-  if (!client)   client   = 'sw';
-  if (!resource) resource = 'test';
-
   document.getElementById('username').value = username;
   document.getElementById('password').value = password;
   document.getElementById('domain').value = domain;
@@ -25,6 +19,8 @@ ready(function() {
   document.getElementById('host').value = host;
   document.getElementById('number').value = number;
   document.getElementById('client_' + client).checked = true;
+  document.getElementById('audio').checked = audio === '1';
+  document.getElementById('video').checked = video === '1';
 });
 
 function disconnect() {
@@ -33,13 +29,13 @@ function disconnect() {
 }
 
 function connect() {
-  host     = document.getElementById('host').value;
-  domain   = document.getElementById('domain').value;
+  host = document.getElementById('host').value;
+  domain = document.getElementById('domain').value;
   resource = document.getElementById('resource').value;
   username = document.getElementById('username').value;
   password = document.getElementById('password').value;
-  client   = document.querySelector('input[name="client"]:checked').value;
-  login    = username + '@' + domain;
+  client = document.querySelector('input[name="client"]:checked').value;
+  login = username + '@' + domain;
 
   var klass = client === 'sw' ? Relay : Verto
 
@@ -53,12 +49,13 @@ function connect() {
     resource: resource,
   });
 
-  client.remoteElement = 'remoteVideo';
+  client.remoteElement = 'remoteVideo'
 
   client.on('signalwire.ready', function() {
     btnConnect.disabled = true
     btnDisconnect.disabled = false
     connectStatus.innerHTML = 'connected!'
+    callCommands.style.display = 'block'
 
     startCall.disabled = false
   });
@@ -72,6 +69,7 @@ function connect() {
     btnConnect.disabled = false
     btnDisconnect.disabled = true
     connectStatus.innerHTML = 'disconnected'
+    callCommands.style.display = 'none'
   });
 
   client.on('signalwire.error', function(error){
@@ -86,7 +84,7 @@ function connect() {
 }
 
 function handleNotification(notification) {
-  console.log("notification", notification.type, notification);
+  // console.log("notification", notification.type, notification);
   switch (notification.type) {
     case 'dialogUpdate':
       handleDialogChange(notification.dialog)
@@ -112,7 +110,7 @@ function handleNotification(notification) {
 function handleDialogChange(dialog) {
   // Update the UI when this dialog's state change:
 
-  console.log("dialog.state", dialog.state);
+  // console.log("dialog.state", dialog.state);
 
   cur_call = dialog;
 
@@ -125,6 +123,11 @@ function handleDialogChange(dialog) {
       break;
     case 'ringing':
       // Someone is calling you
+      if (confirm('Pick up the call?')) {
+        cur_call.answer()
+      } else {
+        cur_call.hangup()
+      }
       break;
     case 'active':
       // Dialog has become active
@@ -149,6 +152,7 @@ function handleDialogChange(dialog) {
       break;
     case 'destroy':
       // Dialog has been destroyed
+      cur_call = null;
       break;
   }
 }
@@ -208,8 +212,8 @@ function makeCall() {
 
     // Optional:
     // localStream: MediaStream, // Use this stream instead of retrieving a new one. Useful if you have a stream from a canvas.captureStream() or from a screen share extension.
-    audio: true, // Boolean or https://developer.mozilla.org/en-US/docs/Web/API/MediaTrackConstraints#Properties_of_audio_tracks
-    video: true, // Boolean or https://developer.mozilla.org/en-US/docs/Web/API/MediaTrackConstraints#Properties_of_video_tracks
+    audio: document.getElementById('audio').checked,
+    video: document.getElementById('video').checked,
     // iceServers: true || false || RTCIceServer[], // https://developer.mozilla.org/en-US/docs/Web/API/RTCIceServer
     // useStereo: true || false,
     // micId: '<deviceUUID>', // Microphone device ID
@@ -217,8 +221,6 @@ function makeCall() {
     userVariables: {
       // General user variables.. email/username
     },
-    // localElement: 'localVideo', // Video element ID to display the localStream
-    remoteElement: 'remoteVideo', // Video element ID to display the remoteStream
     onNotification: handleNotification
   }
 

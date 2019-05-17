@@ -56,8 +56,8 @@ class VertoHandler {
           video: params.sdp.indexOf('m=video') > 0,
           attach
         })
+        dialog.nodeId = this.nodeId
         if (attach) {
-          dialog.nodeId = this.nodeId
           dialog.setState(State.Recovering)
           dialog.answer()
           dialog.handleMessage(msg)

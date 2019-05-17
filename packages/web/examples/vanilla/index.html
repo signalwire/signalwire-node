@@ -15,63 +15,77 @@
 	<br/>
 	<br/>
 
-	<label for="username">Project:</label>
-	<input type="text" id='username' onchange="save_params(event)">
-	<br/>
-	<label for="password">Token:</label>
-	<input type="text" id='password' onchange="save_params(event)">
-	<br/>
-	<label for="resource">Resource:</label>
-	<input type="text" id='resource' onchange="save_params(event)">
+	<div class="row">
+		<div class="half-page">
+			<label for="username">Project:</label>
+			<input type="text" id='username' onchange="save_params(event)">
+			<br />
+			<label for="password">Token:</label>
+			<input type="text" id='password' onchange="save_params(event)">
+			<br />
+			<label for="resource">Resource:</label>
+			<input type="text" id='resource' onchange="save_params(event)">
+			<br />
+			<label for="domain">Domain:</label>
+			<input type="text" id='domain' onchange="save_params(event)">
+			<br />
+			<label for="host">Host:</label>
+			<input type="text" id='host' onchange="save_params(event)">
+			<br />
+			<label for="client">Client:</label>
+			<input type="radio" id="client_sw" name="client" value="sw" onchange="save_params(event)"> SignalWire
+			<input type="radio" id="client_verto" name="client" value="verto" onchange="save_params(event)"> Verto
+			<br />
+			<br />
+			<label for="client">&nbsp;</label>
+			<button id="btnConnect" onclick="connect()">Connect</button>
+			<button id="btnDisconnect" onclick="disconnect()" disabled="true">Disconnect</button>
+			<span id='connectStatus'></span>
+		</div>
+		<div id="callCommands" class="half-page" style="display:none;">
+			<label for="number">Number:</label>
+			<input type="text" id="number" value="9196" onchange="save_params(event)">
+			<br />
+			<label for="audio">Audio:</label>
+			<input type="checkbox" id="audio" value="1" onchange="save_params(event)">
+			<br />
+			<label for="video">Video:</label>
+			<input type="checkbox" id="video" value="1" onchange="save_params(event)">
+			<br />
+			<label for="client">&nbsp;</label>
+			<button id="startCall" onClick="makeCall()" disabled="true">Call</button>
+
+			<video id="testVideo" autoplay="true" playsinline controls></video>
+		</div>
+	</div>
 	<br />
-	<label for="domain">Domain:</label>
-	<input type="text" id='domain' onchange="save_params(event)">
-	<br/>
-	<label for="host">Host:</label>
-	<input type="text" id='host' onchange="save_params(event)">
-	<br/>
-	<label for="client">Client:</label>
-	<input type="radio" id="client_sw" name="client" value="sw" onchange="save_params(event)"> SignalWire
-	<input type="radio" id="client_verto" name="client" value="verto" onchange="save_params(event)"> Verto
-	<br/>
-	<br/>
-	<label for="client">&nbsp;</label>
-	<button id="btnConnect" onclick="connect()">Connect</button>
-	<button id="btnDisconnect" onclick="disconnect()" disabled="true">Disconnect</button>
-	<span id='connectStatus'></span>
-	<br/>
-	<br/>
 
-	<label for="number">Number:</label>
-	<input id="number" value="9196" onchange="save_params(event)">
-
-	<button id="startCall" onClick="makeCall()" disabled="true">Call</button>
-	<button id="hangupCall" onClick="hangup()" disabled="true">Hangup</button>
-	<button onClick="cur_call.microphone.mute()" >Mute</button>
-	<button onClick="cur_call.microphone.unmute()" >unMute</button>
-	<button onClick="cur_call.microphone.toggleMute()" >Toggle Mute</button>
-	<button onClick="cur_call.speaker.mute()" >Deaf</button>
-	<button onClick="cur_call.speaker.unmute()" >unDeaf</button>
-	<button onClick="cur_call.webcam.mute()" >VMute</button>
-	<button onClick="cur_call.webcam.unmute()" >unVMute</button>
-	<button onClick="cur_call.webcam.toggleMute()" >Toggle VMute</button>
-
-	<button class="dtmf" onClick="cur_call.dtmf('0')" >DTMF-0</button>
-
-	<br />
-	<br />
 	<!-- <div class="half-page">
 		<video id="localVideo" autoplay="true" style="display:none;"></video>
 	</div> -->
-	<div class="row">
-		<div class="half-page">
-			<video id="remoteVideo" autoplay="true" style="display:none;"></video>
-		</div>
-		<div id="confCommands" class="half-page" style="display:none;">
-			<button id="startScreenShare">Screen Share</button>
-			<ul id="participants"></ul>
-		</div>
+
+	<div id="confCommands" class="row text-center" style="display:none;">
+		<h4>Call Controls</h4>
+		<button id="hangupCall" onClick="hangup()" disabled="true">Hangup</button>
+		<button id="startScreenShare">Screen Share</button>
+		<button class="dtmf" onClick="cur_call.dtmf('0')">DTMF-0</button>
+		<br/>
+		<button onClick="cur_call.microphone.mute()">Mute</button>
+		<button onClick="cur_call.microphone.unmute()">unMute</button>
+		<button onClick="cur_call.microphone.toggleMute()">Toggle Mute</button>
+		<button onClick="cur_call.speaker.mute()">Deaf</button>
+		<button onClick="cur_call.speaker.unmute()">unDeaf</button>
+		<button onClick="cur_call.webcam.mute()">VMute</button>
+		<button onClick="cur_call.webcam.unmute()">unVMute</button>
+		<button onClick="cur_call.webcam.toggleMute()">Toggle VMute</button>
+		<br />
+		<ul id="participants"></ul>
 	</div>
+
+	<div class="row text-center">
+		<video id="remoteVideo" autoplay="true" playsinline style="display:none;"></video>
+	</div>
+
 
 	<div class="clear"></div>
 

@@ -77,11 +77,7 @@ export default class Peer {
         trigger(SwEvent.MediaError, error, this.options.id)
         return null
       })
-    const { localElement, mutateLocalStream = null, screenShare = false } = this.options
-    let { localStream } = this.options
-    if (mutateLocalStream && isFunction(mutateLocalStream)) {
-      localStream = mutateLocalStream(localStream)
-    }
+    const { localElement, localStream = null, screenShare = false } = this.options
     if (streamIsValid(localStream)) {
       if (this.instance.hasOwnProperty('addTrack')) {
         localStream.getTracks().forEach(t => this.instance.addTrack(t, localStream))

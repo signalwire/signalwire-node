@@ -134,9 +134,9 @@ export default abstract class BaseSession {
    */
   disconnect() {
     trigger(SwEvent.Disconnect, null, this.uuid, false)
+    this.purge()
     this._autoReconnect = false
     this._removeConnection()
-    this.purge()
     this._executeQueue = []
     this._detachListeners()
   }

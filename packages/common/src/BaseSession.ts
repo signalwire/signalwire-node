@@ -261,6 +261,7 @@ export default abstract class BaseSession {
     if (this.expired) {
       this._idle = true
       this._autoReconnect = false
+      this.expiresAt = 0
     }
     if (this._autoReconnect) {
       setTimeout(() => this.connect(), 1000)

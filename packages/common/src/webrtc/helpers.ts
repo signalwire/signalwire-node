@@ -48,7 +48,7 @@ const getDevices = async (): Promise<ICacheDevices> => {
   return cache
 }
 
-const resolutionList = [[160, 120], [320, 240], [640, 360], [640, 480], [800, 600], [1280, 720], [1600, 1200], [1920, 1080]]
+const resolutionList = [[320, 240], [640, 360], [640, 480], [1280, 720], [1920, 1080]]
 const getResolutions = async (): Promise<ICacheResolution[]> => {
   const allDevices = await WebRTC.enumerateDevices().catch(error => [])
   const videoDevices = allDevices.filter(d => d.kind === 'videoinput')

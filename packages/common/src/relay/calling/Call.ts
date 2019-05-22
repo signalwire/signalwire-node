@@ -6,6 +6,7 @@ import * as Actions from './Actions'
 import { reduceConnectParams } from '../helpers'
 import Calling from './Calling'
 import { isFunction } from '../../util/helpers'
+import Blocker from './Blocker'
 
 export default class Call implements ICall {
   public id: string
@@ -18,6 +19,7 @@ export default class Call implements ICall {
   private _connectState: number = 0
   private _cbQueue: { [state: string]: Function } = {}
   private _controls: any[] = []
+  private _blockers: Blocker[] = []
 
   constructor(public relayInstance: Calling, protected options: ICallOptions) {
     const { call_id, node_id } = options
@@ -163,6 +165,15 @@ export default class Call implements ICall {
   }
 
   /**
+   * Play an audio file on the call and wait for the media to finish. The call must be 'ready'.
+   * @param url - URL of the audio file to play.
+   * @return Promise
+   */
+  playAudioSync(url: string) {
+    return this._playSync([{ type: 'audio', params: { url } }])
+  }
+
+  /**
    * Play seconds of silence to the call. The call must be 'ready'.
    * @param duration - Num. of seconds of silence to play.
    * @return Promise
@@ -170,6 +181,15 @@ export default class Call implements ICall {
   async playSilence(duration: number) {
     const { control_id } = await this._play([{ type: 'silence', params: { duration } }])
     return new Actions.PlaySilenceAction(this, control_id)
+  }
+
+  /**
+   * Play seconds of silence on the call and wait for the media to finish. The call must be 'ready'.
+   * @param duration - Num. of seconds of silence to play.
+   * @return Promise
+   */
+  playSilenceSync(duration: number) {
+    return this._playSync([{ type: 'silence', params: { duration } }])
   }
 
   /**
@@ -183,6 +203,15 @@ export default class Call implements ICall {
   }
 
   /**
+   * Play text-to-speech on the call and wait for the media to finish. The call must be 'ready'.
+   * @param options - Params object for the TTS { text, language, gender }
+   * @return Promise
+   */
+  playTTSSync(options: ICallingPlay['params']) {
+    return this._playSync([{ type: 'tts', params: options }])
+  }
+
+  /**
    * Play multiple medias in the call in a serial way. The call must be 'ready'.
    * @param play - One or more media to play { type, params: { } }
    * @return Promise
@@ -190,6 +219,15 @@ export default class Call implements ICall {
   async playMedia(...play: ICallingPlay[]) {
     const { control_id } = await this._play(play)
     return new Actions.PlayMediaAction(this, control_id)
+  }
+
+  /**
+   * Play multiple medias in the call in a serial-sync way. The call must be 'ready'.
+   * @param play - One or more media to play { type, params: { } }
+   * @return Promise
+   */
+  playMediaSync(...play: ICallingPlay[]) {
+    return this._playSync(play)
   }
 
   /**
@@ -204,6 +242,16 @@ export default class Call implements ICall {
   }
 
   /**
+   * Play an audio file and collect digits/speech. The call must be 'ready'.
+   * @param collect - Specify collect options
+   * @param url - URL of the audio file to play.
+   * @return Promise
+   */
+  playAudioAndCollectSync(collect: ICallingCollect, url: string) {
+    return this._playAndCollectSync(collect, [{ type: 'audio', params: { url } }])
+  }
+
+  /**
    * Play silence to the call and collect digits/speech. The call must be 'ready'.
    * @param collect - Specify collect options
    * @param duration - Num. of seconds of silence to play.
@@ -212,6 +260,16 @@ export default class Call implements ICall {
   async playSilenceAndCollect(collect: ICallingCollect, duration: number) {
     const { control_id } = await this._playAndCollect(collect, [{ type: 'silence', params: { duration } }])
     return new Actions.PlaySilenceAndCollectAction(this, control_id)
+  }
+
+  /**
+   * Play silence to the call and collect digits/speech. The call must be 'ready'.
+   * @param collect - Specify collect options
+   * @param duration - Num. of seconds of silence to play.
+   * @return Promise
+   */
+  playSilenceAndCollectSync(collect: ICallingCollect, duration: number) {
+    return this._playAndCollectSync(collect, [{ type: 'silence', params: { duration } }])
   }
 
   /**
@@ -226,6 +284,16 @@ export default class Call implements ICall {
   }
 
   /**
+   * Play text-to-speech and collect digits/speech. The call must be 'ready'.
+   * @param collect - Specify collect options
+   * @param options - Params object for the TTS { text, language, gender }
+   * @return Promise
+   */
+  playTTSAndCollectSync(collect: ICallingCollect, options: ICallingPlay['params']) {
+    return this._playAndCollectSync(collect, [{ type: 'tts', params: options }])
+  }
+
+  /**
    * Play multiple medias in the call and start collecting digits/speech. The call must be 'ready'.
    * @param collect - Specify collect options
    * @param play - One or more media to play { type, params: { } }
@@ -234,6 +302,16 @@ export default class Call implements ICall {
   async playMediaAndCollect(collect: ICallingCollect, ...play: ICallingPlay[]) {
     const { control_id } = await this._playAndCollect(collect, play)
     return new Actions.PlayMediaAndCollectAction(this, control_id)
+  }
+
+  /**
+   * Play multiple medias in the call and start collecting digits/speech. The call must be 'ready'.
+   * @param collect - Specify collect options
+   * @param play - One or more media to play { type, params: { } }
+   * @return Promise
+   */
+  playMediaAndCollectSync(collect: ICallingCollect, ...play: ICallingPlay[]) {
+    return this._playAndCollect(collect, play)
   }
 
   get prevState() {
@@ -379,6 +457,11 @@ export default class Call implements ICall {
     } else {
       this._controls.push(params)
     }
+
+    const blocker = this._blockers.find(b => b.controlId === control_id && b.eventType === event_type)
+    if (blocker) {
+      blocker.resolver(params)
+    }
   }
 
   /**
@@ -403,6 +486,26 @@ export default class Call implements ICall {
   }
 
   /**
+   * Play an audio file to the call. The call must be 'ready'.
+   * @param url - URL of the audio file to play.
+   * @return Promise
+   */
+  async _playSync(play: ICallingPlay[]) {
+    const { control_id } = await this._play(play)
+    const audioBlocker = new Blocker(control_id, CallNotification.Play, ({ state }) => {
+      if (state === 'finished') {
+        audioBlocker.resolve()
+      } else if (state === 'error') {
+        audioBlocker.reject()
+      }
+    })
+    this._blockers.push(audioBlocker)
+    await audioBlocker.promise
+
+    return this
+  }
+
+  /**
    * Execute a 'call.play_and_collect'
    * @param collect - Object with collect preferences
    * @param play - One or more media to play { type: string, params: { } }
@@ -423,5 +526,21 @@ export default class Call implements ICall {
     })
 
     return this._execute(msg)
+  }
+
+  /**
+   * Execute a 'call.play_and_collect'
+   * @param collect - Object with collect preferences
+   * @param play - One or more media to play { type: string, params: { } }
+   * @return Promise
+   */
+  private async _playAndCollectSync(collect: ICallingCollect, play: ICallingPlay[]) {
+    const { control_id } = await this._playAndCollect(collect, play)
+    const audioBlocker = new Blocker(control_id, CallNotification.Collect, ({ result }) => {
+      const method = result.type === 'error' ? 'reject' : 'resolve'
+      audioBlocker[method](result)
+    })
+    this._blockers.push(audioBlocker)
+    return audioBlocker.promise
   }
 }

@@ -31,6 +31,8 @@ export default class Dialog {
   private gotEarly: boolean = false
   private _lastSerno: number = 0
   private _targetNodeId: string = null
+  private _iceTimeout = null
+  private _iceDone: boolean = false
 
   constructor(private session: BrowserSession, opts?: DialogOptions) {
     const { iceServers, localElement, remoteElement, mediaConstraints: { audio, video } } = session
@@ -620,10 +622,16 @@ export default class Dialog {
       return
     }
     Object.defineProperty(this.peer, 'onSdpReadyTwice', { value: this._onIceSdp.bind(this) })
+    this._iceDone = false
     this.peer.startNegotiation()
   }
 
   private _onIceSdp(data: RTCSessionDescription) {
+    if (this._iceTimeout) {
+      clearTimeout(this._iceTimeout)
+    }
+    this._iceTimeout = null
+    this._iceDone = true
     const { sdp, type } = data
     if (sdp.indexOf('candidate') === -1) {
       this._requestAnotherLocalDescription()
@@ -658,8 +666,14 @@ export default class Dialog {
 
   private _registerPeerEvents() {
     const { instance } = this.peer
-
+    this._iceDone = false
     instance.onicecandidate = event => {
+      if (this._iceDone) {
+        return
+      }
+      if (this._iceTimeout === null) {
+        this._iceTimeout = setTimeout(() => this._onIceSdp(instance.localDescription), 1000)
+      }
       if (event.candidate) {
         // logger.warn(' - onIceCandidate:', event.candidate)
       } else {

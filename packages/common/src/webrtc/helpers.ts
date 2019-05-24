@@ -6,7 +6,7 @@ import { DialogOptions, ICacheDevices, ICacheResolution } from '../util/interfac
 import { stopStream } from '../util/webrtc'
 
 const getUserMedia = async (constraints: MediaStreamConstraints): Promise<MediaStream | null> => {
-  logger.debug('RTCService.getUserMedia', constraints)
+  logger.info('RTCService.getUserMedia', constraints)
   const { audio, video } = constraints
   if (!audio && !video) {
     return null

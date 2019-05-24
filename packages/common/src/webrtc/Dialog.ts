@@ -233,7 +233,7 @@ export default class Dialog {
     this._state = state
     this.state = State[this._state].toLowerCase()
     this.prevState = State[this._prevState].toLowerCase()
-    logger.debug('Dialog %s state change from %s to %s', this.id, this.prevState, this.state)
+    logger.info(`Dialog ${this.id} state change from ${this.prevState} to ${this.state}`)
 
     this._dispatchNotification({ type: NOTIFICATION_TYPE.dialogUpdate, dialog: this })
 
@@ -591,7 +591,7 @@ export default class Dialog {
   }
 
   private _handleChangeHoldStateError(error) {
-    logger.error('Failed to %s dialog %s', error.action, this.id, error)
+    logger.error(`Failed to ${error.action} dialog ${this.id}`)
     return false
   }
 
@@ -675,7 +675,7 @@ export default class Dialog {
         this._iceTimeout = setTimeout(() => this._onIceSdp(instance.localDescription), 1000)
       }
       if (event.candidate) {
-        // logger.warn(' - onIceCandidate:', event.candidate)
+        logger.info('IceCandidate:', event.candidate)
       } else {
         this._onIceSdp(instance.localDescription)
       }

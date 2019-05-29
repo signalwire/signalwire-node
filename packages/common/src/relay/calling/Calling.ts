@@ -79,15 +79,6 @@ export default class Calling extends Relay {
     return this._calls.find(call => call.tag === tag)
   }
 
-  protected _disconnect() {
-    this._calls.forEach(call => {
-      if (call.ready) {
-        call.hangup().catch(logger.warn)
-      }
-    })
-    super._disconnect()
-  }
-
   /**
    * Handle calling.call.state notification params
    * @param params - Inner params of calling.call.state notification

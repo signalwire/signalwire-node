@@ -1,8 +1,7 @@
 import BaseSession from '../BaseSession'
 import { Execute } from '../messages/Blade'
 import { Setup } from '../services/Setup'
-import { registerOnce, deRegisterAll } from '../services/Handler'
-import { SwEvent } from '../util/constants'
+import { deRegisterAll } from '../services/Handler'
 
 abstract class Relay {
   [x: string]: any
@@ -26,20 +25,18 @@ abstract class Relay {
         console.error(error)
       }
     })
+  }
 
-    registerOnce(SwEvent.Disconnect, this._disconnect.bind(this), this.session.uuid)
+  destroy() {
+    if (this.protocol) {
+      deRegisterAll(this.protocol)
+    }
   }
 
   protected async configure() {
     const { resource, domain } = this.session.options
     const msg = new Execute({ protocol: this.protocol, method: 'configure', params: { resource, domain } })
     await this.session.execute(msg)
-  }
-
-  protected _disconnect() {
-    if (this.protocol) {
-      deRegisterAll(this.protocol)
-    }
   }
 }
 

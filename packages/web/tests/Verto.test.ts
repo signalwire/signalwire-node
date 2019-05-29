@@ -77,15 +77,6 @@ describe('Verto', () => {
     })
   })
 
-  describe('.disconnect()', () => {
-    it('should close the connection', () => {
-      instance.disconnect()
-      expect(Connection.mockClose).toHaveBeenCalled()
-      expect(instance.dialogs).toMatchObject({})
-      expect(instance.subscriptions).toMatchObject({})
-    })
-  })
-
   describe('.speedTest()', () => {
     // TODO:
   })

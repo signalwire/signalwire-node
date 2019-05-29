@@ -4,20 +4,22 @@ const Connection = require('../../src/services/Connection')
 
 export default (instance: any) => {
   describe('Inherit BaseClass', () => {
-    afterEach(() => {
-      instance.disconnect()
+
+    beforeEach(async done => {
+      await instance.connect()
       instance._idle = false
+      instance._executeQueue = []
+      instance.subscriptions = {}
       Connection.mockSend.mockClear()
       Connection.mockSendRawText.mockClear()
+      done()
     })
 
     describe('public methods', () => {
-      // TODO: implement all these specs
       describe('execute', () => {
         const payload = { request: { fake: 'data' } }
 
         it('should send the message through the socket if the connection is live', async done => {
-          await instance.connect()
           const response = await instance.execute(payload)
           expect(Connection.mockSend).toHaveBeenLastCalledWith(payload)
           expect(response).toEqual('fake')
@@ -25,6 +27,7 @@ export default (instance: any) => {
         })
 
         it('should queue the message if the connection went down', async done => {
+          await instance.disconnect()
           instance.execute(payload)
             .then(response => {
               expect(instance.connected).toEqual(true)
@@ -34,6 +37,7 @@ export default (instance: any) => {
           expect(Connection.mockSend).not.toHaveBeenCalled()
           expect(instance._executeQueue).toHaveLength(1)
           await instance.connect()
+          instance._idle = false
           instance._emptyExecuteQueues()
         })
 
@@ -75,7 +79,16 @@ export default (instance: any) => {
       describe('subscribe', () => { })
       describe('unsubscribe', () => { })
       describe('broadcast', () => { })
-      describe('disconnect', () => { })
+
+      describe('.disconnect()', () => {
+        it('should close the connection', async done => {
+          await instance.disconnect()
+          expect(Connection.mockClose).toHaveBeenCalled()
+          expect(instance.dialogs || {}).toMatchObject({})
+          expect(instance.subscriptions).toMatchObject({})
+          done()
+        })
+      })
     })
 
     describe('protected methods', () => {

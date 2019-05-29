@@ -79,7 +79,16 @@ export default (instance: any) => {
       describe('subscribe', () => { })
       describe('unsubscribe', () => { })
       describe('broadcast', () => { })
-      describe('disconnect', () => { })
+
+      describe('.disconnect()', () => {
+        it('should close the connection', async done => {
+          await instance.disconnect()
+          expect(Connection.mockClose).toHaveBeenCalled()
+          expect(instance.dialogs).toMatchObject({})
+          expect(instance.subscriptions).toMatchObject({})
+          done()
+        })
+      })
     })
 
     describe('protected methods', () => {

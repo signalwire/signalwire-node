@@ -133,8 +133,6 @@ export default abstract class BaseSession {
    * @return void
    */
   async disconnect() {
-    logger.warn('disconnect')
-    trigger(SwEvent.Disconnect, null, this.uuid, false)
     this._destroyRelayInstances()
     await this._unsubscribeAll()
     this.subscriptions = {}

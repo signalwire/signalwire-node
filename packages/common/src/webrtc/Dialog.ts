@@ -33,6 +33,7 @@ export default class Dialog {
   private _targetNodeId: string = null
   private _iceTimeout = null
   private _iceDone: boolean = false
+  private _statsInterval: any = null
 
   constructor(private session: BrowserSession, opts?: DialogOptions) {
     const { iceServers, localElement, remoteElement, mediaConstraints: { audio, video } } = session
@@ -761,10 +762,35 @@ export default class Dialog {
       detachMediaStream(remoteElement)
       detachMediaStream(localElement)
     }
-
+    this._stats(false)
     deRegister(SwEvent.MediaError, null, this.id)
     this.peer = null
     this.session.dialogs[this.id] = null
     delete this.session.dialogs[this.id]
+  }
+
+  private _stats(what: boolean = true) {
+    if (what === false) {
+      return clearInterval(this._statsInterval)
+    }
+    logger.setLevel(2)
+    this._statsInterval = window.setInterval(async () => {
+      const stats = await this.peer.instance.getStats(null)
+      let statsOutput: string = ''
+      const invalidReport = ['certificate', 'codec', 'peer-connection', 'stream', 'local-candidate', 'remote-candidate']
+      const invalidStat = ['id', 'type', 'timestamp']
+      stats.forEach(report => {
+        if (invalidReport.includes(report.type)) {
+          return
+        }
+        statsOutput += `\n${report.type}\n`
+        Object.keys(report).forEach(statName => {
+          if (!invalidStat.includes(statName)) {
+            statsOutput += `\t${statName}: ${report[statName]}\n`
+          }
+        })
+      })
+      logger.info(statsOutput)
+    }, 2000)
   }
 }

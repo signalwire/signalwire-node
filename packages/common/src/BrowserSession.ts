@@ -53,14 +53,13 @@ export default abstract class BrowserSession extends BaseSession {
   }
 
   /**
-   * Purge all active dialogs
-   * @return void
+   * Disconnect all active dialogs
    */
-  purge() {
+  async disconnect() {
     Object.keys(this.dialogs).forEach(k => this.dialogs[k].setState(State.Purge))
     this.dialogs = {}
 
-    super.purge()
+    await super.disconnect()
   }
 
   speedTest(bytes: number) {

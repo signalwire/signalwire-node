@@ -2,12 +2,11 @@ import BrowserSession from '../../common/src/BrowserSession'
 import { SubscribeParams, BroadcastParams, DialogOptions } from '../../common/src/util/interfaces'
 import { Login } from '../../common/src/messages/Verto'
 import Dialog from '../../common/src/webrtc/Dialog'
-import { SwEvent } from '../../common/src/util/constants'
+import { SwEvent, SESSION_ID } from '../../common/src/util/constants'
 import { trigger } from '../../common/src/services/Handler'
 import * as Storage from '../../common/src/util/storage/'
 import VertoHandler from '../../common/src/webrtc/VertoHandler'
 
-const SESSID = 'vertoSessId'
 export const VERTO_PROTOCOL = 'verto-protocol'
 export default class Verto extends BrowserSession {
   validateOptions() {
@@ -38,13 +37,12 @@ export default class Verto extends BrowserSession {
   }
 
   protected async _onSocketOpen() {
-    const sessid = await Storage.getItem(SESSID)
     const { login, password, passwd, userVariables } = this.options
-    const msg = new Login(login, (password || passwd), sessid, userVariables)
+    const msg = new Login(login, (password || passwd), this.sessionid, userVariables)
     const response = await this.execute(msg).catch(this._handleLoginError)
     if (response) {
       this.sessionid = response.sessid
-      Storage.setItem(SESSID, this.sessionid)
+      Storage.setItem(SESSION_ID, this.sessionid)
       trigger(SwEvent.Ready, this, this.uuid)
     }
   }

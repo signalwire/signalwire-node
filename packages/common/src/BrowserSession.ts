@@ -3,11 +3,12 @@ import Connection from './services/Connection'
 import Dialog from './webrtc/Dialog'
 import { ICacheDevices, IAudioSettings, IVideoSettings, BroadcastParams, SubscribeParams, ICacheResolution } from './util/interfaces'
 import { trigger, registerOnce } from './services/Handler'
-import { SwEvent, NOTIFICATION_TYPE } from './util/constants'
+import { SwEvent, NOTIFICATION_TYPE, SESSION_ID } from './util/constants'
 import { State } from './util/constants/dialog'
 import { getDevices, getResolutions, checkPermissions, removeUnsupportedConstraints, checkDeviceIdConstraints, destructSubscribeResponse } from './webrtc/helpers'
 import { findElementByType } from './util/helpers'
 import { Unsubscribe, Subscribe, Broadcast } from './messages/Verto'
+import * as Storage from './util/storage/'
 
 export default abstract class BrowserSession extends BaseSession {
   public dialogs: { [dialogId: string]: Dialog } = {}
@@ -40,7 +41,7 @@ export default abstract class BrowserSession extends BaseSession {
       trigger(SwEvent.Notification, { type: NOTIFICATION_TYPE.userMediaError, error: 'Permission denied' }, this.uuid)
     }
     await this.refreshDevices()
-
+    this.sessionid = await Storage.getItem(SESSION_ID)
     this.connection = new Connection(this)
   }
 

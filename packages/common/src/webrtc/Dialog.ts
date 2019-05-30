@@ -229,6 +229,64 @@ export default class Dialog {
     }
   }
 
+  get volume_in() {
+    return {
+      up: () => {
+        this._confControl(this.memberChannel, { action: 'volume_in', param: "up"})
+      },
+      down: () => {
+        this._confControl(this.memberChannel, { action: 'volume_in', param: "down"})
+      }
+    }
+  }
+
+  get volume_out() {
+    return {
+      up: () => {
+        this._confControl(this.memberChannel, { action: 'volume_out', param: "up"})
+      },
+      down: () => {
+        this._confControl(this.memberChannel, { action: 'volume_out', param: "down"})
+      }
+    }
+  }
+
+   get canvas() {
+    return {
+      canvasInfo: () => {
+        this._confControl(this.memberChannel, { action: 'canvasInfo'})
+      },
+      listVideoLayouts: () => {
+        this._confControl(this.memberChannel, { action: 'list-videoLayouts'})
+      }
+    }
+  }
+
+  get layer() {
+    return {
+      resetLayer: () => {
+        this._confControl(this.memberChannel, { action: 'reset-layer'})
+      },
+      layerPanx: () => {
+        this._confControl(this.memberChannel, { action: 'layer-pan-x', metric:1, absolute:0})
+      },
+      layerPany: () => {
+        this._confControl(this.memberChannel, { action: 'layer-pan-y', metric:2, absolute:1})
+      },
+      zoomLayer: () => {
+        this._confControl(this.memberChannel, { action: 'zoom-layer', dimensions:{'w': 1,'h': 2, 'x': 2, 'y' :1}})
+      }
+    }
+  }
+
+  vidWatchingCanvas(canvas_id: string) {
+    this._confControl(this.memberChannel, { action: 'vid-watching-canvas', param:canvas_id})
+  }
+
+  vidBanner(text: string) {
+    this._confControl(this.memberChannel, { action: 'vid-banner', param:text})
+  }
+
   setState(state: State) {
     this._prevState = this._state
     this._state = state

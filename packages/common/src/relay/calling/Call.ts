@@ -492,17 +492,15 @@ export default class Call implements ICall {
    */
   async _playSync(play: ICallingPlay[]) {
     const { control_id } = await this._play(play)
-    const audioBlocker = new Blocker(control_id, CallNotification.Play, ({ state }) => {
+    const blocker = new Blocker(control_id, CallNotification.Play, ({ state }) => {
       if (state === 'finished') {
-        audioBlocker.resolve()
+        blocker.resolve(this)
       } else if (state === 'error') {
-        audioBlocker.reject()
+        blocker.reject()
       }
     })
-    this._blockers.push(audioBlocker)
-    await audioBlocker.promise
-
-    return this
+    this._blockers.push(blocker)
+    return blocker.promise
   }
 
   /**
@@ -536,11 +534,11 @@ export default class Call implements ICall {
    */
   private async _playAndCollectSync(collect: ICallingCollect, play: ICallingPlay[]) {
     const { control_id } = await this._playAndCollect(collect, play)
-    const audioBlocker = new Blocker(control_id, CallNotification.Collect, ({ result }) => {
+    const blocker = new Blocker(control_id, CallNotification.Collect, ({ result }) => {
       const method = result.type === 'error' ? 'reject' : 'resolve'
-      audioBlocker[method](result)
+      blocker[method](result)
     })
-    this._blockers.push(audioBlocker)
-    return audioBlocker.promise
+    this._blockers.push(blocker)
+    return blocker.promise
   }
 }

@@ -135,7 +135,7 @@ describe('Verto', () => {
       const response = instance.broadcast({ channel: cName, data: { text: 'msg' } })
       expect(response).toBeUndefined()
       const { request } = Connection.mockSend.mock.calls[0][0]
-      expect(request.params).toMatchObject({ sessid: '', eventChannel: cName, data: { text: 'msg' } })
+      expect(request.params).toMatchObject({ sessid: null, eventChannel: cName, data: { text: 'msg' } })
     })
 
     it('should thrown an error with invalid params', () => {

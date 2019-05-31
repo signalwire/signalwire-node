@@ -6,6 +6,7 @@ export enum Netcast {
 export const STORAGE_PREFIX = '@signalwire:'
 export const ADD = 'add'
 export const REMOVE = 'remove'
+export const SESSION_ID = 'sessId'
 
 export enum SwEvent {
   // Socket Events

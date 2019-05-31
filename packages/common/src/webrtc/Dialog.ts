@@ -232,10 +232,10 @@ export default class Dialog {
   get volume_in() {
     return {
       up: () => {
-        this._confControl(this.memberChannel, { action: 'volume_in', param: "up"})
+        this._confControl(this.memberChannel, { action: 'volume_in', param: 'up' })
       },
       down: () => {
-        this._confControl(this.memberChannel, { action: 'volume_in', param: "down"})
+        this._confControl(this.memberChannel, { action: 'volume_in', param: 'down' })
       }
     }
   }
@@ -243,15 +243,15 @@ export default class Dialog {
   get volume_out() {
     return {
       up: () => {
-        this._confControl(this.memberChannel, { action: 'volume_out', param: "up"})
+        this._confControl(this.memberChannel, { action: 'volume_out', param: 'up'})
       },
       down: () => {
-        this._confControl(this.memberChannel, { action: 'volume_out', param: "down"})
+        this._confControl(this.memberChannel, { action: 'volume_out', param: 'down' })
       }
     }
   }
 
-   get canvas() {
+  get canvas() {
     return {
       canvasInfo: () => {
         this._confControl(this.memberChannel, { action: 'canvasInfo'})
@@ -265,26 +265,26 @@ export default class Dialog {
   get layer() {
     return {
       resetLayer: () => {
-        this._confControl(this.memberChannel, { action: 'reset-layer'})
+        this._confControl(this.memberChannel, { action: 'reset-layer' })
       },
       layerPanx: () => {
-        this._confControl(this.memberChannel, { action: 'layer-pan-x', metric:1, absolute:0})
+        this._confControl(this.memberChannel, { action: 'layer-pan-x', metric: 1, absolute: 0 })
       },
       layerPany: () => {
-        this._confControl(this.memberChannel, { action: 'layer-pan-y', metric:2, absolute:1})
+        this._confControl(this.memberChannel, { action: 'layer-pan-y', metric: 2, absolute: 1 })
       },
       zoomLayer: () => {
-        this._confControl(this.memberChannel, { action: 'zoom-layer', dimensions:{'w': 1,'h': 2, 'x': 2, 'y' :1}})
+        this._confControl(this.memberChannel, { action: 'zoom-layer', dimensions: { 'w': 1, 'h': 2, 'x': 2, 'y': 1 }})
       }
     }
   }
 
   vidWatchingCanvas(canvas_id: string) {
-    this._confControl(this.memberChannel, { action: 'vid-watching-canvas', param:canvas_id})
+    this._confControl(this.memberChannel, { action: 'vid-watching-canvas', param: canvas_id })
   }
 
   vidBanner(text: string) {
-    this._confControl(this.memberChannel, { action: 'vid-banner', param:text})
+    this._confControl(this.memberChannel, { action: 'vid-banner', param: text })
   }
 
   setState(state: State) {

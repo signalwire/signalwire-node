@@ -448,7 +448,7 @@ export default class Call implements ICall {
 
   private _addControlParams(params: any) {
     const { control_id, event_type } = params
-    if (!control_id || !event_type) {
+    if (!event_type) {
       return
     }
     const index = this._controls.findIndex(t => t.control_id === control_id)
@@ -457,11 +457,12 @@ export default class Call implements ICall {
     } else {
       this._controls.push(params)
     }
-
-    const blocker = this._blockers.find(b => b.controlId === control_id && b.eventType === event_type)
-    if (blocker) {
-      blocker.resolver(params)
-    }
+    const checkId = control_id ? control_id : this.id
+    this._blockers.forEach(b => {
+      if (b.controlId === checkId && b.eventType === event_type) {
+        b.resolver(params)
+      }
+    })
   }
 
   /**

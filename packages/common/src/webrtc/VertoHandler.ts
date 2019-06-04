@@ -26,7 +26,7 @@ class VertoHandler {
     const { callID: dialogId, eventChannel, eventType } = params
     const attach = method === VertoMethod.Attach
     if (eventType === 'channelPvtData') {
-      return this._handlePvtEvent(params.pvtData, dialogId)
+      return this._handlePvtEvent(params.pvtData)
     }
 
     if (dialogId && session.dialogs.hasOwnProperty(dialogId)) {
@@ -111,10 +111,10 @@ class VertoHandler {
     }
   }
 
-  private async _handlePvtEvent(pvtData: any, dialogId: string = null) {
+  private async _handlePvtEvent(pvtData: any) {
     const { session } = this
     const protocol = session.webRtcProtocol
-    const { action, laChannel, laName, chatChannel, infoChannel, modChannel, conferenceMemberID, role } = pvtData
+    const { action, laChannel, laName, chatChannel, infoChannel, modChannel, conferenceMemberID, role, callID: dialogId } = pvtData
     switch (action) {
       case 'conference-liveArray-join': {
         const _liveArrayBootstrap = () => {

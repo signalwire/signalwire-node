@@ -26,7 +26,7 @@ class VertoHandler {
     const { callID: dialogId, eventChannel, eventType } = params
     const attach = method === VertoMethod.Attach
     if (eventType === 'channelPvtData') {
-      return this._handlePvtEvent(params.pvtData, dialogId)
+      return this._handlePvtEvent(params.pvtData, params.pvtData.callID)
     }
 
     if (dialogId && session.dialogs.hasOwnProperty(dialogId)) {

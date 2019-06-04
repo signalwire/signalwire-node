@@ -106,13 +106,13 @@ export default class Calling extends Relay {
    * @return void
    */
   private _onConnect(params: any): void {
-    const { call_id, connect_state, peer } = params
+    const { call_id, peer } = params
     const call = this.getCallById(call_id)
     if (call) {
       if (peer) {
         call.setOptions({ peer })
       }
-      call._connectStateChange(connect_state)
+      call._connectStateChange(params)
     }
   }
 

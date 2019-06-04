@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid'
 import { Execute } from '../../messages/Blade'
 import { CallState, DisconnectReason, CallConnectState, DEFAULT_CALL_TIMEOUT, CallNotification } from '../../util/constants/relay'
-import { ICall, ICallOptions, ICallDevice, IMakeCallParams, ICallingPlay, ICallingCollect } from '../../util/interfaces'
+import { ICall, ICallOptions, ICallDevice, IMakeCallParams, ICallingPlay, ICallingCollect, DeepArray } from '../../util/interfaces'
 import * as Actions from './Actions'
 import { reduceConnectParams } from '../helpers'
 import Calling from './Calling'
@@ -112,7 +112,7 @@ export default class Call implements ICall {
    * @param peers - One or more peers to connect { type, from, to, timeout }
    * @return Promise
    */
-  async connect(...peers: IMakeCallParams[]) {
+  async connect(...peers: DeepArray<IMakeCallParams>) {
     this._callIdRequired()
     const devices = reduceConnectParams(peers, this.device)
     if (!devices.length) {
@@ -129,6 +129,27 @@ export default class Call implements ICall {
     })
 
     return this._execute(msg)
+  }
+
+  /**
+   * Connect the call with a new call and wait the result of connect. The current call must be 'ready'
+   * @param peers - One or more peers to connect { type, from, to, timeout }
+   * @return Promise
+   */
+  async connectSync(...peers: DeepArray<IMakeCallParams>) {
+    this._callIdRequired()
+    const blocker = new Blocker(this.id, CallNotification.Connect, (params: any) => {
+      const { connect_state } = params
+      if (connect_state === 'connected') {
+        blocker.resolve(this)
+      } else if (connect_state === 'failed') {
+        blocker.resolve(params)
+      }
+    })
+    this._blockers.push(blocker)
+
+    await this.connect(...peers)
+    return blocker.promise
   }
 
   /**
@@ -392,15 +413,16 @@ export default class Call implements ICall {
     return this
   }
 
-  _connectStateChange(newState: string) {
+  _connectStateChange(params: { connect_state: string }) {
+    const { connect_state } = params
     this._prevConnectState = this._connectState
-    this._connectState = CallConnectState[newState]
+    this._connectState = CallConnectState[connect_state]
+    this._addControlParams(params)
     this._dispatchCallback('connect.stateChange')
-    if (!this._dispatchCallback(`connect.${newState}`)) {
+    if (!this._dispatchCallback(`connect.${connect_state}`)) {
       // Backward compat: connect state not scoped with 'connect.'
-      this._dispatchCallback(newState)
+      this._dispatchCallback(connect_state)
     }
-    return this
   }
 
   _recordStateChange(params: any) {

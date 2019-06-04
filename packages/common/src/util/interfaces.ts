@@ -215,3 +215,5 @@ export interface ICallingCollect {
     hints?: string[]
   }
 }
+
+export interface DeepArray<T> extends Array<T | DeepArray<T>> { }

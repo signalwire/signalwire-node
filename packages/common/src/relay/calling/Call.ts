@@ -470,7 +470,7 @@ export default class Call implements ICall {
    * @param play - One or more media to play { type: string, params: { } }
    * @return Promise
    */
-  private async _play(play: ICallingPlay[]) {
+  private async _play(play: ICallingPlay[], controlId?: string) {
     this._callIdRequired()
     const msg = new Execute({
       protocol: this.relayInstance.protocol,
@@ -478,7 +478,7 @@ export default class Call implements ICall {
       params: {
         node_id: this.nodeId,
         call_id: this.id,
-        control_id: uuidv4(),
+        control_id: controlId || uuidv4(),
         play
       }
     })
@@ -492,7 +492,7 @@ export default class Call implements ICall {
    * @return Promise
    */
   async _playSync(play: ICallingPlay[]) {
-    const { control_id } = await this._play(play)
+    const control_id = uuidv4()
     const blocker = new Blocker(control_id, CallNotification.Play, ({ state }) => {
       if (state === 'finished') {
         blocker.resolve(this)
@@ -501,6 +501,8 @@ export default class Call implements ICall {
       }
     })
     this._blockers.push(blocker)
+    await this._play(play, control_id)
+
     return blocker.promise
   }
 
@@ -510,7 +512,7 @@ export default class Call implements ICall {
    * @param play - One or more media to play { type: string, params: { } }
    * @return Promise
    */
-  private async _playAndCollect(collect: ICallingCollect, play: ICallingPlay[]) {
+  private async _playAndCollect(collect: ICallingCollect, play: ICallingPlay[], controlId?: string) {
     this._callIdRequired()
     const msg = new Execute({
       protocol: this.relayInstance.protocol,
@@ -518,7 +520,7 @@ export default class Call implements ICall {
       params: {
         node_id: this.nodeId,
         call_id: this.id,
-        control_id: uuidv4(),
+        control_id: controlId || uuidv4(),
         play,
         collect
       }
@@ -534,12 +536,14 @@ export default class Call implements ICall {
    * @return Promise
    */
   private async _playAndCollectSync(collect: ICallingCollect, play: ICallingPlay[]) {
-    const { control_id } = await this._playAndCollect(collect, play)
+    const control_id = uuidv4()
     const blocker = new Blocker(control_id, CallNotification.Collect, ({ result }) => {
       const method = result.type === 'error' ? 'reject' : 'resolve'
       blocker[method](result)
     })
     this._blockers.push(blocker)
+    await this._playAndCollect(collect, play, control_id)
+
     return blocker.promise
   }
 }

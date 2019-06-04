@@ -17,7 +17,7 @@ export default (klass: any) => {
     }
 
     beforeEach(() => {
-      instance = new klass({ host: 'example.signalwire.com', login: 'login', password: 'password', project: 'project', token: 'token', domain: 'domain', resource: 'resource' })
+      instance = new klass({ host: 'example.signalwire.com', login: 'login', password: 'password', project: 'project', token: 'token' })
       onNotification.mockClear()
       instance.on('signalwire.notification', onNotification)
       handler = new VertoHandler(instance)

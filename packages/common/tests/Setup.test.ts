@@ -8,7 +8,7 @@ jest.mock('../../common/src/services/Connection')
 describe('Setup', () => {
   const fnMock = jest.fn()
   const service = 'service'
-  const swOptions = { host: 'example.signalwire.com', project: 'project', token: 'token', domain: 'domain', resource: 'resource' }
+  const swOptions = { host: 'example.signalwire.com', project: 'project', token: 'token' }
   let session = null
   const _test = async done => {
     const protocol = await Setup(session, service, fnMock)

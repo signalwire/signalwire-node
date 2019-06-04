@@ -1,7 +1,7 @@
 import RelayClient from '../../src/relay'
 import { ICallDevice } from '../../../common/src/util/interfaces'
 import Call from '../../../common/src/relay/calling/Call'
-import { CallState } from '../../../common/src/util/constants/relay'
+import { CallState, CallNotification } from '../../../common/src/util/constants/relay'
 import { isQueued } from '../../../common/src/services/Handler'
 import { Execute } from '../../../common/src/messages/Blade'
 import * as Actions from '../../../common/src/relay/calling/Actions'
@@ -74,8 +74,8 @@ describe('Call', () => {
       const mockFn = jest.fn()
       call.on('created', mockFn)
       call.on('answered', mockFn)
-      call._stateChange('created')
-      call._stateChange('answered')
+      call._stateChange({ call_state: 'created' })
+      call._stateChange({ call_state: 'answered' })
       expect(mockFn).toHaveBeenCalledTimes(2)
     })
 
@@ -110,7 +110,7 @@ describe('Call', () => {
       const mockFn = jest.fn()
       call.on('created', mockFn)
       call.off('created', mockFn)
-      call._stateChange('created')
+      call._stateChange({ call_state: 'created' })
       expect(mockFn).not.toHaveBeenCalled()
     })
 
@@ -128,15 +128,54 @@ describe('Call', () => {
   })
 
   describe('when call is ready', () => {
+    const _stateNotificationAnswered = JSON.parse(`{"call_state":"answered","call_id":"call-id","event_type":"${CallNotification.State}"}`)
+    const _stateNotificationEnded = JSON.parse(`{"call_state":"ended","call_id":"call-id","event_type":"${CallNotification.State}"}`)
+    const _playNotification = JSON.parse(`{"state":"finished","call_id":"call-id","control_id":"mocked-uuid","event_type":"${CallNotification.Play}"}`)
+    const _collectNotification = JSON.parse(`{"control_id":"mocked-uuid","call_id":"call-id","event_type":"${CallNotification.Collect}","result":{"type":"digit","params":{"digits":"12345","terminator":"#"}}}`)
+    const _recordNotification = JSON.parse(`{"state":"finished","call_id":"call-id","control_id":"mocked-uuid","event_type":"${CallNotification.Record}","url":"record-url","record":{"audio":{"type":"digit","params":{"digits":"12345","terminator":"#"}}}}`)
+    const _connectNotification = JSON.parse(`{"connect_state":"connected","call_id":"call-id","event_type":"${CallNotification.Connect}"}`)
+
     beforeEach(() => {
       call.id = 'call-id'
       call.nodeId = 'node-id'
       Connection.mockResponse.mockReturnValueOnce(JSON.parse('{"id":"c04d725a-c8bc-4b9e-bf1e-9c05150797cc","jsonrpc":"2.0","result":{"requester_nodeid":"05b1114c-XXXX-YYYY-ZZZZ-feaa30afad6c","responder_nodeid":"9811eb32-XXXX-YYYY-ZZZZ-ab56fa3b83c9","result":{"code":"200","message":"message","control_id":"control-id"}}}'))
     })
 
-    afterAll(() => {
-      call.id = undefined
-      call.nodeId = undefined
+    it('.answer() should wait answered notification', done => {
+      const msg = new Execute({
+        protocol: 'signalwire_service_random_uuid',
+        method: 'call.answer',
+        params: {
+          node_id: call.nodeId,
+          call_id: call.id
+        }
+      })
+      call.answer().then(call => {
+        expect(call.state).toEqual('answered')
+        expect(Connection.mockSend).toHaveBeenCalledTimes(1)
+        expect(Connection.mockSend).toHaveBeenCalledWith(msg)
+        done()
+      })
+      call._stateChange(_stateNotificationAnswered)
+    })
+
+    it('.hangup() should wait ended notification', done => {
+      const msg = new Execute({
+        protocol: 'signalwire_service_random_uuid',
+        method: 'call.end',
+        params: {
+          node_id: call.nodeId,
+          call_id: call.id,
+          reason: 'hangup'
+        }
+      })
+      call.hangup().then(call => {
+        expect(call.state).toEqual('ended')
+        expect(Connection.mockSend).toHaveBeenCalledTimes(1)
+        expect(Connection.mockSend).toHaveBeenCalledWith(msg)
+        done()
+      })
+      call._stateChange(_stateNotificationEnded)
     })
 
     it('.record() should execute the right message', async done => {
@@ -156,6 +195,154 @@ describe('Call', () => {
       expect(Connection.mockSend).toHaveBeenCalledTimes(1)
       expect(Connection.mockSend).toHaveBeenCalledWith(msg)
       done()
+    })
+
+    it('.recordSync() should execute the right message', done => {
+      const record = { audio: { format: 'mp3', beep: true } }
+      const msg = new Execute({
+        protocol: 'signalwire_service_random_uuid',
+        method: 'call.record',
+        params: {
+          node_id: call.nodeId,
+          call_id: call.id,
+          control_id: 'mocked-uuid',
+          record
+        }
+      })
+      call.recordSync(record).then(result => {
+        expect(result).toMatchObject(_recordNotification)
+        expect(Connection.mockSend).toHaveBeenCalledTimes(1)
+        expect(Connection.mockSend).toHaveBeenCalledWith(msg)
+        done()
+      })
+      call._recordStateChange(_recordNotification)
+    })
+
+    describe('connect methods', () => {
+      it('.connect() devices in series', async done => {
+        const devices = [
+          { type: 'phone', to: '999', from: '231', timeout: 10 },
+          { type: 'phone', to: '888', from: '234', timeout: 20 }
+        ]
+        const action = await call.connect(...devices)
+        const msg = new Execute({
+          protocol: 'signalwire_service_random_uuid',
+          method: 'call.connect',
+          params: {
+            node_id: call.nodeId,
+            call_id: call.id,
+            devices: [
+              [
+                { type: 'phone', params: { to_number: '999', from_number: '231', timeout: 10 } }
+              ],
+              [
+                { type: 'phone', params: { to_number: '888', from_number: '234', timeout: 20 } }
+              ]
+            ]
+          }
+        })
+        expect(Connection.mockSend).toHaveBeenCalledTimes(1)
+        expect(Connection.mockSend).toHaveBeenCalledWith(msg)
+        done()
+      })
+
+      it('.connect() devices in parallel', async done => {
+        const devices = [
+          { type: 'phone', to: '999', from: '231', timeout: 10 },
+          { type: 'phone', to: '888', from: '234', timeout: 20 }
+        ]
+        const action = await call.connect(devices)
+        const msg = new Execute({
+          protocol: 'signalwire_service_random_uuid',
+          method: 'call.connect',
+          params: {
+            node_id: call.nodeId,
+            call_id: call.id,
+            devices: [
+              [
+                { type: 'phone', params: { to_number: '999', from_number: '231', timeout: 10 } },
+                { type: 'phone', params: { to_number: '888', from_number: '234', timeout: 20 } }
+              ]
+            ]
+          }
+        })
+        expect(Connection.mockSend).toHaveBeenCalledTimes(1)
+        expect(Connection.mockSend).toHaveBeenCalledWith(msg)
+        done()
+      })
+
+      it('.connect() devices in series and parallel', async done => {
+        const action = await call.connect(
+          { type: 'phone', to: '999', from: '231', timeout: 10 },
+          { type: 'phone', to: '888', from: '234', timeout: 20 },
+          [
+            { type: 'phone', to: '777', from: '231', timeout: 10 },
+            { type: 'phone', to: '555', from: '234', timeout: 20 }
+          ]
+        )
+        const msg = new Execute({
+          protocol: 'signalwire_service_random_uuid',
+          method: 'call.connect',
+          params: {
+            node_id: call.nodeId,
+            call_id: call.id,
+            devices: [
+              [
+                { type: 'phone', params: { to_number: '999', from_number: '231', timeout: 10 } },
+              ],
+              [
+                { type: 'phone', params: { to_number: '888', from_number: '234', timeout: 20 } }
+              ],
+              [
+                { type: 'phone', params: { to_number: '777', from_number: '231', timeout: 10 } },
+                { type: 'phone', params: { to_number: '555', from_number: '234', timeout: 20 } }
+              ]
+            ]
+          }
+        })
+        expect(Connection.mockSend).toHaveBeenCalledTimes(1)
+        expect(Connection.mockSend).toHaveBeenCalledWith(msg)
+        done()
+      })
+
+      it('.connectSync() devices in series and parallel', done => {
+        const msg = new Execute({
+          protocol: 'signalwire_service_random_uuid',
+          method: 'call.connect',
+          params: {
+            node_id: call.nodeId,
+            call_id: call.id,
+            devices: [
+              [
+                { type: 'phone', params: { to_number: '999', from_number: '231', timeout: 10 } },
+              ],
+              [
+                { type: 'phone', params: { to_number: '888', from_number: '234', timeout: 20 } }
+              ],
+              [
+                { type: 'phone', params: { to_number: '777', from_number: '231', timeout: 10 } },
+                { type: 'phone', params: { to_number: '555', from_number: '234', timeout: 20 } }
+              ]
+            ]
+          }
+        })
+
+        call.connectSync(
+          { type: 'phone', to: '999', from: '231', timeout: 10 },
+          { type: 'phone', to: '888', from: '234', timeout: 20 },
+          [
+            { type: 'phone', to: '777', from: '231', timeout: 10 },
+            { type: 'phone', to: '555', from: '234', timeout: 20 }
+          ]
+        ).then(call => {
+          expect(call).toBeInstanceOf(Call)
+          expect(call.connectState).toEqual('connected')
+          expect(Connection.mockSend).toHaveBeenCalledTimes(1)
+          expect(Connection.mockSend).toHaveBeenCalledWith(msg)
+          done()
+        })
+        call._connectStateChange(_connectNotification)
+      })
     })
 
     describe('play methods', () => {

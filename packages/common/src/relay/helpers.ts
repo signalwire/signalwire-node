@@ -1,13 +1,11 @@
-import { ICallDevice, IMakeCallParams } from '../util/interfaces'
-
-interface DeepArray<T> extends Array<T | DeepArray<T>> { }
+import { ICallDevice, IMakeCallParams, DeepArray } from '../util/interfaces'
 
 interface DeviceAccumulator {
   devices: DeepArray<ICallDevice>,
   nested: boolean
 }
 
-export const reduceConnectParams = (peers: IMakeCallParams[], callDevice: ICallDevice): DeepArray<ICallDevice> => {
+export const reduceConnectParams = (peers: DeepArray<IMakeCallParams>, callDevice: ICallDevice): DeepArray<ICallDevice> => {
   const { params: { from_number: defaultFromNumber, timeout: defaultTimeout } } = callDevice
   const _reducer = (accumulator: DeviceAccumulator, peer: IMakeCallParams) => {
     let tmp: ICallDevice = null

@@ -85,14 +85,14 @@ export default class Calling extends Relay {
    * @return void
    */
   private _onState(params: any): void {
-    const { call_id, node_id, call_state, tag, peer } = params
+    const { call_id, node_id, tag, peer } = params
     const call = this.getCallById(call_id) || this.getCallByTag(tag)
     if (call) {
       if (!call.ready) {
         call.id = call_id
         call.nodeId = node_id
       }
-      call._stateChange(call_state)
+      call._stateChange(params)
     } else if (call_id && peer) {
       const peerCall = new Call(this, params)
     } else {
@@ -106,13 +106,13 @@ export default class Calling extends Relay {
    * @return void
    */
   private _onConnect(params: any): void {
-    const { call_id, connect_state, peer } = params
+    const { call_id, peer } = params
     const call = this.getCallById(call_id)
     if (call) {
       if (peer) {
         call.setOptions({ peer })
       }
-      call._connectStateChange(connect_state)
+      call._connectStateChange(params)
     }
   }
 

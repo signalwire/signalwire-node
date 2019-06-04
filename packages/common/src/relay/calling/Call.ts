@@ -1,11 +1,12 @@
 import { v4 as uuidv4 } from 'uuid'
 import { Execute } from '../../messages/Blade'
 import { CallState, DisconnectReason, CallConnectState, DEFAULT_CALL_TIMEOUT, CallNotification } from '../../util/constants/relay'
-import { ICall, ICallOptions, ICallDevice, IMakeCallParams, ICallingPlay, ICallingCollect } from '../../util/interfaces'
+import { ICall, ICallOptions, ICallDevice, IMakeCallParams, ICallingPlay, ICallingCollect, DeepArray } from '../../util/interfaces'
 import * as Actions from './Actions'
 import { reduceConnectParams } from '../helpers'
 import Calling from './Calling'
 import { isFunction } from '../../util/helpers'
+import Blocker from './Blocker'
 
 export default class Call implements ICall {
   public id: string
@@ -18,6 +19,7 @@ export default class Call implements ICall {
   private _connectState: number = 0
   private _cbQueue: { [state: string]: Function } = {}
   private _controls: any[] = []
+  private _blockers: Blocker[] = []
 
   constructor(public relayInstance: Calling, protected options: ICallOptions) {
     const { call_id, node_id } = options
@@ -84,7 +86,15 @@ export default class Call implements ICall {
       }
     })
 
-    return this._execute(msg)
+    const blocker = new Blocker(this.id, CallNotification.State, ({ call_state }) => {
+      if (call_state === 'ended') {
+        blocker.resolve(this)
+      }
+    })
+    this._blockers.push(blocker)
+
+    await this._execute(msg)
+    return blocker.promise
   }
 
   /**
@@ -102,7 +112,15 @@ export default class Call implements ICall {
       }
     })
 
-    return this._execute(msg)
+    const blocker = new Blocker(this.id, CallNotification.State, ({ call_state }) => {
+      if (call_state === 'answered') {
+        blocker.resolve(this)
+      }
+    })
+    this._blockers.push(blocker)
+
+    await this._execute(msg)
+    return blocker.promise
   }
 
   /**
@@ -110,7 +128,7 @@ export default class Call implements ICall {
    * @param peers - One or more peers to connect { type, from, to, timeout }
    * @return Promise
    */
-  async connect(...peers: IMakeCallParams[]) {
+  async connect(...peers: DeepArray<IMakeCallParams>) {
     this._callIdRequired()
     const devices = reduceConnectParams(peers, this.device)
     if (!devices.length) {
@@ -130,26 +148,49 @@ export default class Call implements ICall {
   }
 
   /**
+   * Connect the call with a new call and wait the result of connect. The current call must be 'ready'
+   * @param peers - One or more peers to connect { type, from, to, timeout }
+   * @return Promise
+   */
+  async connectSync(...peers: DeepArray<IMakeCallParams>) {
+    this._callIdRequired()
+    const blocker = new Blocker(this.id, CallNotification.Connect, (params: any) => {
+      const { connect_state } = params
+      if (connect_state === 'connected') {
+        blocker.resolve(this)
+      } else if (connect_state === 'failed') {
+        blocker.resolve(params)
+      }
+    })
+    this._blockers.push(blocker)
+
+    await this.connect(...peers)
+    return blocker.promise
+  }
+
+  /**
    * Start recording the call. The call must be 'ready'.
    * Note: At this moment hard coded to type: 'audio'.
    * @param options - Params object for the recording { beep, format, stereo, direction, initial_timeout, end_silence_timeout, terminators }
    * @return Promise
    */
   async record(record: any) {
-    this._callIdRequired()
-    const msg = new Execute({
-      protocol: this.relayInstance.protocol,
-      method: 'call.record',
-      params: {
-        node_id: this.nodeId,
-        call_id: this.id,
-        control_id: uuidv4(),
-        record
+    const { control_id } = await this._record(record)
+    return new Actions.RecordAction(this, control_id)
+  }
+
+  async recordSync(record: any) {
+    const control_id = uuidv4()
+    const blocker = new Blocker(control_id, CallNotification.Record, (params: any) => {
+      const { state } = params
+      if (state === 'finished' || state === 'no_input') {
+        blocker.resolve(params)
       }
     })
+    this._blockers.push(blocker)
+    await this._record(record, control_id)
 
-    const { control_id } = await this._execute(msg)
-    return new Actions.RecordAction(this, control_id)
+    return blocker.promise
   }
 
   /**
@@ -163,6 +204,15 @@ export default class Call implements ICall {
   }
 
   /**
+   * Play an audio file on the call and wait for the media to finish. The call must be 'ready'.
+   * @param url - URL of the audio file to play.
+   * @return Promise
+   */
+  playAudioSync(url: string) {
+    return this._playSync([{ type: 'audio', params: { url } }])
+  }
+
+  /**
    * Play seconds of silence to the call. The call must be 'ready'.
    * @param duration - Num. of seconds of silence to play.
    * @return Promise
@@ -170,6 +220,15 @@ export default class Call implements ICall {
   async playSilence(duration: number) {
     const { control_id } = await this._play([{ type: 'silence', params: { duration } }])
     return new Actions.PlaySilenceAction(this, control_id)
+  }
+
+  /**
+   * Play seconds of silence on the call and wait for the media to finish. The call must be 'ready'.
+   * @param duration - Num. of seconds of silence to play.
+   * @return Promise
+   */
+  playSilenceSync(duration: number) {
+    return this._playSync([{ type: 'silence', params: { duration } }])
   }
 
   /**
@@ -183,6 +242,15 @@ export default class Call implements ICall {
   }
 
   /**
+   * Play text-to-speech on the call and wait for the media to finish. The call must be 'ready'.
+   * @param options - Params object for the TTS { text, language, gender }
+   * @return Promise
+   */
+  playTTSSync(options: ICallingPlay['params']) {
+    return this._playSync([{ type: 'tts', params: options }])
+  }
+
+  /**
    * Play multiple medias in the call in a serial way. The call must be 'ready'.
    * @param play - One or more media to play { type, params: { } }
    * @return Promise
@@ -190,6 +258,15 @@ export default class Call implements ICall {
   async playMedia(...play: ICallingPlay[]) {
     const { control_id } = await this._play(play)
     return new Actions.PlayMediaAction(this, control_id)
+  }
+
+  /**
+   * Play multiple medias in the call in a serial-sync way. The call must be 'ready'.
+   * @param play - One or more media to play { type, params: { } }
+   * @return Promise
+   */
+  playMediaSync(...play: ICallingPlay[]) {
+    return this._playSync(play)
   }
 
   /**
@@ -204,6 +281,16 @@ export default class Call implements ICall {
   }
 
   /**
+   * Play an audio file and collect digits/speech. The call must be 'ready'.
+   * @param collect - Specify collect options
+   * @param url - URL of the audio file to play.
+   * @return Promise
+   */
+  playAudioAndCollectSync(collect: ICallingCollect, url: string) {
+    return this._playAndCollectSync(collect, [{ type: 'audio', params: { url } }])
+  }
+
+  /**
    * Play silence to the call and collect digits/speech. The call must be 'ready'.
    * @param collect - Specify collect options
    * @param duration - Num. of seconds of silence to play.
@@ -212,6 +299,16 @@ export default class Call implements ICall {
   async playSilenceAndCollect(collect: ICallingCollect, duration: number) {
     const { control_id } = await this._playAndCollect(collect, [{ type: 'silence', params: { duration } }])
     return new Actions.PlaySilenceAndCollectAction(this, control_id)
+  }
+
+  /**
+   * Play silence to the call and collect digits/speech. The call must be 'ready'.
+   * @param collect - Specify collect options
+   * @param duration - Num. of seconds of silence to play.
+   * @return Promise
+   */
+  playSilenceAndCollectSync(collect: ICallingCollect, duration: number) {
+    return this._playAndCollectSync(collect, [{ type: 'silence', params: { duration } }])
   }
 
   /**
@@ -226,6 +323,16 @@ export default class Call implements ICall {
   }
 
   /**
+   * Play text-to-speech and collect digits/speech. The call must be 'ready'.
+   * @param collect - Specify collect options
+   * @param options - Params object for the TTS { text, language, gender }
+   * @return Promise
+   */
+  playTTSAndCollectSync(collect: ICallingCollect, options: ICallingPlay['params']) {
+    return this._playAndCollectSync(collect, [{ type: 'tts', params: options }])
+  }
+
+  /**
    * Play multiple medias in the call and start collecting digits/speech. The call must be 'ready'.
    * @param collect - Specify collect options
    * @param play - One or more media to play { type, params: { } }
@@ -234,6 +341,16 @@ export default class Call implements ICall {
   async playMediaAndCollect(collect: ICallingCollect, ...play: ICallingPlay[]) {
     const { control_id } = await this._playAndCollect(collect, play)
     return new Actions.PlayMediaAndCollectAction(this, control_id)
+  }
+
+  /**
+   * Play multiple medias in the call and start collecting digits/speech. The call must be 'ready'.
+   * @param collect - Specify collect options
+   * @param play - One or more media to play { type, params: { } }
+   * @return Promise
+   */
+  playMediaAndCollectSync(collect: ICallingCollect, ...play: ICallingPlay[]) {
+    return this._playAndCollect(collect, play)
   }
 
   get prevState() {
@@ -301,26 +418,28 @@ export default class Call implements ICall {
     this.options = { ...this.options, ...opts }
   }
 
-  _stateChange(newState: string) {
+  _stateChange(params: { call_state: string }) {
+    const { call_state } = params
     this._prevState = this._state
-    this._state = CallState[newState]
+    this._state = CallState[call_state]
+    this._addControlParams(params)
     this._dispatchCallback('stateChange')
-    this._dispatchCallback(newState)
+    this._dispatchCallback(call_state)
     if (this._state === CallState.ended) {
       this.relayInstance.removeCall(this)
     }
-    return this
   }
 
-  _connectStateChange(newState: string) {
+  _connectStateChange(params: { connect_state: string }) {
+    const { connect_state } = params
     this._prevConnectState = this._connectState
-    this._connectState = CallConnectState[newState]
+    this._connectState = CallConnectState[connect_state]
+    this._addControlParams(params)
     this._dispatchCallback('connect.stateChange')
-    if (!this._dispatchCallback(`connect.${newState}`)) {
+    if (!this._dispatchCallback(`connect.${connect_state}`)) {
       // Backward compat: connect state not scoped with 'connect.'
-      this._dispatchCallback(newState)
+      this._dispatchCallback(connect_state)
     }
-    return this
   }
 
   _recordStateChange(params: any) {
@@ -370,7 +489,7 @@ export default class Call implements ICall {
 
   private _addControlParams(params: any) {
     const { control_id, event_type } = params
-    if (!control_id || !event_type) {
+    if (!event_type) {
       return
     }
     const index = this._controls.findIndex(t => t.control_id === control_id)
@@ -379,6 +498,12 @@ export default class Call implements ICall {
     } else {
       this._controls.push(params)
     }
+    const checkId = control_id ? control_id : this.id
+    this._blockers.forEach(b => {
+      if (b.controlId === checkId && b.eventType === event_type) {
+        b.resolver(params)
+      }
+    })
   }
 
   /**
@@ -386,7 +511,7 @@ export default class Call implements ICall {
    * @param play - One or more media to play { type: string, params: { } }
    * @return Promise
    */
-  private async _play(play: ICallingPlay[]) {
+  private async _play(play: ICallingPlay[], controlId?: string) {
     this._callIdRequired()
     const msg = new Execute({
       protocol: this.relayInstance.protocol,
@@ -394,8 +519,51 @@ export default class Call implements ICall {
       params: {
         node_id: this.nodeId,
         call_id: this.id,
-        control_id: uuidv4(),
+        control_id: controlId || uuidv4(),
         play
+      }
+    })
+
+    return this._execute(msg)
+  }
+
+  /**
+   * Play an audio file to the call. The call must be 'ready'.
+   * @param url - URL of the audio file to play.
+   * @return Promise
+   */
+  async _playSync(play: ICallingPlay[]) {
+    const control_id = uuidv4()
+    const blocker = new Blocker(control_id, CallNotification.Play, ({ state }) => {
+      if (state === 'finished') {
+        blocker.resolve(this)
+      } else if (state === 'error') {
+        blocker.reject()
+      }
+    })
+    this._blockers.push(blocker)
+    await this._play(play, control_id)
+
+    return blocker.promise
+  }
+
+  /**
+   * Execute a 'call.play_and_collect'
+   * @param collect - Object with collect preferences
+   * @param play - One or more media to play { type: string, params: { } }
+   * @return Promise
+   */
+  private async _playAndCollect(collect: ICallingCollect, play: ICallingPlay[], controlId?: string) {
+    this._callIdRequired()
+    const msg = new Execute({
+      protocol: this.relayInstance.protocol,
+      method: 'call.play_and_collect',
+      params: {
+        node_id: this.nodeId,
+        call_id: this.id,
+        control_id: controlId || uuidv4(),
+        play,
+        collect
       }
     })
 
@@ -408,17 +576,28 @@ export default class Call implements ICall {
    * @param play - One or more media to play { type: string, params: { } }
    * @return Promise
    */
-  private async _playAndCollect(collect: ICallingCollect, play: ICallingPlay[]) {
+  private async _playAndCollectSync(collect: ICallingCollect, play: ICallingPlay[]) {
+    const control_id = uuidv4()
+    const blocker = new Blocker(control_id, CallNotification.Collect, ({ result }) => {
+      const method = result.type === 'error' ? 'reject' : 'resolve'
+      blocker[method](result)
+    })
+    this._blockers.push(blocker)
+    await this._playAndCollect(collect, play, control_id)
+
+    return blocker.promise
+  }
+
+  private async _record(record: any, controlId?: string) {
     this._callIdRequired()
     const msg = new Execute({
       protocol: this.relayInstance.protocol,
-      method: 'call.play_and_collect',
+      method: 'call.record',
       params: {
         node_id: this.nodeId,
         call_id: this.id,
-        control_id: uuidv4(),
-        play,
-        collect
+        control_id: controlId || uuidv4(),
+        record
       }
     })
 

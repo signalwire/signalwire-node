@@ -74,8 +74,8 @@ describe('Call', () => {
       const mockFn = jest.fn()
       call.on('created', mockFn)
       call.on('answered', mockFn)
-      call._stateChange('created')
-      call._stateChange('answered')
+      call._stateChange({ call_state: 'created' })
+      call._stateChange({ call_state: 'answered' })
       expect(mockFn).toHaveBeenCalledTimes(2)
     })
 
@@ -110,7 +110,7 @@ describe('Call', () => {
       const mockFn = jest.fn()
       call.on('created', mockFn)
       call.off('created', mockFn)
-      call._stateChange('created')
+      call._stateChange({ call_state: 'created' })
       expect(mockFn).not.toHaveBeenCalled()
     })
 
@@ -139,6 +139,43 @@ describe('Call', () => {
       call.id = 'call-id'
       call.nodeId = 'node-id'
       Connection.mockResponse.mockReturnValueOnce(JSON.parse('{"id":"c04d725a-c8bc-4b9e-bf1e-9c05150797cc","jsonrpc":"2.0","result":{"requester_nodeid":"05b1114c-XXXX-YYYY-ZZZZ-feaa30afad6c","responder_nodeid":"9811eb32-XXXX-YYYY-ZZZZ-ab56fa3b83c9","result":{"code":"200","message":"message","control_id":"control-id"}}}'))
+    })
+
+    it('.answer() should wait answered notification', done => {
+      const msg = new Execute({
+        protocol: 'signalwire_service_random_uuid',
+        method: 'call.answer',
+        params: {
+          node_id: call.nodeId,
+          call_id: call.id
+        }
+      })
+      call.answer().then(call => {
+        expect(call.state).toEqual('answered')
+        expect(Connection.mockSend).toHaveBeenCalledTimes(1)
+        expect(Connection.mockSend).toHaveBeenCalledWith(msg)
+        done()
+      })
+      call._stateChange(_stateNotificationAnswered)
+    })
+
+    it('.hangup() should wait ended notification', done => {
+      const msg = new Execute({
+        protocol: 'signalwire_service_random_uuid',
+        method: 'call.end',
+        params: {
+          node_id: call.nodeId,
+          call_id: call.id,
+          reason: 'hangup'
+        }
+      })
+      call.hangup().then(call => {
+        expect(call.state).toEqual('ended')
+        expect(Connection.mockSend).toHaveBeenCalledTimes(1)
+        expect(Connection.mockSend).toHaveBeenCalledWith(msg)
+        done()
+      })
+      call._stateChange(_stateNotificationEnded)
     })
 
     it('.record() should execute the right message', async done => {

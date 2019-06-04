@@ -86,7 +86,15 @@ export default class Call implements ICall {
       }
     })
 
-    return this._execute(msg)
+    const blocker = new Blocker(this.id, CallNotification.State, ({ call_state }) => {
+      if (call_state === 'ended') {
+        blocker.resolve(this)
+      }
+    })
+    this._blockers.push(blocker)
+
+    await this._execute(msg)
+    return blocker.promise
   }
 
   /**
@@ -104,7 +112,15 @@ export default class Call implements ICall {
       }
     })
 
-    return this._execute(msg)
+    const blocker = new Blocker(this.id, CallNotification.State, ({ call_state }) => {
+      if (call_state === 'answered') {
+        blocker.resolve(this)
+      }
+    })
+    this._blockers.push(blocker)
+
+    await this._execute(msg)
+    return blocker.promise
   }
 
   /**
@@ -402,15 +418,16 @@ export default class Call implements ICall {
     this.options = { ...this.options, ...opts }
   }
 
-  _stateChange(newState: string) {
+  _stateChange(params: { call_state: string }) {
+    const { call_state } = params
     this._prevState = this._state
-    this._state = CallState[newState]
+    this._state = CallState[call_state]
+    this._addControlParams(params)
     this._dispatchCallback('stateChange')
-    this._dispatchCallback(newState)
+    this._dispatchCallback(call_state)
     if (this._state === CallState.ended) {
       this.relayInstance.removeCall(this)
     }
-    return this
   }
 
   _connectStateChange(params: { connect_state: string }) {

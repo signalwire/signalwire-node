@@ -241,7 +241,6 @@ describe('Call', () => {
             ]
           }
         })
-        // expect(action).toBeInstanceOf(Actions.RecordAction)
         expect(Connection.mockSend).toHaveBeenCalledTimes(1)
         expect(Connection.mockSend).toHaveBeenCalledWith(msg)
         done()
@@ -267,7 +266,6 @@ describe('Call', () => {
             ]
           }
         })
-        // expect(action).toBeInstanceOf(Actions.RecordAction)
         expect(Connection.mockSend).toHaveBeenCalledTimes(1)
         expect(Connection.mockSend).toHaveBeenCalledWith(msg)
         done()
@@ -302,7 +300,6 @@ describe('Call', () => {
             ]
           }
         })
-        // expect(action).toBeInstanceOf(Actions.RecordAction)
         expect(Connection.mockSend).toHaveBeenCalledTimes(1)
         expect(Connection.mockSend).toHaveBeenCalledWith(msg)
         done()

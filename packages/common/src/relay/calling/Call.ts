@@ -138,20 +138,22 @@ export default class Call implements ICall {
    * @return Promise
    */
   async record(record: any) {
-    this._callIdRequired()
-    const msg = new Execute({
-      protocol: this.relayInstance.protocol,
-      method: 'call.record',
-      params: {
-        node_id: this.nodeId,
-        call_id: this.id,
-        control_id: uuidv4(),
-        record
+    const { control_id } = await this._record(record)
+    return new Actions.RecordAction(this, control_id)
+  }
+
+  async recordSync(record: any) {
+    const control_id = uuidv4()
+    const blocker = new Blocker(control_id, CallNotification.Record, (params: any) => {
+      const { state } = params
+      if (state === 'finished' || state === 'no_input') {
+        blocker.resolve(params)
       }
     })
+    this._blockers.push(blocker)
+    await this._record(record, control_id)
 
-    const { control_id } = await this._execute(msg)
-    return new Actions.RecordAction(this, control_id)
+    return blocker.promise
   }
 
   /**
@@ -545,5 +547,21 @@ export default class Call implements ICall {
     await this._playAndCollect(collect, play, control_id)
 
     return blocker.promise
+  }
+
+  private async _record(record: any, controlId?: string) {
+    this._callIdRequired()
+    const msg = new Execute({
+      protocol: this.relayInstance.protocol,
+      method: 'call.record',
+      params: {
+        node_id: this.nodeId,
+        call_id: this.id,
+        control_id: controlId || uuidv4(),
+        record
+      }
+    })
+
+    return this._execute(msg)
   }
 }

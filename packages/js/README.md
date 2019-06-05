@@ -11,7 +11,7 @@ This package provides a client for the Signalwire services.
 
 Install the package using [NPM](https://www.npmjs.com/):
 ```bash
-npm install @signalwire/web
+npm install @signalwire/js
 ```
 
 Or download it from our CDN.
@@ -20,7 +20,7 @@ Or download it from our CDN.
 
 If you are using the ES6 version:
 ```javascript
-import { Relay } from '@signalwire/web'
+import { Relay } from '@signalwire/js'
 ```
 
 If you are using the minified version add a script tag referencing the SignalWire library:
@@ -403,7 +403,7 @@ See [Dialog](https://github.com/signalwire/signalwire-client-js/wiki/Dialog) to 
 You can also use this lib with a stand alone FreeSWITCH!
 
 ```javascript
-import { Verto } from '@signalwire/web'
+import { Verto } from '@signalwire/js'
 
 // Create a new instance
 const client = new Verto({

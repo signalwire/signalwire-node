@@ -1,15 +1,15 @@
 module.exports = {
 	moduleFileExtensions: [ 'ts', 'js' ],
 	rootDir: '../',
-	coverageDirectory: '<rootDir>/web/coverage',
+	coverageDirectory: '<rootDir>/js/coverage',
 	testMatch: [
-		'<rootDir>/(common|web)/tests/**/*.test.(ts|js)'
+		'<rootDir>/(common|js)/tests/**/*.test.(ts|js)'
 	],
 	transform: {
-		'^.+\\.tsx?$': './web/node_modules/ts-jest/dist/'
+		'^.+\\.tsx?$': './js/node_modules/ts-jest/dist/'
 	},
 	moduleDirectories: [
-		"<rootDir>/web/node_modules"
+		"<rootDir>/js/node_modules"
 	],
 	setupFiles: [
 		'<rootDir>/common/tests/setup/browsers.ts',

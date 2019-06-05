@@ -30,6 +30,9 @@ export default abstract class BrowserSession extends BaseSession {
     this.connection = new Connection(this)
   }
 
+  /**
+   * Check if the browser has the permission to access mic and/or webcam
+   */
   async checkPermissions(audio: boolean = true, video: boolean = true): Promise<boolean> {
     try {
       const stream = await getUserMedia({ audio, video })
@@ -85,6 +88,9 @@ export default abstract class BrowserSession extends BaseSession {
     })
   }
 
+  /**
+   * Refresh the device list doing an enumerateDevices
+   */
   async refreshDevices() {
     this._devices = await getDevices()
     return this.devices
@@ -94,6 +100,9 @@ export default abstract class BrowserSession extends BaseSession {
     return this._devices
   }
 
+  /**
+   * Return supported resolution for the given webcam.
+   */
   async getDeviceResolutions(deviceId: string) {
     try {
       return await scanResolutions(deviceId)

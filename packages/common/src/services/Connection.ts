@@ -21,7 +21,7 @@ const REQUEST_TIMEOUT = 10 * 1000
 
 export default class Connection {
   private _wsClient: any = null
-  private _host: string = 'wss://relay.swire.io'
+  private _host: string = 'wss://relay.signalwire.com'
   private _timers: { [id: string]: any } = {}
   private _connected: boolean = false
 

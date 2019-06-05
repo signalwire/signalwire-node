@@ -1,40 +1,28 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>Signalwire Verto Vanilla Demo</title>
+	<title>Signalwire Vanilla Demo</title>
 	<script type="text/javascript" src="index.min.js"></script>
 	<script type="text/javascript" src="index.js"></script>
 	<script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
 	<style type="text/css" src="index.css"></style>
 	<link rel="stylesheet" type="text/css" href="index.css">
+	<link rel="shortcut icon" href="https://signalwire.com/assets/images/favicon.ico" />
 </head>
 <body>
-	<h1>Signalwire Verto Vanilla Demo</h1>
+	<h1>Signalwire Vanilla Demo</h1>
 
-	This demo is designed to be simple and easy to understand using vanilla javascript. Fill in right verto server information and click <strong>Connect</strong> and then <strong>Call</strong>. Check the bottom of this page for a little more detailed instruction.
+	This demo is designed to be simple and easy to understand using vanilla javascript. Fill in right project and token and click <strong>Connect</strong> and then <strong>Call</strong>. Check the bottom of this page for a little more detailed instruction.
 	<br/>
 	<br/>
 
 	<div class="row">
 		<div class="half-page">
-			<label for="username">Project:</label>
-			<input type="text" id='username' onchange="save_params(event)">
+			<label for="project">Project:</label>
+			<input type="text" id='project' onchange="save_params(event)">
 			<br />
-			<label for="password">Token:</label>
-			<input type="text" id='password' onchange="save_params(event)">
-			<br />
-			<label for="resource">Resource:</label>
-			<input type="text" id='resource' onchange="save_params(event)">
-			<br />
-			<label for="domain">Domain:</label>
-			<input type="text" id='domain' onchange="save_params(event)">
-			<br />
-			<label for="host">Host:</label>
-			<input type="text" id='host' onchange="save_params(event)">
-			<br />
-			<label for="client">Client:</label>
-			<input type="radio" id="client_sw" name="client" value="sw" onchange="save_params(event)"> SignalWire
-			<input type="radio" id="client_verto" name="client" value="verto" onchange="save_params(event)"> Verto
+			<label for="token">JWT:</label>
+			<input type="text" id='token' onchange="save_params(event)">
 			<br />
 			<br />
 			<label for="client">&nbsp;</label>
@@ -54,8 +42,6 @@
 			<br />
 			<label for="client">&nbsp;</label>
 			<button id="startCall" onClick="makeCall()" disabled="true">Call</button>
-
-			<video id="testVideo" autoplay="true" playsinline controls></video>
 		</div>
 	</div>
 	<br />

@@ -5,7 +5,6 @@ import BrowserSession from '../../BrowserSession'
 import VertoHandler from '../../webrtc/VertoHandler'
 
 export default class WebRTC extends Relay {
-  protected _configure: boolean = true
 
   get service() {
     return 'webrtc'

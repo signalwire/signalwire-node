@@ -1,6 +1,6 @@
 import { isQueued } from '../src/services/Handler'
 import RelayClientNode from '../../node/src/relay'
-import RelayClientWeb from '../../web/src/SignalWire'
+import RelayClientWeb from '../../js/src/SignalWire'
 import { Setup } from '../src/services/Setup'
 const Connection = require('../../common/src/services/Connection')
 jest.mock('../../common/src/services/Connection')

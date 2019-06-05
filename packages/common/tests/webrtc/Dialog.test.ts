@@ -1,7 +1,7 @@
 import { isQueued } from '../../../common/src/services/Handler'
 import { State } from '../../../common/src/util/constants/dialog'
 import Dialog from '../../src/webrtc/Dialog'
-import Verto from '../../../web/src/Verto'
+import Verto from '../../../js/src/Verto'
 const Connection = require('../../../common/src/services/Connection')
 
 describe('Dialog', () => {

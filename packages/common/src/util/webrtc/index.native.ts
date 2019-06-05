@@ -23,6 +23,10 @@ const detachMediaStream = (htmlElementId: string) => null
 const muteMediaElement = (htmlElementId: string) => null
 const unmuteMediaElement = (htmlElementId: string) => null
 
+const setMediaElementSinkId = async (htmlElementId: string, deviceId: string) => {
+  throw new Error('setSinkId: Not supported.')
+}
+
 const sdpToJsonHack = sdp => {
   Object.defineProperty(sdp, 'toJSON', { value: () => sdp })
   return sdp
@@ -47,5 +51,6 @@ export {
   sdpToJsonHack,
   stopStream,
   muteMediaElement,
-  unmuteMediaElement
+  unmuteMediaElement,
+  setMediaElementSinkId
 }

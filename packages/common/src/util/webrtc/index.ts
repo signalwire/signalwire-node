@@ -48,6 +48,20 @@ const unmuteMediaElement = (tag: any) => {
   }
 }
 
+const setMediaElementSinkId = async (tag: any, deviceId: string) => {
+  const element: HTMLMediaElement = findElementByType(tag)
+  if (element) {
+    // @ts-ignore
+    if (!element.setSinkId) {
+      throw new Error('HTMLMediaElement setSinkId - Not supported.')
+    }
+    // @ts-ignore
+    await element.setSinkId(deviceId).catch((error: DOMException) => {
+      throw new Error('HTMLMediaElement setSinkId - No permission to use the requested device.')
+    })
+  }
+}
+
 const sdpToJsonHack = sdp => sdp
 
 const stopStream = (stream: MediaStream) => {
@@ -69,5 +83,6 @@ export {
   sdpToJsonHack,
   stopStream,
   muteMediaElement,
-  unmuteMediaElement
+  unmuteMediaElement,
+  setMediaElementSinkId
 }

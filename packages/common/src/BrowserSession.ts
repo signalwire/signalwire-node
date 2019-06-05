@@ -21,6 +21,7 @@ export default abstract class BrowserSession extends BaseSession {
   protected _devices: ICacheDevices = {}
   protected _audioConstraints: boolean | MediaTrackConstraints = true
   protected _videoConstraints: boolean | MediaTrackConstraints = false
+  protected _speaker: string = null
 
   async connect(): Promise<void> {
     super.setup()
@@ -167,6 +168,19 @@ export default abstract class BrowserSession extends BaseSession {
 
   get iceServers() {
     return this._iceServers
+  }
+
+  set speaker(deviceId: string) {
+    const knownSpeakers = Object.keys(this.audioOutDevices)
+    if (knownSpeakers.includes(deviceId)) {
+      this._speaker = deviceId
+    } else {
+      throw new Error(`Unknown device ${deviceId}.`)
+    }
+  }
+
+  get speaker() {
+    return this._speaker
   }
 
   set localElement(tag: HTMLMediaElement | string | Function) {

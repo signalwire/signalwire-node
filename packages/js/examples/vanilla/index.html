@@ -1,88 +1,92 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>Signalwire Vanilla Demo</title>
+	<title>Signalwire Call Demo</title>
+	<meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+	<!-- Include the SignalWire Relay JS SDK -->
 	<script type="text/javascript" src="index.min.js"></script>
-	<script type="text/javascript" src="index.js"></script>
+
+	<!-- Cross Browser WebRTC Adapter -->
 	<script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
-	<style type="text/css" src="index.css"></style>
-	<link rel="stylesheet" type="text/css" href="index.css">
+
+	<!-- My web applications custom handling. -->
+	<script type="text/javascript" src="index.js"></script>
+
+	<!-- To style up the demo a little -->
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+	<style></style>
 	<link rel="shortcut icon" href="https://signalwire.com/assets/images/favicon.ico" />
 </head>
-<body>
-	<h1>Signalwire Vanilla Demo</h1>
+<body class="bg-light">
+	<div class="container">
+		<div class="row py-5">
+			<div class="col-12 pb-3">
+				<h1>Signalwire Call Demo</h1>
 
-	This demo is designed to be simple and easy to understand using vanilla javascript. Fill in right project and token and click <strong>Connect</strong> and then <strong>Call</strong>. Check the bottom of this page for a little more detailed instruction.
-	<br/>
-	<br/>
+				<p>This demo allows you to make calls to other browsers, SIP Endpoints or Phone Numbers from your SignalWire project in your browser.</p>
+				<p>Visit <a href="/topics/relay-sdk-js">Relay SDK for JavaScript Documentation</a> for more information and documentation.</p>
 
-	<div class="row">
-		<div class="half-page">
-			<label for="project">Project:</label>
-			<input type="text" id='project' onchange="save_params(event)">
-			<br />
-			<label for="token">JWT:</label>
-			<input type="text" id='token' onchange="save_params(event)">
-			<br />
-			<br />
-			<label for="client">&nbsp;</label>
-			<button id="btnConnect" onclick="connect()">Connect</button>
-			<button id="btnDisconnect" onclick="disconnect()" disabled="true">Disconnect</button>
-			<span id='connectStatus'></span>
+				<p>Fill in your <strong>Project ID</strong> and <strong>JWT</strong> and click Connect... You'll then be able to make audio and video calls to other endpoints.</p>
+			</div>
+
+			<div class="col-12 col-md-4">
+				<div class="card">
+					<div class="card-body">
+						<h5>Connect</h5>
+					  <div class="form-group">
+					    <label for="project">Project</label>
+					    <input type="text" class="form-control" id="project" placeholder="Enter Project ID">
+					    <small id="projectHelp" class="form-text text-muted">Enter the Project ID found on your SignalWire Project Dashboard.</small>
+					  </div>
+					  <div class="form-group">
+					    <label for="token">Token</label>
+					    <input type="text" class="form-control" id="token" placeholder="Enter your JWT">
+					    <small id="tokenHelp" class="form-text text-muted">Generate a JWT and enter it here. For more information, visit <a href="/topics/relay-sdk-js#relay-sdk-for-javascript-using-the-sdk">Using the JavaScript SDK Documentation</a></small>
+					  </div>
+					  <button id="btnConnect" class="btn btn-block btn-success" onclick="connect()">Connect</button>
+						<button id="btnDisconnect" class="btn btn-block btn-danger d-none" onclick="disconnect()">Disconnect</button>
+
+						<div class="text-center mt-3 text-muted">
+							<small>Status: <span id='connectStatus'>Not Connected</span></small>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="col-12 col-md-8 mt-4 mt-md-1">
+				<div class="row">
+					<div class="col-6">
+						<h5>Local Video</h5>
+						<video id="localVideo" autoplay="true" class="w-100" style="background-color: #000; border: 1px solid #ccc; border-radius: 5px;"></video>
+					</div>
+					<div class="col-6">
+						<h5>Remote Video</h5>
+						<video id="remoteVideo" autoplay="true" class="w-100" playsinline style="background-color: #000; border: 1px solid #ccc; border-radius: 5px;"></video>
+					</div>
+				</div>
+
+				<div class="form-group">
+			    <label for="number">Number:</label>
+			    <input type="text" class="form-control" id="number" placeholder="Enter Resource or Number to Dial" onchange="save_params(event)">
+				</div>
+				<div>Call Options:</div>
+				<div class="form-check">
+				  <input type="checkbox" id="audio" value="1" onchange="save_params(event)">
+				  <label class="form-check-label" for="audio">
+				    Include Audio
+				  </label>
+				</div>
+				<div class="form-check">
+				  <input type="checkbox" id="video" value="1" onchange="save_params(event)">
+				  <label class="form-check-label" for="video">
+				    Include Video
+				  </label>
+				</div>
+				<button id="startCall" class="btn btn-primary px-5 mt-4" onClick="makeCall()" disabled="true">Call</button>
+			</div>
 		</div>
-		<div id="callCommands" class="half-page" style="display:none;">
-			<label for="number">Number:</label>
-			<input type="text" id="number" value="9196" onchange="save_params(event)">
-			<br />
-			<label for="audio">Audio:</label>
-			<input type="checkbox" id="audio" value="1" onchange="save_params(event)">
-			<br />
-			<label for="video">Video:</label>
-			<input type="checkbox" id="video" value="1" onchange="save_params(event)">
-			<br />
-			<label for="client">&nbsp;</label>
-			<button id="startCall" onClick="makeCall()" disabled="true">Call</button>
-		</div>
 	</div>
-	<br />
-
-	<!-- <div class="half-page">
-		<video id="localVideo" autoplay="true" style="display:none;"></video>
-	</div> -->
-
-	<div id="confCommands" class="row text-center" style="display:none;">
-		<h4>Call Controls</h4>
-		<button id="hangupCall" onClick="hangup()" disabled="true">Hangup</button>
-		<button id="startScreenShare">Screen Share</button>
-		<button class="dtmf" onClick="cur_call.dtmf('0')">DTMF-0</button>
-		<br/>
-		<button onClick="cur_call.microphone.mute()">Mute</button>
-		<button onClick="cur_call.microphone.unmute()">unMute</button>
-		<button onClick="cur_call.microphone.toggleMute()">Toggle Mute</button>
-		<button onClick="cur_call.speaker.mute()">Deaf</button>
-		<button onClick="cur_call.speaker.unmute()">unDeaf</button>
-		<button onClick="cur_call.webcam.mute()">VMute</button>
-		<button onClick="cur_call.webcam.unmute()">unVMute</button>
-		<button onClick="cur_call.webcam.toggleMute()">Toggle VMute</button>
-		<br />
-		<ul id="participants"></ul>
-	</div>
-
-	<div class="row text-center">
-		<video id="remoteVideo" autoplay="true" playsinline style="display:none;"></video>
-	</div>
-
-
-	<div class="clear"></div>
-
-	<br/>
-	<br/>
-	Tips:
-	<ul>
-		<li>Chome requires https/wss to work with WebRTC, however, it will work with plain http if you use a local file origin or localhost origin.</li>
-		<li>1) Double click and open the index.html file. or,</li>
-		<li>2) Use any webserver or use python: <pre>python -m SimpleHTTPServer .</pre></li>
-		<li>Open <a href="http://localhost:8000">http://localhost:8000</a></li>
-	</ul>
 </body>
 </html>

@@ -16,7 +16,7 @@ ready(function() {
 });
 
 function disconnect() {
-  connectStatus.innerHTML = 'disconnecting..'
+  connectStatus.innerHTML = 'Disconnecting...'
   client.disconnect()
 }
 
@@ -29,9 +29,9 @@ function connect() {
   client.remoteElement = 'remoteVideo'
 
   client.on('signalwire.ready', function() {
-    btnConnect.disabled = true
-    btnDisconnect.disabled = false
-    connectStatus.innerHTML = 'connected!'
+    btnConnect.classList.add('d-none');
+    btnDisconnect.classList.remove('d-none');
+    connectStatus.innerHTML = 'Connected'
     callCommands.style.display = 'block'
 
     startCall.disabled = false
@@ -43,9 +43,9 @@ function connect() {
 
   client.on('signalwire.socket.close', function() {
     console.log('socket disconnected')
-    btnConnect.disabled = false
-    btnDisconnect.disabled = true
-    connectStatus.innerHTML = 'disconnected'
+    btnConnect.classList.remove('d-none');
+    btnDisconnect.classList.add('d-none');
+    connectStatus.innerHTML = 'Disconnected'
     callCommands.style.display = 'none'
   });
 
@@ -56,7 +56,7 @@ function connect() {
 
   client.on('signalwire.notification', handleNotification);
 
-  connectStatus.innerHTML = 'connecting..'
+  connectStatus.innerHTML = 'Connecting...'
   client.connect()
 }
 

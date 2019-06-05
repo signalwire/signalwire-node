@@ -225,6 +225,14 @@ export default class Call {
       },
       unmute: () => {
         this._confControl(this.memberChannel, { action: 'undeaf' })
+      },
+      changeDevice: async (deviceId: string): Promise<boolean> => {
+        this.options.speakerId = deviceId
+        const { remoteElement, speakerId } = this.options
+        if (remoteElement && speakerId) {
+          return setMediaElementSinkId(remoteElement, speakerId)
+        }
+        return false
       }
     }
   }
@@ -246,9 +254,7 @@ export default class Call {
         setTimeout(() => {
           const { remoteElement, speakerId } = this.options
           if (remoteElement && speakerId) {
-            setMediaElementSinkId(remoteElement, speakerId).catch(error => {
-              trigger(SwEvent.Error, error, this.session.uuid)
-            })
+            setMediaElementSinkId(remoteElement, speakerId)
           }
         }, 0)
         break

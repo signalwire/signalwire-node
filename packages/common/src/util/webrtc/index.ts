@@ -48,18 +48,28 @@ const unmuteMediaElement = (tag: any) => {
   }
 }
 
-const setMediaElementSinkId = async (tag: any, deviceId: string) => {
+const setMediaElementSinkId = async (tag: any, deviceId: string): Promise<boolean> => {
   const element: HTMLMediaElement = findElementByType(tag)
-  if (element) {
-    // @ts-ignore
-    if (!element.setSinkId) {
-      throw new Error('HTMLMediaElement setSinkId - Not supported.')
-    }
-    // @ts-ignore
-    await element.setSinkId(deviceId).catch((error: DOMException) => {
-      throw new Error('HTMLMediaElement setSinkId - No permission to use the requested device.')
-    })
+  if (element === null) {
+    return false
   }
+  try {
+    // @ts-ignore
+    await element.setSinkId(deviceId)
+    return true
+  } catch (error) {
+    return false
+  }
+  // if (element) {
+  //   // @ts-ignore
+  //   if (!element.setSinkId) {
+  //     throw new Error('HTMLMediaElement setSinkId - Not supported.')
+  //   }
+  //   // @ts-ignore
+  //   await element.setSinkId(deviceId).catch((error: DOMException) => {
+  //     throw new Error('HTMLMediaElement setSinkId - No permission to use the requested device.')
+  //   })
+  // }
 }
 
 const sdpToJsonHack = sdp => sdp

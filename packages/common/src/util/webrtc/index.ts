@@ -34,6 +34,20 @@ const detachMediaStream = (tag: any) => {
   }
 }
 
+const muteMediaElement = (tag: any) => {
+  const element = findElementByType(tag)
+  if (element) {
+    element.muted = true
+  }
+}
+
+const unmuteMediaElement = (tag: any) => {
+  const element = findElementByType(tag)
+  if (element) {
+    element.muted = false
+  }
+}
+
 const sdpToJsonHack = sdp => sdp
 
 const stopStream = (stream: MediaStream) => {
@@ -53,5 +67,7 @@ export {
   attachMediaStream,
   detachMediaStream,
   sdpToJsonHack,
-  stopStream
+  stopStream,
+  muteMediaElement,
+  unmuteMediaElement
 }

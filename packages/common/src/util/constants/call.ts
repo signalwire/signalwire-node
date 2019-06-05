@@ -1,6 +1,6 @@
-import { DialogOptions } from '../interfaces'
+import { CallOptions } from '../interfaces'
 
-export const DEFAULT_DIALOG_OPTIONS: DialogOptions = {
+export const DEFAULT_CALL_OPTIONS: CallOptions = {
   destinationNumber: '',
   remoteCallerName: 'Outbound Call',
   remoteCallerNumber: '',

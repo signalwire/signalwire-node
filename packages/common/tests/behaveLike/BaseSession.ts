@@ -84,7 +84,7 @@ export default (instance: any) => {
         it('should close the connection', async done => {
           await instance.disconnect()
           expect(Connection.mockClose).toHaveBeenCalled()
-          expect(instance.dialogs || {}).toMatchObject({})
+          expect(instance.calls || {}).toMatchObject({})
           expect(instance.subscriptions).toMatchObject({})
           done()
         })

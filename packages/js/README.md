@@ -67,7 +67,7 @@ To be notified of the internal events you need to subscribe to the events you ne
 | --- | --- |
 | `signalwire.ready` | The session has been established so all other methods can now be used. |
 | `signalwire.error` | Error dispatch at the session level. |
-| `signalwire.notification` | A notification from SignalWire. It can refer to a dialog, a conference update or generic events. See the examples below |
+| `signalwire.notification` | A notification from SignalWire. It can refer to a call, a conference update or generic events. See the examples below |
 
 | Socket Events ||
 | --- | --- |
@@ -90,17 +90,14 @@ client.on('signalwire.notification', function(notification){
     case 'refreshToken':
       // The JWT is going to expire. Refresh it and then update the client using refreshToken('new-jwt') method to keep your session live.
       break
-    case 'dialogUpdate':
-      // A dialog's state changed. Update the UI accordingly..
+    case 'callUpdate':
+      // A call's state changed. Update the UI accordingly..
       break
     case 'conferenceUpdate':
       // Live notification from the conference: start talking / video floor changed / audio or video state changes / a participant joins or leaves and so on..
       break
     case 'participantData':
       // Caller's data like name and number to update the UI. In case of a conference call you will get the name of the room and the extension.
-      break
-    case 'vertoClientReady':
-      // All previously dialogs have been reattached. Note: FreeSWITCH 1.8+ only.
       break
     case 'userMediaError':
       // Permission denied or invalid audio/video params on `getUserMedia`
@@ -136,7 +133,7 @@ client.disconnect()
 ```
 
 #### logout()
-Hangup all the dialogs, remove subscriptions to the channels and then disconnect the client:
+Hangup all the calls, remove subscriptions to the channels and then disconnect the client:
 ```javascript
 client.logout()
 ```
@@ -379,10 +376,10 @@ The `newCall` method accept an Object with the following properties:
 | camId | - | `string` | `null` | Overrides client default webcam device |
 | micId | - | `string` | `null` | Overrides client default microphone device |
 | userVariables | - | `object` | `{}` | Custom properties like email/gravatar/userName that will be sent to remote peer. |
-| onNotification | - | `Function` | `null` | Overrides the `signalwire.notification` callback for this Dialog so you can have different behaviour for each Dialog |
+| onNotification | - | `Function` | `null` | Overrides the `signalwire.notification` callback for this Call so you can have different behaviour for each Call |
 
 > Note: with `localElement` and `remoteElement` the lib will attach the related stream to them but doesn't change the style attribute.
-> It's up to you display or hide the HTMLMediaElement following the application logic. Use [dialogUpdate](https://github.com/signalwire/signalwire-client-js/wiki/Notification#dialogupdate) notification to detect dialog state changes and update the UI accordingly.
+> It's up to you display or hide the HTMLMediaElement following the application logic. Use [callUpdate](https://github.com/signalwire/signalwire-client-js/wiki/Notification#dialogupdate) notification to detect call state changes and update the UI accordingly.
 
 Example:
 ```javascript
@@ -394,10 +391,10 @@ const params = {
   callerNumber: 'smith@example.com'
 }
 
-const dialog = client.newCall(params)
+const call = client.newCall(params)
 ```
 
-See [Dialog](https://github.com/signalwire/signalwire-client-js/wiki/Dialog) to discover all the properties and methods available on a Dialog object.
+See [Call](https://github.com/signalwire/signalwire-client-js/wiki/Dialog) to discover all the properties and methods available on a Call object.
 
 ## Verto
 You can also use this lib with a stand alone FreeSWITCH!

@@ -64,7 +64,7 @@ export const NOTIFICATION_TYPE = {
   [VertoMethod.Display]: 'participantData',
   [VertoMethod.Attach]: 'participantData',
   conferenceUpdate: 'conferenceUpdate',
-  dialogUpdate: 'dialogUpdate',
+  callUpdate: 'callUpdate',
   vertoClientReady: 'vertoClientReady',
   userMediaError: 'userMediaError',
   refreshToken: 'refreshToken',

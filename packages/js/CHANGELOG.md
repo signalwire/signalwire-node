@@ -6,10 +6,10 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ## [Unreleased]
 
 ### Added
-- Expose moderator methods on the Dialog object.
-- A notification that belongs to a Dialog now contains a reference to the dialog itself.
-- Set/Get default `localElement` for the client to handle the localStream for all dialogs.
-- Set/Get default `remoteElement` for the client to handle the remoteStream for all dialogs.
+- Expose moderator methods on the Call object.
+- A notification that belongs to a Call now contains a reference to the call itself.
+- Set/Get default `localElement` for the client to handle the localStream for all calls.
+- Set/Get default `remoteElement` for the client to handle the remoteStream for all calls.
 - newCall() method now accepts `localElement` and `remoteElement` to override the default ones.
 - Set default audio & video settings.
 - Expose speedTest() method.

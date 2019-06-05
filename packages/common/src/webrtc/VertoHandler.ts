@@ -1,11 +1,11 @@
 import logger from '../util/logger'
 import BrowserSession from '../BrowserSession'
-import Dialog from './Dialog'
+import Call from './Call'
 import { checkSubscribeResponse } from './helpers'
 import { Result } from '../messages/Verto'
 import { SwEvent, VertoMethod, NOTIFICATION_TYPE } from '../util/constants'
 import { trigger, deRegister } from '../services/Handler'
-import { State, ConferenceAction } from '../util/constants/dialog'
+import { State, ConferenceAction } from '../util/constants/call'
 
 class VertoHandler {
   public nodeId: string
@@ -23,17 +23,17 @@ class VertoHandler {
   handleMessage(msg: any) {
     const { session } = this
     const { id, method, params } = msg
-    const { callID: dialogId, eventChannel, eventType } = params
+    const { callID, eventChannel, eventType } = params
     const attach = method === VertoMethod.Attach
     if (eventType === 'channelPvtData') {
       return this._handlePvtEvent(params.pvtData)
     }
 
-    if (dialogId && session.dialogs.hasOwnProperty(dialogId)) {
+    if (callID && session.calls.hasOwnProperty(callID)) {
       if (attach) {
-        session.dialogs[dialogId].hangup({}, false)
+        session.calls[callID].hangup({}, false)
       } else {
-        session.dialogs[dialogId].handleMessage(msg)
+        session.calls[callID].handleMessage(msg)
         this._ack(id, method)
         return
       }
@@ -44,8 +44,8 @@ class VertoHandler {
         break
       case VertoMethod.Invite:
       case VertoMethod.Attach:
-        const dialog = new Dialog(session, {
-          id: dialogId,
+        const call = new Call(session, {
+          id: callID,
           remoteSdp: params.sdp,
           destinationNumber: params.callee_id_number,
           remoteCallerName: params.caller_id_name,
@@ -56,13 +56,13 @@ class VertoHandler {
           video: params.sdp.indexOf('m=video') > 0,
           attach
         })
-        dialog.nodeId = this.nodeId
+        call.nodeId = this.nodeId
         if (attach) {
-          dialog.setState(State.Recovering)
-          dialog.answer()
-          dialog.handleMessage(msg)
+          call.setState(State.Recovering)
+          call.answer()
+          call.handleMessage(msg)
         } else {
-          dialog.setState(State.Ringing)
+          call.setState(State.Ringing)
           this._ack(id, method)
         }
         break
@@ -80,8 +80,8 @@ class VertoHandler {
           this._handleSessionEvent(params.eventData)
         } else if (session._existsSubscription(protocol, firstValue)) {
           trigger(protocol, params, firstValue)
-        } else if (session.dialogs.hasOwnProperty(eventChannel)) {
-          session.dialogs[eventChannel].handleMessage(msg)
+        } else if (session.calls.hasOwnProperty(eventChannel)) {
+          session.calls[eventChannel].handleMessage(msg)
         } else {
           trigger(SwEvent.Notification, params, session.uuid)
         }
@@ -99,22 +99,22 @@ class VertoHandler {
     }
   }
 
-  private _retrieveDialogId(packet: any, laChannel: string) {
-    const dialogIds = Object.keys(this.session.dialogs)
+  private _retrieveCallId(packet: any, laChannel: string) {
+    const callIds = Object.keys(this.session.calls)
     if (packet.action === 'bootObj') {
-      const me = packet.data.find((pr: [string, []]) => dialogIds.includes(pr[0]))
+      const me = packet.data.find((pr: [string, []]) => callIds.includes(pr[0]))
       if (me instanceof Array) {
         return me[0]
       }
     } else {
-      return dialogIds.find((id: string) => this.session.dialogs[id].channels.includes(laChannel))
+      return callIds.find((id: string) => this.session.calls[id].channels.includes(laChannel))
     }
   }
 
   private async _handlePvtEvent(pvtData: any) {
     const { session } = this
     const protocol = session.webRtcProtocol
-    const { action, laChannel, laName, chatChannel, infoChannel, modChannel, conferenceMemberID, role, callID: dialogId } = pvtData
+    const { action, laChannel, laName, chatChannel, infoChannel, modChannel, conferenceMemberID, role, callID } = pvtData
     switch (action) {
       case 'conference-liveArray-join': {
         const _liveArrayBootstrap = () => {
@@ -124,11 +124,11 @@ class VertoHandler {
           nodeId: this.nodeId,
           channels: [laChannel],
           handler: ({ data: packet }: any) => {
-            const id = dialogId || this._retrieveDialogId(packet, laChannel)
-            if (id && session.dialogs.hasOwnProperty(id)) {
-              const dialog = session.dialogs[id]
-              dialog._addChannel(laChannel)
-              dialog.handleConferenceUpdate(packet, pvtData)
+            const id = callID || this._retrieveCallId(packet, laChannel)
+            if (id && session.calls.hasOwnProperty(id)) {
+              const call = session.calls[id]
+              call._addChannel(laChannel)
+              call.handleConferenceUpdate(packet, pvtData)
                 .then(error => {
                   if (error === 'INVALID_PACKET') {
                     _liveArrayBootstrap()
@@ -147,28 +147,28 @@ class VertoHandler {
         break
       }
       case 'conference-liveArray-part': {
-        // trigger Notification at a Dialog or Session level.
-        // deregister Notification callback at the Dialog level.
+        // trigger Notification at a Call or Session level.
+        // deregister Notification callback at the Call level.
         // Cleanup subscriptions for all channels
-        let dialog: Dialog = null
+        let call: Call = null
         if (laChannel && session._existsSubscription(protocol, laChannel)) {
-          const { dialogId = null } = session.subscriptions[protocol][laChannel]
-          dialog = session.dialogs[dialogId] || null
-          if (dialogId !== null) {
+          const { callId = null } = session.subscriptions[protocol][laChannel]
+          call = session.calls[callId] || null
+          if (callId !== null) {
             const notification = { type: NOTIFICATION_TYPE.conferenceUpdate, action: ConferenceAction.Leave, conferenceName: laName, participantId: Number(conferenceMemberID), role }
-            if (!trigger(SwEvent.Notification, notification, dialogId, false)) {
+            if (!trigger(SwEvent.Notification, notification, callId, false)) {
               trigger(SwEvent.Notification, notification, session.uuid)
             }
-            if (dialog === null) {
-              deRegister(SwEvent.Notification, null, dialogId)
+            if (call === null) {
+              deRegister(SwEvent.Notification, null, callId)
             }
           }
         }
         const channels = [laChannel, chatChannel, infoChannel, modChannel]
         session.vertoUnsubscribe({ nodeId: this.nodeId, channels })
           .then(({ unsubscribedChannels }) => {
-            if (dialog) {
-              dialog.channels = dialog.channels.filter(c => !unsubscribedChannels.includes(c))
+            if (call) {
+              call.channels = call.channels.filter(c => !unsubscribedChannels.includes(c))
             }
           })
           .catch(error => {

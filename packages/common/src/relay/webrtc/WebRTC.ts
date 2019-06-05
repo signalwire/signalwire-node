@@ -1,6 +1,6 @@
 import Relay from '../Relay'
-import { DialogOptions } from '../../util/interfaces'
-import Dialog from '../../webrtc/Dialog'
+import { CallOptions } from '../../util/interfaces'
+import Call from '../../webrtc/Call'
 import BrowserSession from '../../BrowserSession'
 import VertoHandler from '../../webrtc/VertoHandler'
 
@@ -26,15 +26,15 @@ export default class WebRTC extends Relay {
     }
   }
 
-  async newCall(params: DialogOptions) {
+  async newCall(params: CallOptions) {
     await this.Ready
 
     const { destinationNumber = null } = params
     if (!destinationNumber) {
       throw new Error('SignalWire.newCall() error: destinationNumber is required.')
     }
-    const dialog = new Dialog(this.session, params)
-    dialog.invite()
-    return dialog
+    const call = new Call(this.session, params)
+    call.invite()
+    return call
   }
 }

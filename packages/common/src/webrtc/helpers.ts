@@ -2,7 +2,7 @@ import logger from '../util/logger'
 import * as Storage from '../util/storage'
 import * as WebRTC from '../util/webrtc'
 import { isDefined } from '../util/helpers'
-import { DialogOptions, ICacheDevices } from '../util/interfaces'
+import { CallOptions, ICacheDevices } from '../util/interfaces'
 import { stopStream } from '../util/webrtc'
 
 const getUserMedia = async (constraints: MediaStreamConstraints): Promise<MediaStream | null> => {
@@ -73,7 +73,7 @@ const scanResolutions = async (deviceId: string) => {
   return supported
 }
 
-const getMediaConstraints = (options: DialogOptions): MediaStreamConstraints => {
+const getMediaConstraints = (options: CallOptions): MediaStreamConstraints => {
   let { audio = true } = options
   if (options.micId) {
     if (typeof audio === 'boolean') {

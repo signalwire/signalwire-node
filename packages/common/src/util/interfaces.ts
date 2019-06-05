@@ -82,7 +82,7 @@ export interface ISignalWireOptions {
   userVariables?: Object
 }
 
-export interface DialogOptions {
+export interface CallOptions {
   // Required
   destinationNumber: string
   remoteCallerName: string

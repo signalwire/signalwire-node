@@ -1,6 +1,6 @@
 import BrowserSession from '../../common/src/BrowserSession'
 import WebRTC from '../../common/src/relay/webrtc/WebRTC'
-import { DialogOptions } from '../../common/src/util/interfaces'
+import { CallOptions } from '../../common/src/util/interfaces'
 import logger from '../../common/src/util/logger'
 import BaseMessage from '../../common/src/messages/BaseMessage'
 import { Execute } from '../../common/src/messages/Blade'
@@ -21,12 +21,12 @@ export default class Relay extends BrowserSession {
     return super.execute(msg)
   }
 
-  async newCall(options: DialogOptions) {
-    const dialog = await this._relayInstances['webrtc'].newCall(options)
+  async newCall(options: CallOptions) {
+    const call = await this._relayInstances['webrtc'].newCall(options)
       .catch(error => {
         logger.error('Relay newCall error', error)
       })
-    return dialog
+    return call
   }
 
   protected _onSessionConnect() {

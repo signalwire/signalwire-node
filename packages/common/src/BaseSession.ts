@@ -130,7 +130,7 @@ export default abstract class BaseSession {
   }
 
   /**
-   * Remove subscriptions and dialogs, close WS connection and remove all session listeners.
+   * Remove subscriptions and calls, close WS connection and remove all session listeners.
    * @return void
    */
   async disconnect() {

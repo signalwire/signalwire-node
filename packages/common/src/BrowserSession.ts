@@ -1,10 +1,10 @@
 import BaseSession from './BaseSession'
 import Connection from './services/Connection'
-import Dialog from './webrtc/Dialog'
+import Call from './webrtc/Call'
 import { ICacheDevices, IAudioSettings, IVideoSettings, BroadcastParams, SubscribeParams } from './util/interfaces'
 import { registerOnce } from './services/Handler'
 import { SwEvent, SESSION_ID } from './util/constants'
-import { State } from './util/constants/dialog'
+import { State } from './util/constants/call'
 import { getDevices, scanResolutions, removeUnsupportedConstraints, checkDeviceIdConstraints, destructSubscribeResponse, getUserMedia } from './webrtc/helpers'
 import { findElementByType } from './util/helpers'
 import { Unsubscribe, Subscribe, Broadcast } from './messages/Verto'
@@ -12,7 +12,7 @@ import * as Storage from './util/storage/'
 import { stopStream } from './util/webrtc'
 
 export default abstract class BrowserSession extends BaseSession {
-  public dialogs: { [dialogId: string]: Dialog } = {}
+  public calls: { [callId: string]: Call } = {}
 
   private _iceServers: RTCIceServer[] = []
   private _localElement: HTMLMediaElement = null
@@ -52,11 +52,11 @@ export default abstract class BrowserSession extends BaseSession {
   }
 
   /**
-   * Disconnect all active dialogs
+   * Disconnect all active calls
    */
   async disconnect() {
-    Object.keys(this.dialogs).forEach(k => this.dialogs[k].setState(State.Purge))
-    this.dialogs = {}
+    Object.keys(this.calls).forEach(k => this.calls[k].setState(State.Purge))
+    this.calls = {}
 
     await super.disconnect()
   }

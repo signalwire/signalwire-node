@@ -3,7 +3,7 @@ import { getUserMedia, getMediaConstraints, sdpStereoHack } from './helpers'
 import { PeerType, SwEvent } from '../util/constants'
 import { attachMediaStream, sdpToJsonHack, RTCPeerConnection, streamIsValid } from '../util/webrtc'
 import { isFunction } from '../util/helpers'
-import { DialogOptions } from '../util/interfaces'
+import { CallOptions } from '../util/interfaces'
 import { trigger } from '../services/Handler'
 
 export default class Peer {
@@ -12,7 +12,7 @@ export default class Peer {
   private _constraints: { offerToReceiveAudio: boolean, offerToReceiveVideo: boolean }
   private _negotiating: boolean = false
 
-  constructor(public type: PeerType, private options: DialogOptions) {
+  constructor(public type: PeerType, private options: CallOptions) {
     logger.info('New Peer with type:', this.type, 'Options:', this.options)
 
     this._constraints = { offerToReceiveAudio: true, offerToReceiveVideo: true }

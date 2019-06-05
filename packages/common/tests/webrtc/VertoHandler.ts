@@ -1,7 +1,7 @@
 import BrowserSession from '../../src/BrowserSession'
 import VertoHandler from '../../../common/src/webrtc/VertoHandler'
-import Dialog from '../../../common/src/webrtc/Dialog'
-import { State } from '../../src/util/constants/dialog'
+import Call from '../../../common/src/webrtc/Call'
+import { State } from '../../src/util/constants/call'
 const Connection = require('../../../common/src/services/Connection')
 
 export default (klass: any) => {
@@ -9,11 +9,11 @@ export default (klass: any) => {
   describe('VertoHandler', () => {
     let instance: BrowserSession
     let handler: VertoHandler
-    let dialog: Dialog
+    let call: Call
     const onNotification = jest.fn()
 
-    const _setupDialog = (params: any = {}) => {
-      dialog = new Dialog(instance, { ...DEFAULT_PARAMS, ...params })
+    const _setupCall = (params: any = {}) => {
+      call = new Call(instance, { ...DEFAULT_PARAMS, ...params })
     }
 
     beforeEach(() => {
@@ -25,7 +25,7 @@ export default (klass: any) => {
 
     afterEach(() => {
       instance.off('signalwire.notification')
-      Object.keys(instance.dialogs).forEach(k => instance.dialogs[k].setState(State.Purge))
+      Object.keys(instance.calls).forEach(k => instance.calls[k].setState(State.Purge))
     })
 
     describe('verto.punt', () => {
@@ -38,42 +38,42 @@ export default (klass: any) => {
     })
 
     describe('verto.invite', () => {
-      it('should create a new Dialog in ringing state', async done => {
+      it('should create a new Call in ringing state', async done => {
         await instance.connect()
-        const dialogId = 'cd35e65f-a507-4bd2-8d21-80f36d134a2e'
-        const msg = JSON.parse(`{"jsonrpc":"2.0","id":4402,"method":"verto.invite","params":{"callID":"${dialogId}","sdp":"SDP","caller_id_name":"Extension 1004","caller_id_number":"1004","callee_id_name":"Outbound Call","callee_id_number":"1003","display_direction":"outbound"}}`)
+        const callId = 'cd35e65f-a507-4bd2-8d21-80f36d134a2e'
+        const msg = JSON.parse(`{"jsonrpc":"2.0","id":4402,"method":"verto.invite","params":{"callID":"${callId}","sdp":"SDP","caller_id_name":"Extension 1004","caller_id_number":"1004","callee_id_name":"Outbound Call","callee_id_number":"1003","display_direction":"outbound"}}`)
         handler.handleMessage(msg)
-        expect(instance.dialogs).toHaveProperty(dialogId)
-        expect(instance.dialogs[dialogId].id).toEqual(dialogId)
-        expect(instance.dialogs[dialogId].state).toEqual('ringing')
-        expect(instance.dialogs[dialogId].prevState).toEqual('new')
+        expect(instance.calls).toHaveProperty(callId)
+        expect(instance.calls[callId].id).toEqual(callId)
+        expect(instance.calls[callId].state).toEqual('ringing')
+        expect(instance.calls[callId].prevState).toEqual('new')
         done()
       })
     })
 
-    describe('with an active outbound Dialog', () => {
+    describe('with an active outbound Call', () => {
       beforeEach(async done => {
         await instance.connect()
-        _setupDialog({ id: 'e2fda6dc-fc9d-4d77-8096-53bb502443b6' })
-        dialog.handleMessage = jest.fn()
+        _setupCall({ id: 'e2fda6dc-fc9d-4d77-8096-53bb502443b6' })
+        call.handleMessage = jest.fn()
         Connection.mockSend.mockClear()
         done()
       })
 
       describe('verto.media', () => {
-        it('should pass the msg to the dialog and reply back to the server', () => {
+        it('should pass the msg to the call and reply back to the server', () => {
           const msg = JSON.parse('{"jsonrpc":"2.0","id":4403,"method":"verto.media","params":{"callID":"e2fda6dc-fc9d-4d77-8096-53bb502443b6","sdp":"<REMOTE-SDP>"}}')
           handler.handleMessage(msg)
-          expect(dialog.handleMessage).toBeCalledTimes(1)
+          expect(call.handleMessage).toBeCalledTimes(1)
           expect(Connection.mockSend).toHaveBeenLastCalledWith({ request: { jsonrpc: '2.0', id: 4403, result: { method: 'verto.media' } } })
         })
       })
 
       describe('verto.answer', () => {
-        it('should pass the msg to the dialog and reply back to the server', () => {
+        it('should pass the msg to the call and reply back to the server', () => {
           const msg = JSON.parse('{"jsonrpc":"2.0","id":4404,"method":"verto.answer","params":{"callID":"e2fda6dc-fc9d-4d77-8096-53bb502443b6"}}')
           handler.handleMessage(msg)
-          expect(dialog.handleMessage).toBeCalledTimes(1)
+          expect(call.handleMessage).toBeCalledTimes(1)
           expect(Connection.mockSend).toHaveBeenLastCalledWith({ request: { jsonrpc: '2.0', id: 4404, result: { method: 'verto.answer' } } })
         })
       })

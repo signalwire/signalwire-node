@@ -5,25 +5,25 @@ import BaseMessage from '../messages/BaseMessage'
 import { Invite, Answer, Attach, Bye, Modify, Info } from '../messages/Verto'
 import Peer from './Peer'
 import { PeerType, VertoMethod, SwEvent, NOTIFICATION_TYPE, Direction } from '../util/constants'
-import { State, DEFAULT_DIALOG_OPTIONS, ConferenceAction, Role } from '../util/constants/dialog'
+import { State, DEFAULT_CALL_OPTIONS, ConferenceAction, Role } from '../util/constants/call'
 import { trigger, register, deRegister } from '../services/Handler'
 import { sdpStereoHack, sdpMediaOrderHack, checkSubscribeResponse } from './helpers'
 import { objEmpty, mutateLiveArrayData, isFunction } from '../util/helpers'
-import { DialogOptions } from '../util/interfaces'
-import { attachMediaStream, detachMediaStream, sdpToJsonHack, streamIsValid, stopStream, getDisplayMedia } from '../util/webrtc'
+import { CallOptions } from '../util/interfaces'
+import { attachMediaStream, detachMediaStream, sdpToJsonHack, stopStream, getDisplayMedia } from '../util/webrtc'
 
-export default class Dialog {
+export default class Call {
   public id: string = ''
   public state: string = State[State.New]
   public prevState: string = ''
   public direction: Direction
   public peer: Peer
-  public options: DialogOptions
+  public options: CallOptions
   public cause: string
   public causeCode: number
   public channels: string[] = []
   public role: string = Role.Participant
-  public screenShare: Dialog
+  public screenShare: Call
 
   private _state: State = State.New
   private _prevState: State = State.New
@@ -35,9 +35,9 @@ export default class Dialog {
   private _iceDone: boolean = false
   private _statsInterval: any = null
 
-  constructor(private session: BrowserSession, opts?: DialogOptions) {
+  constructor(private session: BrowserSession, opts?: CallOptions) {
     const { iceServers, localElement, remoteElement, mediaConstraints: { audio, video } } = session
-    this.options = Object.assign({}, DEFAULT_DIALOG_OPTIONS, { audio, video, iceServers, localElement, remoteElement }, opts)
+    this.options = Object.assign({}, DEFAULT_CALL_OPTIONS, { audio, video, iceServers, localElement, remoteElement }, opts)
 
     this._onMediaError = this._onMediaError.bind(this)
     this._init()
@@ -127,7 +127,7 @@ export default class Dialog {
     this._execute(info)
   }
 
-  async startScreenShare(opts?: DialogOptions) {
+  async startScreenShare(opts?: CallOptions) {
     const displayStream: MediaStream = await getDisplayMedia({ video: true })
     displayStream.getTracks().forEach(t => {
       t.addEventListener('ended', () => {
@@ -137,7 +137,7 @@ export default class Dialog {
       })
     })
     const { destinationNumber, remoteCallerName, remoteCallerNumber, callerName, callerNumber } = this.options
-    const options: DialogOptions = {
+    const options: CallOptions = {
       screenShare: true,
       localStream: displayStream,
       destinationNumber: `${destinationNumber}-screen`,
@@ -147,7 +147,7 @@ export default class Dialog {
       callerNumber: `${callerNumber} (Screen)`,
       ...opts
     }
-    this.screenShare = new Dialog(this.session, options)
+    this.screenShare = new Call(this.session, options)
     this.screenShare.invite()
     return this.screenShare
   }
@@ -159,7 +159,7 @@ export default class Dialog {
   }
 
   get screenShareActive() {
-    return this.screenShare && this.screenShare instanceof Dialog
+    return this.screenShare && this.screenShare instanceof Call
   }
 
   set audioState(what: boolean | string) {
@@ -234,13 +234,13 @@ export default class Dialog {
     this._state = state
     this.state = State[this._state].toLowerCase()
     this.prevState = State[this._prevState].toLowerCase()
-    logger.info(`Dialog ${this.id} state change from ${this.prevState} to ${this.state}`)
+    logger.info(`Call ${this.id} state change from ${this.prevState} to ${this.state}`)
 
-    this._dispatchNotification({ type: NOTIFICATION_TYPE.dialogUpdate, dialog: this })
+    this._dispatchNotification({ type: NOTIFICATION_TYPE.callUpdate, call: this })
 
     switch (state) {
       case State.Purge:
-        this.hangup({ cause: 'PURGE_DIALOGS', causeCode: '01' }, false)
+        this.hangup({ cause: 'PURGE', causeCode: '01' }, false)
         break
       case State.Destroy:
         this._finalize()
@@ -277,7 +277,7 @@ export default class Dialog {
       case VertoMethod.Event:
       case VertoMethod.Attach: {
         const type = NOTIFICATION_TYPE.hasOwnProperty(method) ? NOTIFICATION_TYPE[method] : NOTIFICATION_TYPE.generic
-        const notification = { ...params, type, dialog: this }
+        const notification = { ...params, type, call: this }
         if (notification.hasOwnProperty('sdp')) {
           delete notification.sdp
         }
@@ -348,7 +348,7 @@ export default class Dialog {
     const protocol = this.session.webRtcProtocol
     if (this.session._existsSubscription(protocol, channel)) {
       this.session.subscriptions[protocol][channel] = {
-        ...this.session.subscriptions[protocol][channel], dialogId: this.id
+        ...this.session.subscriptions[protocol][channel], callId: this.id
       }
     }
   }
@@ -592,7 +592,7 @@ export default class Dialog {
   }
 
   private _handleChangeHoldStateError(error) {
-    logger.error(`Failed to ${error.action} dialog ${this.id}`)
+    logger.error(`Failed to ${error.action} on call ${this.id}`)
     return false
   }
 
@@ -612,7 +612,7 @@ export default class Dialog {
         }
       })
       .catch(error => {
-        logger.error('Dialog setRemoteDescription Error: ', error)
+        logger.error('Call setRemoteDescription Error: ', error)
         this.hangup()
       })
   }
@@ -711,7 +711,7 @@ export default class Dialog {
   }
 
   private _dispatchConferenceUpdate(params: any) {
-    this._dispatchNotification({ type: NOTIFICATION_TYPE.conferenceUpdate, dialog: this, ...params })
+    this._dispatchNotification({ type: NOTIFICATION_TYPE.conferenceUpdate, call: this, ...params })
   }
 
   private _dispatchNotification(notification: any) {
@@ -742,7 +742,7 @@ export default class Dialog {
       this.options.remoteCallerNumber = this.options.destinationNumber
     }
     this.id = this.options.id
-    this.session.dialogs[this.id] = this
+    this.session.calls[this.id] = this
 
     // Register Handlers
     register(SwEvent.MediaError, this._onMediaError, this.id)
@@ -751,7 +751,7 @@ export default class Dialog {
     }
 
     this.setState(State.New)
-    logger.info('New Dialog with Options:', this.options)
+    logger.info('New Call with Options:', this.options)
   }
 
   private _finalize() {
@@ -765,8 +765,8 @@ export default class Dialog {
     this._stats(false)
     deRegister(SwEvent.MediaError, null, this.id)
     this.peer = null
-    this.session.dialogs[this.id] = null
-    delete this.session.dialogs[this.id]
+    this.session.calls[this.id] = null
+    delete this.session.calls[this.id]
   }
 
   private _stats(what: boolean = true) {

@@ -1,12 +1,12 @@
 import { isQueued } from '../../../common/src/services/Handler'
-import { State } from '../../../common/src/util/constants/dialog'
-import Dialog from '../../src/webrtc/Dialog'
+import { State } from '../../../common/src/util/constants/call'
+import Call from '../../src/webrtc/Call'
 import Verto from '../../../js/src/Verto'
 const Connection = require('../../../common/src/services/Connection')
 
-describe('Dialog', () => {
+describe('Call', () => {
   let session: Verto
-  let dialog: Dialog
+  let call: Call
   const defaultParams = {
     destinationNumber: 'x3599',
     remoteCallerName: 'Js Client Test',
@@ -19,106 +19,106 @@ describe('Dialog', () => {
   beforeEach(async done => {
     session = new Verto({ host: 'example.fs.edo', login: 'login', passwd: 'passwd' })
     await session.connect().catch(console.error)
-    dialog = new Dialog(session, defaultParams)
+    call = new Call(session, defaultParams)
     done()
   })
 
   describe('with required parameters', () => {
     it('should instantiate the default listeners', () => {
-      expect(isQueued('signalwire.rtc.mediaError', dialog.id)).toEqual(true)
-      expect(dialog.state).toEqual('new')
-      expect(session.dialogs).toHaveProperty(dialog.id)
+      expect(isQueued('signalwire.rtc.mediaError', call.id)).toEqual(true)
+      expect(call.state).toEqual('new')
+      expect(session.calls).toHaveProperty(call.id)
     })
   })
 
   describe('specifying an ID', () => {
-    it('should use the ID as dialogId', () => {
-      dialog = new Dialog(session, { ...defaultParams, id: 'test-id-example' })
-      expect(dialog.id).toEqual('test-id-example')
-      expect(session.dialogs).toHaveProperty('test-id-example')
+    it('should use the ID as callId', () => {
+      call = new Call(session, { ...defaultParams, id: 'test-id-example' })
+      expect(call.id).toEqual('test-id-example')
+      expect(session.calls).toHaveProperty('test-id-example')
     })
   })
 
   describe('specifying onNotification callback', () => {
     it('should set a listener for the notifications', () => {
-      dialog = new Dialog(session, { ...defaultParams, onNotification: noop })
-      expect(isQueued('signalwire.notification', dialog.id)).toEqual(true)
+      call = new Call(session, { ...defaultParams, onNotification: noop })
+      expect(isQueued('signalwire.notification', call.id)).toEqual(true)
     })
   })
 
   describe('.setState()', () => {
     beforeEach(() => {
-      dialog = new Dialog(session, { ...defaultParams, onNotification: noop })
-      expect(dialog.prevState).toEqual(dialog.state)
+      call = new Call(session, { ...defaultParams, onNotification: noop })
+      expect(call.prevState).toEqual(call.state)
     })
 
     it('set state to Requesting', () => {
-      dialog.setState(State.Requesting)
-      expect(dialog.state).toEqual('requesting')
+      call.setState(State.Requesting)
+      expect(call.state).toEqual('requesting')
     })
 
     it('set state to Trying', () => {
-      dialog.setState(State.Trying)
-      expect(dialog.state).toEqual('trying')
+      call.setState(State.Trying)
+      expect(call.state).toEqual('trying')
     })
 
     it('set state to Recovering', () => {
-      dialog.setState(State.Recovering)
-      expect(dialog.state).toEqual('recovering')
+      call.setState(State.Recovering)
+      expect(call.state).toEqual('recovering')
     })
 
     it('set state to Ringing', () => {
-      dialog.setState(State.Ringing)
-      expect(dialog.state).toEqual('ringing')
+      call.setState(State.Ringing)
+      expect(call.state).toEqual('ringing')
     })
 
     it('set state to Answering', () => {
-      dialog.setState(State.Answering)
-      expect(dialog.state).toEqual('answering')
+      call.setState(State.Answering)
+      expect(call.state).toEqual('answering')
     })
 
     it('set state to Early', () => {
-      dialog.setState(State.Early)
-      expect(dialog.state).toEqual('early')
+      call.setState(State.Early)
+      expect(call.state).toEqual('early')
     })
 
     it('set state to Active', () => {
-      dialog.setState(State.Active)
-      expect(dialog.state).toEqual('active')
+      call.setState(State.Active)
+      expect(call.state).toEqual('active')
     })
 
     it('set state to Held', () => {
-      dialog.setState(State.Held)
-      expect(dialog.state).toEqual('held')
+      call.setState(State.Held)
+      expect(call.state).toEqual('held')
     })
 
     it('set state to Hangup', () => {
-      dialog.setState(State.Hangup)
-      expect(dialog.state).toEqual('hangup')
+      call.setState(State.Hangup)
+      expect(call.state).toEqual('hangup')
     })
 
     it('set state to Destroy', () => {
-      dialog.setState(State.Destroy)
-      expect(dialog.state).toEqual('destroy')
-      expect(session.dialogs).not.toHaveProperty(dialog.id)
-      expect(isQueued('signalwire.rtc.mediaError', dialog.id)).toEqual(false)
+      call.setState(State.Destroy)
+      expect(call.state).toEqual('destroy')
+      expect(session.calls).not.toHaveProperty(call.id)
+      expect(isQueued('signalwire.rtc.mediaError', call.id)).toEqual(false)
 
     })
 
     it('set state to Purge', () => {
-      dialog.setState(State.Purge)
-      expect(dialog.state).toEqual('destroy')
-      expect(session.dialogs).not.toHaveProperty(dialog.id)
-      expect(isQueued('signalwire.rtc.mediaError', dialog.id)).toEqual(false)
+      call.setState(State.Purge)
+      expect(call.state).toEqual('destroy')
+      expect(session.calls).not.toHaveProperty(call.id)
+      expect(isQueued('signalwire.rtc.mediaError', call.id)).toEqual(false)
     })
 
     it('set prevState', () => {
-      dialog.setState(State.Ringing)
-      expect(dialog.prevState).toEqual('new')
-      dialog.setState(State.Active)
-      expect(dialog.prevState).toEqual('ringing')
-      dialog.setState(State.Hangup)
-      expect(dialog.prevState).toEqual('active')
+      call.setState(State.Ringing)
+      expect(call.prevState).toEqual('new')
+      call.setState(State.Active)
+      expect(call.prevState).toEqual('ringing')
+      call.setState(State.Hangup)
+      expect(call.prevState).toEqual('active')
     })
   })
 
@@ -135,35 +135,35 @@ describe('Dialog', () => {
     let pvtData = JSON.parse('{"action":"conference-liveArray-join","laChannel":"conference-liveArray-channel","laName":"3599","role":"participant","chatID":"conf+3599@188.166.44.156","conferenceMemberID":"67","canvasCount":1,"chatChannel":"conference-chat-channel","infoChannel":"conference-info-channel"}')
 
     beforeEach(() => {
-      dialog = new Dialog(session, { ...defaultParams, onNotification })
+      call = new Call(session, { ...defaultParams, onNotification })
     })
 
     describe('on bootObj', () => {
       const packet = JSON.parse('{"action":"bootObj","name":"3599","wireSerno":-1,"data":[["ab077699-540b-c370-fc74-62d5a6d4f300",["0067","email@test.com","Jest client JS","opus@48000","{\\"audio\\":{\\"muted\\":false,\\"deaf\\":false,\\"onHold\\":false,\\"talking\\":false,\\"floor\\":true,\\"energyScore\\":16},\\"video\\":{\\"visible\\":true,\\"videoOnly\\":false,\\"avatarPresented\\":false,\\"mediaFlow\\":\\"sendRecv\\",\\"muted\\":false,\\"floor\\":true,\\"reservationID\\":null,\\"roleID\\":null,\\"videoLayerID\\":1},\\"oldStatus\\":\\"FLOOR VIDEO (FLOOR)\\"}",{"email":"email@test.com","avatar":"avatar"},null]],["3327dda8-b7c6-482c-b692-8f0d8c6d911f",["0069","edoardo@signalwire.com","SW JS client","opus@48000","{\\"audio\\":{\\"muted\\":false,\\"deaf\\":false,\\"onHold\\":false,\\"talking\\":false,\\"floor\\":false,\\"energyScore\\":0},\\"video\\":{\\"visible\\":true,\\"videoOnly\\":false,\\"avatarPresented\\":false,\\"mediaFlow\\":\\"sendRecv\\",\\"muted\\":false,\\"floor\\":false,\\"reservationID\\":null,\\"roleID\\":null,\\"videoLayerID\\":0},\\"oldStatus\\":\\"ACTIVE VIDEO\\"}",{},null]]]}')
       it('should setup liveArray as a participant', async done => {
         _mockResponse()
-        await dialog.handleConferenceUpdate(packet, pvtData)
+        await call.handleConferenceUpdate(packet, pvtData)
         const channels = ['conference-chat-channel', 'conference-info-channel']
         const subs = Object.keys(session.subscriptions[session.webRtcProtocol])
         expect(subs).toEqual(expect.arrayContaining(channels))
-        expect(dialog.channels.sort()).toEqual(channels.sort())
-        expect(dialog).toHaveProperty('hangup')
-        expect(dialog).toHaveProperty('sendChatMessage')
+        expect(call.channels.sort()).toEqual(channels.sort())
+        expect(call).toHaveProperty('hangup')
+        expect(call).toHaveProperty('sendChatMessage')
         done()
       })
 
       it('should setup liveArray as a moderator with modChannel', async done => {
         _mockResponse(true)
         pvtData = JSON.parse('{"action":"conference-liveArray-join","laChannel":"conference-liveArray-channel","laName":"3599","role":"moderator","chatID":"conf+3599@188.166.44.156","conferenceMemberID":"80","canvasCount":1,"modChannel":"conference-mod-channel","chatChannel":"conference-chat-channel","infoChannel":"conference-info-channel"}')
-        await dialog.handleConferenceUpdate(packet, pvtData)
+        await call.handleConferenceUpdate(packet, pvtData)
         const channels = ['conference-chat-channel', 'conference-info-channel', 'conference-mod-channel']
         const subs = Object.keys(session.subscriptions[session.webRtcProtocol])
         expect(subs).toEqual(expect.arrayContaining(channels))
-        expect(dialog.channels.sort()).toEqual(channels.sort())
-        expect(dialog).toHaveProperty('sendChatMessage')
-        expect(dialog).toHaveProperty('kick')
-        expect(dialog).toHaveProperty('listVideoLayouts')
-        expect(dialog.role).toEqual('moderator')
+        expect(call.channels.sort()).toEqual(channels.sort())
+        expect(call).toHaveProperty('sendChatMessage')
+        expect(call).toHaveProperty('kick')
+        expect(call).toHaveProperty('listVideoLayouts')
+        expect(call.role).toEqual('moderator')
         done()
       })
     })
@@ -171,10 +171,10 @@ describe('Dialog', () => {
     describe('on add', () => {
       const packet = JSON.parse('{"action":"add","arrIndex":1,"name":"3599","hashKey":"19e4f1b5-17a9-9456-b117-57f6bb114ce3","wireSerno":8,"data":["0069","1011","User","opus@48000","{\\"audio\\":{\\"muted\\":false,\\"deaf\\":false,\\"onHold\\":false,\\"talking\\":false,\\"floor\\":false,\\"energyScore\\":0},\\"video\\":{\\"visible\\":false,\\"videoOnly\\":false,\\"avatarPresented\\":false,\\"mediaFlow\\":\\"sendRecv\\",\\"muted\\":false,\\"floor\\":false,\\"reservationID\\":null,\\"videoLayerID\\":-1},\\"oldStatus\\":\\"ACTIVE VIDEO\\"}",{},null]}')
       it('should dispatch a structured notification', async done => {
-        await dialog.handleConferenceUpdate(packet, pvtData)
+        await call.handleConferenceUpdate(packet, pvtData)
         expect(onNotification).toHaveBeenLastCalledWith({
           type: 'conferenceUpdate',
-          dialog,
+          call,
           action: 'add',
           callId: '19e4f1b5-17a9-9456-b117-57f6bb114ce3',
           index: 1,
@@ -196,10 +196,10 @@ describe('Dialog', () => {
     describe('on modify', () => {
       const packet = JSON.parse('{"action":"modify","name":"3599","hashKey":"255c02a2-7387-a25e-7862-bdfccfee8c4e","wireSerno":6,"data":["0068","1011","User","opus@48000","{\\"audio\\":{\\"muted\\":false,\\"deaf\\":false,\\"onHold\\":false,\\"talking\\":true,\\"floor\\":true,\\"energyScore\\":736},\\"video\\":{\\"visible\\":true,\\"videoOnly\\":false,\\"avatarPresented\\":false,\\"mediaFlow\\":\\"sendRecv\\",\\"muted\\":false,\\"floor\\":true,\\"floorLocked\\":true,\\"reservationID\\":null,\\"videoLayerID\\":0},\\"oldStatus\\":\\"TALKING (FLOOR) VIDEO (FLOOR)\\"}",{},null]}')
       it('should dispatch a structured notification', async done => {
-        await dialog.handleConferenceUpdate(packet, pvtData)
+        await call.handleConferenceUpdate(packet, pvtData)
         expect(onNotification).toHaveBeenLastCalledWith({
           type: 'conferenceUpdate',
-          dialog,
+          call,
           action: 'modify',
           callId: '255c02a2-7387-a25e-7862-bdfccfee8c4e',
           index: undefined,
@@ -221,10 +221,10 @@ describe('Dialog', () => {
     describe('on del', () => {
       const packet = JSON.parse('{"name":"3599","action":"del","hashKey":"f9ea4d7e-d55e-7dce-0cc2-ae48ec33abce","wireSerno":11,"data":["0083","email@test.com","Jest client JS","opus@48000","{\\"audio\\":{\\"muted\\":false,\\"deaf\\":false,\\"onHold\\":false,\\"talking\\":false,\\"floor\\":false,\\"energyScore\\":0},\\"video\\":{\\"visible\\":false,\\"videoOnly\\":false,\\"avatarPresented\\":false,\\"mediaFlow\\":\\"sendRecv\\",\\"muted\\":false,\\"floor\\":false,\\"reservationID\\":null,\\"roleID\\":null,\\"videoLayerID\\":-1},\\"oldStatus\\":\\"ACTIVE VIDEO\\"}",{"email":"email@test.com","avatar":"avatar"},null]}')
       it('should do something', async done => {
-        await dialog.handleConferenceUpdate(packet, pvtData)
+        await call.handleConferenceUpdate(packet, pvtData)
         expect(onNotification).toHaveBeenLastCalledWith({
           type: 'conferenceUpdate',
-          dialog,
+          call,
           action: 'delete',
           callId: 'f9ea4d7e-d55e-7dce-0cc2-ae48ec33abce',
           index: undefined,
@@ -249,82 +249,82 @@ describe('Dialog', () => {
     describe('on clear', () => {
       const packet = JSON.parse('{"action":"clear","name":"3599","wireSerno":-1,"data":{}}')
       it('should dispatch a very simple notification', async done => {
-        await dialog.handleConferenceUpdate(packet, pvtData)
-        expect(onNotification).toHaveBeenLastCalledWith(expect.objectContaining({ type: 'conferenceUpdate', action: 'clear', dialog }))
+        await call.handleConferenceUpdate(packet, pvtData)
+        expect(onNotification).toHaveBeenLastCalledWith(expect.objectContaining({ type: 'conferenceUpdate', action: 'clear', call }))
         done()
       })
     })
   })
 
   describe('.hold()', () => {
-    it('should change the dialog state', async done => {
+    it('should change the call state', async done => {
       Connection.mockResponse.mockImplementationOnce(() => JSON.parse('{"jsonrpc":"2.0","id":"3a42b89f-3c37-4e5f-874f-ac8a9c021c9d","result":{"callID":"f5552e28-405a-4ebc-93f3-355b01e2df4e","action":"hold","holdState":"held","sessid":"sessid"}}'))
-      await dialog.hold()
-      expect(dialog.state).toEqual('held')
+      await call.hold()
+      expect(call.state).toEqual('held')
       done()
     })
   })
 
   describe('.unhold()', () => {
-    it('should change the dialog state', async done => {
+    it('should change the call state', async done => {
       Connection.mockResponse.mockImplementationOnce(() => JSON.parse('{"jsonrpc":"2.0","id":"a8dcd71d-d473-4d43-b517-87b175ba7ed7","result":{"callID":"f5552e28-405a-4ebc-93f3-355b01e2df4e","action":"unhold","holdState":"active","sessid":"sessid"}}'))
-      await dialog.unhold()
-      expect(dialog.state).toEqual('active')
+      await call.unhold()
+      expect(call.state).toEqual('active')
       done()
     })
   })
 
   describe('.toggleHold()', () => {
-    it('should change the dialog state', async done => {
+    it('should change the call state', async done => {
       Connection.mockResponse.mockImplementationOnce(() => JSON.parse('{"jsonrpc":"2.0","id":"61a9d32b-d241-40d1-87b0-0d8384936ae8","result":{"callID":"f5552e28-405a-4ebc-93f3-355b01e2df4e","action":"toggleHold","holdState":"held","sessid":"sessid"}}'))
-      await dialog.toggleHold()
-      expect(dialog.state).toEqual('held')
+      await call.toggleHold()
+      expect(call.state).toEqual('held')
 
       Connection.mockResponse.mockImplementationOnce(() => JSON.parse('{"jsonrpc":"2.0","id":"a8dcd71d-d473-4d43-b517-87b175ba7ed7","result":{"callID":"f5552e28-405a-4ebc-93f3-355b01e2df4e","action":"toggleHold","holdState":"active","sessid":"sessid"}}'))
-      await dialog.toggleHold()
-      expect(dialog.state).toEqual('active')
+      await call.toggleHold()
+      expect(call.state).toEqual('active')
       done()
     })
   })
 
   describe('.hangup()', () => {
-    it('should change the dialog state and send verto.bye with execute true', () => {
+    it('should change the call state and send verto.bye with execute true', () => {
       Connection.mockSend.mockClear()
-      dialog.hangup({ cause: 'T01', causeCode: 'Test01' })
-      expect(dialog.state).toEqual('hangup')
-      expect(dialog.cause).toEqual('T01')
-      expect(dialog.causeCode).toEqual('Test01')
+      call.hangup({ cause: 'T01', causeCode: 'Test01' })
+      expect(call.state).toEqual('hangup')
+      expect(call.cause).toEqual('T01')
+      expect(call.causeCode).toEqual('Test01')
       expect(Connection.mockSend).toHaveBeenCalledTimes(1)
     })
 
-    it('should change the dialog state and not send verto.bye with execute false', () => {
+    it('should change the call state and not send verto.bye with execute false', () => {
       Connection.mockSend.mockClear()
-      dialog.hangup({ cause: 'T01', causeCode: 'Test01' }, false)
-      expect(dialog.state).toEqual('destroy')
-      expect(dialog.cause).toEqual('T01')
-      expect(dialog.causeCode).toEqual('Test01')
+      call.hangup({ cause: 'T01', causeCode: 'Test01' }, false)
+      expect(call.state).toEqual('destroy')
+      expect(call.cause).toEqual('T01')
+      expect(call.causeCode).toEqual('Test01')
       expect(Connection.mockSend).not.toHaveBeenCalled()
     })
 
     it('should hangup SS if present', async done => {
       Connection.mockSend.mockClear()
-      const ss = await dialog.startScreenShare()
+      const ss = await call.startScreenShare()
       ss.hangup = jest.fn()
-      dialog.hangup()
-      expect(dialog.state).toEqual('hangup')
+      call.hangup()
+      expect(call.state).toEqual('hangup')
       expect(ss.hangup).toHaveBeenCalledTimes(1)
       done()
     })
   })
 
   describe('.startScreenShare()', () => {
-    it('should attach a new screenShareDialog to the originator', async done => {
-      const ss = await dialog.startScreenShare()
-      expect(ss).toEqual(dialog.screenShare)
-      expect(ss.options.destinationNumber).toEqual(dialog.options.destinationNumber + '-screen')
+    it('should attach a new screenShareCall to the originator', async done => {
+      const ss = await call.startScreenShare()
+      expect(ss).toEqual(call.screenShare)
+      expect(ss.options.destinationNumber).toEqual(call.options.destinationNumber + '-screen')
       expect(ss.options.screenShare).toEqual(true)
       expect(ss.peer.type).toEqual('offer')
-      expect(ss).toBeInstanceOf(Dialog)
+      expect(ss).toBeInstanceOf(Call)
 
       done()
     })
@@ -332,10 +332,10 @@ describe('Dialog', () => {
 
   describe('.stopScreenShare()', () => {
     it('should hangup screenShare if present', async done => {
-      const ss = await dialog.startScreenShare()
+      const ss = await call.startScreenShare()
       ss.hangup = jest.fn()
 
-      dialog.stopScreenShare()
+      call.stopScreenShare()
 
       expect(ss.hangup).toHaveBeenCalledTimes(1)
       done()

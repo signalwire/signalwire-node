@@ -1,9 +1,11 @@
-# Signalwire Verto Vanilla Demo
+# Signalwire Vanilla Demo
 
-Copy `../../dist/es5/bundle.js` to here or do a symbol link if you are on `*nix`.
+From the root of `signalwire-node` run:
 
-`ln -sf ../../dist/es5/bundle.js .`
+```sh
+npm run setup js
+cd packages/js
+npm run watch-es5
+```
 
-open index.html in your browser.
-
-Check instructions in index.html for more information.
+and then visit [localhost:9000](https://localhost:9000/).

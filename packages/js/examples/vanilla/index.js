@@ -6,7 +6,6 @@ var password = localStorage.getItem('verto.example.password') || '1234';
 var domain = localStorage.getItem('verto.example.domain') || window.location.hostname;
 var resource = localStorage.getItem('verto.example.resource') || 'test';
 var host = localStorage.getItem('verto.example.host') || window.location.host;
-var client = localStorage.getItem('verto.example.client') || 'sw';
 var number = localStorage.getItem('verto.example.number') || '9196';
 var audio = localStorage.getItem('verto.example.audio') || '1';
 var video = localStorage.getItem('verto.example.video') || '1';
@@ -18,7 +17,6 @@ ready(function() {
   document.getElementById('resource').value = resource;
   document.getElementById('host').value = host;
   document.getElementById('number').value = number;
-  document.getElementById('client_' + client).checked = true;
   document.getElementById('audio').checked = audio === '1';
   document.getElementById('video').checked = video === '1';
 });
@@ -34,12 +32,9 @@ function connect() {
   resource = document.getElementById('resource').value;
   username = document.getElementById('username').value;
   password = document.getElementById('password').value;
-  client = document.querySelector('input[name="client"]:checked').value;
   login = username + '@' + domain;
 
-  var klass = client === 'sw' ? Relay : Verto
-
-  client = new klass({
+  client = new Relay({
     host: host,
     login: login,
     password: password,
@@ -200,28 +195,10 @@ function handleConferenceUpdate(notification) {
 }
 
 function makeCall() {
-  var resource = document.getElementById('resource').value;
-  var domain = document.getElementById('domain').value;
   const params = {
-    // Required:
-    destinationNumber: document.getElementById('number').value,
-    remoteCallerName: 'Joe Example',
-    remoteCallerNumber: 'joe@example.com',
-    callerName: resource,
-    callerNumber: resource + '@' + domain,
-
-    // Optional:
-    // localStream: MediaStream, // Use this stream instead of retrieving a new one. Useful if you have a stream from a canvas.captureStream() or from a screen share extension.
+    destinationNumber: document.getElementById('number').value, // required!
     audio: document.getElementById('audio').checked,
     video: document.getElementById('video').checked,
-    // iceServers: true || false || RTCIceServer[], // https://developer.mozilla.org/en-US/docs/Web/API/RTCIceServer
-    // useStereo: true || false,
-    // micId: '<deviceUUID>', // Microphone device ID
-    // camId: '<deviceUUID>', // Webcam device ID
-    userVariables: {
-      // General user variables.. email/username
-    },
-    onNotification: handleNotification
   }
 
   cur_call = client.newCall(params);

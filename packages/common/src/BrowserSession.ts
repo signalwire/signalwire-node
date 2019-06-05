@@ -1,14 +1,15 @@
 import BaseSession from './BaseSession'
 import Connection from './services/Connection'
 import Dialog from './webrtc/Dialog'
-import { ICacheDevices, IAudioSettings, IVideoSettings, BroadcastParams, SubscribeParams, ICacheResolution } from './util/interfaces'
-import { trigger, registerOnce } from './services/Handler'
-import { SwEvent, NOTIFICATION_TYPE, SESSION_ID } from './util/constants'
+import { ICacheDevices, IAudioSettings, IVideoSettings, BroadcastParams, SubscribeParams } from './util/interfaces'
+import { registerOnce } from './services/Handler'
+import { SwEvent, SESSION_ID } from './util/constants'
 import { State } from './util/constants/dialog'
-import { getDevices, getResolutions, checkPermissions, removeUnsupportedConstraints, checkDeviceIdConstraints, destructSubscribeResponse } from './webrtc/helpers'
+import { getDevices, scanResolutions, removeUnsupportedConstraints, checkDeviceIdConstraints, destructSubscribeResponse, getUserMedia } from './webrtc/helpers'
 import { findElementByType } from './util/helpers'
 import { Unsubscribe, Subscribe, Broadcast } from './messages/Verto'
 import * as Storage from './util/storage/'
+import { stopStream } from './util/webrtc'
 
 export default abstract class BrowserSession extends BaseSession {
   public dialogs: { [dialogId: string]: Dialog } = {}
@@ -20,20 +21,26 @@ export default abstract class BrowserSession extends BaseSession {
   protected _devices: ICacheDevices = {}
   protected _audioConstraints: boolean | MediaTrackConstraints = true
   protected _videoConstraints: boolean | MediaTrackConstraints = false
-  protected _resolutions: ICacheResolution[]
 
   async connect(): Promise<void> {
     super.setup()
 
-    const success = await checkPermissions()
-    if (success) {
-      this.refreshResolutions()
-    } else {
-      trigger(SwEvent.Notification, { type: NOTIFICATION_TYPE.userMediaError, error: 'Permission denied' }, this.uuid)
-    }
     await this.refreshDevices()
     this.sessionid = await Storage.getItem(SESSION_ID)
     this.connection = new Connection(this)
+  }
+
+  /**
+   * Check if the browser has the permission to access mic and/or webcam
+   */
+  async checkPermissions(audio: boolean = true, video: boolean = true): Promise<boolean> {
+    try {
+      const stream = await getUserMedia({ audio, video })
+      stopStream(stream)
+      return true
+    } catch {
+      return false
+    }
   }
 
   /**
@@ -81,6 +88,9 @@ export default abstract class BrowserSession extends BaseSession {
     })
   }
 
+  /**
+   * Refresh the device list doing an enumerateDevices
+   */
   async refreshDevices() {
     this._devices = await getDevices()
     return this.devices
@@ -90,18 +100,15 @@ export default abstract class BrowserSession extends BaseSession {
     return this._devices
   }
 
-  async refreshResolutions() {
-    this._resolutions = await getResolutions()
-    return this.resolutions
-  }
-
-  get resolutions() {
-    return this._resolutions
-  }
-
-  /** Backwards compatibility */
-  supportedResolutions() {
-    return Promise.resolve(this.resolutions)
+  /**
+   * Return supported resolution for the given webcam.
+   */
+  async getDeviceResolutions(deviceId: string) {
+    try {
+      return await scanResolutions(deviceId)
+    } catch (error) {
+      throw error
+    }
   }
 
   get videoDevices() {

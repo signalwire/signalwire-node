@@ -2,7 +2,7 @@ import logger from '../util/logger'
 import * as Storage from '../util/storage'
 import * as WebRTC from '../util/webrtc'
 import { isDefined } from '../util/helpers'
-import { DialogOptions, ICacheDevices, ICacheResolution } from '../util/interfaces'
+import { DialogOptions, ICacheDevices } from '../util/interfaces'
 import { stopStream } from '../util/webrtc'
 
 const getUserMedia = async (constraints: MediaStreamConstraints): Promise<MediaStream | null> => {
@@ -49,42 +49,26 @@ const getDevices = async (): Promise<ICacheDevices> => {
 }
 
 const resolutionList = [[320, 240], [640, 360], [640, 480], [1280, 720], [1920, 1080]]
-const getResolutions = async (): Promise<ICacheResolution[]> => {
-  const allDevices = await WebRTC.enumerateDevices().catch(error => [])
-  const videoDevices = allDevices.filter(d => d.kind === 'videoinput')
-  const supported = []
-  if (!videoDevices.length) {
+const scanResolutions = async (deviceId: string) => {
+  const storageKey = `${deviceId}-resolutions`
+  const supported = (await Storage.getItem(storageKey)) || []
+  if (supported && supported.length) {
     return supported
   }
-  const resolutionHashMap = {}
-  for (let y = 0; y < videoDevices.length; y++) {
-    const constraints = { video: { deviceId: { exact: videoDevices[y].deviceId } } }
-    const stream = await getUserMedia(constraints).catch(error => null)
-    if (stream === null) {
-      continue
+  const stream = await getUserMedia({ video: { deviceId: { exact: deviceId } } })
+  const videoTrack = stream.getVideoTracks()[0]
+  for (let i = 0; i < resolutionList.length; i++) {
+    const [width, height] = resolutionList[i]
+    const success = await videoTrack.applyConstraints({ width: { exact: width }, height: { exact: height } })
+      .then(() => true)
+      .catch(() => false)
+    if (success) {
+      supported.push({ resolution: `${width}x${height}`, width, height })
     }
-    const videoTrack = stream.getVideoTracks()[0]
-    for (let i = 0; i < resolutionList.length; i++) {
-      const [width, height] = resolutionList[i]
-      const resolution = `${width}x${height}`
-      if (!resolutionHashMap.hasOwnProperty(resolution)) {
-        resolutionHashMap[resolution] = { resolution, width, height, devices: [] }
-      }
-      const success = await videoTrack.applyConstraints({ width: { exact: width }, height: { exact: height } })
-        .then(() => true)
-        .catch(() => false)
-      if (success) {
-        resolutionHashMap[resolution].devices.push(videoDevices[y])
-      }
-    }
-    videoTrack.stop()
   }
+  stopStream(stream)
 
-  Object.keys(resolutionHashMap).forEach(resolution => {
-    if (resolutionHashMap[resolution].devices.length) {
-      supported.push(resolutionHashMap[resolution])
-    }
-  })
+  Storage.setItem(storageKey, supported)
 
   return supported
 }
@@ -119,19 +103,6 @@ const assureDeviceId = async (id: string, label: string, kind: MediaDeviceInfo['
   }
 
   return null
-}
-
-const checkPermissions = async (constraints: MediaStreamConstraints = { audio: true, video: true }): Promise<boolean> => {
-  try {
-    const stream = await getUserMedia(constraints)
-    stopStream(stream)
-    return true
-  } catch {
-    if (constraints.video) {
-      return await checkPermissions({ audio: true })
-    }
-  }
-  return false
 }
 
 const removeUnsupportedConstraints = (constraints: MediaTrackConstraints): void => {
@@ -239,10 +210,9 @@ const destructSubscribeResponse = (response: any): DestructuredResult => {
 export {
   getUserMedia,
   getDevices,
-  getResolutions,
+  scanResolutions,
   getMediaConstraints,
   assureDeviceId,
-  checkPermissions,
   removeUnsupportedConstraints,
   checkDeviceIdConstraints,
   sdpStereoHack,

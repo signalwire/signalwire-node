@@ -1,11 +1,11 @@
 {
-  "name": "@signalwire/web",
-  "version": "0.0.1",
-  "description": "Client library for connecting to SignalWire.",
+  "name": "@signalwire/js",
+  "version": "1.0.0",
+  "description": "Relay SDK for JavaScript to connect to SignalWire.",
   "author": "SignalWire Team <open.source@signalwire.com>",
   "main": "dist/index.min.js",
   "unpkg": "dist/index.min.js",
-  "module": "dist/esm/web/index.js",
+  "module": "dist/esm/js/index.js",
   "files": [
     "dist"
   ],
@@ -38,24 +38,24 @@
   "homepage": "https://github.com/signalwire/signalwire-node",
   "license": "MIT",
   "dependencies": {
-    "loglevel": "^1.6.1",
+    "loglevel": "^1.6.2",
     "uuid": "^3.3.2"
   },
   "devDependencies": {
-    "@types/jest": "^24.0.6",
+    "@types/jest": "^24.0.13",
     "@types/uuid": "^3.4.4",
+    "acorn": "^6.0.0",
+    "babel-core": "^6.26.0",
     "babel-loader": "^7.1.5",
     "babel-plugin-transform-runtime": "^6.23.0",
     "babel-preset-env": "^1.7.0",
-    "jest": "^24.1.0",
-    "ts-jest": "^24.0.0",
-    "ts-loader": "^5.3.3",
-    "tslint": "^5.12.1",
-    "typescript": "^3.3.3",
-    "webpack": "^4.29.5",
-    "webpack-cli": "^3.2.3",
-    "webpack-dev-server": "^3.1.14",
-    "acorn": "^6.0.0",
-    "babel-core": "^6.26.0"
+    "jest": "^24.8.0",
+    "ts-jest": "^24.0.2",
+    "ts-loader": "^5.4.5",
+    "tslint": "^5.17.0",
+    "typescript": "^3.4.5",
+    "webpack": "^4.33.0",
+    "webpack-cli": "^3.3.2",
+    "webpack-dev-server": "^3.5.1"
   }
 }

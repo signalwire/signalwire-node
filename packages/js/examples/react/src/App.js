@@ -7,7 +7,7 @@ import Phone from './components/phone/Phone'
 import './App.css';
 
 class App extends Component {
-  state = { connected: false, dialog: null }
+  state = { connected: false, call: null }
 
   constructor(props) {
     super(props)
@@ -48,12 +48,12 @@ class App extends Component {
       // console.log('GLOBAL notification', notification)
 
       switch (notification.type) {
-        case 'dialogUpdate':
-          const { dialog } = notification
-          if (dialog.state === 'destroy') {
-            this.setState({ dialog: null })
+        case 'callUpdate':
+          const { call } = notification
+          if (call.state === 'destroy') {
+            this.setState({ call: null })
           } else {
-            this.setState({ dialog })
+            this.setState({ call })
           }
           break
         case 'conferenceUpdate':
@@ -62,9 +62,6 @@ class App extends Component {
           break
         case 'participantData':
           // Caller's data like name and number to update the UI. In case of a conference call you will get the name of the room and the extension.
-          break
-        case 'vertoClientReady':
-          // All previously dialogs have been reattached. Note: FreeSWITCH 1.8+ only.
           break
         case 'userMediaError':
           // Permission denied or invalid audio/video params on `getUserMedia`
@@ -89,10 +86,10 @@ class App extends Component {
   }
 
   render() {
-    const { connected, dialog } = this.state
+    const { connected, call } = this.state
     const Main = () => {
       if (connected) {
-        return <Phone session={this.session} dialog={dialog} newCall={this.newCall} />
+        return <Phone session={this.session} dialog={call} newCall={this.newCall} />
       } else {
         return <AuthForm connect={this.connect} />
       }

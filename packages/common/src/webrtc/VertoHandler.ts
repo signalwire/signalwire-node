@@ -99,7 +99,7 @@ class VertoHandler {
     }
   }
 
-  private _retrieveDialogId(packet: any, laChannel: string) {
+  private _retrieveCallId(packet: any, laChannel: string) {
     const callIds = Object.keys(this.session.calls)
     if (packet.action === 'bootObj') {
       const me = packet.data.find((pr: [string, []]) => callIds.includes(pr[0]))
@@ -124,7 +124,7 @@ class VertoHandler {
           nodeId: this.nodeId,
           channels: [laChannel],
           handler: ({ data: packet }: any) => {
-            const id = callID || this._retrieveDialogId(packet, laChannel)
+            const id = callID || this._retrieveCallId(packet, laChannel)
             if (id && session.calls.hasOwnProperty(id)) {
               const call = session.calls[id]
               call._addChannel(laChannel)

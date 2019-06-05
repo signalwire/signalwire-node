@@ -63,8 +63,8 @@ function connect() {
 function handleNotification(notification) {
   // console.log("notification", notification.type, notification);
   switch (notification.type) {
-    case 'dialogUpdate':
-      handleDialogChange(notification.dialog)
+    case 'callUpdate':
+      handleCallUpdate(notification.call)
       break
     case 'conferenceUpdate':
       handleConferenceUpdate(notification)
@@ -81,14 +81,14 @@ function handleNotification(notification) {
   }
 }
 
-function handleDialogChange(dialog) {
-  // Update the UI when this dialog's state change:
+function handleCallUpdate(call) {
+  // Update the UI when this call's state change:
 
-  // console.log("dialog.state", dialog.state);
+  // console.log("call.state", call.state);
 
-  cur_call = dialog;
+  cur_call = call;
 
-  switch (dialog.state) {
+  switch (call.state) {
     case 'new':
       // Setup the UI
       break;
@@ -104,17 +104,17 @@ function handleDialogChange(dialog) {
       }
       break;
     case 'active':
-      // Dialog has become active
+      // Call has become active
       hangupCall.disabled = false
       remoteVideo.style.display = 'block'
       confCommands.style.display = 'block'
       // localVideo.style.display = 'block'
       startScreenShare.onclick = function() {
-        dialog.startScreenShare()
+        call.startScreenShare()
       }
       break;
     case 'hangup':
-      // Dialog is over
+      // Call is over
       hangupCall.disabled = true
       startCall.disabled = false
 
@@ -124,7 +124,7 @@ function handleDialogChange(dialog) {
 
       break;
     case 'destroy':
-      // Dialog has been destroyed
+      // Call has been destroyed
       cur_call = null;
       break;
   }

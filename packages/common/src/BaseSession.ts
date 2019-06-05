@@ -87,13 +87,13 @@ export default abstract class BaseSession {
 
   /**
    * Validates the options passed in.
-   * SignalWire requires host, project and token
+   * SignalWire requires project and token
    * Verto requires host, login, passwd OR password
    * @return boolean
    */
   validateOptions() {
-    const { host, project, token } = this.options
-    return Boolean(host) && Boolean(project && token)
+    const { project, token } = this.options
+    return Boolean(project && token)
   }
 
   /**

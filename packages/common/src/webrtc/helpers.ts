@@ -121,19 +121,6 @@ const assureDeviceId = async (id: string, label: string, kind: MediaDeviceInfo['
   return null
 }
 
-const checkPermissions = async (constraints: MediaStreamConstraints = { audio: true, video: true }): Promise<boolean> => {
-  try {
-    const stream = await getUserMedia(constraints)
-    stopStream(stream)
-    return true
-  } catch {
-    if (constraints.video) {
-      return await checkPermissions({ audio: true })
-    }
-  }
-  return false
-}
-
 const removeUnsupportedConstraints = (constraints: MediaTrackConstraints): void => {
   const supported = WebRTC.getSupportedConstraints()
   Object.keys(constraints).map(key => {
@@ -242,7 +229,6 @@ export {
   getResolutions,
   getMediaConstraints,
   assureDeviceId,
-  checkPermissions,
   removeUnsupportedConstraints,
   checkDeviceIdConstraints,
   sdpStereoHack,

@@ -1,6 +1,6 @@
-![Drone CI](https://ci.signalwire.com/api/badges/signalwire/signalwire-node/status.svg)
+# SignalWire SDK for Node.js and JavaScript
 
-# SignalWire
+![Drone CI](https://ci.signalwire.com/api/badges/signalwire/signalwire-node/status.svg)
 
 This package provides a client for Signalwire services and supports different Javascript environments.
 

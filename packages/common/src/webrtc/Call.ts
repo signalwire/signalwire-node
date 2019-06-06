@@ -205,11 +205,11 @@ export default class Call {
       toggleMute: () => this.peer.videoState = 'toggle',
       changeDevice: async (deviceId: string): Promise<void> => {
         const { instance } = this.peer
-        const videoSender = instance.getSenders().find(({ track: { kind } }: RTCRtpSender) => kind === 'video')
-        if (videoSender) {
+        const sender = instance.getSenders().find(({ track: { kind } }: RTCRtpSender) => kind === 'video')
+        if (sender) {
           const newStream = await getUserMedia({ video: { deviceId: { exact: deviceId } } })
           const videoTrack = newStream.getVideoTracks()[0]
-          videoSender.replaceTrack(videoTrack)
+          sender.replaceTrack(videoTrack)
           const { localStream } = this.options
           localStream.getVideoTracks().forEach(track => {
             localStream.removeTrack(track)

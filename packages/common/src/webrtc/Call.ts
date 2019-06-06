@@ -249,13 +249,11 @@ export default class Call {
   }
 
   deaf() {
-    const { remoteElement } = this.options
-    muteMediaElement(remoteElement)
+    muteMediaElement(this.options.remoteElement)
   }
 
   undeaf() {
-    const { remoteElement } = this.options
-    unmuteMediaElement(remoteElement)
+    unmuteMediaElement(this.options.remoteElement)
   }
 
   async setAudioOutDevice(deviceId: string): Promise<boolean> {

@@ -60,16 +60,6 @@ const setMediaElementSinkId = async (tag: any, deviceId: string): Promise<boolea
   } catch (error) {
     return false
   }
-  // if (element) {
-  //   // @ts-ignore
-  //   if (!element.setSinkId) {
-  //     throw new Error('HTMLMediaElement setSinkId - Not supported.')
-  //   }
-  //   // @ts-ignore
-  //   await element.setSinkId(deviceId).catch((error: DOMException) => {
-  //     throw new Error('HTMLMediaElement setSinkId - No permission to use the requested device.')
-  //   })
-  // }
 }
 
 const sdpToJsonHack = sdp => sdp

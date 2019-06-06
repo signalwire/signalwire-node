@@ -13,7 +13,7 @@ Read the implementation documentation, guides and API Reference at the official 
 
 ## Contributing
 
-Relay SDK for JavaScript is open source and maintained by the SignalWire team, but we are very grateful for [everyone](contributors) who has contributed and assisted so far.
+Relay SDK for JavaScript is open source and maintained by the SignalWire team, but we are very grateful for [everyone](/signalwire/signalwire-node/contributors) who has contributed and assisted so far.
 
 If you'd like to contribute, feel free to visit our [Slack channel](https://signalwire.community/) and read our developer section to get the code running in your local environment.
 
@@ -28,4 +28,4 @@ Relay SDK for JavaScript follows Semantic Versioning 2.0 as defined at <http://s
 ## License
 
 Relay SDK for JavaScript is copyright © 2018-2019
-[SignalWire](http://signalwire.com). It is free software, and may be redistributed under the terms specified in the [MIT-LICENSE](LICENSE) file.
+[SignalWire](http://signalwire.com). It is free software, and may be redistributed under the terms specified in the [MIT-LICENSE](/signalwire/signalwire-node/blob/master/LICENSE) file.

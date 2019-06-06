@@ -194,7 +194,23 @@ export default class Call {
     return {
       mute: () => this.peer.audioState = 'off',
       unmute: () => this.peer.audioState = 'on',
-      toggleMute: () => this.peer.audioState = 'toggle'
+      toggleMute: () => this.peer.audioState = 'toggle',
+      changeDevice: async (deviceId: string): Promise<void> => {
+        const { instance } = this.peer
+        const sender = instance.getSenders().find(({ track: { kind } }: RTCRtpSender) => kind === 'audio')
+        if (sender) {
+          const newStream = await getUserMedia({ audio: { deviceId: { exact: deviceId } } })
+          const audioTrack = newStream.getAudioTracks()[0]
+          sender.replaceTrack(audioTrack)
+          const { localStream } = this.options
+          localStream.getAudioTracks().forEach(track => {
+            localStream.removeTrack(track)
+            track.stop()
+          })
+          localStream.addTrack(audioTrack)
+          this.options.micId = deviceId
+        }
+      }
     }
   }
 

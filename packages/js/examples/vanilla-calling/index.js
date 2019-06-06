@@ -100,10 +100,12 @@ function handleCallUpdate(call) {
     case 'active': // Call has become active
       startCall.classList.add('d-none');
       hangupCall.classList.remove('d-none');
+      hangupCall.disabled = false;
       break;
     case 'hangup': // Call is over
       startCall.classList.remove('d-none');
       hangupCall.classList.add('d-none');
+      hangupCall.disabled = true;
       break;
     case 'destroy': // Call has been destroyed
       currentCall = null;

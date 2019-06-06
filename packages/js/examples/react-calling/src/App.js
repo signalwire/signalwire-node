@@ -62,6 +62,7 @@ class App extends Component {
         case 'userMediaError':
           // Permission denied or invalid audio/video params on `getUserMedia`
           break
+        default:
       }
     })
 

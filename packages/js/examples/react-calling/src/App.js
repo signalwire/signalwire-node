@@ -88,7 +88,7 @@ class App extends Component {
     }
     return (
       <div className="App flex">
-        <header>SignalWire Client Test</header>
+        <header>SignalWire Call Demo</header>
         <main className="flex flex-center">
           <Main />
         </main>

@@ -14,15 +14,6 @@ This package provides a client for Signalwire services and supports different Ja
 
 Refer to the README of each package for further details.
 
-### Development setup
-1. [Download the installer](https://nodejs.org/) for the LTS version of Node.js. This is the best way to also [install npm](https://blog.npmjs.org/post/85484771375/how-to-install-npm#_=_).
-2. Fork this repository.
-3. Clone your fork.
-4. Create a new branch from `master` for your change.
-5. Run `npm install` to install dependencies.
-6. Run `npm run setup <PACKAGE-NAME>` (specifying the pkg name) to prepare the package you wish to modify.
-7. Navigate into the directory of the pkg into `packages/`.
-
 ## Copyright
 
 Copyright (c) 2018 SignalWire Inc. See [LICENSE](https://github.com/signalwire/signalwire-node/blob/master/LICENSE) for further details.

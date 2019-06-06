@@ -209,12 +209,6 @@ export default class Call {
       const newStream = await getUserMedia({ audio: { deviceId: { exact: deviceId } } })
       const audioTrack = newStream.getAudioTracks()[0]
       sender.replaceTrack(audioTrack)
-      const { localStream } = this.options
-      localStream.getAudioTracks().forEach(track => {
-        localStream.removeTrack(track)
-        track.stop()
-      })
-      localStream.addTrack(audioTrack)
       this.options.micId = deviceId
     }
   }
@@ -238,12 +232,8 @@ export default class Call {
       const newStream = await getUserMedia({ video: { deviceId: { exact: deviceId } } })
       const videoTrack = newStream.getVideoTracks()[0]
       sender.replaceTrack(videoTrack)
-      const { localStream } = this.options
-      localStream.getVideoTracks().forEach(track => {
-        localStream.removeTrack(track)
-        track.stop()
-      })
-      localStream.addTrack(videoTrack)
+      const { localElement } = this.options
+      attachMediaStream(localElement, newStream)
       this.options.camId = deviceId
     }
   }

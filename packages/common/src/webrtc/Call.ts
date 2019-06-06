@@ -10,7 +10,7 @@ import { trigger, register, deRegister } from '../services/Handler'
 import { sdpStereoHack, sdpMediaOrderHack, checkSubscribeResponse } from './helpers'
 import { objEmpty, mutateLiveArrayData, isFunction } from '../util/helpers'
 import { CallOptions } from '../util/interfaces'
-import { attachMediaStream, detachMediaStream, sdpToJsonHack, stopStream, getDisplayMedia, setMediaElementSinkId, muteMediaElement, unmuteMediaElement } from '../util/webrtc'
+import { attachMediaStream, detachMediaStream, sdpToJsonHack, stopStream, getUserMedia, getDisplayMedia, setMediaElementSinkId, muteMediaElement, unmuteMediaElement } from '../util/webrtc'
 
 export default class Call {
   public id: string = ''
@@ -202,7 +202,23 @@ export default class Call {
     return {
       mute: () => this.peer.videoState = 'off',
       unmute: () => this.peer.videoState = 'on',
-      toggleMute: () => this.peer.videoState = 'toggle'
+      toggleMute: () => this.peer.videoState = 'toggle',
+      changeDevice: async (deviceId: string): Promise<void> => {
+        const { instance } = this.peer
+        const videoSender = instance.getSenders().find(({ track: { kind } }: RTCRtpSender) => kind === 'video')
+        if (videoSender) {
+          const newStream = await getUserMedia({ video: { deviceId: { exact: deviceId } } })
+          const videoTrack = newStream.getVideoTracks()[0]
+          videoSender.replaceTrack(videoTrack)
+          const { localStream } = this.options
+          localStream.getVideoTracks().forEach(track => {
+            localStream.removeTrack(track)
+            track.stop()
+          })
+          localStream.addTrack(videoTrack)
+          this.options.camId = deviceId
+        }
+      }
     }
   }
 

@@ -23,12 +23,10 @@ export default class AuthForm extends Component {
     return (
       <div className="connect flex flex-column">
         <p className="text-center">You are not connected yet!</p>
-        <label>Host:</label>
-        <input type="text" data-target="host" value={this.state.host} onChange={this._handleChange} />
-        <label>Login:</label>
-        <input type="text" data-target="login" value={this.state.login} onChange={this._handleChange} />
-        <label>Password:</label>
-        <input type="text" data-target="password" value={this.state.password} onChange={this._handleChange} />
+        <label>Project:</label>
+        <input type="text" data-target="project" value={this.state.project} onChange={this._handleChange} />
+        <label>Token:</label>
+        <input type="text" data-target="token" value={this.state.token} onChange={this._handleChange} />
         <button onClick={this._doConnect}>Connect</button>
       </div>
     )

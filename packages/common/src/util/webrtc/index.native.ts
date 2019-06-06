@@ -20,6 +20,11 @@ const getSupportedConstraints = () => ({})
 const attachMediaStream = (htmlElementId: string, stream: MediaStream) => null
 const detachMediaStream = (htmlElementId: string) => null
 
+const muteMediaElement = (htmlElementId: string) => null
+const unmuteMediaElement = (htmlElementId: string) => null
+
+const setMediaElementSinkId = (htmlElementId: string, deviceId: string): Promise<boolean> => Promise.resolve(false)
+
 const sdpToJsonHack = sdp => {
   Object.defineProperty(sdp, 'toJSON', { value: () => sdp })
   return sdp
@@ -42,5 +47,8 @@ export {
   attachMediaStream,
   detachMediaStream,
   sdpToJsonHack,
-  stopStream
+  stopStream,
+  muteMediaElement,
+  unmuteMediaElement,
+  setMediaElementSinkId
 }

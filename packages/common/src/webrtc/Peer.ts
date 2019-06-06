@@ -1,7 +1,7 @@
 import logger from '../util/logger'
 import { getUserMedia, getMediaConstraints, sdpStereoHack } from './helpers'
 import { PeerType, SwEvent } from '../util/constants'
-import { attachMediaStream, sdpToJsonHack, RTCPeerConnection, streamIsValid } from '../util/webrtc'
+import { attachMediaStream, muteMediaElement, sdpToJsonHack, RTCPeerConnection, streamIsValid } from '../util/webrtc'
 import { isFunction } from '../util/helpers'
 import { CallOptions } from '../util/interfaces'
 import { trigger } from '../services/Handler'
@@ -86,6 +86,7 @@ export default class Peer {
         this.instance.addStream(localStream)
       }
       if (screenShare !== true) {
+        muteMediaElement(localElement)
         attachMediaStream(localElement, localStream)
       }
     } else if (localStream === null) {

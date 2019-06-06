@@ -34,6 +34,34 @@ const detachMediaStream = (tag: any) => {
   }
 }
 
+const muteMediaElement = (tag: any) => {
+  const element = findElementByType(tag)
+  if (element) {
+    element.muted = true
+  }
+}
+
+const unmuteMediaElement = (tag: any) => {
+  const element = findElementByType(tag)
+  if (element) {
+    element.muted = false
+  }
+}
+
+const setMediaElementSinkId = async (tag: any, deviceId: string): Promise<boolean> => {
+  const element: HTMLMediaElement = findElementByType(tag)
+  if (element === null) {
+    return false
+  }
+  try {
+    // @ts-ignore
+    await element.setSinkId(deviceId)
+    return true
+  } catch (error) {
+    return false
+  }
+}
+
 const sdpToJsonHack = sdp => sdp
 
 const stopStream = (stream: MediaStream) => {
@@ -53,5 +81,8 @@ export {
   attachMediaStream,
   detachMediaStream,
   sdpToJsonHack,
-  stopStream
+  stopStream,
+  muteMediaElement,
+  unmuteMediaElement,
+  setMediaElementSinkId
 }

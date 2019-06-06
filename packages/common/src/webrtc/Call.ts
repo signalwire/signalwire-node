@@ -10,7 +10,7 @@ import { trigger, register, deRegister } from '../services/Handler'
 import { sdpStereoHack, sdpMediaOrderHack, checkSubscribeResponse } from './helpers'
 import { objEmpty, mutateLiveArrayData, isFunction } from '../util/helpers'
 import { CallOptions } from '../util/interfaces'
-import { attachMediaStream, detachMediaStream, sdpToJsonHack, stopStream, getDisplayMedia } from '../util/webrtc'
+import { attachMediaStream, detachMediaStream, sdpToJsonHack, stopStream, getDisplayMedia, setMediaElementSinkId, muteMediaElement, unmuteMediaElement } from '../util/webrtc'
 
 export default class Call {
   public id: string = ''
@@ -36,8 +36,8 @@ export default class Call {
   private _statsInterval: any = null
 
   constructor(private session: BrowserSession, opts?: CallOptions) {
-    const { iceServers, localElement, remoteElement, mediaConstraints: { audio, video } } = session
-    this.options = Object.assign({}, DEFAULT_CALL_OPTIONS, { audio, video, iceServers, localElement, remoteElement }, opts)
+    const { iceServers, speaker: speakerId, localElement, remoteElement, mediaConstraints: { audio, video } } = session
+    this.options = Object.assign({}, DEFAULT_CALL_OPTIONS, { audio, video, iceServers, localElement, remoteElement, speakerId }, opts)
 
     this._onMediaError = this._onMediaError.bind(this)
     this._init()
@@ -192,39 +192,37 @@ export default class Call {
 
   get microphone() {
     return {
-      mute: () => {
-        this._confControl(this.memberChannel, { action: 'mute' })
-      },
-      unmute: () => {
-        this._confControl(this.memberChannel, { action: 'unmute' })
-      },
-      toggleMute: () => {
-        this._confControl(this.memberChannel, { action: 'tmute' })
-      }
+      mute: () => this.peer.audioState = 'off',
+      unmute: () => this.peer.audioState = 'on',
+      toggleMute: () => this.peer.audioState = 'toggle'
     }
   }
 
   get webcam() {
     return {
-      mute: () => {
-        this._confControl(this.memberChannel, { action: 'vmute' })
-      },
-      unmute: () => {
-        this._confControl(this.memberChannel, { action: 'unvmute' })
-      },
-      toggleMute: () => {
-        this._confControl(this.memberChannel, { action: 'tvmute' })
-      }
+      mute: () => this.peer.videoState = 'off',
+      unmute: () => this.peer.videoState = 'on',
+      toggleMute: () => this.peer.videoState = 'toggle'
     }
   }
 
   get speaker() {
     return {
       mute: () => {
-        this._confControl(this.memberChannel, { action: 'deaf' })
+        const { remoteElement } = this.options
+        muteMediaElement(remoteElement)
       },
       unmute: () => {
-        this._confControl(this.memberChannel, { action: 'undeaf' })
+        const { remoteElement } = this.options
+        unmuteMediaElement(remoteElement)
+      },
+      changeDevice: async (deviceId: string): Promise<boolean> => {
+        this.options.speakerId = deviceId
+        const { remoteElement, speakerId } = this.options
+        if (remoteElement && speakerId) {
+          return setMediaElementSinkId(remoteElement, speakerId)
+        }
+        return false
       }
     }
   }
@@ -242,6 +240,15 @@ export default class Call {
       case State.Purge:
         this.hangup({ cause: 'PURGE', causeCode: '01' }, false)
         break
+      case State.Active: {
+        setTimeout(() => {
+          const { remoteElement, speakerId } = this.options
+          if (remoteElement && speakerId) {
+            setMediaElementSinkId(remoteElement, speakerId)
+          }
+        }, 0)
+        break
+      }
       case State.Destroy:
         this._finalize()
         break

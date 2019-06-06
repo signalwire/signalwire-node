@@ -14,6 +14,6 @@ This package provides a client for Signalwire services and supports different Ja
 
 Refer to the README of each package for further details.
 
-## Copyright
+## License
 
-Copyright (c) 2018 SignalWire Inc. See [LICENSE](https://github.com/signalwire/signalwire-node/blob/master/LICENSE) for further details.
+Copyright © 2018-2019 SignalWire. It is free software, and may be redistributed under the terms specified in the MIT-LICENSE file.

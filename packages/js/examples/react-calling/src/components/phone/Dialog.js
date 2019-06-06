@@ -35,23 +35,6 @@ class DialogActions extends Component {
   }
 }
 
-const RECORDING_PATH = '/opt/recordings/'
-class DialogModActions extends Component {
-  render() {
-    const { dialog } = this.props
-    if (dialog.role !== 'moderator') {
-      return null
-    }
-    return (
-      <div className="dialog-mod-actions">
-        <button onClick={dialog.record.bind(dialog, `${RECORDING_PATH}${dialog.id}.mp4`)}>Record</button>
-        <button onClick={dialog.stopRecord.bind(dialog)}>Stop Record</button>
-        <button onClick={dialog.listVideoLayouts.bind(dialog)}>List Layouts</button>
-      </div>
-    )
-  }
-}
-
 const STATES = {
   new: 'Dialog initialization...',
   trying: 'Connecting...',
@@ -74,15 +57,14 @@ export default class Dialog extends Component {
     return (
       <div className="dialog flex flex-column">
         <span>
-          Dialog id: {dialog.id}
-          <br/>
+          Call id: {dialog.id}
+          <br/><br/>
           {STATES[dialog.state]}
         </span>
 
         {dialog.state === 'ringing' && <button onClick={this._answer}>Answer</button>}
         {dialog.remoteStream && <DialogVideo stream={dialog.remoteStream} />}
         <DialogActions dialog={dialog} />
-        {dialog.role === 'moderator' && <DialogModActions dialog={dialog} />}
       </div>
     )
   }

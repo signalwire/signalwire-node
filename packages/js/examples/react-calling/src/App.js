@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Verto } from 'signalwire-client-js';
+import { Relay } from '@signalwire/js';
 import AuthForm from './components/auth/AuthForm';
 import { getLoginParams, setLoginParams } from './helpers'
 import Phone from './components/phone/Phone'
@@ -16,8 +16,8 @@ class App extends Component {
     this.newCall = this.newCall.bind(this)
 
     const tmp = getLoginParams()
-    const { host, login, password } = tmp
-    if (host && login && password) {
+    const { project, token } = tmp
+    if (project && token) {
       this.connect(tmp)
     }
   }
@@ -25,7 +25,7 @@ class App extends Component {
   connect(params) {
     setLoginParams(params)
 
-    this.session = new Verto(params)
+    this.session = new Relay(params)
     this.session.on('signalwire.ready', session => {
       this.setState({ connected: true })
     })
@@ -56,18 +56,11 @@ class App extends Component {
             this.setState({ call })
           }
           break
-        case 'conferenceUpdate':
-          console.log('GLOBAL conferenceUpdate', notification)
-          // Live notification from the conference: start talking / video floor changed / audio or video state changes / a participant joins or leaves and so on..
-          break
         case 'participantData':
           // Caller's data like name and number to update the UI. In case of a conference call you will get the name of the room and the extension.
           break
         case 'userMediaError':
           // Permission denied or invalid audio/video params on `getUserMedia`
-          break
-        case 'event':
-          // Generic notification received
           break
         default:
       }
@@ -79,9 +72,8 @@ class App extends Component {
   newCall(extension) {
     this.session.newCall({
       destinationNumber: extension,
-      video: true,
-      callerName: 'React JS Example',
-      callerNumber: 'reactjsexample@signalwire.com'
+      audio: true,
+      video: true
     })
   }
 
@@ -96,11 +88,11 @@ class App extends Component {
     }
     return (
       <div className="App flex">
-        <header>SignalWire Client Test</header>
+        <header>SignalWire Call Demo</header>
         <main className="flex flex-center">
           <Main />
         </main>
-        <footer>SignalWire - 2018</footer>
+        <footer>SignalWire - 2019</footer>
       </div>
     )
   }

@@ -5,7 +5,7 @@ export default class Dialpad extends Component {
 
   constructor(props) {
     super(props)
-    this.state = { extension: '3593' }
+    this.state = { extension: '' }
     this._newCall = this._newCall.bind(this)
     this._handleChange = this._handleChange.bind(this)
   }
@@ -21,9 +21,9 @@ export default class Dialpad extends Component {
   render() {
     return (
       <div className="dialpad flex flex-column">
-        <label>Extension:</label>
+        <label>Number:</label>
         <input type="text" value={this.state.extension} onChange={this._handleChange} />
-        <button onClick={this._newCall}>Start Call</button>
+        <button onClick={this._newCall}>Call</button>
       </div>
     )
   }

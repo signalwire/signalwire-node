@@ -8,8 +8,8 @@ This package provides a client for Signalwire services and supports different Ja
 
 | Project | Description | README | CHANGELOG | Version |
 | ------- | ------- | ------- | ------- |:-----:|
-| **Node.js** | SignalWire in Node.js | [`README.md`](packages/node/README.md) | [`CHANGELOG.md`](packages/node/CHANGELOG.md) | [![npm version](https://badge.fury.io/js/%40signalwire%2Fnode.svg)](https://badge.fury.io/js/%40signalwire%2Fnode)
-| **JavaScript** | SignalWire in the browser! | [`README.md`](packages/js/README.md) | [`CHANGELOG.md`](packages/js/CHANGELOG.md) | **coming soon**
+| **Node.js** | SignalWire in Node.js | [`README.md`](packages/node/README.md) | [`CHANGELOG.md`](packages/node/CHANGELOG.md) | ![NPM](https://img.shields.io/npm/v/@signalwire/node.svg?color=brightgreen)
+| **JavaScript** | SignalWire in the browser! | [`README.md`](packages/js/README.md) | [`CHANGELOG.md`](packages/js/CHANGELOG.md) | ![NPM](https://img.shields.io/npm/v/@signalwire/js.svg?color=brightgreen)
 | **React Native** | SignalWire in a React Native App | [`README.md`](packages/react-native/README.md) | [`CHANGELOG.md`](packages/react-native/CHANGELOG.md) | **coming soon**
 
 Refer to the README of each package for further details.

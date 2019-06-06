@@ -37,12 +37,12 @@
 						<h5>Connect</h5>
 					  <div class="form-group">
 					    <label for="project">Project</label>
-					    <input type="text" class="form-control" id="project" placeholder="Enter Project ID">
+					    <input type="text" class="form-control" id="project" placeholder="Enter Project ID" onchange="saveInLocalStorage(event)">
 					    <small id="projectHelp" class="form-text text-muted">Enter the Project ID found on your SignalWire Project Dashboard.</small>
 					  </div>
 					  <div class="form-group">
 					    <label for="token">Token</label>
-					    <input type="text" class="form-control" id="token" placeholder="Enter your JWT">
+					    <input type="text" class="form-control" id="token" placeholder="Enter your JWT" onchange="saveInLocalStorage(event)">
 					    <small id="tokenHelp" class="form-text text-muted">Generate a JWT and enter it here. For more information, visit <a href="/topics/relay-sdk-js#relay-sdk-for-javascript-using-the-sdk">Using the JavaScript SDK Documentation</a></small>
 					  </div>
 					  <button id="btnConnect" class="btn btn-block btn-success" onclick="connect()">Connect</button>
@@ -69,22 +69,23 @@
 
 				<div class="form-group">
 			    <label for="number">Call To:</label>
-			    <input type="text" class="form-control" id="number" placeholder="Enter Resource or Number to Dial" onchange="save_params(event)">
+			    <input type="text" class="form-control" id="number" placeholder="Enter Resource or Number to Dial" onchange="saveInLocalStorage(event)">
 				</div>
 				<div>Call Options:</div>
 				<div class="form-check">
-				  <input type="checkbox" id="audio" value="1" onchange="save_params(event)">
+				  <input type="checkbox" id="audio" value="1" onchange="saveInLocalStorage(event)">
 				  <label class="form-check-label" for="audio">
 				    Include Audio
 				  </label>
 				</div>
 				<div class="form-check">
-				  <input type="checkbox" id="video" value="1" onchange="save_params(event)">
+				  <input type="checkbox" id="video" value="1" onchange="saveInLocalStorage(event)">
 				  <label class="form-check-label" for="video">
 				    Include Video
 				  </label>
 				</div>
 				<button id="startCall" class="btn btn-primary px-5 mt-4" onClick="makeCall()" disabled="true">Call</button>
+				<button id="hangupCall" class="btn btn-danger px-5 mt-4 d-none" onClick="hangup()" disabled="true">Hang up</button>
 			</div>
 		</div>
 	</div>

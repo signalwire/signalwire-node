@@ -1,12 +1,15 @@
 var client;
-var cur_call = null;
+var currentCall = null;
 
-var project = localStorage.getItem('verto.example.project') || '';
-var token = localStorage.getItem('verto.example.token') || '';
-var number = localStorage.getItem('verto.example.number') || '';
-var audio = localStorage.getItem('verto.example.audio') || '1';
-var video = localStorage.getItem('verto.example.video') || '1';
+var project = localStorage.getItem('relay.example.project') || '';
+var token = localStorage.getItem('relay.example.token') || '';
+var number = localStorage.getItem('relay.example.number') || '';
+var audio = localStorage.getItem('relay.example.audio') || '1';
+var video = localStorage.getItem('relay.example.video') || '1';
 
+/**
+ * On document ready auto-fill the input values from the localStorage.
+*/
 ready(function() {
   document.getElementById('project').value = project;
   document.getElementById('token').value = token;
@@ -15,192 +18,137 @@ ready(function() {
   document.getElementById('video').checked = video === '1';
 });
 
-function disconnect() {
-  connectStatus.innerHTML = 'Disconnecting...'
-  client.disconnect()
-}
-
+/**
+ * Connect with Relay creating a client and attaching all the event handler.
+*/
 function connect() {
   client = new Relay({
     project: document.getElementById('project').value,
     token: document.getElementById('token').value
   });
 
-  client.remoteElement = 'remoteVideo'
+  client.remoteElement = 'remoteVideo';
+  client.localElement = 'localVideo';
 
   client.on('signalwire.ready', function() {
     btnConnect.classList.add('d-none');
     btnDisconnect.classList.remove('d-none');
-    connectStatus.innerHTML = 'Connected'
-    callCommands.style.display = 'block'
+    connectStatus.innerHTML = 'Connected';
 
-    startCall.disabled = false
+    startCall.disabled = false;
   });
 
-  client.on('signalwire.socket.open', function() {
-    console.log('socket connected')
-  });
-
+  // Update UI on socket close
   client.on('signalwire.socket.close', function() {
-    console.log('socket disconnected')
     btnConnect.classList.remove('d-none');
     btnDisconnect.classList.add('d-none');
-    connectStatus.innerHTML = 'Disconnected'
-    callCommands.style.display = 'none'
+    connectStatus.innerHTML = 'Disconnected';
   });
 
+  // Handle error...
   client.on('signalwire.error', function(error){
-    // Handle error
-    console.warn("SignalWire error", error);
+    console.error("SignalWire error:", error);
   });
 
   client.on('signalwire.notification', handleNotification);
 
-  connectStatus.innerHTML = 'Connecting...'
-  client.connect()
+  connectStatus.innerHTML = 'Connecting...';
+  client.connect();
 }
 
+function disconnect() {
+  connectStatus.innerHTML = 'Disconnecting...';
+  client.disconnect();
+}
+
+/**
+ * Handle notification from the client.
+*/
 function handleNotification(notification) {
   // console.log("notification", notification.type, notification);
   switch (notification.type) {
     case 'callUpdate':
-      handleCallUpdate(notification.call)
-      break
-    case 'conferenceUpdate':
-      handleConferenceUpdate(notification)
-      break
+      handleCallUpdate(notification.call);
+      break;
     case 'participantData':
       // Caller's data like name and number to update the UI. In case of a conference call you will get the name of the room and the extension.
-      break
+      break;
     case 'userMediaError':
       // Permission denied or invalid audio/video params on `getUserMedia`
-      break
-    case 'event':
-      // Generic notification received
-      break
+      break;
   }
 }
 
+/**
+ * Update the UI when the call's state change
+*/
 function handleCallUpdate(call) {
-  // Update the UI when this call's state change:
-
-  // console.log("call.state", call.state);
-
-  cur_call = call;
+  currentCall = call;
 
   switch (call.state) {
-    case 'new':
-      // Setup the UI
+    case 'new': // Setup the UI
       break;
-    case 'trying':
-      // You are calling someone and he's ringing now
+    case 'trying': // You are trying to call someone and he's ringing now
       break;
-    case 'ringing':
-      // Someone is calling you
+    case 'ringing': // Someone is calling you
       if (confirm('Pick up the call?')) {
-        cur_call.answer()
+        currentCall.answer();
       } else {
-        cur_call.hangup()
+        currentCall.hangup();
       }
       break;
-    case 'active':
-      // Call has become active
-      hangupCall.disabled = false
-      remoteVideo.style.display = 'block'
-      confCommands.style.display = 'block'
-      // localVideo.style.display = 'block'
-      startScreenShare.onclick = function() {
-        call.startScreenShare()
-      }
+    case 'active': // Call has become active
+      startCall.classList.add('d-none');
+      hangupCall.classList.remove('d-none');
       break;
-    case 'hangup':
-      // Call is over
-      hangupCall.disabled = true
-      startCall.disabled = false
-
-      remoteVideo.style.display = 'none'
-      confCommands.style.display = 'none'
-      // localVideo.style.display = 'none'
-
+    case 'hangup': // Call is over
+      startCall.classList.remove('d-none');
+      hangupCall.classList.add('d-none');
       break;
-    case 'destroy':
-      // Call has been destroyed
-      cur_call = null;
+    case 'destroy': // Call has been destroyed
+      currentCall = null;
       break;
   }
 }
 
-function _createLiParticipant(part) {
-  var li = document.createElement('li')
-  li.id = 'p-' + part.participantId
-  li.appendChild(document.createTextNode(part.participantName + ' ' + part.participantNumber))
-  if (cur_call.role === 'moderator') {
-    var kickBtn = document.createElement('button')
-    kickBtn.innerHTML = 'Kick'
-    kickBtn.onclick = function () {
-      cur_call.kick(part.participantId)
-    }
-    li.appendChild(kickBtn)
-  }
-  return li
-}
-
-function handleConferenceUpdate(notification) {
-  switch (notification.action) {
-    case 'join':
-    case 'leave':
-    case 'clear':
-      participants.innerHTML = ''
-      break
-    case 'bootstrap':
-      participants.innerHTML = ''
-      notification.participants.forEach(function(part) {
-        participants.appendChild(_createLiParticipant(part))
-      })
-      break
-    case 'add':
-      participants.appendChild(_createLiParticipant(notification))
-      break
-    case 'modify':
-      break
-    case 'delete':
-      var li = document.getElementById('p-' + notification.participantId)
-      if (li) {
-        li.remove()
-      }
-      break
-  }
-}
-
+/**
+ * Make a new outbound call
+*/
 function makeCall() {
   const params = {
     destinationNumber: document.getElementById('number').value, // required!
     audio: document.getElementById('audio').checked,
-    video: document.getElementById('video').checked,
-  }
+    video: document.getElementById('video').checked ? { aspectRatio: 16/9 } : false,
+  };
 
-  cur_call = client.newCall(params);
+  currentCall = client.newCall(params);
 }
 
+/**
+ * Hangup the currentCall if present
+*/
 function hangup() {
-  cur_call.hangup()
+  if (currentCall) {
+    currentCall.hangup()
+  }
 }
 
-function save_params(e) {
+function saveInLocalStorage(e) {
   var key = e.target.name || e.target.id
-  localStorage.setItem('verto.example.' + key, e.target.value);
+  localStorage.setItem('relay.example.' + key, e.target.value);
 }
 
 // jQuery document.ready equivalent
-function ready(fn) {
+function ready(callback) {
   if (document.readyState != 'loading') {
-    fn();
+    callback();
   } else if (document.addEventListener) {
-    document.addEventListener('DOMContentLoaded', fn);
+    document.addEventListener('DOMContentLoaded', callback);
   } else {
     document.attachEvent('onreadystatechange', function() {
-      if (document.readyState != 'loading')
-        fn();
+      if (document.readyState != 'loading') {
+        callback();
+      }
     });
   }
 }

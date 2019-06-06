@@ -1,167 +1,39 @@
-[![npm version](https://badge.fury.io/js/%40signalwire%2Fnode.svg)](https://badge.fury.io/js/%40signalwire%2Fnode)
-
 # SignalWire Node.js
 
-This package provides a NodeJS client for the Signalwire services.
-It allows you to create calls, send messages, and generate LaML responses.
 
-## Contents
-* [Getting Started](#getting-started)
-* [Relay](#relay)
-* [LaML](#laml)
+[![Build Status](https://ci.signalwire.com/api/badges/signalwire/signalwire-node/status.svg)](https://ci.signalwire.com/signalwire/signalwire-node) ![NPM](https://img.shields.io/npm/v/@signalwire/node.svg?color=brightgreen)
+
+The Relay SDK for Node.js enables Node.js developers to connect and use SignalWire's Relay APIs within their own Node.js code. Our Relay SDK allows developers to build or add robust and innovative communication services to their applications.
 
 ## Getting Started
 
-Install the package using [NPM](https://www.npmjs.com/):
-```bash
-npm install @signalwire/node
-```
+Read the implementation documentation, guides and API Reference at the official [Relay SDK for Node.js Documentation](https://docs.signalwire.com/topics/relay-sdk-nodejs) site.
 
-## Relay
+---
 
-With `RelayClient` you can control calls in real time. \
-Read more on our [Relay Documentation](https://docs.signalwire.com/topics/relay).
-```javascript
-const { RelayClient } = require('@signalwire/node')
-const client = new RelayClient({
-  host: 'example.signalwire.com',
-  project: 'your-project',
-  token: 'your-token'
-})
+## Contributing
 
-client.on('signalwire.ready', session => {
-  // Your client is now ready!
-})
+Relay SDK for Node.js is open source and maintained by the SignalWire team, but we are very grateful for [everyone](https://github.com/signalwire/signalwire-node/contributors) who has contributed and assisted so far.
 
-client.connect()
-```
+If you'd like to contribute, feel free to visit our [Slack channel](https://signalwire.community/) and read our developer section to get the code running in your local environment.
 
-#### Make Call
-```javascript
-async function main(numberToCall) {
-  const call = await client.calling.newCall({ type: 'phone', from: '+18991112222', to: numberToCall })
-  call.begin() // Start the call!
-}
-main('+18991113333').catch(console.error)
-```
+## Developers
 
-## LaML
+The Node.js SDK is a package inside the [signalwire-node](https://github.com/signalwire/signalwire-node) _monorepo_. To setup the dev environment follow these steps:
 
-### RestClient
+1. [Download the installer](https://nodejs.org/) for the LTS version of Node.js. This is the best way to also [install npm](https://blog.npmjs.org/post/85484771375/how-to-install-npm#_=_).
+2. Fork the [signalwire-node](https://github.com/signalwire/signalwire-node) repository and clone it.
+3. Create a new branch from `master` for your change.
+4. Run `npm install` to install global dependencies.
+5. Run `npm run setup node` to prepare the Node.js package.
+6. Navigate into the Node directory with `cd packages/node`.
+7. Make changes!
 
-With `RestClient` you can create calls, send SMS/MMS, manage Queues, Faxes etc. \
-Read more on our [REST API Documentation](https://docs.signalwire.com/topics/laml-api/?javascript#laml-rest-api).
-```javascript
-const { RestClient } = require('@signalwire/node')
-const client = new RestClient('your-project', 'your-token', { signalwireSpaceUrl: 'example.signalwire.com' })
-```
+## Versioning
 
-You can alternatively use the environment variable to set the Space URL:\
-Put the Space URL in your `.env` file:
-```
-SIGNALWIRE_SPACE_URL=example.signalwire.com
-```
+Relay SDK for Node.js follows Semantic Versioning 2.0 as defined at <http://semver.org>.
 
-And then `signalwireSpaceUrl` will be pulled from the ENV for you:
-```javascript
-const { RestClient } = require('@signalwire/node')
-const client = new RestClient('your-project', 'your-token')
-```
+## License
 
-#### Make Call
-```javascript
-client.calls.create({
-  to: '+19999999999', // Call this number
-  from: '+18888888888', // From a valid SignalWire number
-  url: 'https://example.com/laml/voice.xml' // Valid LaML
-}).then(call => {
-  process.stdout.write('Call ID: ' + call.sid)
-}).catch(console.error)
-```
-
-#### Send Message
-```javascript
-client.messages.create({
-  body: 'Welcome to SignalWire!',
-  to: '+19999999999', // Text this number
-  from: '+18888888888' // From a valid SignalWire number
-}).then(message => {
-  process.stdout.write('Message ID: ' + message.sid)
-}).catch(console.error)
-```
-
-### LaML Client
-`LaML` is the language used by SignalWire to determine how the phone numbers in your account react during calls or text messages.\
-Read more about LaML [here](https://docs.signalwire.com/topics/laml-xml/?javascript#what-is-laml)!
-
-```javascript
-const { RestClient } = require('@signalwire/node')
-const response = new RestClient.LaML.VoiceResponse()
-response.dial({ callerId: '+18888888888' }, '+19999999999')
-response.say("Welcome to SignalWire!")
-process.stdout.write(response.toString())
-```
-
-LaML output:
-
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<Response>
-  <Dial callerId="+18888888888">+19999999999</Dial>
-  <Say>Welcome to SignalWire!</Say>
-</Response>
-```
-
-
-## Migration
-Do you want to start using SignalWire in your current application? You can easily migrate the code with minimal changes!
-
-To use the Rest client:
-```javascript
-// Replace these lines:
-const twilio = require('twilio')
-const client = new twilio(sid, token)
-
-// With ...
-const { RestClient } = require('@signalwire/node')
-const client = new RestClient('your-project', 'your-token', { signalwireSpaceUrl: 'your-space.signalwire.com' })
-
-// Now use client variable like you did before!
-```
-> For calls and messages you should also change the `from` numbers with a valid SignalWire number!
-
-To generate `LaML`:
-
-```javascript
-// Replace these lines..
-const twilio = require('twilio')
-const response = new twilio.twiml.VoiceResponse()
-
-// With ..
-const { RestClient } = require('@signalwire/node')
-const response = new RestClient.LaML.VoiceResponse()
-
-// Now use response like you did before!
-response.say('Hey, Welcome at SignalWire!')
-```
-
-### Build versions
-To build the lib:
-
-```
-npm run clean-build
-```
-
-### Tests
-
-We provide tests to run with:
-```
-npm run test
-```
-<!---
-A Dockerfile is provided for testing purposes. Run `docker run -it $(docker build -q .)` to execute the test suite.
--->
-
-## Copyright
-
-Copyright (c) 2018 SignalWire Inc. See [LICENSE](https://github.com/signalwire/signalwire-node/blob/master/LICENSE) for further details.
+Relay SDK for Node.js is copyright © 2018-2019
+[SignalWire](http://signalwire.com). It is free software, and may be redistributed under the terms specified in the [MIT-LICENSE](https://github.com//signalwire/signalwire-node/blob/master/LICENSE) file.

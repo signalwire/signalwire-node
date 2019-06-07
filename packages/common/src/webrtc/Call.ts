@@ -10,7 +10,7 @@ import { trigger, register, deRegister } from '../services/Handler'
 import { sdpStereoHack, sdpMediaOrderHack, checkSubscribeResponse } from './helpers'
 import { objEmpty, mutateLiveArrayData, isFunction } from '../util/helpers'
 import { CallOptions } from '../util/interfaces'
-import { attachMediaStream, detachMediaStream, sdpToJsonHack, stopStream, getDisplayMedia, setMediaElementSinkId, muteMediaElement, unmuteMediaElement } from '../util/webrtc'
+import { attachMediaStream, detachMediaStream, sdpToJsonHack, stopStream, getUserMedia, getDisplayMedia, setMediaElementSinkId, muteMediaElement, unmuteMediaElement } from '../util/webrtc'
 
 export default class Call {
   public id: string = ''
@@ -190,41 +190,69 @@ export default class Call {
     return `conference-member.${this.id}`
   }
 
-  get microphone() {
-    return {
-      mute: () => this.peer.audioState = 'off',
-      unmute: () => this.peer.audioState = 'on',
-      toggleMute: () => this.peer.audioState = 'toggle'
+  muteAudio() {
+    this.peer.audioState = 'off'
+  }
+
+  unmuteAudio() {
+    this.peer.audioState = 'on'
+  }
+
+  toggleAudioMute() {
+    this.peer.audioState = 'toggle'
+  }
+
+  async setAudioInDevice(deviceId: string): Promise<void> {
+    const { instance } = this.peer
+    const sender = instance.getSenders().find(({ track: { kind } }: RTCRtpSender) => kind === 'audio')
+    if (sender) {
+      const newStream = await getUserMedia({ audio: { deviceId: { exact: deviceId } } })
+      const audioTrack = newStream.getAudioTracks()[0]
+      sender.replaceTrack(audioTrack)
+      this.options.micId = deviceId
     }
   }
 
-  get webcam() {
-    return {
-      mute: () => this.peer.videoState = 'off',
-      unmute: () => this.peer.videoState = 'on',
-      toggleMute: () => this.peer.videoState = 'toggle'
+  muteVideo() {
+    this.peer.videoState = 'off'
+  }
+
+  unmuteVideo() {
+    this.peer.videoState = 'on'
+  }
+
+  toggleVideoMute() {
+    this.peer.videoState = 'toggle'
+  }
+
+  async setVideoDevice(deviceId: string): Promise<void> {
+    const { instance } = this.peer
+    const sender = instance.getSenders().find(({ track: { kind } }: RTCRtpSender) => kind === 'video')
+    if (sender) {
+      const newStream = await getUserMedia({ video: { deviceId: { exact: deviceId } } })
+      const videoTrack = newStream.getVideoTracks()[0]
+      sender.replaceTrack(videoTrack)
+      const { localElement } = this.options
+      attachMediaStream(localElement, newStream)
+      this.options.camId = deviceId
     }
   }
 
-  get speaker() {
-    return {
-      mute: () => {
-        const { remoteElement } = this.options
-        muteMediaElement(remoteElement)
-      },
-      unmute: () => {
-        const { remoteElement } = this.options
-        unmuteMediaElement(remoteElement)
-      },
-      changeDevice: async (deviceId: string): Promise<boolean> => {
-        this.options.speakerId = deviceId
-        const { remoteElement, speakerId } = this.options
-        if (remoteElement && speakerId) {
-          return setMediaElementSinkId(remoteElement, speakerId)
-        }
-        return false
-      }
+  deaf() {
+    muteMediaElement(this.options.remoteElement)
+  }
+
+  undeaf() {
+    unmuteMediaElement(this.options.remoteElement)
+  }
+
+  async setAudioOutDevice(deviceId: string): Promise<boolean> {
+    this.options.speakerId = deviceId
+    const { remoteElement, speakerId } = this.options
+    if (remoteElement && speakerId) {
+      return setMediaElementSinkId(remoteElement, speakerId)
     }
+    return false
   }
 
   setState(state: State) {

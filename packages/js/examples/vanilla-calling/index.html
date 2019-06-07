@@ -1,93 +1,104 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>Signalwire Call Demo</title>
-	<meta charset="utf-8">
+  <title>Signalwire Call Demo</title>
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-	<!-- Cross Browser WebRTC Adapter -->
-	<script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
+  <!-- Cross Browser WebRTC Adapter -->
+  <script type="text/javascript" src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
 
   <!-- Include the SignalWire Relay JS SDK -->
   <script type="text/javascript" src="https://cdn.signalwire.com/libs/js/relay/1.1.0/relay.min.js"></script>
 
-	<!-- My web applications custom handling. -->
-	<script type="text/javascript" src="index.js"></script>
-
-	<!-- To style up the demo a little -->
-	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-	<style></style>
-	<link rel="shortcut icon" href="https://signalwire.com/assets/images/favicon.ico" />
+  <!-- To style up the demo a little -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" />
+  <link rel="shortcut icon" href="https://signalwire.com/assets/images/favicon.ico" />
 </head>
 <body class="bg-light">
-	<div class="container">
-		<div class="row py-5">
-			<div class="col-12 pb-3">
-				<h1>Signalwire Call Demo</h1>
+  <div class="container">
+    <div class="row pt-5">
+      <div class="col-12 pb-3">
+        <h1>SignalWire Relay JavaScript Call Demo</h1>
+        <p>
+          This demo allows you to make calls to other browsers, SIP Endpoints or Phone Numbers from your SignalWire project in your browser.
+          <br />
+          Visit <a href="https://docs.signalwire.com/topics/relay-sdk-js">Relay SDK for JavaScript Documentation</a> for more information and documentation.
+        </p>
 
-				<p>This demo allows you to make calls to other browsers, SIP Endpoints or Phone Numbers from your SignalWire project in your browser.</p>
-				<p>Visit <a href="https://docs.signalwire.com/topics/relay-sdk-js">Relay SDK for JavaScript Documentation</a> for more information and documentation.</p>
+        <h3 class="mb-3">Instructions</h3>
+        <ol>
+          <li>Follow the <a href="https://docs.signalwire.com/topics/relay-sdk-js#relay-sdk-for-javascript-using-the-sdk">Getting Started</a> steps in the JavaScript SDK Documentation to generate a JSON Web Token for your project.</li>
+          <li>Load the index.html file in your browser. You don't need to setup or run any HTTP servers, just double clicking the file or open it directly in your browser.</li>
+          <li>Fill in your Project ID and JWT. Click Connect and thats it! You'll now be able to dial other web browsers and SIP endpoints from your SignalWire project, as well as dial out to phone numbers.</li>
+        </ol>
+      </div>
+    </div>
+    <hr />
+    <div class="row py-3">
+      <div class="col-12 col-md-4">
+        <div class="card">
+          <div class="card-body">
+            <h5>Connect</h5>
+            <div class="form-group">
+              <label for="project">Project</label>
+              <input type="text" class="form-control" id="project" placeholder="Enter Project ID" onchange="saveInLocalStorage(event)">
+              <small id="projectHelp" class="form-text text-muted">Enter the Project ID found on your SignalWire Project Dashboard.</small>
+            </div>
+            <div class="form-group">
+              <label for="token">Token</label>
+              <input type="text" class="form-control" id="token" placeholder="Enter your JWT" onchange="saveInLocalStorage(event)">
+              <small id="tokenHelp" class="form-text text-muted">Generate a JWT and enter it here. For more information, visit <a href="/topics/relay-sdk-js#relay-sdk-for-javascript-using-the-sdk">Using the JavaScript SDK Documentation</a></small>
+            </div>
+            <button id="btnConnect" class="btn btn-block btn-success" onclick="connect()">Connect</button>
+            <button id="btnDisconnect" class="btn btn-block btn-danger d-none" onclick="disconnect()">Disconnect</button>
 
-				<p>Fill in your <strong>Project ID</strong> and <strong>JWT</strong> and click Connect... You'll then be able to make audio and video calls to other endpoints.</p>
-			</div>
+            <div class="text-center mt-3 text-muted">
+              <small>Status: <span id='connectStatus'>Not Connected</span></small>
+            </div>
+          </div>
+        </div>
+      </div>
 
-			<div class="col-12 col-md-4">
-				<div class="card">
-					<div class="card-body">
-						<h5>Connect</h5>
-					  <div class="form-group">
-					    <label for="project">Project</label>
-					    <input type="text" class="form-control" id="project" placeholder="Enter Project ID" onchange="saveInLocalStorage(event)">
-					    <small id="projectHelp" class="form-text text-muted">Enter the Project ID found on your SignalWire Project Dashboard.</small>
-					  </div>
-					  <div class="form-group">
-					    <label for="token">Token</label>
-					    <input type="text" class="form-control" id="token" placeholder="Enter your JWT" onchange="saveInLocalStorage(event)">
-					    <small id="tokenHelp" class="form-text text-muted">Generate a JWT and enter it here. For more information, visit <a href="/topics/relay-sdk-js#relay-sdk-for-javascript-using-the-sdk">Using the JavaScript SDK Documentation</a></small>
-					  </div>
-					  <button id="btnConnect" class="btn btn-block btn-success" onclick="connect()">Connect</button>
-						<button id="btnDisconnect" class="btn btn-block btn-danger d-none" onclick="disconnect()">Disconnect</button>
+      <div class="col-12 col-md-8 mt-4 mt-md-1">
+        <div class="row">
+          <div class="col-6">
+            <h5>Local Video</h5>
+            <video id="localVideo" autoplay="true" class="w-100" style="background-color: #000; border: 1px solid #ccc; border-radius: 5px;"></video>
+          </div>
+          <div class="col-6">
+            <h5>Remote Video</h5>
+            <video id="remoteVideo" autoplay="true" class="w-100" playsinline style="background-color: #000; border: 1px solid #ccc; border-radius: 5px;"></video>
+          </div>
+        </div>
 
-						<div class="text-center mt-3 text-muted">
-							<small>Status: <span id='connectStatus'>Not Connected</span></small>
-						</div>
-					</div>
-				</div>
-			</div>
-
-			<div class="col-12 col-md-8 mt-4 mt-md-1">
-				<div class="row">
-					<div class="col-6">
-						<h5>Local Video</h5>
-						<video id="localVideo" autoplay="true" class="w-100" style="background-color: #000; border: 1px solid #ccc; border-radius: 5px;"></video>
-					</div>
-					<div class="col-6">
-						<h5>Remote Video</h5>
-						<video id="remoteVideo" autoplay="true" class="w-100" playsinline style="background-color: #000; border: 1px solid #ccc; border-radius: 5px;"></video>
-					</div>
-				</div>
-
-				<div class="form-group">
-			    <label for="number">Call To:</label>
-			    <input type="text" class="form-control" id="number" placeholder="Enter Resource or Number to Dial" onchange="saveInLocalStorage(event)">
-				</div>
-				<div>Call Options:</div>
-				<div class="form-check">
-				  <input type="checkbox" id="audio" value="1" onchange="saveInLocalStorage(event)">
-				  <label class="form-check-label" for="audio">
-				    Include Audio
-				  </label>
-				</div>
-				<div class="form-check">
-				  <input type="checkbox" id="video" value="1" onchange="saveInLocalStorage(event)">
-				  <label class="form-check-label" for="video">
-				    Include Video
-				  </label>
-				</div>
-				<button id="startCall" class="btn btn-primary px-5 mt-4" onClick="makeCall()" disabled="true">Call</button>
-				<button id="hangupCall" class="btn btn-danger px-5 mt-4 d-none" onClick="hangup()" disabled="true">Hang up</button>
-			</div>
-		</div>
-	</div>
+        <div class="form-group">
+          <label for="number">Call To:</label>
+          <input type="text" class="form-control" id="number" placeholder="Enter Resource or Number to Dial" onchange="saveInLocalStorage(event)">
+        </div>
+        <div>Call Options:</div>
+        <div class="form-check">
+          <input type="checkbox" id="audio" value="1" onchange="saveInLocalStorage(event)">
+          <label class="form-check-label" for="audio">
+            Include Audio
+          </label>
+        </div>
+        <div class="form-check">
+          <input type="checkbox" id="video" value="1" onchange="saveInLocalStorage(event)">
+          <label class="form-check-label" for="video">
+            Include Video
+          </label>
+        </div>
+        <button id="startCall" class="btn btn-primary px-5 mt-4" onClick="makeCall()" disabled="true">Call</button>
+        <button id="hangupCall" class="btn btn-danger px-5 mt-4 d-none" onClick="hangup()" disabled="true">Hang up</button>
+      </div>
+    </div>
+    <hr />
+    <div class="row pt-3 pb-5">
+      <div class="col-12">
+        <h4>Troubleshooting</h4>
+        <p>If you notice any JavaScript errors in the console relating to <code>localStorage</code>, try unblocking 3rd Party Cookies. Some browsers mark localStorage Cookies as 3rd Party when being run from <code>file://</code>.</p>
+      </div>
+    </div>
 </body>
 </html>

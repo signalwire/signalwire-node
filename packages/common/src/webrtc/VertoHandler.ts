@@ -186,6 +186,14 @@ class VertoHandler {
         trigger(SwEvent.Notification, notification, this.session.uuid)
         break
       }
+      case 'layout-info': {
+        const { canvasType } = eventData
+        if (canvasType === 'mcu-personal-canvas') {
+          const notification = { type: NOTIFICATION_TYPE.conferenceUpdate, action: ConferenceAction.LayoutInfo, ...eventData }
+          trigger(SwEvent.Notification, notification, this.session.uuid)
+        }
+        break
+      }
       case 'logo-info': {
         const notification = { type: NOTIFICATION_TYPE.conferenceUpdate, action: ConferenceAction.LogoInfo, logo: eventData.logoURL }
         trigger(SwEvent.Notification, notification, this.session.uuid)

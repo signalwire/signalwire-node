@@ -6,6 +6,7 @@ import { Result } from '../messages/Verto'
 import { SwEvent, VertoMethod, NOTIFICATION_TYPE } from '../util/constants'
 import { trigger, deRegister } from '../services/Handler'
 import { State, ConferenceAction } from '../util/constants/call'
+import { MCULayoutEventHandler } from './LayoutHandler'
 
 class VertoHandler {
   public nodeId: string
@@ -181,19 +182,10 @@ class VertoHandler {
 
   private _handleSessionEvent(eventData: any) {
     switch (eventData.contentType) {
-      case 'layer-info': {
-        const notification = { type: NOTIFICATION_TYPE.conferenceUpdate, action: ConferenceAction.LayerInfo, ...eventData }
-        trigger(SwEvent.Notification, notification, this.session.uuid)
+      case 'layout-info':
+      case 'layer-info':
+        MCULayoutEventHandler(this.session, eventData)
         break
-      }
-      case 'layout-info': {
-        const { canvasType } = eventData
-        if (canvasType === 'mcu-personal-canvas') {
-          const notification = { type: NOTIFICATION_TYPE.conferenceUpdate, action: ConferenceAction.LayoutInfo, ...eventData }
-          trigger(SwEvent.Notification, notification, this.session.uuid)
-        }
-        break
-      }
       case 'logo-info': {
         const notification = { type: NOTIFICATION_TYPE.conferenceUpdate, action: ConferenceAction.LogoInfo, logo: eventData.logoURL }
         trigger(SwEvent.Notification, notification, this.session.uuid)

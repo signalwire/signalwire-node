@@ -309,12 +309,9 @@ export default class Call {
       }
       case VertoMethod.Display:
       case VertoMethod.Attach: {
-        // caller_id_name, caller_id_number, callee_id_name, callee_id_number
+        // TODO: manage caller_id_name, caller_id_number, callee_id_name, callee_id_number
         const { display_name: displayName, display_number: displayNumber, display_direction } = params
-        let displayDirection = Direction.Inbound
-        if (display_direction === Direction.Inbound) {
-          displayDirection = Direction.Outbound
-        }
+        const displayDirection = display_direction === Direction.Inbound ? Direction.Outbound : Direction.Inbound
         const notification = { type: NOTIFICATION_TYPE[method], call: this, displayName, displayNumber, displayDirection }
         if (!trigger(SwEvent.Notification, notification, this.id)) {
           trigger(SwEvent.Notification, notification, this.session.uuid)

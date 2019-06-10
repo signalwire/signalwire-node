@@ -4,7 +4,7 @@ import Call from './Call'
 import { SwEvent, NOTIFICATION_TYPE } from '../util/constants'
 import { trigger } from '../services/Handler'
 import { ConferenceAction } from '../util/constants/call'
-import { safeParseJson } from '../util/helpers';
+import { safeParseJson } from '../util/helpers'
 
 const MCULayoutEventHandler = (session: BrowserSession, eventData: any) => {
   const { contentType, canvasType, callID, canvasInfo = null, currentLayerIdx = -1 } = eventData

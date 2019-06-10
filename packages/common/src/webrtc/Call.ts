@@ -423,6 +423,8 @@ export default class Call {
         const { eventData } = params
         switch (eventData.contentType) {
           case 'layout-info':
+            // FIXME: workaround to fix missing callID on payload
+            eventData.callID = this.id
             MCULayoutEventHandler(this.session, eventData)
             break
           default:

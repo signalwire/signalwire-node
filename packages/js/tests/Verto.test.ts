@@ -1,5 +1,6 @@
 import behaveLikeBaseSession from '../../common/tests/behaveLike/BaseSession'
 import VertoHandler from '../../common/tests/webrtc/VertoHandler'
+import LayoutHandler from '../../common/tests/webrtc/LayoutHandler'
 import { isQueued } from '../../common/src/services/Handler'
 import Verto, { VERTO_PROTOCOL } from '../src/Verto'
 const Connection = require('../../common/src/services/Connection')
@@ -8,6 +9,7 @@ describe('Verto', () => {
   const _verto = new Verto({ host: 'example.signalwire.com', login: 'login', password: 'password' })
   behaveLikeBaseSession.call(this, _verto)
   VertoHandler.call(this, Verto)
+  LayoutHandler.call(this, Verto)
 
   let instance: Verto
   const noop = (): void => { }

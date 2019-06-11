@@ -308,15 +308,20 @@ export default class Call {
         this._onRemoteSdp(params.sdp)
         break
       }
-      case VertoMethod.Info:
       case VertoMethod.Display:
-      case VertoMethod.Event:
       case VertoMethod.Attach: {
-        const type = NOTIFICATION_TYPE.hasOwnProperty(method) ? NOTIFICATION_TYPE[method] : NOTIFICATION_TYPE.generic
-        const notification = { ...params, type, call: this }
-        if (notification.hasOwnProperty('sdp')) {
-          delete notification.sdp
+        // TODO: manage caller_id_name, caller_id_number, callee_id_name, callee_id_number
+        const { display_name: displayName, display_number: displayNumber, display_direction } = params
+        const displayDirection = display_direction === Direction.Inbound ? Direction.Outbound : Direction.Inbound
+        const notification = { type: NOTIFICATION_TYPE[method], call: this, displayName, displayNumber, displayDirection }
+        if (!trigger(SwEvent.Notification, notification, this.id)) {
+          trigger(SwEvent.Notification, notification, this.session.uuid)
         }
+        break
+      }
+      case VertoMethod.Info:
+      case VertoMethod.Event: {
+        const notification = { ...params, type: NOTIFICATION_TYPE.generic, call: this }
         if (!trigger(SwEvent.Notification, notification, this.id)) {
           trigger(SwEvent.Notification, notification, this.session.uuid)
         }

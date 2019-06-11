@@ -588,6 +588,12 @@ export default class Call implements ICall {
     return blocker.promise
   }
 
+  /**
+   * Execute a 'call.record'
+   * @param collect - Object with record preferences
+   * @param controlId - controlId to use
+   * @return Promise
+   */
   private async _record(record: any, controlId?: string) {
     this._callIdRequired()
     const msg = new Execute({

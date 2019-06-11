@@ -178,44 +178,46 @@ describe('Call', () => {
       call._stateChange(_stateNotificationEnded)
     })
 
-    it('.record() should execute the right message', async done => {
-      const record = { audio: { format: 'mp3', beep: true } }
-      const action = await call.record(record)
-      const msg = new Execute({
-        protocol: 'signalwire_service_random_uuid',
-        method: 'call.record',
-        params: {
-          node_id: call.nodeId,
-          call_id: call.id,
-          control_id: 'mocked-uuid',
-          record
-        }
-      })
-      expect(action).toBeInstanceOf(Actions.RecordAction)
-      expect(Connection.mockSend).toHaveBeenCalledTimes(1)
-      expect(Connection.mockSend).toHaveBeenCalledWith(msg)
-      done()
-    })
-
-    it('.recordSync() should execute the right message', done => {
-      const record = { audio: { format: 'mp3', beep: true } }
-      const msg = new Execute({
-        protocol: 'signalwire_service_random_uuid',
-        method: 'call.record',
-        params: {
-          node_id: call.nodeId,
-          call_id: call.id,
-          control_id: 'mocked-uuid',
-          record
-        }
-      })
-      call.recordSync(record).then(result => {
-        expect(result).toMatchObject(_recordNotification)
+    describe('record methods', () => {
+      it('.record() should execute the right message', async done => {
+        const record = { audio: { format: 'mp3', beep: true } }
+        const action = await call.record(record)
+        const msg = new Execute({
+          protocol: 'signalwire_service_random_uuid',
+          method: 'call.record',
+          params: {
+            node_id: call.nodeId,
+            call_id: call.id,
+            control_id: 'mocked-uuid',
+            record
+          }
+        })
+        expect(action).toBeInstanceOf(Actions.RecordAction)
         expect(Connection.mockSend).toHaveBeenCalledTimes(1)
         expect(Connection.mockSend).toHaveBeenCalledWith(msg)
         done()
       })
-      call._recordStateChange(_recordNotification)
+
+      it('.recordSync() should execute the right message', done => {
+        const record = { audio: { format: 'mp3', beep: true } }
+        const msg = new Execute({
+          protocol: 'signalwire_service_random_uuid',
+          method: 'call.record',
+          params: {
+            node_id: call.nodeId,
+            call_id: call.id,
+            control_id: 'mocked-uuid',
+            record
+          }
+        })
+        call.recordSync(record).then(result => {
+          expect(result).toMatchObject(_recordNotification)
+          expect(Connection.mockSend).toHaveBeenCalledTimes(1)
+          expect(Connection.mockSend).toHaveBeenCalledWith(msg)
+          done()
+        })
+        call._recordStateChange(_recordNotification)
+      })
     })
 
     describe('connect methods', () => {

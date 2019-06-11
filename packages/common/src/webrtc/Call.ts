@@ -11,6 +11,7 @@ import { sdpStereoHack, sdpMediaOrderHack, checkSubscribeResponse } from './help
 import { objEmpty, mutateLiveArrayData, isFunction } from '../util/helpers'
 import { CallOptions } from '../util/interfaces'
 import { attachMediaStream, detachMediaStream, sdpToJsonHack, stopStream, getUserMedia, getDisplayMedia, setMediaElementSinkId, muteMediaElement, unmuteMediaElement } from '../util/webrtc'
+import { MCULayoutEventHandler } from './LayoutHandler'
 
 export default class Call {
   public id: string = ''
@@ -424,13 +425,12 @@ export default class Call {
       nodeId: this.nodeId,
       channels: [channel],
       handler: (params: any) => {
-        const { eventData: data } = params
-        switch (data.contentType) {
+        const { eventData } = params
+        switch (eventData.contentType) {
           case 'layout-info':
-            if (typeof data.canvasInfo === 'object') {
-              const tmp = JSON.stringify(data.canvasInfo).replace(/ID"/g, 'Id"').replace(/POS"/g, 'Pos"')
-              this._dispatchConferenceUpdate({ action: ConferenceAction.LayoutInfo, data: JSON.parse(tmp) })
-            }
+            // FIXME: workaround to fix missing callID on payload
+            eventData.callID = this.id
+            MCULayoutEventHandler(this.session, eventData)
             break
           default:
             logger.error('Conference-Info unknown contentType', params)

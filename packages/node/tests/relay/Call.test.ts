@@ -135,6 +135,7 @@ describe('Call', () => {
     const _recordNotification = JSON.parse(`{"state":"finished","call_id":"call-id","control_id":"mocked-uuid","event_type":"${CallNotification.Record}","url":"record-url","record":{"audio":{"type":"digit","params":{"digits":"12345","terminator":"#"}}}}`)
     const _connectNotification = JSON.parse(`{"connect_state":"connected","call_id":"call-id","event_type":"${CallNotification.Connect}"}`)
     const _detectNotification = JSON.parse(`{"call_id":"call-id","control_id":"mocked-uuid","event_type":"${CallNotification.Detect}","detect":{"type":"fax","params":{"event":"finished"}}}`)
+    const _faxNotification = JSON.parse(`{"call_id":"call-id","control_id":"mocked-uuid","event_type":"${CallNotification.Fax}","fax":{"type":"finished","params":{"direction":"send","document":"url.pdf","pages":2}}}`)
 
     beforeEach(() => {
       call.id = 'call-id'
@@ -550,6 +551,75 @@ describe('Call', () => {
           done()
         })
         call._detectStateChange(_detectNotification)
+      })
+    })
+
+    describe('send fax methods', () => {
+      it('.sendFax() should execute the right message', async done => {
+        const action = await call.sendFax('document.pdf', '+1234', 'Testing String')
+        const msg = new Execute({
+          protocol: 'signalwire_service_random_uuid',
+          method: 'call.send_fax',
+          params: {
+            node_id: call.nodeId,
+            call_id: call.id,
+            control_id: 'mocked-uuid',
+            document: 'document.pdf',
+            identity: '+1234',
+            header_info: 'Testing String',
+          }
+        })
+        expect(action).toBeInstanceOf(Actions.SendFaxAction)
+        expect(Connection.mockSend).toHaveBeenCalledTimes(1)
+        expect(Connection.mockSend).toHaveBeenCalledWith(msg)
+        done()
+      })
+
+      it('.sendFaxSync() should execute the right message', done => {
+        const msg = new Execute({
+          protocol: 'signalwire_service_random_uuid',
+          method: 'call.send_fax',
+          params: {
+            node_id: call.nodeId,
+            call_id: call.id,
+            control_id: 'mocked-uuid',
+            document: 'document.pdf',
+            identity: '+1234',
+            header_info: 'Testing String',
+          }
+        })
+        call.sendFaxSync('document.pdf', '+1234', 'Testing String').then(result => {
+          const { params } = result
+          expect(params.direction).toEqual('send')
+          expect(params.pages).toEqual(2)
+          expect(Connection.mockSend).toHaveBeenCalledTimes(1)
+          expect(Connection.mockSend).toHaveBeenCalledWith(msg)
+          done()
+        })
+        call._detectStateChange(_faxNotification)
+      })
+
+      it('.sendFax() should execute the right message without identity or header', async done => {
+        const msg = new Execute({
+          protocol: 'signalwire_service_random_uuid',
+          method: 'call.send_fax',
+          params: {
+            node_id: call.nodeId,
+            call_id: call.id,
+            control_id: 'mocked-uuid',
+            document: 'document.pdf'
+          }
+        })
+        await call.sendFax('document.pdf')
+        // .then(result => {
+        //   const { params } = result
+        //   expect(params.direction).toEqual('send')
+        //   expect(params.pages).toEqual(2)
+        // })
+        // call._detectStateChange(_faxNotification)
+        expect(Connection.mockSend).toHaveBeenCalledTimes(1)
+        expect(Connection.mockSend).toHaveBeenCalledWith(msg)
+        done()
       })
     })
   })

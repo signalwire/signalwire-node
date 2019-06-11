@@ -389,6 +389,42 @@ export default class Call implements ICall {
     return blocker.promise
   }
 
+  /**
+   * Send a fax through the call. The call must be 'ready'.
+   * @param documentUrl - URL of the document to send.
+   * @param identity - Identity to display on receiving fax.
+   * @param header - Custom info to add to header of each fax page.
+   * @return Promise fulfilled with a SendFaxAction object to control the fax process
+   */
+  async sendFax(documentUrl: string, identity?: string, header?: string) {
+    const { control_id } = await this._sendFax(documentUrl, identity, header)
+    return new Actions.SendFaxAction(this, control_id)
+  }
+
+  /**
+   * Send a fax through the call and wait the finish event. The call must be 'ready'.
+   * @param documentUrl - URL of the document to send.
+   * @param identity - Identity to display on receiving fax.
+   * @param header - Custom info to add to header of each fax page.
+   * @return Promise with the result of the detector
+   */
+  async sendFaxSync(documentUrl: string, identity?: string, header?: string) {
+    const control_id = uuidv4()
+    const blocker = new Blocker(control_id, CallNotification.Fax, ({ fax }: any) => {
+      // TODO: these checks must be validated!
+      const { type } = fax
+      if (type === 'finished') {
+        blocker.resolve(fax)
+      } else if (type === 'error') {
+        blocker.reject(fax)
+      }
+    })
+    this._blockers.push(blocker)
+    await this._sendFax(documentUrl, identity, header, control_id)
+
+    return blocker.promise
+  }
+
   get prevState() {
     return CallState[this._prevState]
   }
@@ -677,6 +713,32 @@ export default class Call implements ICall {
         control_id: controlId || uuidv4(),
         detect: { type, params },
         timeout
+      }
+    })
+
+    return this._execute(msg)
+  }
+
+  /**
+   * Execute a 'call.send_fax'
+   * @param document - String with the URL of the document to send.
+   * @param identity - Identity to display on receiving fax.
+   * @param header_info - Custom info to add to header of each fax page.
+   * @param controlId - controlId to use
+   * @return Promise
+   */
+  private async _sendFax(document: string, identity?: string, header_info?: string, controlId?: string) {
+    this._callIdRequired()
+    const msg = new Execute({
+      protocol: this.relayInstance.protocol,
+      method: 'call.send_fax',
+      params: {
+        node_id: this.nodeId,
+        call_id: this.id,
+        control_id: controlId || uuidv4(),
+        document,
+        identity,
+        header_info
       }
     })
 

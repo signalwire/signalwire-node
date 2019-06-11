@@ -134,6 +134,7 @@ describe('Call', () => {
     const _collectNotification = JSON.parse(`{"control_id":"mocked-uuid","call_id":"call-id","event_type":"${CallNotification.Collect}","result":{"type":"digit","params":{"digits":"12345","terminator":"#"}}}`)
     const _recordNotification = JSON.parse(`{"state":"finished","call_id":"call-id","control_id":"mocked-uuid","event_type":"${CallNotification.Record}","url":"record-url","record":{"audio":{"type":"digit","params":{"digits":"12345","terminator":"#"}}}}`)
     const _connectNotification = JSON.parse(`{"connect_state":"connected","call_id":"call-id","event_type":"${CallNotification.Connect}"}`)
+    const _detectNotification = JSON.parse(`{"call_id":"call-id","control_id":"mocked-uuid","event_type":"${CallNotification.Detect}","detect":{"type":"fax","params":{"event":"finished"}}}`)
 
     beforeEach(() => {
       call.id = 'call-id'
@@ -508,6 +509,47 @@ describe('Call', () => {
         expect(Connection.mockSend).toHaveBeenCalledTimes(1)
         expect(Connection.mockSend).toHaveBeenCalledWith(msg)
         done()
+      })
+    })
+
+    describe('detect methods', () => {
+      it('.detect() should execute the right message', async done => {
+        const action = await call.detect('fax')
+        const msg = new Execute({
+          protocol: 'signalwire_service_random_uuid',
+          method: 'call.detect',
+          params: {
+            node_id: call.nodeId,
+            call_id: call.id,
+            control_id: 'mocked-uuid',
+            detect: { type: 'fax', params: {} }
+          }
+        })
+        expect(action).toBeInstanceOf(Actions.DetectAction)
+        expect(Connection.mockSend).toHaveBeenCalledTimes(1)
+        expect(Connection.mockSend).toHaveBeenCalledWith(msg)
+        done()
+      })
+
+      it('.detectSync() should execute the right message', done => {
+        const msg = new Execute({
+          protocol: 'signalwire_service_random_uuid',
+          method: 'call.detect',
+          params: {
+            node_id: call.nodeId,
+            call_id: call.id,
+            control_id: 'mocked-uuid',
+            detect: { type: 'fax', params: {} }
+          }
+        })
+        call.detectSync('fax').then(result => {
+          expect(result.type).toEqual('fax')
+          expect(result.params.event).toEqual('finished')
+          expect(Connection.mockSend).toHaveBeenCalledTimes(1)
+          expect(Connection.mockSend).toHaveBeenCalledWith(msg)
+          done()
+        })
+        call._detectStateChange(_detectNotification)
       })
     })
   })

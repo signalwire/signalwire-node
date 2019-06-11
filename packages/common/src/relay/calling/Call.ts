@@ -353,6 +353,42 @@ export default class Call implements ICall {
     return this._playAndCollect(collect, play)
   }
 
+  /**
+   * Start a detector in the call. The call must be 'ready'.
+   * @param type - String with the type of detect: machine | fax | digit.
+   * @param params - Object with the options for the detect.
+   * @param timeout - Optional max time to run detector.
+   * @return Promise fulfilled with a DetectAction object to control the detector
+   */
+  async detect(type: string, params?: any, timeout?: number) {
+    const { control_id } = await this._detect(type, params, timeout)
+    return new Actions.DetectAction(this, control_id)
+  }
+
+  /**
+   * Start a detector in the call and wait the finish event. The call must be 'ready'.
+   * @param type - String with the type of detect: machine | fax | digit.
+   * @param params - Object with the options for the detect.
+   * @param timeout - Optional max time to run detector.
+   * @return Promise with the result of the detector
+   */
+  async detectSync(type: string, params?: any, timeout?: number) {
+    const control_id = uuidv4()
+    const blocker = new Blocker(control_id, CallNotification.Detect, ({ detect }: any) => {
+      // TODO: these checks must be validated!
+      const { params: { event = null } = {} } = detect
+      if (event === 'finished') {
+        blocker.resolve(detect)
+      } else if (event === 'error') {
+        blocker.reject(detect)
+      }
+    })
+    this._blockers.push(blocker)
+    await this._detect(type, params, timeout, control_id)
+
+    return blocker.promise
+  }
+
   get prevState() {
     return CallState[this._prevState]
   }
@@ -616,6 +652,31 @@ export default class Call implements ICall {
         call_id: this.id,
         control_id: controlId || uuidv4(),
         record
+      }
+    })
+
+    return this._execute(msg)
+  }
+
+  /**
+   * Execute a 'call.detect'
+   * @param type - String with the type of detect: machine | fax | digit.
+   * @param params - Object with the options for the detect.
+   * @param timeout - Optional max time to run detector.
+   * @param controlId - controlId to use
+   * @return Promise
+   */
+  private async _detect(type: string, params: any = {}, timeout?: number, controlId?: string) {
+    this._callIdRequired()
+    const msg = new Execute({
+      protocol: this.relayInstance.protocol,
+      method: 'call.detect',
+      params: {
+        node_id: this.nodeId,
+        call_id: this.id,
+        control_id: controlId || uuidv4(),
+        detect: { type, params },
+        timeout
       }
     })
 

@@ -459,6 +459,18 @@ export default class Call implements ICall {
     this._dispatchCallback('collect', params)
   }
 
+  _detectStateChange(params: any) {
+    this._addControlParams(params)
+    // TODO: handle detect notification between dtmf and others
+    // this._dispatchCallback('detect', params)
+  }
+
+  _faxStateChange(params: any) {
+    this._addControlParams(params)
+    // TODO: handle fax notification between pages send/recv and finished
+    // this._dispatchCallback('fax', params)
+  }
+
   private _dispatchCallback(key: string, ...params: any) {
     const { [key]: handler } = this._cbQueue
     if (isFunction(handler)) {

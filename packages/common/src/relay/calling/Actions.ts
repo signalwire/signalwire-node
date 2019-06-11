@@ -30,6 +30,14 @@ class RecordAction extends BaseAction {
   protected baseMethod = 'call.record'
 }
 
+class DetectAction extends BaseAction {
+  protected baseMethod = 'call.detect'
+}
+
+class SendFaxAction extends BaseAction {
+  protected baseMethod = 'call.send_fax'
+}
+
 class PlayAction extends BaseAction {
   protected baseMethod = 'call.play'
 }
@@ -50,6 +58,8 @@ class PlayTTSAndCollectAction extends PlayAndCollectAction {}
 
 export {
   RecordAction,
+  DetectAction,
+  SendFaxAction,
   PlayMediaAction,
   PlayAudioAction,
   PlaySilenceAction,

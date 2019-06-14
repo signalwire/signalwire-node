@@ -8,6 +8,7 @@
     "setup": "node .scripts/setup.js"
   },
   "dependencies": {
+    "sdp": "^2.9.0",
     "uuid": "^3.3.2"
   },
   "devDependencies": {

@@ -723,6 +723,7 @@ export default class Call {
     }
 
     instance.ontrack = event => {
+      logger.warn('ontrack', event)
       this.options.remoteStream = event.streams[0]
 
       if (this.options.screenShare === true) {

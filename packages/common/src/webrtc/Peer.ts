@@ -1,5 +1,5 @@
 import logger from '../util/logger'
-import { getUserMedia, getMediaConstraints, sdpStereoHack } from './helpers'
+import { getUserMedia, getMediaConstraints, sdpStereoHack, sdpSimulcastHack } from './helpers'
 import { PeerType, SwEvent } from '../util/constants'
 import { attachMediaStream, muteMediaElement, sdpToJsonHack, RTCPeerConnection, streamIsValid } from '../util/webrtc'
 import { isFunction } from '../util/helpers'
@@ -123,11 +123,15 @@ export default class Peer {
     if (this.options.useStereo) {
       sessionDescription.sdp = sdpStereoHack(sessionDescription.sdp)
     }
+    if (sessionDescription.type === PeerType.Offer) {
+      sessionDescription.sdp = sdpSimulcastHack(sessionDescription.sdp)
+    }
     return this.instance.setLocalDescription(sessionDescription)
   }
 
   /** Workaround for ReactNative: first time SDP has no candidates */
   private _sdpReady(): void {
+    this._forceSimulcast()
     if (isFunction(this.onSdpReadyTwice)) {
       this.onSdpReadyTwice(this.instance.localDescription)
     }
@@ -151,7 +155,8 @@ export default class Peer {
   private _config(): RTCConfiguration {
     const { iceServers = [] } = this.options
     // @ts-ignore
-    const config: RTCConfiguration = { sdpSemantics: 'plan-b', bundlePolicy: 'max-compat', iceServers }
+    // const config: RTCConfiguration = { sdpSemantics: 'plan-b', bundlePolicy: 'max-compat', iceServers }
+    const config: RTCConfiguration = { bundlePolicy: 'max-compat', iceServers }
     logger.info('RTC config', config)
     return config
   }
@@ -185,6 +190,38 @@ export default class Peer {
           tracks[i].enabled = !tracks[i].enabled
           break
       }
+    }
+  }
+
+  private async _forceSimulcast() {
+    try {
+      const sender = this.instance.getSenders().find(s => s.track.kind === 'video')
+      if (!sender) return
+      const sendersParams = sender.getParameters()
+      if (!sendersParams) return
+
+      logger.warn('sendersParams', sendersParams)
+
+      /* OK
+      p.encodings[0].maxBitrate = 5*1000;
+      p.encodings[0].minBitrate = 0;
+      p.encodings[1].maxBitrate = 500*1000;
+      p.encodings[2].maxBitrate = 0; */
+      //debug(p);
+      //p.encodings[0].maxBitrate = 20*1000;
+      // @ts-ignore
+      sendersParams.encodings[0].scaleResolutionDownBy = 8
+      //p.encodings[1].maxBitrate = 5*1000;
+      //p.encodings[2].maxBitrate = 275*1000;
+      //p.encodings[0].minBitrate = 1;
+      //p.encodings[1].minBitrate = 1;
+      //p.encodings[2].minBitrate = 1;
+      /*p.encodings[0].targetBitrate = 1000*1000;
+      p.encodings[1].targetBitrate = 1000*1000;
+      p.encodings[2].targetBitrate = 1000*1000;*/
+      await sender.setParameters(sendersParams)
+    } catch (error) {
+      logger.error('_forceSimulcast error:', error)
     }
   }
 }

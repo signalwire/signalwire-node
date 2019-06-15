@@ -1,3 +1,4 @@
+import { getMediaSections, matchPrefix } from 'sdp'
 import logger from '../util/logger'
 import { localStorage } from '../util/storage'
 import * as WebRTC from '../util/webrtc'
@@ -179,6 +180,40 @@ const sdpMediaOrderHack = (answer: string, localOffer: string): string => {
   return [...beginLines, ...videoLines, ...audioLines, ''].join(endOfLine)
 }
 
+const sdpSimulcastHack = (sdp: string): string => {
+  logger.warn('\n BEFORE SIMULCAST \n', sdp, '\n')
+  const endOfLine = '\r\n'
+  const videoPart = getMediaSections(sdp)[1]
+  const match = videoPart.match(/a=ssrc:(\d+) cname:(.*)\r\n/)
+  const msid = videoPart.match(/a=ssrc:(\d+) msid:(.*)\r\n/)
+  const lines = sdp.trim().split(endOfLine)
+  const removed = lines.splice(lines.length - 4, 4)
+  const videoSSRC1 = parseInt(match[1])
+
+  // var rtxSSRC1 = matchPrefix(videoPart, 'a=ssrc-group:FID ')[0].split(' ')[2]
+  const videoSSRC2 = videoSSRC1 + 1
+  const rtxSSRC2 = videoSSRC1 + 2
+  lines.push(removed[0])
+  lines.push(removed[1])
+
+  lines.push('a=ssrc:' + videoSSRC2 + ' cname:' + match[2])
+  lines.push('a=ssrc:' + videoSSRC2 + ' msid:' + msid[2])
+  lines.push('a=ssrc:' + rtxSSRC2 + ' cname:' + match[2])
+  lines.push('a=ssrc:' + rtxSSRC2 + ' msid:' + msid[2])
+
+  lines.push(`a=ssrc-group:FID ${videoSSRC2} ${rtxSSRC2}`)
+  //lines.push('a=ssrc-group:FID ' + videoSSRC2)
+  //lines.push('a=ssrc-group:FID ' + videoSSRC3)
+  //lines.push('a=ssrc-group:FID ' + videoSSRC4)
+  lines.push(`a=ssrc-group:SIM ${videoSSRC1} ${videoSSRC2}`)
+  //lines.push("a=x-google-flag:conference")
+  //lines.push('b=AS:1000')
+  //lines.push('a=fmtp:96 x-google-start-bitrate=90000')
+  sdp = lines.join(endOfLine) + endOfLine
+  logger.warn('\n AFTER SIMULCAST \n', sdp, '\n')
+  return sdp
+}
+
 const checkSubscribeResponse = (response: any, channel: string): boolean => {
   if (!response) {
     return false
@@ -216,6 +251,7 @@ export {
   checkDeviceIdConstraints,
   sdpStereoHack,
   sdpMediaOrderHack,
+  sdpSimulcastHack,
   checkSubscribeResponse,
   destructSubscribeResponse
 }

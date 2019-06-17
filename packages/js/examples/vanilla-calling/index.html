@@ -9,7 +9,7 @@
   <script type="text/javascript" src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
 
   <!-- Include the SignalWire Relay JS SDK -->
-  <script type="text/javascript" src="https://cdn.signalwire.com/libs/js/relay/1.1.0/relay.min.js"></script>
+  <script type="text/javascript" src="index.min.js"></script>
 
   <!-- To style up the demo a little -->
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" />
@@ -61,7 +61,7 @@
       </div>
 
       <div class="col-12 col-md-8 mt-4 mt-md-1">
-        <div class="row">
+        <div id="videoWrapper" class="row">
           <div class="col-6">
             <h5>Local Video</h5>
             <video id="localVideo" autoplay="true" class="w-100" style="background-color: #000; border: 1px solid #ccc; border-radius: 5px;"></video>
@@ -120,19 +120,27 @@
       document.getElementById('number').value = number;
       document.getElementById('audio').checked = audio === '1';
       document.getElementById('video').checked = video === '1';
+
+      connect()
     });
 
     /**
      * Connect with Relay creating a client and attaching all the event handler.
     */
     function connect() {
-      client = new Relay({
-        project: document.getElementById('project').value,
-        token: document.getElementById('token').value
+      client = new Verto({
+        login: '1008',
+        // host: "wss://bespin.signalwire.com/wss2",
+        // passwd: '1234',
+        host: "wss://simulcast.edoardogallo.it",
+        passwd: 'testsfu',
+        // project: document.getElementById('project').value,
+        // token: document.getElementById('token').value
       });
 
       client.remoteElement = 'remoteVideo';
       client.localElement = 'localVideo';
+      client.iceServers = [{ url: 'stun:stun.l.google.com:19302' }];
 
       client.on('signalwire.ready', function() {
         btnConnect.classList.add('d-none');
@@ -174,10 +182,50 @@
         case 'callUpdate':
           handleCallUpdate(notification.call);
           break;
+        case 'trackAdd':
+          handleTrackAdd(notification);
+          break;
         case 'userMediaError':
           // Permission denied or invalid audio/video params on `getUserMedia`
           break;
       }
+    }
+
+    var sIds = []
+    function handleTrackAdd(notification) {
+      var event = notification.event
+
+      var stream = event.streams[0]
+      var track = event.track
+      if (sIds.indexOf(stream.id) >= 0) {
+        console.error('STREAM ALREADY IN PAGE. RETURN')
+        return
+      }
+      sIds.push(stream.id)
+      var col6 = document.createElement('div')
+      col6.className = 'col-6 dynamic'
+
+      var withAudio = stream.getAudioTracks().length > 0
+      // if (withAudio) {
+      //   stream.removeTrack(stream.getVideoTracks()[0])
+      // }
+
+      var hTitle = document.createElement('h5')
+      hTitle.innerText = 'Dynamic: ' + (withAudio ? 'AUDIO' : 'VIDEO')
+
+      var pDescr = document.createElement('p')
+      pDescr.innerText = 'Track: ' + track.id
+
+      var sfuVideo = document.createElement('video')
+      // sfuVideo.muted = true
+      sfuVideo.playsInline = true
+      sfuVideo.autoplay = true
+      sfuVideo.className = 'w-100'
+      sfuVideo.srcObject = stream
+      col6.appendChild(hTitle)
+      col6.appendChild(sfuVideo)
+      col6.appendChild(pDescr)
+      videoWrapper.appendChild(col6)
     }
 
     /**
@@ -210,6 +258,7 @@
           break;
         case 'destroy': // Call has been destroyed
           currentCall = null;
+          document.querySelectorAll('#videoWrapper .dynamic').forEach(el => el.parentNode.removeChild(el))
           break;
       }
     }
@@ -218,10 +267,13 @@
      * Make a new outbound call
     */
     function makeCall() {
+      const destinationNumber = document.getElementById('number').value
       const params = {
-        destinationNumber: document.getElementById('number').value, // required!
+        destinationNumber: destinationNumber, // required!
         audio: document.getElementById('audio').checked,
         video: document.getElementById('video').checked ? { aspectRatio: 16/9 } : false,
+        // simulcast: /-ms$/.test(destinationNumber)
+        simulcast: true
       };
 
       currentCall = client.newCall(params);

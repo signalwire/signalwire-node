@@ -723,7 +723,16 @@ export default class Call {
     }
 
     instance.ontrack = event => {
-      logger.warn('ontrack', event)
+      if (this.options.simulcast && this.options.attach) {
+        logger.warn('++++++ ontrack ++++++')
+        logger.debug('Track:', event.track.id, event.track)
+        logger.debug('Stream:', event.streams[0].id, event.streams[0])
+        const notification = { type: 'trackAdd', event }
+        if (!trigger(SwEvent.Notification, notification, this.id)) {
+          trigger(SwEvent.Notification, notification, this.session.uuid)
+        }
+        logger.warn('++++++ ontrack ++++++')
+      }
       this.options.remoteStream = event.streams[0]
 
       if (this.options.screenShare === true) {

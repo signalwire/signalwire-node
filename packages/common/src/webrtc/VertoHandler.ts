@@ -29,9 +29,10 @@ class VertoHandler {
     if (eventType === 'channelPvtData') {
       return this._handlePvtEvent(params.pvtData)
     }
-
+    let simulcast = false
     if (callID && session.calls.hasOwnProperty(callID)) {
       if (attach) {
+        simulcast = session.calls[callID].options.simulcast
         session.calls[callID].hangup({}, false)
       } else {
         session.calls[callID].handleMessage(msg)
@@ -55,7 +56,8 @@ class VertoHandler {
           callerNumber: params.callee_id_number,
           audio: params.sdp.indexOf('m=audio') > 0,
           video: params.sdp.indexOf('m=video') > 0,
-          attach
+          attach,
+          simulcast
         })
         call.nodeId = this.nodeId
         if (attach) {

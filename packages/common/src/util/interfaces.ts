@@ -107,6 +107,7 @@ export interface CallOptions {
   userVariables?: Object
   screenShare?: boolean
   onNotification?: Function
+  simulcast?: boolean
 }
 
 export interface SubscribeParams {

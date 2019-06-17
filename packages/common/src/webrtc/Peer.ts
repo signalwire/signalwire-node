@@ -123,7 +123,7 @@ export default class Peer {
     if (this.options.useStereo) {
       sessionDescription.sdp = sdpStereoHack(sessionDescription.sdp)
     }
-    if (sessionDescription.type === PeerType.Offer) {
+    if (this.options.simulcast && sessionDescription.type === PeerType.Offer) {
       sessionDescription.sdp = sdpSimulcastHack(sessionDescription.sdp)
     }
     return this.instance.setLocalDescription(sessionDescription)
@@ -131,7 +131,9 @@ export default class Peer {
 
   /** Workaround for ReactNative: first time SDP has no candidates */
   private _sdpReady(): void {
-    this._forceSimulcast()
+    if (this.options.simulcast) {
+      this._forceSimulcast()
+    }
     if (isFunction(this.onSdpReadyTwice)) {
       this.onSdpReadyTwice(this.instance.localDescription)
     }
@@ -153,10 +155,16 @@ export default class Peer {
   }
 
   private _config(): RTCConfiguration {
-    const { iceServers = [] } = this.options
-    // @ts-ignore
+    const { iceServers = [], simulcast } = this.options
+    let config: RTCConfiguration = { iceServers, bundlePolicy: 'max-compat' }
+    if (simulcast !== true) {
+      // @ts-ignore
+      config.sdpSemantics = 'plan-b'
+      config.bundlePolicy = 'max-compat'
+    }
     // const config: RTCConfiguration = { sdpSemantics: 'plan-b', bundlePolicy: 'max-compat', iceServers }
-    const config: RTCConfiguration = { bundlePolicy: 'max-compat', iceServers }
+    // const config: RTCConfiguration = { bundlePolicy: 'max-compat', iceServers }
+    // const config: RTCConfiguration = { iceServers }
     logger.info('RTC config', config)
     return config
   }

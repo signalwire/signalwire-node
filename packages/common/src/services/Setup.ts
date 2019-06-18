@@ -1,6 +1,6 @@
 import BaseSession from '../BaseSession'
 import { Execute } from '../messages/Blade'
-import * as Storage from '../util/storage/'
+import { sessionStorage } from '../util/storage/'
 
 const SETUP_PROTOCOL = 'signalwire'
 const SETUP_METHOD = 'setup'
@@ -10,7 +10,7 @@ export const Setup = async (session: BaseSession, service: string, handler?: Fun
   const { project } = session.options
   const params: { service: string, protocol?: string } = { service }
   const _key = `${project}-${service}`
-  const currentProtocol = await Storage.getItem(_key)
+  const currentProtocol = await sessionStorage.getItem(_key)
   if (currentProtocol) {
     params.protocol = currentProtocol
   }
@@ -18,6 +18,6 @@ export const Setup = async (session: BaseSession, service: string, handler?: Fun
   const { result: { protocol = null } = {} } = await session.execute(be)
   await session.subscribe({ protocol, channels: [SETUP_CHANNEL], handler })
 
-  await Storage.setItem(_key, protocol)
+  await sessionStorage.setItem(_key, protocol)
   return protocol
 }

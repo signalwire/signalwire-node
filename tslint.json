@@ -3,7 +3,10 @@
     "class-name": true,
     "only-arrow-functions": true,
     "ban-comma-operator": true,
-    "curly": true,
+    "curly": [
+      true,
+      "ignore-same-line"
+    ],
     "no-bitwise": true,
     "no-conditional-assignment": true,
     "no-duplicate-super": true,

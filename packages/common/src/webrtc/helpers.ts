@@ -1,5 +1,5 @@
 import logger from '../util/logger'
-import * as Storage from '../util/storage'
+import { localStorage } from '../util/storage'
 import * as WebRTC from '../util/webrtc'
 import { isDefined } from '../util/helpers'
 import { CallOptions, ICacheDevices } from '../util/interfaces'
@@ -44,14 +44,13 @@ const getDevices = async (): Promise<ICacheDevices> => {
   } catch (error) {
     logger.error('enumerateDevices Error', error)
   }
-  Storage.setItem('devices', cache)
   return cache
 }
 
 const resolutionList = [[320, 240], [640, 360], [640, 480], [1280, 720], [1920, 1080]]
 const scanResolutions = async (deviceId: string) => {
   const storageKey = `${deviceId}-resolutions`
-  const supported = (await Storage.getItem(storageKey)) || []
+  const supported = (await localStorage.getItem(storageKey)) || []
   if (supported && supported.length) {
     return supported
   }
@@ -68,7 +67,7 @@ const scanResolutions = async (deviceId: string) => {
   }
   stopStream(stream)
 
-  Storage.setItem(storageKey, supported)
+  localStorage.setItem(storageKey, supported)
 
   return supported
 }

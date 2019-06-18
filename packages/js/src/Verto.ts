@@ -4,7 +4,7 @@ import { Login } from '../../common/src/messages/Verto'
 import Call from '../../common/src/webrtc/Call'
 import { SwEvent, SESSION_ID } from '../../common/src/util/constants'
 import { trigger } from '../../common/src/services/Handler'
-import * as Storage from '../../common/src/util/storage/'
+import { localStorage } from '../../common/src/util/storage/'
 import VertoHandler from '../../common/src/webrtc/VertoHandler'
 
 export const VERTO_PROTOCOL = 'verto-protocol'
@@ -42,7 +42,7 @@ export default class Verto extends BrowserSession {
     const response = await this.execute(msg).catch(this._handleLoginError)
     if (response) {
       this.sessionid = response.sessid
-      Storage.setItem(SESSION_ID, this.sessionid)
+      localStorage.setItem(SESSION_ID, this.sessionid)
       trigger(SwEvent.Ready, this, this.uuid)
     }
   }

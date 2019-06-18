@@ -4,13 +4,12 @@ import Connection from './services/Connection'
 import BaseMessage from '../../common/src/messages/BaseMessage'
 import { deRegister, register, trigger, deRegisterAll } from './services/Handler'
 import { BroadcastHandler } from './services/Broadcast'
-import { ADD, REMOVE, SwEvent, BladeMethod, NOTIFICATION_TYPE, SESSION_ID } from './util/constants'
+import { ADD, REMOVE, SwEvent, BladeMethod, NOTIFICATION_TYPE } from './util/constants'
 import Cache from './util/Cache'
 import { BroadcastParams, ISignalWireOptions, SubscribeParams, Constructable } from './util/interfaces'
 import { Subscription, Connect, Reauthenticate } from './messages/Blade'
 import { isFunction } from './util/helpers'
 import Relay from './relay/Relay'
-import * as Storage from './util/storage/'
 
 export default abstract class BaseSession {
   public uuid: string = uuidv4()
@@ -141,7 +140,6 @@ export default abstract class BaseSession {
     this._removeConnection()
     this._executeQueue = []
     this._detachListeners()
-    await Storage.removeItem(SESSION_ID)
   }
 
   /**
@@ -238,7 +236,6 @@ export default abstract class BaseSession {
       this.master_nodeid = master_nodeid
       this._cache = new Cache()
       this._cache.populateFromConnect(response)
-      Storage.setItem(SESSION_ID, this.sessionid)
       trigger(SwEvent.Connect, null, this.uuid, false)
       this._emptyExecuteQueues()
       trigger(SwEvent.Ready, this, this.uuid)

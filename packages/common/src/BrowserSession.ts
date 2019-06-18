@@ -8,7 +8,7 @@ import { State } from './util/constants/call'
 import { getDevices, scanResolutions, removeUnsupportedConstraints, checkDeviceIdConstraints, destructSubscribeResponse, getUserMedia } from './webrtc/helpers'
 import { findElementByType } from './util/helpers'
 import { Unsubscribe, Subscribe, Broadcast } from './messages/Verto'
-import * as Storage from './util/storage/'
+import { localStorage } from './util/storage/'
 import { stopStream } from './util/webrtc'
 
 export default abstract class BrowserSession extends BaseSession {
@@ -27,7 +27,7 @@ export default abstract class BrowserSession extends BaseSession {
     super.setup()
 
     await this.refreshDevices()
-    this.sessionid = await Storage.getItem(SESSION_ID)
+    this.sessionid = await localStorage.getItem(SESSION_ID)
     this.connection = new Connection(this)
   }
 

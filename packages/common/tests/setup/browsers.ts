@@ -1,44 +1,21 @@
 import * as webrtcMocks from './webrtcMocks'
-const localStorageMock = (() => {
-  let store = {}
-  return {
-    getItem: (key: string) => {
-      return store[key] || null
-    },
-    setItem: (key: string, value: any) => {
-      store[key] = value.toString()
-    },
-    removeItem: (key: string) => {
-      delete store[key]
-    },
-    clear: () => {
-      store = {}
-    }
-  }
-})()
 
-if (typeof window === 'undefined') {
-  // @ts-ignore
-  global.window = {}
-}
-
-Object.defineProperties(window, {
-  localStorage: {
-    value: localStorageMock
-  },
-  RTCPeerConnection: {
-    value: () => {
-      return {
-        close: () => { },
-        addTrack: () => { },
-        createOffer: () => { },
-        createAnswer: () => { },
-        setLocalDescription: () => { },
-        setRemoteDescription: () => { },
+if (typeof window !== 'undefined') {
+  Object.defineProperties(window, {
+    RTCPeerConnection: {
+      value: () => {
+        return {
+          close: () => { },
+          addTrack: () => { },
+          createOffer: () => { },
+          createAnswer: () => { },
+          setLocalDescription: () => { },
+          setRemoteDescription: () => { },
+        }
       }
     }
-  }
-})
+  })
+}
 
 if (typeof MediaStream === 'undefined') {
   // @ts-ignore

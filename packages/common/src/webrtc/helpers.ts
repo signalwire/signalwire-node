@@ -44,7 +44,6 @@ const getDevices = async (): Promise<ICacheDevices> => {
   } catch (error) {
     logger.error('enumerateDevices Error', error)
   }
-  Storage.setItem('devices', cache)
   return cache
 }
 

@@ -1,17 +1,7 @@
 import RelayClient from './index'
 import logger from '../../../common/src/util/logger'
 import { isFunction } from 'util'
-
-interface IRelayConsumerParams {
-  host?: string
-  project: string
-  token: string
-  contexts?: string[]
-  onIncomingCall?: Function
-  onIncomingFax?: Function
-  onTask?: Function
-  setup?: Function
-}
+import { IRelayConsumerParams } from '../../../common/src/util/interfaces'
 
 export default class RelayConsumer {
   host: string = null

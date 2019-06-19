@@ -211,3 +211,14 @@ export interface ICallingCollect {
 }
 
 export interface DeepArray<T> extends Array<T | DeepArray<T>> { }
+
+export interface IRelayConsumerParams {
+  host?: string
+  project: string
+  token: string
+  contexts?: string[]
+  onIncomingCall?: Function
+  onIncomingFax?: Function
+  onTask?: Function
+  setup?: Function
+}

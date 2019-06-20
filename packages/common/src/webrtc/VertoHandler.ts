@@ -29,16 +29,17 @@ class VertoHandler {
     if (eventType === 'channelPvtData') {
       return this._handlePvtEvent(params.pvtData)
     }
-    let simulcast = false
     if (callID && session.calls.hasOwnProperty(callID)) {
-      if (attach) {
-        simulcast = session.calls[callID].options.simulcast
-        session.calls[callID].hangup({}, false)
-      } else {
+      // if (attach) {
+        // simulcast = session.calls[callID].options.simulcast
+        // session.calls[callID].hangup({}, false)
+      // } else {
         session.calls[callID].handleMessage(msg)
-        this._ack(id, method)
+        if (!attach) {
+          this._ack(id, method)
+        }
         return
-      }
+      // }
     }
     switch (method) {
       case VertoMethod.Punt:
@@ -57,7 +58,6 @@ class VertoHandler {
           audio: params.sdp.indexOf('m=audio') > 0,
           video: params.sdp.indexOf('m=video') > 0,
           attach,
-          simulcast
         })
         call.nodeId = this.nodeId
         if (attach) {

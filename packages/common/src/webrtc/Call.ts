@@ -35,6 +35,7 @@ export default class Call {
   private _iceTimeout = null
   private _iceDone: boolean = false
   private _statsInterval: any = null
+  private _attachId: any = null
 
   constructor(private session: BrowserSession, opts?: CallOptions) {
     const { iceServers, speaker: speakerId, localElement, remoteElement, mediaConstraints: { audio, video } } = session
@@ -308,8 +309,17 @@ export default class Call {
         this._onRemoteSdp(params.sdp)
         break
       }
-      case VertoMethod.Display:
       case VertoMethod.Attach: {
+        logger.warn('ATTACH HERE!')
+        // this._onRemoteSdp(params.sdp, PeerType.Offer)
+        this._attachId = msg.id
+        this.options.remoteSdp = params.sdp
+        this.peer.type = PeerType.Answer
+        this._iceDone = false
+        this.peer.startNegotiation()
+        break
+      }
+      case VertoMethod.Display: {
         // TODO: manage caller_id_name, caller_id_number, callee_id_name, callee_id_number
         const { display_name: displayName, display_number: displayNumber, display_direction } = params
         const displayDirection = display_direction === Direction.Inbound ? Direction.Outbound : Direction.Inbound
@@ -636,8 +646,8 @@ export default class Call {
     return false
   }
 
-  private _onRemoteSdp(remoteSdp: string) {
-    let sdp = sdpMediaOrderHack(remoteSdp, this.peer.instance.localDescription.sdp)
+  private async _onRemoteSdp(sdp: string) {
+    // let sdp = sdpMediaOrderHack(remoteSdp, this.peer.instance.localDescription.sdp)
     if (this.options.useStereo) {
       sdp = sdpStereoHack(sdp)
     }
@@ -686,8 +696,10 @@ export default class Call {
         msg = new Invite(tmpParams)
         break
       case PeerType.Answer:
-        this.setState(State.Answering)
-        msg = this.options.attach === true ? new Attach(tmpParams) : new Answer(tmpParams)
+        // this.setState(State.Answering)
+        // msg = this.options.attach === true ? new Attach(tmpParams) : new Answer(tmpParams)
+        msg = new Attach(tmpParams)
+        msg.id = this._attachId
         break
       default:
         logger.error(`${this.id} - Unknown local SDP type:`, data)
@@ -709,6 +721,7 @@ export default class Call {
     const { instance } = this.peer
     this._iceDone = false
     instance.onicecandidate = event => {
+      logger.warn('Ice Candidate:', this._iceDone, event)
       if (this._iceDone) {
         return
       }

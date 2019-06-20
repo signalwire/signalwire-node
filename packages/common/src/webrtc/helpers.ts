@@ -181,7 +181,7 @@ const sdpMediaOrderHack = (answer: string, localOffer: string): string => {
 }
 
 const sdpSimulcastHack = (sdp: string): string => {
-  logger.warn('\n BEFORE SIMULCAST \n', sdp, '\n')
+  // logger.warn('\n BEFORE SIMULCAST \n', sdp, '\n')
   try {
     const endOfLine = '\r\n'
     const videoPart = getMediaSections(sdp)[1]
@@ -211,7 +211,7 @@ const sdpSimulcastHack = (sdp: string): string => {
     //lines.push('b=AS:1000')
     //lines.push('a=fmtp:96 x-google-start-bitrate=90000')
     sdp = lines.join(endOfLine) + endOfLine
-    logger.warn('\n AFTER SIMULCAST \n', sdp, '\n')
+    // logger.warn('\n AFTER SIMULCAST \n', sdp, '\n')
   } catch (error) {
     logger.error('\n ERROR \n', error, '\n')
   }

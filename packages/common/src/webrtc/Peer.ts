@@ -1,4 +1,5 @@
 import logger from '../util/logger'
+import Call from './Call'
 import { getUserMedia, getMediaConstraints, sdpStereoHack, sdpSimulcastHack } from './helpers'
 import { PeerType, SwEvent } from '../util/constants'
 import { attachMediaStream, muteMediaElement, sdpToJsonHack, RTCPeerConnection, streamIsValid } from '../util/webrtc'
@@ -8,15 +9,17 @@ import { trigger } from '../services/Handler'
 
 export default class Peer {
   public instance: RTCPeerConnection
+  public type: PeerType
   public onSdpReadyTwice: Function = null
   private _constraints: { offerToReceiveAudio: boolean, offerToReceiveVideo: boolean }
   private _negotiating: boolean = false
 
-  constructor(public type: PeerType, private options: CallOptions) {
-    logger.info('New Peer with type:', this.type, 'Options:', this.options)
-
+  constructor(public call: Call, private options: CallOptions) {
+    // this.type = PeerType.Answer || PeerType.Offer
     this._constraints = { offerToReceiveAudio: true, offerToReceiveVideo: true }
     this._sdpReady = this._sdpReady.bind(this)
+    this.instance = RTCPeerConnection(this._config())
+    this._attachListeners()
     this._init()
   }
 
@@ -46,14 +49,10 @@ export default class Peer {
     }
   }
 
-  private async _init() {
-    this.instance = RTCPeerConnection(this._config())
-
+  private _attachListeners() {
     this.instance.onsignalingstatechange = event => {
       switch (this.instance.signalingState) {
-        case 'stable':
-          // Workaround to skip nested negotiations
-          // Chrome bug: https://bugs.chromium.org/p/chromium/issues/detail?id=740501
+        case 'stable': // Workaround to skip nested negotiations
           this._negotiating = false
           break
         case 'closed':
@@ -65,22 +64,27 @@ export default class Peer {
     }
 
     this.instance.onnegotiationneeded = event => {
+      logger.info(`${this.options.id} Negotiation needed. Offer? ${this._isOffer()} - Answer? ${this._isAnswer()}`)
       if (this._negotiating) {
         logger.debug('Skip twice onnegotiationneeded..')
         return
       }
       this.startNegotiation()
     }
+  }
 
+  private async _init() {
     this.options.localStream = await this._retrieveLocalStream()
       .catch(error => {
         trigger(SwEvent.MediaError, error, this.options.id)
         return null
       })
+
     const { localElement, localStream = null, screenShare = false } = this.options
     if (streamIsValid(localStream)) {
       if (this.instance.hasOwnProperty('addTrack')) {
-        localStream.getTracks().forEach(t => this.instance.addTrack(t, localStream))
+        localStream.getAudioTracks().forEach(t => this.instance.addTrack(t, localStream))
+        localStream.getVideoTracks().forEach(t => this.instance.addTrack(t, localStream))
       } else {
         // @ts-ignore
         this.instance.addStream(localStream)
@@ -123,7 +127,7 @@ export default class Peer {
     if (this.options.useStereo) {
       sessionDescription.sdp = sdpStereoHack(sessionDescription.sdp)
     }
-    if (this.options.simulcast && sessionDescription.type === PeerType.Offer) {
+    if (this.options.simulcast /*&& sessionDescription.type === PeerType.Offer*/) {
       sessionDescription.sdp = sdpSimulcastHack(sessionDescription.sdp)
     }
     return this.instance.setLocalDescription(sessionDescription)
@@ -134,6 +138,7 @@ export default class Peer {
     if (this.options.simulcast) {
       this._forceSimulcast()
     }
+    logger.error('_sdpReady:', this.instance.localDescription.sdp)
     if (isFunction(this.onSdpReadyTwice)) {
       this.onSdpReadyTwice(this.instance.localDescription)
     }

@@ -1,3 +1,4 @@
+import * as log from 'loglevel'
 import { v4 as uuidv4 } from 'uuid'
 import logger from './util/logger'
 import Connection from './services/Connection'

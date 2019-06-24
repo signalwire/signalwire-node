@@ -218,7 +218,6 @@ export interface IRelayConsumerParams {
   token: string
   contexts?: string[]
   onIncomingCall?: Function
-  onIncomingFax?: Function
   onTask?: Function
   setup?: Function
 }

@@ -18,9 +18,6 @@ const consumer = new RelayConsumer({
       console.error(error)
     }
   },
-  // onIncomingFax: (fax) => {
-
-  // },
   // onTask: (task) => {
 
   // }

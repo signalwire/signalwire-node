@@ -32,7 +32,6 @@ describe('RelayConsumer', () => {
       token: TOKEN
     })
     expect(consumer.onIncomingCall).toBeUndefined()
-    expect(consumer.onIncomingFax).toBeUndefined()
     expect(consumer.onTask).toBeUndefined()
   })
 
@@ -43,15 +42,6 @@ describe('RelayConsumer', () => {
       onIncomingCall: noOp
     })
     expect(consumer.onIncomingCall).toBeInstanceOf(Function)
-  })
-
-  it('should set onIncomingFax handler', () => {
-    const consumer = setupConsumer({
-      project: PROJECT,
-      token: TOKEN,
-      onIncomingFax: noOp
-    })
-    expect(consumer.onIncomingFax).toBeInstanceOf(Function)
   })
 
   it('should set onTask handler', () => {

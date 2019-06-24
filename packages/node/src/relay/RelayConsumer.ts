@@ -9,14 +9,13 @@ export default class RelayConsumer {
   token: string = null
   contexts: string[] = []
   onIncomingCall: Function
-  onIncomingFax: Function
   onTask: Function
   setup: Function
 
   protected client: RelayClient
 
   constructor(params: IRelayConsumerParams) {
-    const { host, project, token, contexts = [], onIncomingCall, onIncomingFax, onTask, setup } = params
+    const { host, project, token, contexts = [], onIncomingCall, onTask, setup } = params
     if (!project || !token) {
       throw 'SignalWire "project" and "token" are required!'
     }
@@ -26,9 +25,6 @@ export default class RelayConsumer {
     this.contexts = contexts
     if (isFunction(onIncomingCall)) {
       this.onIncomingCall = onIncomingCall.bind(this)
-    }
-    if (isFunction(onIncomingFax)) {
-      this.onIncomingFax = onIncomingFax.bind(this)
     }
     if (isFunction(onTask)) {
       this.onTask = onTask.bind(this)

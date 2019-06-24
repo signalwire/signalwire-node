@@ -43,7 +43,7 @@ export default abstract class BaseSession {
     this._checkTokenExpiration = this._checkTokenExpiration.bind(this)
   }
 
-  get __logger() {
+  get __logger(): log.Logger {
     return logger
   }
 

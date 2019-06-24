@@ -56,8 +56,9 @@ export default class Calling extends Relay {
       params: { context }
     })
 
-    await this.session.execute(msg)
+    const response: any = await this.session.execute(msg)
     register(this.protocol, handler, _ctxUniqueId(context))
+    return response.result
   }
 
   addCall(call: Call): void {

@@ -12,15 +12,15 @@ class HangupResult {
 }
 
 class ConnectResult {
-  // TODO: implement
-  public result: string
-  public state: string
+//   // TODO: implement
+//   public result: string
+//   public state: string
 
-  constructor(params: any) {
-    // TODO: add Result/Call and Payload
-    // $this->state = $params->connect_state
-    // $this->finished = $this->state !== ConnectState::Connecting
-  }
+//   constructor(params: any) {
+//     // TODO: add Result/Call and Payload
+//     // $this->state = $params->connect_state
+//     // $this->finished = $this->state !== ConnectState::Connecting
+//   }
 }
 
 class RecordResult {

@@ -32,10 +32,10 @@ export enum CallType {
 }
 
 export enum CallConnectState {
-  disconnected,
-  connecting,
-  connected,
-  failed
+  Disconnected = 'disconnected',
+  Connecting = 'connecting',
+  Connected = 'connected',
+  Failed = 'failed',
 }
 
 export enum CallNotification {

@@ -422,7 +422,7 @@ describe('Call', () => {
       })
     })
 
-    describe('play_and_collect methods', () => {
+    describe('prompt methods', () => {
       const collect = { initial_timeout: 10, digits: { max: 5, terminators: '#', digit_timeout: 10 } }
 
       it('.promptAudio() should execute the correct message', async done => {
@@ -443,25 +443,6 @@ describe('Call', () => {
         expect(Connection.mockSend).toHaveBeenCalledWith(msg)
         done()
       })
-
-      // it('.playSilenceAndCollect() should execute the correct message', async done => {
-      //   const action = await call.playSilenceAndCollect(collect, 5)
-      //   const msg = new Execute({
-      //     protocol: 'signalwire_service_random_uuid',
-      //     method: 'call.play_and_collect',
-      //     params: {
-      //       node_id: call.nodeId,
-      //       call_id: call.id,
-      //       control_id: 'mocked-uuid',
-      //       play: [{ type: 'silence', params: { duration: 5 } }],
-      //       collect
-      //     }
-      //   })
-      //   expect(action).toBeInstanceOf(Actions.PromptAction)
-      //   expect(Connection.mockSend).toHaveBeenCalledTimes(1)
-      //   expect(Connection.mockSend).toHaveBeenCalledWith(msg)
-      //   done()
-      // })
 
       it('.promptTTS() should execute the correct message', async done => {
         const action = await call.promptTTS(collect, { text: 'digit something' })

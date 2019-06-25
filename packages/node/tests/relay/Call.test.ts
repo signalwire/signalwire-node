@@ -5,6 +5,7 @@ import { CallState, CallNotification } from '../../../common/src/util/constants/
 import { isQueued } from '../../../common/src/services/Handler'
 import { Execute } from '../../../common/src/messages/Blade'
 import * as Actions from '../../../common/src/relay/calling/Actions'
+import * as Results from '../../../common/src/relay/calling/Results'
 const Connection = require('../../../common/src/services/Connection')
 jest.mock('../../../common/src/services/Connection')
 
@@ -131,7 +132,7 @@ describe('Call', () => {
     const _stateNotificationAnswered = JSON.parse(`{"call_state":"answered","call_id":"call-id","event_type":"${CallNotification.State}"}`)
     const _stateNotificationEnded = JSON.parse(`{"call_state":"ended","call_id":"call-id","event_type":"${CallNotification.State}"}`)
     const _playNotification = JSON.parse(`{"state":"finished","call_id":"call-id","control_id":"mocked-uuid","event_type":"${CallNotification.Play}"}`)
-    const _collectNotification = JSON.parse(`{"control_id":"mocked-uuid","call_id":"call-id","event_type":"${CallNotification.Collect}","result":{"type":"digit","params":{"digits":"12345","terminator":"#"}}}`)
+    const _promptNotification = JSON.parse(`{"control_id":"mocked-uuid","call_id":"call-id","event_type":"${CallNotification.Collect}","result":{"type":"digit","params":{"digits":"12345","terminator":"#"}}}`)
     const _recordNotification = JSON.parse(`{"state":"finished","call_id":"call-id","control_id":"mocked-uuid","event_type":"${CallNotification.Record}","url":"record-url","record":{"audio":{"type":"digit","params":{"digits":"12345","terminator":"#"}}}}`)
     const _connectNotification = JSON.parse(`{"connect_state":"connected","call_id":"call-id","event_type":"${CallNotification.Connect}"}`)
 
@@ -150,8 +151,8 @@ describe('Call', () => {
           call_id: call.id
         }
       })
-      call.answer().then(call => {
-        expect(call.state).toEqual('answered')
+      call.answer().then(result => {
+        expect(result).toBeInstanceOf(Results.AnswerResult)
         expect(Connection.mockSend).toHaveBeenCalledTimes(1)
         expect(Connection.mockSend).toHaveBeenCalledWith(msg)
         done()
@@ -169,8 +170,9 @@ describe('Call', () => {
           reason: 'hangup'
         }
       })
-      call.hangup().then(call => {
-        expect(call.state).toEqual('ended')
+      call.hangup().then(result => {
+        expect(result).toBeInstanceOf(Results.HangupResult)
+        expect(result.reason).toEqual('hangup')
         expect(Connection.mockSend).toHaveBeenCalledTimes(1)
         expect(Connection.mockSend).toHaveBeenCalledWith(msg)
         done()
@@ -210,7 +212,9 @@ describe('Call', () => {
         }
       })
       call.recordSync(record).then(result => {
-        expect(result).toMatchObject(_recordNotification)
+        expect(result).toBeInstanceOf(Results.RecordResult)
+        expect(result.succeeded).toBe(true)
+        expect(result.failed).toBe(false)
         expect(Connection.mockSend).toHaveBeenCalledTimes(1)
         expect(Connection.mockSend).toHaveBeenCalledWith(msg)
         done()
@@ -444,6 +448,29 @@ describe('Call', () => {
         done()
       })
 
+      it('.promptAudioSync() should execute the right message', done => {
+        const msg = new Execute({
+          protocol: 'signalwire_service_random_uuid',
+          method: 'call.play_and_collect',
+          params: {
+            node_id: call.nodeId,
+            call_id: call.id,
+            control_id: 'mocked-uuid',
+            play: [{ type: 'audio', params: { url: 'audio.mp3' } }],
+            collect
+          }
+        })
+        call.promptAudioSync(collect, 'audio.mp3').then(result => {
+          expect(result).toBeInstanceOf(Results.PromptResult)
+          expect(result.succeeded).toBe(true)
+          expect(result.failed).toBe(false)
+          expect(Connection.mockSend).toHaveBeenCalledTimes(1)
+          expect(Connection.mockSend).toHaveBeenCalledWith(msg)
+          done()
+        })
+        call._collectStateChange(_promptNotification)
+      })
+
       it('.promptTTS() should execute the correct message', async done => {
         const action = await call.promptTTS(collect, { text: 'digit something' })
         const msg = new Execute({
@@ -461,6 +488,29 @@ describe('Call', () => {
         expect(Connection.mockSend).toHaveBeenCalledTimes(1)
         expect(Connection.mockSend).toHaveBeenCalledWith(msg)
         done()
+      })
+
+      it('.promptTTSSync() should execute the right message', done => {
+        const msg = new Execute({
+          protocol: 'signalwire_service_random_uuid',
+          method: 'call.play_and_collect',
+          params: {
+            node_id: call.nodeId,
+            call_id: call.id,
+            control_id: 'mocked-uuid',
+            play: [{ type: 'tts', params: { text: 'digit something' } }],
+            collect
+          }
+        })
+        call.promptTTSSync(collect, { text: 'digit something' }).then(result => {
+          expect(result).toBeInstanceOf(Results.PromptResult)
+          expect(result.succeeded).toBe(true)
+          expect(result.failed).toBe(false)
+          expect(Connection.mockSend).toHaveBeenCalledTimes(1)
+          expect(Connection.mockSend).toHaveBeenCalledWith(msg)
+          done()
+        })
+        call._collectStateChange(_promptNotification)
       })
 
       it('.prompt() should execute the correct message', async done => {
@@ -488,6 +538,34 @@ describe('Call', () => {
         expect(Connection.mockSend).toHaveBeenCalledWith(msg)
         done()
       })
+
+      it('.promptSync() should execute the right message', done => {
+        const msg = new Execute({
+          protocol: 'signalwire_service_random_uuid',
+          method: 'call.play_and_collect',
+          params: {
+            node_id: call.nodeId,
+            call_id: call.id,
+            control_id: 'mocked-uuid',
+            play: [
+              { type: 'silence', params: { duration: 5 } },
+              { type: 'tts', params: { text: 'digit something' } }
+            ],
+            collect
+          }
+        })
+        const medias = [ { type: 'silence', params: { duration: 5 } }, { type: 'tts', params: { text: 'digit something' } } ]
+        call.promptSync(collect, ...medias).then(result => {
+          expect(result).toBeInstanceOf(Results.PromptResult)
+          expect(result.succeeded).toBe(true)
+          expect(result.failed).toBe(false)
+          expect(Connection.mockSend).toHaveBeenCalledTimes(1)
+          expect(Connection.mockSend).toHaveBeenCalledWith(msg)
+          done()
+        })
+        call._collectStateChange(_promptNotification)
+      })
+
     })
   })
 })

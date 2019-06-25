@@ -19,6 +19,11 @@ export default class Calling extends Relay {
   notificationHandler(notification: any) {
     const { event_type, params } = notification
     params.event_type = event_type
+    // Workaround to use 'tag' as a 'control_id' for state and connect notifications
+    const { control_id = null, tag = null } = params
+    if (control_id === null && tag !== null) {
+      params.control_id = tag
+    }
     switch (event_type) {
       case CallNotification.State:
         return this._onState(params)

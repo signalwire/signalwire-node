@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid'
 import { Execute } from '../../messages/Blade'
-import { CallState, DisconnectReason, CallConnectState, DEFAULT_CALL_TIMEOUT, CallNotification, CallRecordState, CallPlayState } from '../../util/constants/relay'
+import { CallState, DisconnectReason, DEFAULT_CALL_TIMEOUT, CallNotification, CallRecordState, CallPlayState } from '../../util/constants/relay'
 import { ICall, ICallOptions, ICallDevice, IMakeCallParams, ICallingPlay, ICallingCollect, DeepArray } from '../../util/interfaces'
 import * as Actions from './Actions'
 import * as Results from './Results'
@@ -9,17 +9,20 @@ import Calling from './Calling'
 import { isFunction } from '../../util/helpers'
 import Blocker from './Blocker'
 
+type TAction = Actions.RecordAction | Actions.PlayAction | Actions.PromptAction | Actions.ConnectAction;
+
 export default class Call implements ICall {
   public id: string
   public nodeId: string
   public tag: string = uuidv4()
+  public prevConnectState: string = ''
+  public connectState: string = ''
 
   private _prevState: number = 0
   private _state: number = 0
-  private _prevConnectState: number = 0
-  private _connectState: number = 0
   private _cbQueue: { [state: string]: Function } = {}
   private _blockers: Blocker[] = []
+  private _actions: { [id: string]: TAction } = {}
 
   constructor(public relayInstance: Calling, protected options: ICallOptions) {
     const { call_id, node_id } = options
@@ -87,7 +90,7 @@ export default class Call implements ICall {
     })
 
     const hangupResult = new Results.HangupResult()
-    const blocker = new Blocker(this.id, CallNotification.State, ({ call_state, reason = DisconnectReason.Hangup }) => {
+    const blocker = new Blocker(CallNotification.State, ({ call_state, reason = DisconnectReason.Hangup }) => {
       if (call_state === 'ended') {
         hangupResult.reason = reason
         blocker.resolve(hangupResult)
@@ -115,7 +118,7 @@ export default class Call implements ICall {
     })
 
     const answerResult = new Results.AnswerResult()
-    const blocker = new Blocker(this.id, CallNotification.State, ({ call_state }) => {
+    const blocker = new Blocker(CallNotification.State, ({ call_state }) => {
       if (call_state === 'answered') {
         blocker.resolve(answerResult)
       }
@@ -157,7 +160,7 @@ export default class Call implements ICall {
    */
   async connectSync(...peers: DeepArray<IMakeCallParams>) {
     this._callIdRequired()
-    const blocker = new Blocker(this.id, CallNotification.Connect, (params: any) => {
+    const blocker = new Blocker(CallNotification.Connect, (params: any) => {
       const { connect_state } = params
       if (connect_state === 'connected') {
         blocker.resolve(this)
@@ -178,7 +181,7 @@ export default class Call implements ICall {
    * @return Promise
    */
   async record(record: any) {
-    const action = new Actions.RecordAction(this)
+    const action = this._buildAction('RecordAction')
 
     await this._record(record, action.controlId)
 
@@ -186,15 +189,14 @@ export default class Call implements ICall {
   }
 
   async recordSync(record: any) {
-    const control_id = uuidv4()
-    const blocker = new Blocker(control_id, CallNotification.Record, (params: any) => {
+    const blocker = new Blocker(CallNotification.Record, (params: any) => {
       if (params.state !== CallRecordState.Recording) {
         const result = new Results.RecordResult(params)
         blocker.resolve(result)
       }
     })
     this._blockers.push(blocker)
-    await this._record(record, control_id)
+    await this._record(record, blocker.controlId)
 
     return blocker.promise
   }
@@ -205,7 +207,7 @@ export default class Call implements ICall {
    * @return Promise
    */
   async playAudio(url: string) {
-    const action = new Actions.PlayAction(this)
+    const action = this._buildAction('PlayAction')
 
     const params: ICallingPlay[] = [{ type: 'audio', params: { url } }]
     await this._play(params, action.controlId)
@@ -228,7 +230,7 @@ export default class Call implements ICall {
    * @return Promise
    */
   async playSilence(duration: number) {
-    const action = new Actions.PlayAction(this)
+    const action = this._buildAction('PlayAction')
 
     const params: ICallingPlay[] = [{ type: 'silence', params: { duration } }]
     await this._play(params, action.controlId)
@@ -251,7 +253,7 @@ export default class Call implements ICall {
    * @return Promise
    */
   async playTTS(options: ICallingPlay['params']) {
-    const action = new Actions.PlayAction(this)
+    const action = this._buildAction('PlayAction')
 
     const params: ICallingPlay[] = [{ type: 'tts', params: options }]
     await this._play(params, action.controlId)
@@ -274,7 +276,7 @@ export default class Call implements ICall {
    * @return Promise
    */
   async play(...play: ICallingPlay[]) {
-    const action = new Actions.PlayAction(this)
+    const action = this._buildAction('PlayAction')
 
     await this._play(play, action.controlId)
 
@@ -297,7 +299,7 @@ export default class Call implements ICall {
    * @return Promise
    */
   async promptAudio(collect: ICallingCollect, url: string) {
-    const action = new Actions.PromptAction(this)
+    const action = this._buildAction('PromptAction')
 
     const params: ICallingPlay[] = [{ type: 'audio', params: { url } }]
     await this._prompt(collect, params, action.controlId)
@@ -322,7 +324,7 @@ export default class Call implements ICall {
    * @return Promise
    */
   async promptTTS(collect: ICallingCollect, options: ICallingPlay['params']) {
-    const action = new Actions.PromptAction(this)
+    const action = this._buildAction('PromptAction')
 
     const params: ICallingPlay[] = [{ type: 'tts', params: options }]
     await this._prompt(collect, params, action.controlId)
@@ -347,7 +349,7 @@ export default class Call implements ICall {
    * @return Promise
    */
   async prompt(collect: ICallingCollect, ...play: ICallingPlay[]) {
-    const action = new Actions.PromptAction(this)
+    const action = this._buildAction('PromptAction')
 
     await this._prompt(collect, play, action.controlId)
 
@@ -370,14 +372,6 @@ export default class Call implements ICall {
 
   get state() {
     return CallState[this._state]
-  }
-
-  get prevConnectState() {
-    return CallConnectState[this._prevConnectState]
-  }
-
-  get connectState() {
-    return CallConnectState[this._connectState]
   }
 
   get context() {
@@ -425,7 +419,7 @@ export default class Call implements ICall {
     const { call_state } = params
     this._prevState = this._state
     this._state = CallState[call_state]
-    this._addControlParams(params)
+    this._checkBlockers(params)
     this._dispatchCallback('stateChange')
     this._dispatchCallback(call_state)
     if (this._state === CallState.ended) {
@@ -435,9 +429,9 @@ export default class Call implements ICall {
 
   _connectStateChange(params: { connect_state: string }) {
     const { connect_state } = params
-    this._prevConnectState = this._connectState
-    this._connectState = CallConnectState[connect_state]
-    this._addControlParams(params)
+    this.prevConnectState = this.connectState
+    this.connectState = connect_state
+    this._checkBlockers(params)
     this._dispatchCallback('connect.stateChange')
     if (!this._dispatchCallback(`connect.${connect_state}`)) {
       // Backward compat: connect state not scoped with 'connect.'
@@ -446,19 +440,22 @@ export default class Call implements ICall {
   }
 
   _recordStateChange(params: any) {
-    this._addControlParams(params)
+    this._checkBlockers(params)
+    this._checkActions(params)
     this._dispatchCallback('record.stateChange', params)
     this._dispatchCallback(`record.${params.state}`, params)
   }
 
   _playStateChange(params: any) {
-    this._addControlParams(params)
+    this._checkBlockers(params)
+    this._checkActions(params)
     this._dispatchCallback('play.stateChange', params)
     this._dispatchCallback(`play.${params.state}`, params)
   }
 
   _collectStateChange(params: any) {
-    this._addControlParams(params)
+    this._checkBlockers(params)
+    this._checkActions(params)
     this._dispatchCallback('collect', params)
   }
 
@@ -490,17 +487,33 @@ export default class Call implements ICall {
     }
   }
 
-  private _addControlParams(params: any) {
+  private _checkBlockers(params: any) {
     const { control_id, event_type } = params
-    if (!event_type) {
+    if (!control_id || !event_type) {
       return
     }
-    const checkId = control_id ? control_id : this.id
     this._blockers.forEach(b => {
-      if (b.controlId === checkId && b.eventType === event_type) {
+      if (b.controlId === control_id && b.eventType === event_type) {
         b.resolver(params)
       }
     })
+  }
+
+  private _checkActions(params: any) {
+    const { control_id } = params
+    if (!control_id) {
+      return
+    }
+    if (this._actions.hasOwnProperty(control_id)) {
+      this._actions[control_id].update(params)
+    }
+  }
+
+  private _buildAction(type: string): TAction {
+    const action: TAction = new Actions[type]()
+    this._actions[action.controlId] = action
+
+    return action
   }
 
   /**
@@ -530,15 +543,14 @@ export default class Call implements ICall {
    * @return Promise
    */
   async _playSync(play: ICallingPlay[]) {
-    const control_id = uuidv4()
-    const blocker = new Blocker(control_id, CallNotification.Play, (params: any) => {
+    const blocker = new Blocker(CallNotification.Play, (params: any) => {
       if (params.state !== CallPlayState.Playing) {
         const result = new Results.RecordResult(params)
         blocker.resolve(result)
       }
     })
     this._blockers.push(blocker)
-    await this._play(play, control_id)
+    await this._play(play, blocker.controlId)
 
     return blocker.promise
   }
@@ -573,13 +585,12 @@ export default class Call implements ICall {
    * @return Promise
    */
   private async _promptSync(collect: ICallingCollect, play: ICallingPlay[]) {
-    const control_id = uuidv4()
-    const blocker = new Blocker(control_id, CallNotification.Collect, (params: any) => {
+    const blocker = new Blocker(CallNotification.Collect, (params: any) => {
       const result = new Results.PromptResult(params)
       blocker.resolve(result)
     })
     this._blockers.push(blocker)
-    await this._prompt(collect, play, control_id)
+    await this._prompt(collect, play, blocker.controlId)
 
     return blocker.promise
   }

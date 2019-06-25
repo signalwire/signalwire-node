@@ -1,8 +1,9 @@
 import { v4 as uuidv4 } from 'uuid'
 import { Execute } from '../../messages/Blade'
-import { CallState, DisconnectReason, CallConnectState, DEFAULT_CALL_TIMEOUT, CallNotification } from '../../util/constants/relay'
+import { CallState, DisconnectReason, CallConnectState, DEFAULT_CALL_TIMEOUT, CallNotification, CallRecordState, CallPlayState } from '../../util/constants/relay'
 import { ICall, ICallOptions, ICallDevice, IMakeCallParams, ICallingPlay, ICallingCollect, DeepArray } from '../../util/interfaces'
 import * as Actions from './Actions'
+import * as Results from './Results'
 import { reduceConnectParams } from '../helpers'
 import Calling from './Calling'
 import { isFunction } from '../../util/helpers'
@@ -86,14 +87,16 @@ export default class Call implements ICall {
       }
     })
 
-    const blocker = new Blocker(this.id, CallNotification.State, ({ call_state }) => {
+    const hangupResult = new Results.HangupResult()
+    const blocker = new Blocker(this.id, CallNotification.State, ({ call_state, reason = DisconnectReason.Hangup }) => {
       if (call_state === 'ended') {
-        blocker.resolve(this)
+        hangupResult.reason = reason
+        blocker.resolve(hangupResult)
       }
     })
     this._blockers.push(blocker)
 
-    await this._execute(msg)
+    hangupResult.result = await this._execute(msg)
     return blocker.promise
   }
 
@@ -112,14 +115,15 @@ export default class Call implements ICall {
       }
     })
 
+    const answerResult = new Results.AnswerResult()
     const blocker = new Blocker(this.id, CallNotification.State, ({ call_state }) => {
       if (call_state === 'answered') {
-        blocker.resolve(this)
+        blocker.resolve(answerResult)
       }
     })
     this._blockers.push(blocker)
 
-    await this._execute(msg)
+    answerResult.result = await this._execute(msg)
     return blocker.promise
   }
 
@@ -185,9 +189,9 @@ export default class Call implements ICall {
   async recordSync(record: any) {
     const control_id = uuidv4()
     const blocker = new Blocker(control_id, CallNotification.Record, (params: any) => {
-      const { state } = params
-      if (state === 'finished' || state === 'no_input') {
-        blocker.resolve(params)
+      if (params.state !== CallRecordState.Recording) {
+        const result = new Results.RecordResult(params)
+        blocker.resolve(result)
       }
     })
     this._blockers.push(blocker)
@@ -542,11 +546,10 @@ export default class Call implements ICall {
    */
   async _playSync(play: ICallingPlay[]) {
     const control_id = uuidv4()
-    const blocker = new Blocker(control_id, CallNotification.Play, ({ state }) => {
-      if (state === 'finished') {
-        blocker.resolve(this)
-      } else if (state === 'error') {
-        blocker.reject()
+    const blocker = new Blocker(control_id, CallNotification.Play, (params: any) => {
+      if (params.state !== CallPlayState.Playing) {
+        const result = new Results.RecordResult(params)
+        blocker.resolve(result)
       }
     })
     this._blockers.push(blocker)
@@ -586,9 +589,9 @@ export default class Call implements ICall {
    */
   private async _promptSync(collect: ICallingCollect, play: ICallingPlay[]) {
     const control_id = uuidv4()
-    const blocker = new Blocker(control_id, CallNotification.Collect, ({ result }) => {
-      const method = result.type === 'error' ? 'reject' : 'resolve'
-      blocker[method](result)
+    const blocker = new Blocker(control_id, CallNotification.Collect, (params: any) => {
+      const result = new Results.PromptResult(params)
+      blocker.resolve(result)
     })
     this._blockers.push(blocker)
     await this._prompt(collect, play, control_id)

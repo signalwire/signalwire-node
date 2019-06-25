@@ -39,6 +39,7 @@
     "faye-websocket": "^0.11.1",
     "loglevel": "^1.6.1",
     "twilio": "^3.28.0",
+    "@types/twilio": "0.0.10",
     "uuid": "^3.3.2"
   },
   "devDependencies": {

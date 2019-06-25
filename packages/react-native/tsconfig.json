@@ -14,6 +14,7 @@
     "esModuleInterop": true,
     "noImplicitAny": false,
     "sourceMap": false,
+    "declaration": true,
     "lib": [
       "es2015",
       "es2016",

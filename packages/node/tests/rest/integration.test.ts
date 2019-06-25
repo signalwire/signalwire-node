@@ -4,9 +4,12 @@ const mockServer = require('mockttp').getLocal()
 describe('RestClient', () => {
   beforeEach(async () => {
     await mockServer.start()
-    client.api.baseUrl = mockServer.url
 
+    // @ts-ignore
+    client.api.baseUrl = mockServer.url
+    // @ts-ignore
     client.fax.baseUrl = mockServer.url
+    // @ts-ignore
     client.fax.v1._version = `2010-04-01/Accounts/${client.accountSid}`
   })
 
@@ -23,7 +26,7 @@ describe('RestClient', () => {
         url: 'http://example.signalwire.com/laml/voice.xml',
         from: '+11111111111',
         to: '+11111111112'
-      }).catch(_error => {})
+      })
 
       expect(call.sid).toEqual('82e7850d-054e-4067-8c4f-6568acd96575')
       expect(call.fromFormatted).toEqual('111-111-111')
@@ -49,7 +52,7 @@ describe('RestClient', () => {
       const url = '/2010-04-01/Accounts/XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/Calls/82e7850d-054e-4067-8c4f-6568acd96575.json'
       await mockServer.get(url).thenReply(200, RESPONSE)
 
-      const call = await client.calls('82e7850d-054e-4067-8c4f-6568acd96575').fetch().catch(_error => { })
+      const call = await client.calls('82e7850d-054e-4067-8c4f-6568acd96575').fetch()
 
       expect(call.sid).toEqual('82e7850d-054e-4067-8c4f-6568acd96575')
       expect(call.fromFormatted).toEqual('111-111-111')
@@ -70,7 +73,7 @@ describe('RestClient', () => {
         mediaUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
         from: '+11111111111',
         to: '+11111111112'
-      }).catch(_error => { })
+      })
 
       expect(call.sid).toEqual('0b9df3ce-0e93-4e94-a386-a8f1a22e59bb')
       expect(call.to).toEqual('+11111111111')
@@ -96,7 +99,7 @@ describe('RestClient', () => {
       const url = '/2010-04-01/Accounts/XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/Faxes/0b9df3ce-0e93-4e94-a386-a8f1a22e59bb'
       await mockServer.get(url).thenReply(200, RESPONSE)
 
-      const fax = await client.fax.faxes('0b9df3ce-0e93-4e94-a386-a8f1a22e59bb').fetch().catch(_error => { console.error(_error); return {} })
+      const fax = await client.fax.faxes('0b9df3ce-0e93-4e94-a386-a8f1a22e59bb').fetch()
 
       expect(fax.sid).toEqual('0b9df3ce-0e93-4e94-a386-a8f1a22e59bb')
       expect(fax.from).toEqual('+11111111112')

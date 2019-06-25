@@ -1,24 +1,31 @@
 import { StringStringMap } from '../../../common/src/util/interfaces'
 import { getHost, Reject } from './helpers'
-const twilio = require('twilio')
+import twilio = require('twilio')
 
 twilio.twiml.FaxResponse.prototype.reject = function(attributes) {
   return new Reject(this.response.ele('Reject', attributes))
 }
 
 /* tslint:disable-next-line */
-const RestClient = function (username: string, token: string, opts?: StringStringMap): void {
+const RestClient = function (username: string, token: string, opts?: StringStringMap) {
   const host = getHost(opts)
   // "AC" prefix because twilio-node requires it
-  const client = new twilio.Twilio('AC' + username, token, opts)
+  const client = twilio('AC' + username, token, opts)
+  // @ts-ignore
   // Remove "AC" prefix
   client.username = username
+  // @ts-ignore
   client.accountSid = username
+  // @ts-ignore
   client.password = token
+
+  // @ts-ignore
   // Replace base url
   client.api.baseUrl = `https://${host}`
 
+  // @ts-ignore
   client.fax.baseUrl = `https://${host}`
+  // @ts-ignore
   client.fax.v1._version = `2010-04-01/Accounts/${client.accountSid}`
 
   return client

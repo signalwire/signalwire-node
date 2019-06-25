@@ -7,6 +7,10 @@ abstract class BaseAction {
   protected abstract baseMethod: string
 
   constructor(public call: Call) {}
+}
+
+class StoppableAction extends BaseAction {
+  protected baseMethod = ''
 
   stop() {
     const msg = new Execute({
@@ -23,15 +27,15 @@ abstract class BaseAction {
   }
 }
 
-class RecordAction extends BaseAction {
+class RecordAction extends StoppableAction {
   protected baseMethod = 'call.record'
 }
 
-class PlayAction extends BaseAction {
+class PlayAction extends StoppableAction {
   protected baseMethod = 'call.play'
 }
 
-class PromptAction extends BaseAction {
+class PromptAction extends StoppableAction {
   protected baseMethod = 'call.play_and_collect'
 }
 

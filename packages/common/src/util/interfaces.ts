@@ -1,23 +1,6 @@
 interface IMessageBase { jsonrpc: string, id: string }
 
-export interface IChannel { name: string, broadcast_access?: number, subscribe_access?: number }
-
-// export interface INode { nodeid: string }
-
-export interface IMethod { name: string, execute_access: number }
-
-export interface IProtocol {
-  provider_nodeid: string
-  command?: string
-  protocol: string
-  params: {
-    default_method_execute_access: number
-    default_channel_broadcast_access: number
-    default_channel_subscribe_access: number
-    channels: IChannel[],
-    methods: IMethod[],
-  }
-}
+type TBladeVersion = { major: number, minor: number, revision: number }
 
 export interface ISubscription { channel: string, protocol: string, subscribers: string[] }
 
@@ -26,13 +9,9 @@ export interface IBladeResultError extends IMessageBase { error: { code: number,
 export interface IBladeConnectRequest extends IMessageBase {
   method: string
   params: {
-    version: {
-      major: number
-      minor: number
-      revision: number
-    }
+    version: TBladeVersion
+    authentication: { project: string, token?: string, jwt_token?: string }
     sessionid?: string
-    authentication: object
   }
 }
 
@@ -41,6 +20,9 @@ export interface IBladeConnectResult extends IMessageBase {
   nodeid: string
   master_nodeid: string
   protocols_uncertified: string[]
+  authorization: {
+    expires_at: number
+  }
 }
 
 export interface IBladeExecuteRequest extends IMessageBase {
@@ -73,7 +55,7 @@ export interface IBladeSubscriptionRequest extends IMessageBase {
 }
 
 export interface ISignalWireOptions {
-  host: string,
+  host?: string,
   project?: string
   token?: string
   login?: string

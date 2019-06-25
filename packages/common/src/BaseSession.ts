@@ -6,7 +6,7 @@ import BaseMessage from '../../common/src/messages/BaseMessage'
 import { deRegister, register, trigger, deRegisterAll } from './services/Handler'
 import { BroadcastHandler } from './services/Broadcast'
 import { ADD, REMOVE, SwEvent, BladeMethod, NOTIFICATION_TYPE } from './util/constants'
-import { BroadcastParams, ISignalWireOptions, SubscribeParams, Constructable } from './util/interfaces'
+import { BroadcastParams, ISignalWireOptions, SubscribeParams, Constructable, IBladeConnectResult } from './util/interfaces'
 import { Subscription, Connect, Reauthenticate } from './messages/Blade'
 import { isFunction } from './util/helpers'
 import Relay from './relay/Relay'
@@ -58,7 +58,7 @@ export default abstract class BaseSession {
    * Send a JSON object to the server.
    * @return Promise that will resolve/reject depending on the server response
    */
-  execute(msg: BaseMessage) {
+  execute(msg: BaseMessage): any {
     if (this._idle) {
       return new Promise(resolve => this._executeQueue.push({ resolve, msg }))
     }
@@ -90,7 +90,7 @@ export default abstract class BaseSession {
    * @return boolean
    */
   validateOptions() {
-    const { project, token } = this.options
+    const { project = false, token = false } = this.options
     return Boolean(project && token)
   }
 
@@ -224,7 +224,7 @@ export default abstract class BaseSession {
     const tokenKey = this._jwtAuth ? 'jwt_token' : 'token'
     const { project, token } = this.options
     const bc = new Connect({ project, [tokenKey]: token }, this.sessionid)
-    const response = await this.execute(bc).catch(this._handleLoginError)
+    const response: IBladeConnectResult = await this.execute(bc).catch(this._handleLoginError)
     if (response) {
       this._autoReconnect = true
       const { sessionid, nodeid, master_nodeid, authorization: { expires_at = null } = {} } = response

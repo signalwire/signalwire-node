@@ -6,7 +6,6 @@ import BaseMessage from '../../common/src/messages/BaseMessage'
 import { deRegister, register, trigger, deRegisterAll } from './services/Handler'
 import { BroadcastHandler } from './services/Broadcast'
 import { ADD, REMOVE, SwEvent, BladeMethod, NOTIFICATION_TYPE } from './util/constants'
-import Cache from './util/Cache'
 import { BroadcastParams, ISignalWireOptions, SubscribeParams, Constructable } from './util/interfaces'
 import { Subscription, Connect, Reauthenticate } from './messages/Blade'
 import { isFunction } from './util/helpers'
@@ -24,7 +23,6 @@ export default abstract class BaseSession {
   protected _relayInstances: { [service: string]: Relay } = {}
   protected _jwtAuth: boolean = false
 
-  private _cache: Cache
   private _idle: boolean = false
   private _executeQueue: { resolve?: Function, msg: any}[] = []
   private _autoReconnect: boolean = false
@@ -235,8 +233,6 @@ export default abstract class BaseSession {
       this.sessionid = sessionid
       this.nodeid = nodeid
       this.master_nodeid = master_nodeid
-      this._cache = new Cache()
-      this._cache.populateFromConnect(response)
       trigger(SwEvent.Connect, null, this.uuid, false)
       this._emptyExecuteQueues()
       trigger(SwEvent.Ready, this, this.uuid)
@@ -273,9 +269,6 @@ export default abstract class BaseSession {
   protected _onSocketMessage(response: any) {
     const { method, params } = response
     switch (method) {
-      case BladeMethod.Netcast:
-        this._cache.netcastUpdate(params)
-        break
       case BladeMethod.Broadcast:
         BroadcastHandler(params)
         break

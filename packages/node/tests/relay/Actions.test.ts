@@ -30,7 +30,7 @@ describe('Calling', () => {
 
   describe('RecordAction', () => {
     it('should stop the current recording', async done => {
-      const action = new Actions.RecordAction(call, 'control-id')
+      const action = new Actions.RecordAction(call)
       await action.stop()
       const msg = new Execute({
         protocol: 'signalwire_service_random_uuid',
@@ -38,7 +38,7 @@ describe('Calling', () => {
         params: {
           node_id: 'node-id',
           call_id: 'call-id',
-          control_id: 'control-id'
+          control_id: 'mocked-uuid'
         }
       })
       expect(Connection.mockSend).toHaveBeenCalledTimes(1)
@@ -49,7 +49,7 @@ describe('Calling', () => {
 
   describe('PlayMediaAction', () => {
     it('should stop the current media in play', async done => {
-      const action = new Actions.PlayMediaAction(call, 'control-id')
+      const action = new Actions.PlayAction(call)
       await action.stop()
       const msg = new Execute({
         protocol: 'signalwire_service_random_uuid',
@@ -57,7 +57,7 @@ describe('Calling', () => {
         params: {
           node_id: 'node-id',
           call_id: 'call-id',
-          control_id: 'control-id'
+          control_id: 'mocked-uuid'
         }
       })
       expect(Connection.mockSend).toHaveBeenCalledTimes(1)
@@ -68,7 +68,7 @@ describe('Calling', () => {
 
   describe('PlayAudioAction', () => {
     it('should stop the current media in play', async done => {
-      const action = new Actions.PlayAudioAction(call, 'control-id')
+      const action = new Actions.PlayAction(call)
       await action.stop()
       const msg = new Execute({
         protocol: 'signalwire_service_random_uuid',
@@ -76,7 +76,7 @@ describe('Calling', () => {
         params: {
           node_id: 'node-id',
           call_id: 'call-id',
-          control_id: 'control-id'
+          control_id: 'mocked-uuid'
         }
       })
       expect(Connection.mockSend).toHaveBeenCalledTimes(1)
@@ -87,7 +87,7 @@ describe('Calling', () => {
 
   describe('PlaySilenceAction', () => {
     it('should stop the current media in play', async done => {
-      const action = new Actions.PlaySilenceAction(call, 'control-id')
+      const action = new Actions.PlayAction(call)
       await action.stop()
       const msg = new Execute({
         protocol: 'signalwire_service_random_uuid',
@@ -95,7 +95,7 @@ describe('Calling', () => {
         params: {
           node_id: 'node-id',
           call_id: 'call-id',
-          control_id: 'control-id'
+          control_id: 'mocked-uuid'
         }
       })
       expect(Connection.mockSend).toHaveBeenCalledTimes(1)
@@ -106,7 +106,7 @@ describe('Calling', () => {
 
   describe('PlayTTSAction', () => {
     it('should stop the current media in play', async done => {
-      const action = new Actions.PlayTTSAction(call, 'control-id')
+      const action = new Actions.PlayAction(call)
       await action.stop()
       const msg = new Execute({
         protocol: 'signalwire_service_random_uuid',
@@ -114,7 +114,7 @@ describe('Calling', () => {
         params: {
           node_id: 'node-id',
           call_id: 'call-id',
-          control_id: 'control-id'
+          control_id: 'mocked-uuid'
         }
       })
       expect(Connection.mockSend).toHaveBeenCalledTimes(1)
@@ -126,7 +126,7 @@ describe('Calling', () => {
 
   describe('PlayMediaAndCollectAction', () => {
     it('should stop the current media in play', async done => {
-      const action = new Actions.PlayMediaAndCollectAction(call, 'control-id')
+      const action = new Actions.PromptAction(call)
       await action.stop()
       const msg = new Execute({
         protocol: 'signalwire_service_random_uuid',
@@ -134,7 +134,7 @@ describe('Calling', () => {
         params: {
           node_id: 'node-id',
           call_id: 'call-id',
-          control_id: 'control-id'
+          control_id: 'mocked-uuid'
         }
       })
       expect(Connection.mockSend).toHaveBeenCalledTimes(1)
@@ -145,7 +145,7 @@ describe('Calling', () => {
 
   describe('PlayAudioAndCollectAction', () => {
     it('should stop the current media in play', async done => {
-      const action = new Actions.PlayAudioAndCollectAction(call, 'control-id')
+      const action = new Actions.PromptAction(call)
       await action.stop()
       const msg = new Execute({
         protocol: 'signalwire_service_random_uuid',
@@ -153,7 +153,7 @@ describe('Calling', () => {
         params: {
           node_id: 'node-id',
           call_id: 'call-id',
-          control_id: 'control-id'
+          control_id: 'mocked-uuid'
         }
       })
       expect(Connection.mockSend).toHaveBeenCalledTimes(1)
@@ -164,7 +164,7 @@ describe('Calling', () => {
 
   describe('PlaySilenceAndCollectAction', () => {
     it('should stop the current media in play', async done => {
-      const action = new Actions.PlaySilenceAndCollectAction(call, 'control-id')
+      const action = new Actions.PromptAction(call)
       await action.stop()
       const msg = new Execute({
         protocol: 'signalwire_service_random_uuid',
@@ -172,7 +172,7 @@ describe('Calling', () => {
         params: {
           node_id: 'node-id',
           call_id: 'call-id',
-          control_id: 'control-id'
+          control_id: 'mocked-uuid'
         }
       })
       expect(Connection.mockSend).toHaveBeenCalledTimes(1)
@@ -183,7 +183,7 @@ describe('Calling', () => {
 
   describe('PlayTTSAndCollectAction', () => {
     it('should stop the current media in play', async done => {
-      const action = new Actions.PlayTTSAndCollectAction(call, 'control-id')
+      const action = new Actions.PromptAction(call)
       await action.stop()
       const msg = new Execute({
         protocol: 'signalwire_service_random_uuid',
@@ -191,7 +191,7 @@ describe('Calling', () => {
         params: {
           node_id: 'node-id',
           call_id: 'call-id',
-          control_id: 'control-id'
+          control_id: 'mocked-uuid'
         }
       })
       expect(Connection.mockSend).toHaveBeenCalledTimes(1)

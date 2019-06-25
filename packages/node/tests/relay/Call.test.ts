@@ -60,9 +60,9 @@ describe('Call', () => {
     await expect(call.record({ audio: { format: 'mp3' } })).rejects.toThrowError('Call has not started')
   })
 
-  it('should throw with .playMedia()', async () => {
+  it('should throw with .play()', async () => {
     const silence = { type: 'silence', params: { duration: 20 } }
-    await expect(call.playMedia(silence)).rejects.toThrowError('Call has not started')
+    await expect(call.play(silence)).rejects.toThrowError('Call has not started')
   })
 
   describe('.on()', () => {
@@ -358,7 +358,7 @@ describe('Call', () => {
             play: [{ type: 'audio', params: { url: 'audio.mp3' } }]
           }
         })
-        expect(action).toBeInstanceOf(Actions.PlayAudioAction)
+        expect(action).toBeInstanceOf(Actions.PlayAction)
         expect(Connection.mockSend).toHaveBeenCalledTimes(1)
         expect(Connection.mockSend).toHaveBeenCalledWith(msg)
         done()
@@ -376,7 +376,7 @@ describe('Call', () => {
             play: [{ type: 'silence', params: { duration: 5 } }]
           }
         })
-        expect(action).toBeInstanceOf(Actions.PlaySilenceAction)
+        expect(action).toBeInstanceOf(Actions.PlayAction)
         expect(Connection.mockSend).toHaveBeenCalledTimes(1)
         expect(Connection.mockSend).toHaveBeenCalledWith(msg)
         done()
@@ -394,14 +394,14 @@ describe('Call', () => {
             play: [{ type: 'tts', params: { text: 'Hello', gender: 'male' } }]
           }
         })
-        expect(action).toBeInstanceOf(Actions.PlayTTSAction)
+        expect(action).toBeInstanceOf(Actions.PlayAction)
         expect(Connection.mockSend).toHaveBeenCalledTimes(1)
         expect(Connection.mockSend).toHaveBeenCalledWith(msg)
         done()
       })
 
-      it('.playMedia() should execute the correct message', async done => {
-        const action = await call.playMedia({ type: 'silence', params: { duration: 5 } }, { type: 'tts', params: { text: 'Example' } })
+      it('.play() should execute the correct message', async done => {
+        const action = await call.play({ type: 'silence', params: { duration: 5 } }, { type: 'tts', params: { text: 'Example' } })
         const msg = new Execute({
           protocol: 'signalwire_service_random_uuid',
           method: 'call.play',
@@ -415,7 +415,7 @@ describe('Call', () => {
             ]
           }
         })
-        expect(action).toBeInstanceOf(Actions.PlayMediaAction)
+        expect(action).toBeInstanceOf(Actions.PlayAction)
         expect(Connection.mockSend).toHaveBeenCalledTimes(1)
         expect(Connection.mockSend).toHaveBeenCalledWith(msg)
         done()
@@ -425,8 +425,8 @@ describe('Call', () => {
     describe('play_and_collect methods', () => {
       const collect = { initial_timeout: 10, digits: { max: 5, terminators: '#', digit_timeout: 10 } }
 
-      it('.playAudioAndCollect() should execute the correct message', async done => {
-        const action = await call.playAudioAndCollect(collect, 'audio.mp3')
+      it('.promptAudio() should execute the correct message', async done => {
+        const action = await call.promptAudio(collect, 'audio.mp3')
         const msg = new Execute({
           protocol: 'signalwire_service_random_uuid',
           method: 'call.play_and_collect',
@@ -438,33 +438,33 @@ describe('Call', () => {
             collect
           }
         })
-        expect(action).toBeInstanceOf(Actions.PlayAudioAndCollectAction)
+        expect(action).toBeInstanceOf(Actions.PromptAction)
         expect(Connection.mockSend).toHaveBeenCalledTimes(1)
         expect(Connection.mockSend).toHaveBeenCalledWith(msg)
         done()
       })
 
-      it('.playSilenceAndCollect() should execute the correct message', async done => {
-        const action = await call.playSilenceAndCollect(collect, 5)
-        const msg = new Execute({
-          protocol: 'signalwire_service_random_uuid',
-          method: 'call.play_and_collect',
-          params: {
-            node_id: call.nodeId,
-            call_id: call.id,
-            control_id: 'mocked-uuid',
-            play: [{ type: 'silence', params: { duration: 5 } }],
-            collect
-          }
-        })
-        expect(action).toBeInstanceOf(Actions.PlaySilenceAndCollectAction)
-        expect(Connection.mockSend).toHaveBeenCalledTimes(1)
-        expect(Connection.mockSend).toHaveBeenCalledWith(msg)
-        done()
-      })
+      // it('.playSilenceAndCollect() should execute the correct message', async done => {
+      //   const action = await call.playSilenceAndCollect(collect, 5)
+      //   const msg = new Execute({
+      //     protocol: 'signalwire_service_random_uuid',
+      //     method: 'call.play_and_collect',
+      //     params: {
+      //       node_id: call.nodeId,
+      //       call_id: call.id,
+      //       control_id: 'mocked-uuid',
+      //       play: [{ type: 'silence', params: { duration: 5 } }],
+      //       collect
+      //     }
+      //   })
+      //   expect(action).toBeInstanceOf(Actions.PromptAction)
+      //   expect(Connection.mockSend).toHaveBeenCalledTimes(1)
+      //   expect(Connection.mockSend).toHaveBeenCalledWith(msg)
+      //   done()
+      // })
 
-      it('.playTTSAndCollect() should execute the correct message', async done => {
-        const action = await call.playTTSAndCollect(collect, { text: 'digit something' })
+      it('.promptTTS() should execute the correct message', async done => {
+        const action = await call.promptTTS(collect, { text: 'digit something' })
         const msg = new Execute({
           protocol: 'signalwire_service_random_uuid',
           method: 'call.play_and_collect',
@@ -476,14 +476,14 @@ describe('Call', () => {
             collect
           }
         })
-        expect(action).toBeInstanceOf(Actions.PlayTTSAndCollectAction)
+        expect(action).toBeInstanceOf(Actions.PromptAction)
         expect(Connection.mockSend).toHaveBeenCalledTimes(1)
         expect(Connection.mockSend).toHaveBeenCalledWith(msg)
         done()
       })
 
-      it('.playMediaAndCollect() should execute the correct message', async done => {
-        const action = await call.playMediaAndCollect(
+      it('.prompt() should execute the correct message', async done => {
+        const action = await call.prompt(
           collect,
           { type: 'silence', params: { duration: 5 } },
           { type: 'tts', params: { text: 'digit something' } }
@@ -502,7 +502,7 @@ describe('Call', () => {
             collect
           }
         })
-        expect(action).toBeInstanceOf(Actions.PlayMediaAndCollectAction)
+        expect(action).toBeInstanceOf(Actions.PromptAction)
         expect(Connection.mockSend).toHaveBeenCalledTimes(1)
         expect(Connection.mockSend).toHaveBeenCalledWith(msg)
         done()

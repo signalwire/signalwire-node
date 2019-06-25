@@ -19,7 +19,6 @@ export default class Call implements ICall {
   private _prevConnectState: number = 0
   private _connectState: number = 0
   private _cbQueue: { [state: string]: Function } = {}
-  private _controls: any[] = []
   private _blockers: Blocker[] = []
 
   constructor(public relayInstance: Calling, protected options: ICallOptions) {
@@ -418,14 +417,6 @@ export default class Call implements ICall {
     return timeout
   }
 
-  get recordings() {
-    return this._controls.filter(t => t.event_type === CallNotification.Record)
-  }
-
-  get playbacks() {
-    return this._controls.filter(t => t.event_type === CallNotification.Play)
-  }
-
   setOptions(opts: ICallOptions) {
     this.options = { ...this.options, ...opts }
   }
@@ -503,12 +494,6 @@ export default class Call implements ICall {
     const { control_id, event_type } = params
     if (!event_type) {
       return
-    }
-    const index = this._controls.findIndex(t => t.control_id === control_id)
-    if (index >= 0) {
-      this._controls[index] = params
-    } else {
-      this._controls.push(params)
     }
     const checkId = control_id ? control_id : this.id
     this._blockers.forEach(b => {

@@ -157,7 +157,7 @@ export default class Connection {
   }
 
   private _ping() {
-    if (!this._wsClient || !this._wsClient.ping) {
+    if (this._wsClient instanceof WebSocket) {
       return
     }
     if (this._connected) {

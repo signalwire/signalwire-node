@@ -4,7 +4,6 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
-
 ### Added
 - Expose moderator methods on the Call object.
 - A notification that belongs to a Call now contains a reference to the call itself.
@@ -27,6 +26,10 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - `chatChannel` / `infoChannel` / `conferenceChannel` have been removed from the `conferenceUpdate` notification (**join** & **leave** actions).
 ### Security
 - Update dependencies
+
+## [1.1.1] - 2019-06-26
+### Fixed
+- Update Call.localStream if microphone or webcam has changed.
 
 ## [1.0.0-rc.3] - 2018-12-18
 ### Fixed

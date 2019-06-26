@@ -731,21 +731,18 @@ export default class Call {
       }
     }
 
-    if (instance.hasOwnProperty('ontrack')) {
-      instance.ontrack = event => {
-        this.options.remoteStream = event.streams[0]
+    instance.ontrack = event => {
+      this.options.remoteStream = event.streams[0]
 
-        if (this.options.screenShare === true) {
-          return
-        }
-        const { remoteElement, remoteStream } = this.options
-        attachMediaStream(remoteElement, remoteStream)
+      if (this.options.screenShare === true) {
+        return
       }
-    } else {
-      // @ts-ignore
-      instance.onaddstream = (event: MediaStreamEvent) => {
-        this.options.remoteStream = event.stream
-      }
+      const { remoteElement, remoteStream } = this.options
+      attachMediaStream(remoteElement, remoteStream)
+    }
+    // @ts-ignore
+    instance.onaddstream = (event: MediaStreamEvent) => {
+      this.options.remoteStream = event.stream
     }
   }
 

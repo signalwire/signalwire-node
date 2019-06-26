@@ -70,7 +70,7 @@ export default class Connection {
     this._wsClient.onclose = (event): boolean => {
       this._connected = false
       return trigger(SwEvent.SocketClose, event, this.session.uuid)
-    },
+    }
     this._wsClient.onerror = (event): boolean => trigger(SwEvent.SocketError, event, this.session.uuid)
     this._wsClient.onmessage = (event): void => {
       const msg: any = safeParseJson(event.data)

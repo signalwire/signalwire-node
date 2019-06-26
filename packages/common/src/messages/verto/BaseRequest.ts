@@ -14,7 +14,7 @@ export default abstract class BaseRequest extends BaseMessage {
     super()
 
     if (params.hasOwnProperty('dialogParams')) {
-      const { remoteSdp, localStream, remoteStream, onNotification, ...dialogParams } = params.dialogParams
+      const { remoteSdp, localStream, remoteStream, onNotification, camId, micId, speakerId, ...dialogParams } = params.dialogParams
       for (const key in tmpMap) {
         if (key && dialogParams.hasOwnProperty(key)) {
           dialogParams[tmpMap[key]] = dialogParams[key]

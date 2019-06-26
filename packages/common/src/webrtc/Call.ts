@@ -731,14 +731,21 @@ export default class Call {
       }
     }
 
-    instance.ontrack = event => {
-      this.options.remoteStream = event.streams[0]
+    if (instance.hasOwnProperty('ontrack')) {
+      instance.ontrack = event => {
+        this.options.remoteStream = event.streams[0]
 
-      if (this.options.screenShare === true) {
-        return
+        if (this.options.screenShare === true) {
+          return
+        }
+        const { remoteElement, remoteStream } = this.options
+        attachMediaStream(remoteElement, remoteStream)
       }
-      const { remoteElement, remoteStream } = this.options
-      attachMediaStream(remoteElement, remoteStream)
+    } else {
+      // @ts-ignore
+      instance.onaddstream = (event: MediaStreamEvent) => {
+        this.options.remoteStream = event.stream
+      }
     }
   }
 

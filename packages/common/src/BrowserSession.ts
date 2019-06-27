@@ -1,6 +1,6 @@
 import BaseSession from './BaseSession'
 import Connection from './services/Connection'
-import Call from './webrtc/Call'
+import BaseCall from './webrtc/BaseCall'
 import { ICacheDevices, IAudioSettings, IVideoSettings, BroadcastParams, SubscribeParams } from './util/interfaces'
 import { registerOnce } from './services/Handler'
 import { SwEvent, SESSION_ID } from './util/constants'
@@ -12,7 +12,7 @@ import { localStorage } from './util/storage/'
 import { stopStream } from './util/webrtc'
 
 export default abstract class BrowserSession extends BaseSession {
-  public calls: { [callId: string]: Call } = {}
+  public calls: { [callId: string]: BaseCall } = {}
 
   private _iceServers: RTCIceServer[] = []
   private _localElement: HTMLMediaElement = null

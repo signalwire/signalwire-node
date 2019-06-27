@@ -1,5 +1,5 @@
 // @ts-ignore
-import { AsyncStorage } from 'react-native'
+import AsyncStorage from '@react-native-community/async-storage'
 import { mutateStorageKey, safeParseJson } from '../helpers'
 
 const getItem = async (key: string): Promise<any> => {

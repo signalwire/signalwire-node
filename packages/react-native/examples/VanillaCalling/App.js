@@ -8,7 +8,7 @@
 
 import React, { Component } from 'react';
 import { TouchableOpacity, StyleSheet, Text, View } from 'react-native';
-import { Relay } from '@signalwire/react-native';
+import { Relay, Verto } from '@signalwire/react-native';
 import { RTCView } from 'react-native-webrtc';
 
 
@@ -24,10 +24,15 @@ export default class App extends Component<Props> {
       call: null
     }
 
-    this.client = new Relay({
-      project: '',
-      token: ''
+    this.client = new Verto({
+      host: 'cantina.signalwire.com/wss2',
+      login: '1008',
+      passwd: '1234'
     })
+    // this.client = new Relay({
+    //   project: '',
+    //   token: ''
+    // })
     this.client.__logger.setLevel(1)
 
     this.client.on('signalwire.ready', () => {
@@ -65,7 +70,7 @@ export default class App extends Component<Props> {
   }
 
   newCall() {
-    this.client.newCall({ destinationNumber: 'elena', video: { facingMode: 'user' } })
+    this.client.newCall({ destinationNumber: '3593', video: { facingMode: 'user' } })
   }
 
   _handleCallUpdate(call) {

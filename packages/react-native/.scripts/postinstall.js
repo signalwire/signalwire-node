@@ -15,19 +15,24 @@ async function main() {
     },
     {
       title: 'Installing WebRTC engine..',
-      task: async () => await execa('npm', ['install', 'react-native-webrtc'], { cwd: cwd() })
+      task: async () => {
+        await execa('npm', ['install', 'react-native-webrtc'], { cwd: cwd() })
+        await execa('react-native', ['link', 'react-native-webrtc'], { cwd: cwd() })
+      }
+    },
+    {
+      title: 'Installing InCall Manager..',
+      task: async () => {
+        await execa('npm', ['install', 'react-native-incall-manager'], { cwd: cwd() })
+        await execa('react-native', ['link', 'react-native-incall-manager'], { cwd: cwd() })
+      }
     },
     {
       title: 'Installing AsyncStorage..',
-      task: async () => await execa('npm', ['install', '@react-native-community/async-storage'], { cwd: cwd() })
-    },
-    {
-      title: `Link WebRTC engine..`,
-      task: async () => await execa('react-native', ['link', 'react-native-webrtc'], { cwd: cwd() })
-    },
-    {
-      title: `Link AsyncStorage..`,
-      task: async () => await execa('react-native', ['link', '@react-native-community/async-storage'], { cwd: cwd() })
+      task: async () => {
+        await execa('npm', ['install', '@react-native-community/async-storage'], { cwd: cwd() })
+        await execa('react-native', ['link', '@react-native-community/async-storage'], { cwd: cwd() })
+      }
     }
   ]
 
@@ -35,7 +40,7 @@ async function main() {
 }
 
 const { INIT_CWD, PWD } = process.env
-if (INIT_CWD === PWD || INIT_CWD.indexOf(PWD) === 0) {
+if (INIT_CWD === PWD || (INIT_CWD && INIT_CWD.indexOf(PWD) === 0)) {
   console.log('\tSkip on dev..')
 } else {
   main()

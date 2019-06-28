@@ -212,6 +212,8 @@ export default abstract class BaseCall {
 
   abstract undeaf(): void
 
+  abstract toggleDeaf(): void
+
   setState(state: State) {
     this._prevState = this._state
     this._state = state

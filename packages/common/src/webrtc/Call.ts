@@ -1,7 +1,7 @@
 import logger from '../util/logger'
 import BaseCall from './BaseCall'
 import { CallOptions } from '../util/interfaces'
-import { getDisplayMedia, setMediaElementSinkId, muteMediaElement, unmuteMediaElement } from '../util/webrtc'
+import { getDisplayMedia, setMediaElementSinkId, muteMediaElement, unmuteMediaElement, toggleMuteMediaElement } from '../util/webrtc'
 
 export default class Call extends BaseCall {
 
@@ -53,6 +53,10 @@ export default class Call extends BaseCall {
 
   undeaf() {
     unmuteMediaElement(this.options.remoteElement)
+  }
+
+  toggleDeaf() {
+    toggleMuteMediaElement(this.options.remoteElement)
   }
 
   async setAudioOutDevice(deviceId: string): Promise<boolean> {

@@ -28,6 +28,13 @@ export default class Call extends BaseCall {
     }
   }
 
+  toggleDeaf() {
+    const { remoteStream } = this.options
+    if (streamIsValid(remoteStream)) {
+      remoteStream.getAudioTracks().forEach(t => t.enabled = !t.enabled)
+    }
+  }
+
   setSpeakerPhone(flag: boolean) {
     InCallManager.setForceSpeakerphoneOn(flag)
   }

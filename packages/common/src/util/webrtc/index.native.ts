@@ -22,6 +22,7 @@ const detachMediaStream = (htmlElementId: string) => null
 
 const muteMediaElement = (htmlElementId: string) => null
 const unmuteMediaElement = (htmlElementId: string) => null
+const toggleMuteMediaElement = (htmlElementId: string) => null
 
 const setMediaElementSinkId = (htmlElementId: string, deviceId: string): Promise<boolean> => Promise.resolve(false)
 

@@ -7,7 +7,7 @@
  */
 
 import React, { Component } from 'react';
-import { TouchableOpacity, StyleSheet, Text, View, TextInput } from 'react-native';
+import { TouchableOpacity, StyleSheet, Text, View, TextInput, KeyboardAvoidingView } from 'react-native';
 import { Relay, Verto } from '@signalwire/react-native';
 import { RTCView } from 'react-native-webrtc';
 
@@ -136,8 +136,7 @@ export default class App extends Component<Props> {
       }
       return (
         <View style={styles.wrapperMiddle}>
-          <Text style={styles.instructions}>{this.state.call.state}</Text>
-          {streamURL && <RTCView mirror={false} objectFit='cover' streamURL={streamURL} style={{ width: 200, height: 200 }} zOrder={1} />}
+          {streamURL && <RTCView mirror={false} objectFit='contain' streamURL={streamURL} style={{ width: '100%', height: '100%' }} zOrder={1} />}
         </View>
       )
     } else {
@@ -203,14 +202,14 @@ export default class App extends Component<Props> {
 
   render() {
     return (
-      <View style={styles.container}>
+      <KeyboardAvoidingView style={styles.container}>
         <View style={styles.wrapperTop}>
           <Text style={styles.welcome}>Welcome to SignalWire!</Text>
           <Text style={styles.instructions}>Status: {this._status()}</Text>
         </View>
         {this._middle()}
         {this._bottom()}
-      </View>
+      </KeyboardAvoidingView>
     );
   }
 }

@@ -8,8 +8,10 @@
 
 import React, { Component } from 'react';
 import { TouchableOpacity, StyleSheet, Text, View, TextInput, KeyboardAvoidingView } from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { Relay, Verto } from '@signalwire/react-native';
 import { RTCView } from 'react-native-webrtc';
+import Colors from './Colors';
 
 
 type Props = {};
@@ -28,10 +30,12 @@ export default class App extends Component<Props> {
     this.state = {
       connected: false,
       call: null,
-      extension: '3593'
+      extension: '3593',
+      btnMicActive: true,
+      btnDeafActive: true,
+      btnCamActive: true,
+      btnSpeakerActive: true,
     }
-
-    this.speakerPhone = false
 
     this.client = new Verto({
       host: 'cantina.signalwire.com/wss2',
@@ -87,14 +91,17 @@ export default class App extends Component<Props> {
   }
 
   toggleMic() {
+    this.setState({ btnMicActive: !this.state.btnMicActive })
     this.state.call.toggleAudioMute()
   }
 
   toggleCam() {
+    this.setState({ btnCamActive: !this.state.btnCamActive })
     this.state.call.toggleVideoMute()
   }
 
   toggleDeaf() {
+    this.setState({ btnDeafActive: !this.state.btnDeafActive })
     this.state.call.toggleDeaf()
   }
 
@@ -103,8 +110,9 @@ export default class App extends Component<Props> {
   }
 
   toggleSpeaker() {
-    this.speakerPhone = !this.speakerPhone
-    this.state.call.setSpeakerPhone(this.speakerPhone)
+    this.setState({ btnSpeakerActive: !this.state.btnSpeakerActive }, () => {
+      this.state.call.setSpeakerPhone(this.state.btnSpeakerActive)
+    })
   }
 
   _handleCallUpdate(call) {
@@ -160,39 +168,44 @@ export default class App extends Component<Props> {
         <View style={styles.wrapperBottom}>
           <View style={styles.wrapperBottomRow}>
             <TouchableOpacity style={styles.button} onPress={this.toggleMic}>
-              <Text style={styles.buttonText}>Toggle Mic</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.button} onPress={this.hangup}>
-              <Text style={styles.buttonText}>HangUp</Text>
+              <Icon name='microphone' size={25} color={ this.state.btnMicActive ? '#000' : 'gray' } />
+              <Text style={styles.buttonText}>Mute</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.button} onPress={this.toggleDeaf}>
-              <Text style={styles.buttonText}>Toggle Deaf</Text>
+              <Icon name='volume-mute' size={25} color={ this.state.btnDeafActive ? '#000' : 'gray' } />
+              <Text style={styles.buttonText}>Deaf</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.button} onPress={this.toggleCam}>
+              <Icon name='camera' size={25} color={ this.state.btnCamActive ? '#000' : 'gray'} />
+              <Text style={styles.buttonText}>Camera</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.button} onPress={this.switchCamera}>
+              <Icon name='camera-retake' size={25} color='#000' />
+              <Text style={styles.buttonText}>Flip Cam</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.button} onPress={this.toggleSpeaker}>
+              <Icon name='volume-high' size={25} color={ this.state.btnSpeakerActive ? '#000' : 'gray'} />
+              <Text style={styles.buttonText}>Speaker</Text>
             </TouchableOpacity>
           </View>
 
           <View style={styles.wrapperBottomRow}>
-            <TouchableOpacity style={styles.button} onPress={this.toggleCam}>
-              <Text style={styles.buttonText}>Toggle Camera</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.button} onPress={this.switchCamera}>
-              <Text style={styles.buttonText}>Switch Camera</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.button} onPress={this.toggleSpeaker}>
-              <Text style={styles.buttonText}>Toggle Speaker</Text>
+            <TouchableOpacity style={[styles.button, { backgroundColor: Colors.red }]} onPress={this.hangup}>
+              <Icon name='phone-hangup' size={25} color='#FFF' />
             </TouchableOpacity>
           </View>
         </View>
       )
     } else {
       return (
-        <View style={[styles.wrapperBottom, { flex: 0.5 }]}>
+        <View style={styles.wrapperBottom}>
           <View style={styles.wrapperBottomRow}>
-            <TouchableOpacity style={styles.button} onPress={this.makeCall}>
-              <Text style={styles.buttonText}>Make Call</Text>
+            <TouchableOpacity style={[styles.button, { backgroundColor: Colors.green }]} onPress={this.makeCall}>
+              <Icon name='phone' size={25} color='#FFFFFF' />
             </TouchableOpacity>
           </View>
         </View>
@@ -230,13 +243,13 @@ const styles = StyleSheet.create({
     borderTopWidth: 1
   },
   wrapperBottom: {
-    flex: 1,
+    flex: 0.5,
     borderColor: '#000',
     borderTopWidth: 1,
     borderBottomWidth: 1
   },
   wrapperBottomRow: {
-    flex: 1,
+    flex: 0.5,
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center'
@@ -259,11 +272,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: 100,
     height: 40,
-    width: '23%',
-    borderColor: '#000',
-    borderWidth: 1
+    width: '20%'
   },
   buttonText: {
-    textAlign: 'center'
+    textAlign: 'center',
+    fontSize: 12
   },
 });

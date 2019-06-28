@@ -11,6 +11,7 @@
     "react": "16.8.3",
     "react-native": "0.59.9",
     "react-native-incall-manager": "^3.2.3",
+    "react-native-vector-icons": "^6.6.0",
     "react-native-webrtc": "^1.69.2"
   },
   "devDependencies": {

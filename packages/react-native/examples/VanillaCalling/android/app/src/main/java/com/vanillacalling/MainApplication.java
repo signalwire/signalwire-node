@@ -3,6 +3,7 @@ package com.vanillacalling;
 import android.app.Application;
 
 import com.facebook.react.ReactApplication;
+import com.oblador.vectoricons.VectorIconsPackage;
 import com.zxcpoiu.incallmanager.InCallManagerPackage;
 import com.reactnativecommunity.asyncstorage.AsyncStoragePackage;
 import com.oney.WebRTCModule.WebRTCModulePackage;
@@ -26,6 +27,7 @@ public class MainApplication extends Application implements ReactApplication {
     protected List<ReactPackage> getPackages() {
       return Arrays.<ReactPackage>asList(
           new MainReactPackage(),
+            new VectorIconsPackage(),
             new InCallManagerPackage(),
             new AsyncStoragePackage(),
             new WebRTCModulePackage()

@@ -15,6 +15,7 @@
     "react-native-webrtc": "^1.69.2"
   },
   "devDependencies": {
+    "ws": ">=3.3.1",
     "@babel/core": "^7.4.5",
     "@babel/runtime": "^7.4.5",
     "babel-jest": "^24.8.0",

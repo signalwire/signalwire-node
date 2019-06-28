@@ -168,7 +168,7 @@ class VertoHandler {
         }
         const channels = [laChannel, chatChannel, infoChannel, modChannel]
         session.vertoUnsubscribe({ nodeId: this.nodeId, channels })
-          .then(({ unsubscribedChannels }) => {
+          .then(({ unsubscribedChannels = [] }) => {
             if (call) {
               call.channels = call.channels.filter(c => !unsubscribedChannels.includes(c))
             }

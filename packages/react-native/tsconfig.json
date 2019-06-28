@@ -25,7 +25,8 @@
   "include": [
     "index.ts",
     "../common/src/util/webrtc/*",
-    "../common/src/util/storage/*"
+    "../common/src/util/storage/*",
+    "../common/src/webrtc/Call.native.ts"
   ],
   "exclude": [
     "**/__mocks__/**/*"

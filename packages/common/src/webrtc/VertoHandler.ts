@@ -1,6 +1,7 @@
 import logger from '../util/logger'
 import BrowserSession from '../BrowserSession'
 import Call from './Call'
+import BaseCall from './BaseCall'
 import { checkSubscribeResponse } from './helpers'
 import { Result } from '../messages/Verto'
 import { SwEvent, VertoMethod, NOTIFICATION_TYPE } from '../util/constants'
@@ -151,7 +152,7 @@ class VertoHandler {
         // trigger Notification at a Call or Session level.
         // deregister Notification callback at the Call level.
         // Cleanup subscriptions for all channels
-        let call: Call = null
+        let call: BaseCall = null
         if (laChannel && session._existsSubscription(protocol, laChannel)) {
           const { callId = null } = session.subscriptions[protocol][laChannel]
           call = session.calls[callId] || null
@@ -167,7 +168,7 @@ class VertoHandler {
         }
         const channels = [laChannel, chatChannel, infoChannel, modChannel]
         session.vertoUnsubscribe({ nodeId: this.nodeId, channels })
-          .then(({ unsubscribedChannels }) => {
+          .then(({ unsubscribedChannels = [] }) => {
             if (call) {
               call.channels = call.channels.filter(c => !unsubscribedChannels.includes(c))
             }

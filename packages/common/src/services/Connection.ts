@@ -67,7 +67,10 @@ export default class Connection {
       this._ping()
       return trigger(SwEvent.SocketOpen, event, this.session.uuid)
     }
-    this._wsClient.onclose = (event): boolean => trigger(SwEvent.SocketClose, event, this.session.uuid)
+    this._wsClient.onclose = (event): boolean => {
+      this._connected = false
+      return trigger(SwEvent.SocketClose, event, this.session.uuid)
+    }
     this._wsClient.onerror = (event): boolean => trigger(SwEvent.SocketError, event, this.session.uuid)
     this._wsClient.onmessage = (event): void => {
       const msg: any = safeParseJson(event.data)
@@ -154,7 +157,7 @@ export default class Connection {
   }
 
   private _ping() {
-    if (!this._wsClient || !this._wsClient.ping) {
+    if (this._wsClient instanceof WebSocket) {
       return
     }
     if (this._connected) {
@@ -162,7 +165,6 @@ export default class Connection {
       this._wsClient.ping('', () => this._connected = true)
       return setTimeout(() => this._ping(), PING_INTERVAL)
     }
-    const { _beginClose, close } = this._wsClient
-    isFunction(_beginClose) ? _beginClose() : close()
+    isFunction(this._wsClient._beginClose) ? this._wsClient._beginClose() : this._wsClient.close()
   }
 }

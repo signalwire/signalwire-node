@@ -1,6 +1,6 @@
 import logger from '../util/logger'
 import BrowserSession from '../BrowserSession'
-import Call from './Call'
+import BaseCall from './BaseCall'
 import { SwEvent, NOTIFICATION_TYPE } from '../util/constants'
 import { trigger } from '../services/Handler'
 import { ConferenceAction } from '../util/constants/call'
@@ -12,7 +12,7 @@ const MCULayoutEventHandler = (session: BrowserSession, eventData: any) => {
     delete canvasInfo.memberID
   }
 
-  const data: { type: string, call: Call, canvasInfo: any, currentLayerIdx: number } = {
+  const data: { type: string, call: BaseCall, canvasInfo: any, currentLayerIdx: number } = {
     type: NOTIFICATION_TYPE.conferenceUpdate,
     call: session.calls[callID],
     canvasInfo: _clearCanvasInfo(canvasInfo),

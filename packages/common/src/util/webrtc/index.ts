@@ -48,6 +48,13 @@ const unmuteMediaElement = (tag: any) => {
   }
 }
 
+const toggleMuteMediaElement = (tag: any) => {
+  const element = findElementByType(tag)
+  if (element) {
+    element.muted = !element.muted
+  }
+}
+
 const setMediaElementSinkId = async (tag: any, deviceId: string): Promise<boolean> => {
   const element: HTMLMediaElement = findElementByType(tag)
   if (element === null) {
@@ -84,5 +91,6 @@ export {
   stopStream,
   muteMediaElement,
   unmuteMediaElement,
+  toggleMuteMediaElement,
   setMediaElementSinkId
 }

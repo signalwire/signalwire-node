@@ -51,5 +51,6 @@ export {
   stopStream,
   muteMediaElement,
   unmuteMediaElement,
+  toggleMuteMediaElement,
   setMediaElementSinkId
 }

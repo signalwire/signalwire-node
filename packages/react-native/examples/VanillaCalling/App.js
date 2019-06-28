@@ -9,7 +9,7 @@
 import React, { Component } from 'react';
 import { TouchableOpacity, StyleSheet, Text, View, TextInput, KeyboardAvoidingView } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { Relay, Verto } from '@signalwire/react-native';
+import { Relay } from '@signalwire/react-native';
 import { RTCView } from 'react-native-webrtc';
 import Colors from './Colors';
 
@@ -37,15 +37,11 @@ export default class App extends Component<Props> {
       btnSpeakerActive: true,
     }
 
-    this.client = new Verto({
-      host: 'cantina.signalwire.com/wss2',
-      login: '1008',
-      passwd: '1234'
+    // Use your Project ID and a JWT to create a Relay client.
+    this.client = new Relay({
+      project: '',
+      token: ''
     })
-    // this.client = new Relay({
-    //   project: '',
-    //   token: ''
-    // })
     this.client.__logger.setLevel(1)
 
     this.client.on('signalwire.ready', () => {

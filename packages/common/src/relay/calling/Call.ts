@@ -9,7 +9,7 @@ import Calling from './Calling'
 import { isFunction } from '../../util/helpers'
 import Blocker from './Blocker'
 
-type TAction = Actions.RecordAction | Actions.PlayAction | Actions.PromptAction | Actions.ConnectAction;
+type TAction = Actions.RecordAction | Actions.PlayAction | Actions.PromptAction | Actions.ConnectAction
 
 export default class Call implements ICall {
   public id: string

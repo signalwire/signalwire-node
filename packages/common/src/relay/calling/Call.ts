@@ -60,7 +60,7 @@ export default class Call implements ICall {
    * Begin the call
    * @return Promise
    */
-  begin() {
+  async dial() {
     const msg = new Execute({
       protocol: this.relayInstance.protocol,
       method: 'call.begin',
@@ -70,7 +70,15 @@ export default class Call implements ICall {
       }
     })
 
-    return this._execute(msg)
+    const blocker = new Blocker(CallNotification.State, ({ call_state }) => {
+      if (call_state === 'answered') {
+        blocker.resolve()
+      }
+    })
+    this._blockers.push(blocker)
+
+    await this._execute(msg)
+    return blocker.promise
   }
 
   /**

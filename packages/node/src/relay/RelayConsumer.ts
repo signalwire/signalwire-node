@@ -50,7 +50,7 @@ export default class RelayConsumer {
         logger.error('RelayConsumer error registering contexts:', error)
       }
       if (isFunction(this.setup)) {
-        this.setup.call(this)
+        this.setup(this)
       }
     })
 
@@ -58,6 +58,9 @@ export default class RelayConsumer {
   }
 
   private async _registerCallingContexts() {
+    if (!isFunction(this.onIncomingCall)) {
+      return null
+    }
     const promises = this.contexts.map(context => this.client.calling.onInbound(context, this.onIncomingCall))
     const results = await Promise.all(promises)
     results.forEach(res => logger.info(res.message))

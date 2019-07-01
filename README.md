@@ -10,7 +10,7 @@ This package provides a client for Signalwire services and supports different Ja
 | ------- | ------- | ------- | ------- |:-----:|
 | **Node.js** | SignalWire in Node.js | [`README.md`](packages/node/README.md) | [`CHANGELOG.md`](packages/node/CHANGELOG.md) | ![NPM](https://img.shields.io/npm/v/@signalwire/node.svg?color=brightgreen)
 | **JavaScript** | SignalWire in the browser! | [`README.md`](packages/js/README.md) | [`CHANGELOG.md`](packages/js/CHANGELOG.md) | ![NPM](https://img.shields.io/npm/v/@signalwire/js.svg?color=brightgreen)
-| **React Native** | SignalWire in a React Native App | [`README.md`](packages/react-native/README.md) | [`CHANGELOG.md`](packages/react-native/CHANGELOG.md) | **coming soon**
+| **React Native** | SignalWire in a React Native App | [`README.md`](packages/react-native/README.md) | [`CHANGELOG.md`](packages/react-native/CHANGELOG.md) | ![NPM](https://img.shields.io/npm/v/@signalwire/react-native.svg?color=brightgreen)
 
 Refer to the README of each package for further details.
 

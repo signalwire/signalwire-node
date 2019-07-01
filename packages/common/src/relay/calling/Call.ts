@@ -15,11 +15,11 @@ export default class Call implements ICall {
   public id: string
   public nodeId: string
   public tag: string = uuidv4()
+  public prevState: string = CallState.None
+  public state: string = CallState.None
   public prevConnectState: string = ''
   public connectState: string = ''
 
-  private _prevState: number = 0
-  private _state: number = 0
   private _cbQueue: { [state: string]: Function } = {}
   private _blockers: Blocker[] = []
   private _actions: { [id: string]: TAction } = {}
@@ -38,9 +38,6 @@ export default class Call implements ICall {
    * @return this
    */
   on(event: string, callback: Function) {
-    if (this.ready && !isNaN(Number(CallState[event])) && this._state >= CallState[event]) {
-      callback(this)
-    }
     this._cbQueue[event] = callback
     return this
   }
@@ -71,7 +68,7 @@ export default class Call implements ICall {
     })
 
     const blocker = new Blocker(CallNotification.State, ({ call_state }) => {
-      if (call_state === 'answered') {
+      if (call_state === CallState.Answered) {
         blocker.resolve()
       }
     })
@@ -99,7 +96,7 @@ export default class Call implements ICall {
 
     const hangupResult = new Results.HangupResult()
     const blocker = new Blocker(CallNotification.State, ({ call_state, reason = DisconnectReason.Hangup }) => {
-      if (call_state === 'ended') {
+      if (call_state === CallState.Ended) {
         hangupResult.reason = reason
         blocker.resolve(hangupResult)
       }
@@ -127,7 +124,7 @@ export default class Call implements ICall {
 
     const answerResult = new Results.AnswerResult()
     const blocker = new Blocker(CallNotification.State, ({ call_state }) => {
-      if (call_state === 'answered') {
+      if (call_state === CallState.Answered) {
         blocker.resolve(answerResult)
       }
     })
@@ -374,14 +371,6 @@ export default class Call implements ICall {
     return this._promptSync(collect, play)
   }
 
-  get prevState() {
-    return CallState[this._prevState]
-  }
-
-  get state() {
-    return CallState[this._state]
-  }
-
   get context() {
     return this.options.context
   }
@@ -425,12 +414,12 @@ export default class Call implements ICall {
 
   _stateChange(params: { call_state: string }) {
     const { call_state } = params
-    this._prevState = this._state
-    this._state = CallState[call_state]
+    this.prevState = this.state
+    this.state = call_state
     this._checkBlockers(params)
     this._dispatchCallback('stateChange')
     this._dispatchCallback(call_state)
-    if (this._state === CallState.ended) {
+    if (this.state === CallState.Ended) {
       this.relayInstance.removeCall(this)
     }
   }

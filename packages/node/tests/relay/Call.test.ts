@@ -1,7 +1,7 @@
 import RelayClient from '../../src/relay'
 import { ICallDevice } from '../../../common/src/util/interfaces'
 import Call from '../../../common/src/relay/calling/Call'
-import { CallState, CallNotification } from '../../../common/src/util/constants/relay'
+import { CallNotification } from '../../../common/src/util/constants/relay'
 import { isQueued } from '../../../common/src/services/Handler'
 import { Execute } from '../../../common/src/messages/Blade'
 import * as Actions from '../../../common/src/relay/calling/Actions'
@@ -78,27 +78,6 @@ describe('Call', () => {
       call._stateChange({ call_state: 'created' })
       call._stateChange({ call_state: 'answered' })
       expect(mockFn).toHaveBeenCalledTimes(2)
-    })
-
-    describe('with the call ready', () => {
-      beforeEach(() => {
-        call.id = 'testing-on-method'
-        // @ts-ignore
-        call._state = CallState.answered
-      })
-
-      afterEach(() => {
-        call.id = undefined
-        // @ts-ignore
-        call._state = CallState.created
-      })
-
-      it('should fire the callback if the event has already passed', () => {
-        const mockFn = jest.fn()
-        call.on('created', mockFn)
-        expect(isQueued(call.id)).toEqual(false)
-        expect(mockFn).toHaveBeenCalledTimes(1)
-      })
     })
   })
 

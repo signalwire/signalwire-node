@@ -17,8 +17,8 @@ export default class Call implements ICall {
   public tag: string = uuidv4()
   public prevState: string = CallState.None
   public state: string = CallState.None
-  public prevConnectState: string = ''
-  public connectState: string = ''
+  public busy: boolean = false
+  public failed: boolean = false
 
   private _cbQueue: { [state: string]: Function } = {}
   private _blockers: Blocker[] = []
@@ -29,6 +29,55 @@ export default class Call implements ICall {
     this.id = call_id
     this.nodeId = node_id
     this.relayInstance.addCall(this)
+  }
+
+  get answered(): boolean {
+    return this.state === CallState.Answered
+  }
+
+  get active(): boolean {
+    return !this.ended
+  }
+
+  get ended(): boolean {
+    return this.state === CallState.Ending || this.state === CallState.Ended
+  }
+
+  get context() {
+    return this.options.context
+  }
+
+  get peer(): Call {
+    const { peer: { call_id = null } = {} } = this.options
+    return this.relayInstance.getCallById(call_id)
+  }
+
+  get device(): ICallDevice {
+    return this.options.device
+  }
+
+  get ready(): boolean {
+    return Boolean(this.id)
+  }
+
+  get type(): string {
+    const { type } = this.options.device
+    return type
+  }
+
+  get from(): string {
+    const { params: { from_number = '' } = {} } = this.options.device
+    return from_number
+  }
+
+  get to(): string {
+    const { params: { to_number = '' } = {} } = this.options.device
+    return to_number
+  }
+
+  get timeout(): number {
+    const { params: { timeout = DEFAULT_CALL_TIMEOUT } = {} } = this.options.device
+    return timeout
   }
 
   /**
@@ -371,43 +420,6 @@ export default class Call implements ICall {
     return this._promptSync(collect, play)
   }
 
-  get context() {
-    return this.options.context
-  }
-
-  get peer(): Call {
-    const { peer: { call_id = null } = {} } = this.options
-    return this.relayInstance.getCallById(call_id)
-  }
-
-  get device(): ICallDevice {
-    return this.options.device
-  }
-
-  get ready(): boolean {
-    return Boolean(this.id)
-  }
-
-  get type(): string {
-    const { type } = this.options.device
-    return type
-  }
-
-  get from(): string {
-    const { params: { from_number = '' } = {} } = this.options.device
-    return from_number
-  }
-
-  get to(): string {
-    const { params: { to_number = '' } = {} } = this.options.device
-    return to_number
-  }
-
-  get timeout(): number {
-    const { params: { timeout = DEFAULT_CALL_TIMEOUT } = {} } = this.options.device
-    return timeout
-  }
-
   setOptions(opts: ICallOptions) {
     this.options = { ...this.options, ...opts }
   }
@@ -426,8 +438,6 @@ export default class Call implements ICall {
 
   _connectStateChange(params: { connect_state: string }) {
     const { connect_state } = params
-    this.prevConnectState = this.connectState
-    this.connectState = connect_state
     this._checkBlockers(params)
     this._dispatchCallback('connect.stateChange')
     if (!this._dispatchCallback(`connect.${connect_state}`)) {

@@ -1,10 +1,10 @@
 export enum CallState {
-  none,
-  created,
-  ringing,
-  answered,
-  ending,
-  ended
+  None = 'none',
+  Created = 'created',
+  Ringing = 'ringing',
+  Answered = 'answered',
+  Ending = 'ending',
+  Ended = 'ended'
 }
 
 export const DEFAULT_CALL_TIMEOUT = 30

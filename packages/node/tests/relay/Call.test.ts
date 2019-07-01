@@ -129,12 +129,12 @@ describe('Call', () => {
   })
 
   describe('when call is ready', () => {
-    const _stateNotificationAnswered = JSON.parse(`{"call_state":"answered","call_id":"call-id","event_type":"${CallNotification.State}"}`)
-    const _stateNotificationEnded = JSON.parse(`{"call_state":"ended","call_id":"call-id","event_type":"${CallNotification.State}"}`)
+    const _stateNotificationAnswered = JSON.parse(`{"call_state":"answered","call_id":"call-id","control_id":"mocked-uuid","event_type":"${CallNotification.State}"}`)
+    const _stateNotificationEnded = JSON.parse(`{"call_state":"ended","call_id":"call-id","control_id":"mocked-uuid","event_type":"${CallNotification.State}"}`)
     const _playNotification = JSON.parse(`{"state":"finished","call_id":"call-id","control_id":"mocked-uuid","event_type":"${CallNotification.Play}"}`)
     const _promptNotification = JSON.parse(`{"control_id":"mocked-uuid","call_id":"call-id","event_type":"${CallNotification.Collect}","result":{"type":"digit","params":{"digits":"12345","terminator":"#"}}}`)
     const _recordNotification = JSON.parse(`{"state":"finished","call_id":"call-id","control_id":"mocked-uuid","event_type":"${CallNotification.Record}","url":"record-url","record":{"audio":{"type":"digit","params":{"digits":"12345","terminator":"#"}}}}`)
-    const _connectNotification = JSON.parse(`{"connect_state":"connected","call_id":"call-id","event_type":"${CallNotification.Connect}"}`)
+    const _connectNotification = JSON.parse(`{"connect_state":"connected","call_id":"call-id","control_id":"mocked-uuid","event_type":"${CallNotification.Connect}"}`)
 
     beforeEach(() => {
       call.id = 'call-id'

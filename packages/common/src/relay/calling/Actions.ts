@@ -67,7 +67,7 @@ class PromptAction extends StoppableAction {
       case CallPromptState.Digit:
       case CallPromptState.Speech:
         this.state = 'successful'
-        break;
+        break
       default:
         this.state = params.result.type
     }

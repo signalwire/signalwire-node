@@ -26,7 +26,7 @@ You'll now be able to dial other Apps and SIP endpoints from your SignalWire pro
 
 ## Troubleshooting
 
-If you have any trouble building the App follow the steps for each native library:
+If you have any trouble building the App follow the steps for each native library to double check all frameworks have been linked properly:
 
 #### iOS
 

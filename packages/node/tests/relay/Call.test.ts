@@ -1,5 +1,5 @@
 import RelayClient from '../../src/relay'
-import { ICallDevice } from '../../../common/src/util/interfaces'
+import { ICallDevice, ICallingPlay } from '../../../common/src/util/interfaces'
 import Call from '../../../common/src/relay/calling/Call'
 import { CallNotification, CallState } from '../../../common/src/util/constants/relay'
 import { isQueued } from '../../../common/src/services/Handler'
@@ -94,8 +94,8 @@ describe('Call', () => {
     const _stateNotificationEnded = JSON.parse(`{"event_type":"calling.call.state","params":{"call_state":"ended","end_reason":"busy","direction":"inbound","device":{"type":"phone","params":{"from_number":"+1234","to_number":"15678"}},"call_id":"call-id","node_id":"node-id"}}`)
     const _recordNotification = JSON.parse(`{"event_type":"calling.call.record","params":{"state":"no_input","record":{"audio":{"format":"mp3","direction":"speak","stereo":false}},"url":"record.mp3","control_id":"mocked-uuid","size":4096,"duration":4,"call_id":"call-id","node_id":"node-id"}}`)
     const _connectNotification = JSON.parse(`{"event_type":"calling.call.connect","params":{"connect_state":"connected","device":{"node_id":"other-node-id","call_id":"other-call-id","tag":"other-tag-id","peer":{"type":"phone","params":{"from_number":"+1555","to_number":"+1777"}}},"tag":"mocked-uuid","call_id":"call-id","node_id":"node-id"}}`)
+    const _playNotification = JSON.parse(`{"event_type":"calling.call.play","params":{"control_id":"mocked-uuid","call_id":"call-id","node_id":"node-id","state":"finished"}}`)
 
-    // const _playNotification = JSON.parse(`{"state":"finished","call_id":"call-id","control_id":"mocked-uuid","event_type":"${CallNotification.Play}"}`)
     // const _promptNotification = JSON.parse(`{"control_id":"mocked-uuid","call_id":"call-id","event_type":"${CallNotification.Collect}","result":{"type":"digit","params":{"digits":"12345","terminator":"#"}}}`)
 
     beforeEach(() => {
@@ -301,6 +301,108 @@ describe('Call', () => {
 
         // @ts-ignore
         session.calling.notificationHandler(_connectNotification)
+        expect(action.completed).toBe(true)
+        done()
+      })
+
+    })
+
+    describe('playing methods', () => {
+      const media = [
+        { type: 'audio', params: { url: 'audio.mp3' } },
+        { type: 'tts', params: { text: 'hello jest' } }
+      ]
+
+      const getMsg = (...play: ICallingPlay[]) => new Execute({
+        protocol: 'signalwire_service_random_uuid',
+        method: 'call.play',
+        params: { node_id: call.nodeId, call_id: call.id, control_id: 'mocked-uuid', play }
+      })
+
+      it('.play() should wait until the playing ends', done => {
+        call.play(...media).then(result => {
+          expect(result).toBeInstanceOf(PlayResult)
+          expect(result.successful).toBe(true)
+          expect(Connection.mockSend).nthCalledWith(1, getMsg(...media))
+          done()
+        })
+        // @ts-ignore
+        session.calling.notificationHandler(_playNotification)
+      })
+
+      it('.playAsync() should return a PlayAction for async control', async done => {
+        const action = await call.playAsync(...media)
+        expect(action).toBeInstanceOf(PlayAction)
+        expect(action.completed).toBe(false)
+        expect(Connection.mockSend).nthCalledWith(1, getMsg(...media))
+        // @ts-ignore
+        session.calling.notificationHandler(_playNotification)
+        expect(action.completed).toBe(true)
+        done()
+      })
+
+      it('.playAudio() should wait until the playing ends', done => {
+        call.playAudio('audio.mp3').then(result => {
+          expect(result).toBeInstanceOf(PlayResult)
+          expect(result.successful).toBe(true)
+          expect(Connection.mockSend).nthCalledWith(1, getMsg(media[0]))
+          done()
+        })
+        // @ts-ignore
+        session.calling.notificationHandler(_playNotification)
+      })
+
+      it('.playAudioAsync() should return a PlayAction for async control', async done => {
+        const action = await call.playAudioAsync('audio.mp3')
+        expect(action).toBeInstanceOf(PlayAction)
+        expect(action.completed).toBe(false)
+        expect(Connection.mockSend).nthCalledWith(1, getMsg(media[0]))
+        // @ts-ignore
+        session.calling.notificationHandler(_playNotification)
+        expect(action.completed).toBe(true)
+        done()
+      })
+
+      it('.playTTS() should wait until the playing ends', done => {
+        call.playTTS({ text: 'hello jest' }).then(result => {
+          expect(result).toBeInstanceOf(PlayResult)
+          expect(result.successful).toBe(true)
+          expect(Connection.mockSend).nthCalledWith(1, getMsg(media[1]))
+          done()
+        })
+        // @ts-ignore
+        session.calling.notificationHandler(_playNotification)
+      })
+
+      it('.playTTSAsync() should return a PlayAction for async control', async done => {
+        const action = await call.playTTSAsync({ text: 'hello jest' })
+        expect(action).toBeInstanceOf(PlayAction)
+        expect(action.completed).toBe(false)
+        expect(Connection.mockSend).nthCalledWith(1, getMsg(media[1]))
+        // @ts-ignore
+        session.calling.notificationHandler(_playNotification)
+        expect(action.completed).toBe(true)
+        done()
+      })
+
+      it('.playSilence() should wait until the playing ends', done => {
+        call.playSilence(5).then(result => {
+          expect(result).toBeInstanceOf(PlayResult)
+          expect(result.successful).toBe(true)
+          expect(Connection.mockSend).nthCalledWith(1, getMsg({ type: 'silence', params: { duration: 5 } }))
+          done()
+        })
+        // @ts-ignore
+        session.calling.notificationHandler(_playNotification)
+      })
+
+      it('.playSilenceAsync() should return a PlayAction for async control', async done => {
+        const action = await call.playSilenceAsync(5)
+        expect(action).toBeInstanceOf(PlayAction)
+        expect(action.completed).toBe(false)
+        expect(Connection.mockSend).nthCalledWith(1, getMsg({ type: 'silence', params: { duration: 5 } }))
+        // @ts-ignore
+        session.calling.notificationHandler(_playNotification)
         expect(action.completed).toBe(true)
         done()
       })

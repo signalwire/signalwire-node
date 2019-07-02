@@ -15,7 +15,7 @@ export const Setup = async (session: BaseSession, service: string, handler?: Fun
     params.protocol = currentProtocol
   }
   const be = new Execute({ protocol: SETUP_PROTOCOL, method: SETUP_METHOD, params })
-  const { result: { protocol = null } = {} } = await session.execute(be)
+  const { protocol = null } = await session.execute(be)
   await session.subscribe({ protocol, channels: [SETUP_CHANNEL], handler })
 
   await sessionStorage.setItem(_key, protocol)

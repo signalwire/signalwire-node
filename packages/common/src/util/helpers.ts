@@ -50,3 +50,33 @@ export const checkWebSocketHost = (host: string): string => {
   const protocol = PROTOCOL_PATTERN.test(host) ? '' : 'wss://'
   return `${protocol}${host}`
 }
+
+/**
+ * From the socket we can get:
+ * - JSON-RPC msg with 1 level of 'result' or 'error'
+ * - JSON-RPC msg with 2 nested 'result' and 'code' property to identify error
+ * - JSON-RPC msg with 3 nested 'result' where the third level is the Verto JSON-RPC flat msg.
+ *
+ * @returns Object with error | result key to identify success or fail
+*/
+export const destructResponse = (response: any, nodeId: string = null): { [key: string]: any } => {
+  const { result = {}, error } = response
+  if (error) {
+    return { error }
+  }
+  const { result: nestedResult = null } = result
+  if (nestedResult === null) {
+    if (nodeId !== null) {
+      result.node_id = nodeId
+    }
+    return { result }
+  }
+  const { code = null, node_id = null, result: vertoResult = null } = nestedResult
+  if (code && code !== '200') {
+    return { error: nestedResult }
+  }
+  if (vertoResult) {
+    return destructResponse(vertoResult, node_id)
+  }
+  return { result: nestedResult }
+}

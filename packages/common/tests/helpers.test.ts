@@ -1,4 +1,4 @@
-import { objEmpty, mutateLiveArrayData, safeParseJson, isDefined, checkWebSocketHost } from '../src/util/helpers'
+import { objEmpty, mutateLiveArrayData, safeParseJson, isDefined, checkWebSocketHost, destructResponse } from '../src/util/helpers'
 
 describe('Helpers functions', () => {
   describe('objEmpty', () => {
@@ -82,5 +82,40 @@ describe('Helpers functions', () => {
       })
     })
 
+  })
+
+  describe('destructResponse()', () => {
+    it('should handle normal json-rpc result', () => {
+      const msg = JSON.parse('{"jsonrpc":"2.0","id":"123","result":{"message":"CALL CREATED","callID":"call-id","sessid":"sid"}}')
+      expect(destructResponse(msg)).toEqual({ result: msg.result })
+    })
+
+    it('should handle normal json-rpc error', () => {
+      const msg = JSON.parse('{"jsonrpc":"2.0","id":"123","error":{"message":"Random Error","callID":"call-id","code":"123"}}')
+      expect(destructResponse(msg)).toEqual({ error: msg.error })
+    })
+
+    it('should handle blade.execute result', () => {
+      const msg = JSON.parse('{"jsonrpc":"2.0","id":"uuid","result":{"requester_nodeid":"req-id","responder_nodeid":"res-id","result":{"code":"200","message":"Playing","call_id":"call-id"}}}')
+      expect(destructResponse(msg)).toEqual({ result: { code: '200', message: 'Playing', call_id: 'call-id' } })
+    })
+
+    it('should handle blade.execute result', () => {
+      const msg = JSON.parse('{"jsonrpc":"2.0","id":"uuid","error":{"requester_nodeid":"req-id","responder_nodeid":"res-id","code":-32601,"message":"msg"}}')
+      expect(destructResponse(msg)).toEqual({ error: msg.error })
+    })
+
+    it('should handle Verto result over Blade', () => {
+      const vertoNoResult = JSON.parse('{"jsonrpc":"2.0","id":"uuid","result":{"requester_nodeid":"req-id","responder_nodeid":"res-id","result":{"code":"200","node_id":"node-id","result":{}}}}')
+      expect(destructResponse(vertoNoResult)).toEqual({ result: { node_id: 'node-id' } })
+
+      const vertoResult = JSON.parse('{"jsonrpc":"2.0","id":"uuid","result":{"requester_nodeid":"req-id","responder_nodeid":"res-id","result":{"code":"200","node_id":"node-id","result":{"jsonrpc":"2.0","id":"verto-uuid","result":{"message":"CALL CREATED","callID":"call-id"}}}}}')
+      expect(destructResponse(vertoResult)).toEqual({ result: { message: 'CALL CREATED', callID: 'call-id', node_id: 'node-id' } })
+    })
+
+    it('should handle Verto error over Blade', () => {
+      const msg = JSON.parse('{"jsonrpc":"2.0","id":"uuid","result":{"requester_nodeid":"req-id","responder_nodeid":"res-id","result":{"code":"200","node_id":"node-id","result":{"jsonrpc":"2.0","id":"123","error":{"message":"Random Error","callID":"call-id","code":"123"}}}}}')
+      expect(destructResponse(msg)).toEqual({ error: { code: '123', message: 'Random Error', callID: 'call-id' } })
+    })
   })
 })

@@ -1,4 +1,5 @@
 import { v4 as uuidv4 } from 'uuid'
+import logger from '../../util/logger'
 import { Execute } from '../../messages/Blade'
 import { CallState, DisconnectReason, DEFAULT_CALL_TIMEOUT, CallNotification, CallRecordState, CallPlayState, CallPromptState, CallConnectState } from '../../util/constants/relay'
 import { ICall, ICallOptions, ICallDevice, IMakeCallParams, ICallingPlay, ICallingCollect, DeepArray } from '../../util/interfaces'
@@ -98,14 +99,10 @@ export default class Call implements ICall {
 
   async _execute(msg: Execute) {
     try {
-      const { result } = await this.relayInstance.session.execute(msg)
-      return result
+      return await this.relayInstance.session.execute(msg)
     } catch (error) {
-      const { result = null } = error
-      if (result) {
-        throw result
-      }
-      throw error
+      logger.error(`Relay command failed with code: ${error.code} - ${error.message}`)
+      return error
     }
   }
 

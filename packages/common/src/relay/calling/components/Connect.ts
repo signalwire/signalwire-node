@@ -1,6 +1,6 @@
 import Controllable from './Controllable'
 import { DeepArray, ICallDevice } from '../../../util/interfaces'
-import { CallNotification } from '../../../util/constants/relay'
+import { CallNotification, CallConnectState } from '../../../util/constants/relay'
 import Call from '../Call'
 
 export default class Connect extends Controllable {
@@ -23,9 +23,12 @@ export default class Connect extends Controllable {
   }
 
   notificationHandler(params: any): void {
-    const { connect_state } = params
+    this.state = params.connect_state
+    this.completed = this.state !== CallConnectState.Connecting
+    this.successful = this.state === CallConnectState.Connected
+    this.result = this.call.peer
 
-    if (this._hasBlocker() && this._eventsToWait.includes(connect_state)) {
+    if (this._hasBlocker() && this._eventsToWait.includes(this.state)) {
       this.blocker.resolve()
     }
   }

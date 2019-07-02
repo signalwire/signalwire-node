@@ -147,8 +147,8 @@ export interface ICall {
   record: Function
   recordAsync: Function
   answer: Function
-  // Connect: Function
-  // ConnectAsync: Function
+  connect: Function
+  connectAsync: Function
   play: Function
   playAsync: Function
   playAudio: Function

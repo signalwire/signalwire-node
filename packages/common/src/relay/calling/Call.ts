@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid'
 import { Execute } from '../../messages/Blade'
-import { CallState, DisconnectReason, DEFAULT_CALL_TIMEOUT, CallNotification, CallRecordState, CallPlayState, CallPromptState } from '../../util/constants/relay'
+import { CallState, DisconnectReason, DEFAULT_CALL_TIMEOUT, CallNotification, CallRecordState, CallPlayState, CallPromptState, CallConnectState } from '../../util/constants/relay'
 import { ICall, ICallOptions, ICallDevice, IMakeCallParams, ICallingPlay, ICallingCollect, DeepArray } from '../../util/interfaces'
 import { reduceConnectParams } from '../helpers'
 import Calling from './Calling'
@@ -19,6 +19,9 @@ import PlayAction from './actions/PlayAction'
 import Prompt from './components/Prompt'
 import PromptResult from './results/PromptResult'
 import PromptAction from './actions/PromptAction'
+import Connect from './components/Connect'
+import ConnectResult from './results/ConnectResult'
+import ConnectAction from './actions/ConnectAction'
 
 export default class Call implements ICall {
   public id: string
@@ -208,6 +211,23 @@ export default class Call implements ICall {
 
   promptTTSAsync(collect: ICallingCollect, params: ICallingPlay['params']): Promise<PromptAction> {
     return this.promptAsync(collect, { type: 'tts', params })
+  }
+
+  async connect(...peers: DeepArray<IMakeCallParams>): Promise<ConnectResult> {
+    const devices = reduceConnectParams(peers, this.device)
+    const component = new Connect(this, devices)
+    await component.execute()
+    await component._waitFor(CallConnectState.Failed, CallConnectState.Connected)
+
+    return new ConnectResult(component)
+  }
+
+  async connectAsync(...peers: DeepArray<IMakeCallParams>): Promise<ConnectAction> {
+    const devices = reduceConnectParams(peers, this.device)
+    const component = new Connect(this, devices)
+    await component.execute()
+
+    return new ConnectAction(component)
   }
 
   _stateChange(params: { call_state: string }) {

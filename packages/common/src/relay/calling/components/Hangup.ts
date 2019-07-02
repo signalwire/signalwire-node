@@ -26,6 +26,7 @@ export default class Hangup extends BaseComponent {
     if (call_state === CallState.Ended) {
       this.reason = reason
       this.completed = true
+      this.result = params
     }
 
     if (this._hasBlocker() && this._eventsToWait.includes(call_state)) {

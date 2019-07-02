@@ -32,12 +32,12 @@ export default class Prompt extends Controllable {
     this.completed = true
 
     const { result } = params
+    this.result = result
     const state = result.type
     switch (state) {
       case CallPromptState.Digit:
       case CallPromptState.Speech:
         this.state = 'successful'
-        this.result = result
         this.successful = true
         break
       default:

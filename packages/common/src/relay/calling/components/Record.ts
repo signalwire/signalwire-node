@@ -27,8 +27,7 @@ export default class Record extends Controllable {
 
     if (this.state !== CallRecordState.Recording) {
       this.completed = true
-      // TODO:
-      // this.result = new RecordResult(params)
+      this.result = params
     }
 
     if (this._hasBlocker() && this._eventsToWait.includes(this.state)) {

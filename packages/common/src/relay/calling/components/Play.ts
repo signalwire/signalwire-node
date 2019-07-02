@@ -27,6 +27,7 @@ export default class Play extends Controllable {
     this.state = params.state
     this.completed = params.state !== CallPlayState.Playing
     this.successful = params.state === CallPlayState.Finished
+    this.result = params
 
     if (this._hasBlocker() && this._eventsToWait.includes(this.state)) {
       this.blocker.resolve()

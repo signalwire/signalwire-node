@@ -1,6 +1,6 @@
 import Controllable from './Controllable'
 import { ICallingPlay } from '../../../util/interfaces'
-import { CallNotification } from '../../../util/constants/relay'
+import { CallNotification, CallPlayState } from '../../../util/constants/relay'
 import Call from '../Call'
 
 export default class Play extends Controllable {
@@ -24,9 +24,11 @@ export default class Play extends Controllable {
   }
 
   notificationHandler(params: any): void {
-    const { state } = params
+    this.state = params.state
+    this.completed = params.state !== CallPlayState.Playing
+    this.successful = params.state === CallPlayState.Finished
 
-    if (this._hasBlocker() && this._eventsToWait.includes(state)) {
+    if (this._hasBlocker() && this._eventsToWait.includes(this.state)) {
       this.blocker.resolve()
     }
   }

@@ -13,6 +13,9 @@ import RecordResult from './results/RecordResult'
 import RecordAction from './actions/RecordAction'
 import Answer from './components/Answer'
 import AnswerResult from './results/AnswerResult'
+import Play from './components/Play'
+import PlayResult from './results/PlayResult'
+import PlayAction from './actions/PlayAction'
 
 export default class Call implements ICall {
   public id: string
@@ -132,6 +135,45 @@ export default class Call implements ICall {
     await component.execute()
 
     return new RecordAction(component)
+  }
+
+  async play(...play: ICallingPlay[]): Promise<PlayResult> {
+    const component = new Play(this, play)
+    await component.execute()
+    await component._waitFor(CallPlayState.Error, CallPlayState.Finished)
+
+    return new PlayResult(component)
+  }
+
+  async playAsync(...play: ICallingPlay[]): Promise<PlayAction> {
+    const component = new Play(this, play)
+    await component.execute()
+
+    return new PlayAction(component)
+  }
+
+  playAudio(url: string): Promise<PlayResult> {
+    return this.play({ type: 'audio', params: { url } })
+  }
+
+  playAudioAsync(url: string): Promise<PlayAction> {
+    return this.playAsync({ type: 'audio', params: { url } })
+  }
+
+  playSilence(duration: number): Promise<PlayResult> {
+    return this.play({ type: 'silence', params: { duration } })
+  }
+
+  playSilenceAsync(duration: number): Promise<PlayAction> {
+    return this.playAsync({ type: 'silence', params: { duration } })
+  }
+
+  playTTS(params: ICallingPlay['params']): Promise<PlayResult> {
+    return this.play({ type: 'tts', params })
+  }
+
+  playTTSAsync(params: ICallingPlay['params']): Promise<PlayAction> {
+    return this.playAsync({ type: 'tts', params })
   }
 
   _stateChange(params: { call_state: string }) {

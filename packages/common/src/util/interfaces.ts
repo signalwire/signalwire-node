@@ -149,14 +149,14 @@ export interface ICall {
   answer: Function
   // Connect: Function
   // ConnectAsync: Function
-  // Play: Function
-  // PlayAsync: Function
-  // PlayAudio: Function
-  // PlayAudioAsync: Function
-  // PlaySilence: Function
-  // PlaySilenceAsync: Function
-  // PlayTTS: Function
-  // PlayTTSAsync: Function
+  play: Function
+  playAsync: Function
+  playAudio: Function
+  playAudioAsync: Function
+  playSilence: Function
+  playSilenceAsync: Function
+  playTTS: Function
+  playTTSAsync: Function
   // Prompt: Function
   // PromptAsync: Function
   // PromptAudio: Function

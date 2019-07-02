@@ -5,6 +5,7 @@ import { ICall, ICallOptions, ICallDevice, IMakeCallParams, ICallingPlay, ICalli
 import { reduceConnectParams } from '../helpers'
 import Calling from './Calling'
 import { isFunction } from '../../util/helpers'
+import BaseComponent from './components/BaseComponent'
 import Dial from './components/Dial'
 import Hangup from './components/Hangup'
 import HangupResult from './results/HangupResult'
@@ -33,6 +34,7 @@ export default class Call implements ICall {
   public busy: boolean
 
   private _cbQueue: { [state: string]: Function } = {}
+  private _components: BaseComponent[] = []
 
   constructor(public relayInstance: Calling, protected options: ICallOptions) {
     const { call_id, node_id } = options
@@ -109,7 +111,7 @@ export default class Call implements ICall {
 
   async dial() {
     const component = new Dial(this)
-    await component.execute()
+    this._addComponent(component)
     await component._waitFor(CallState.Answered, CallState.Ending, CallState.Ended)
 
     // FIXME:
@@ -118,7 +120,7 @@ export default class Call implements ICall {
 
   async hangup(reason: string = DisconnectReason.Hangup) {
     const component = new Hangup(this, reason)
-    await component.execute()
+    this._addComponent(component)
     await component._waitFor(CallState.Ended)
 
     return new HangupResult(component)
@@ -126,7 +128,7 @@ export default class Call implements ICall {
 
   async answer() {
     const component = new Answer(this)
-    await component.execute()
+    this._addComponent(component)
     await component._waitFor(CallState.Answered, CallState.Ending, CallState.Ended)
 
     return new AnswerResult(component)
@@ -134,7 +136,7 @@ export default class Call implements ICall {
 
   async record(record: any) {
     const component = new Record(this, record)
-    await component.execute()
+    this._addComponent(component)
     await component._waitFor(CallRecordState.NoInput, CallRecordState.Finished)
 
     return new RecordResult(component)
@@ -142,6 +144,7 @@ export default class Call implements ICall {
 
   async recordAsync(record: any) {
     const component = new Record(this, record)
+    this._addComponent(component)
     await component.execute()
 
     return new RecordAction(component)
@@ -149,7 +152,7 @@ export default class Call implements ICall {
 
   async play(...play: ICallingPlay[]): Promise<PlayResult> {
     const component = new Play(this, play)
-    await component.execute()
+    this._addComponent(component)
     await component._waitFor(CallPlayState.Error, CallPlayState.Finished)
 
     return new PlayResult(component)
@@ -157,6 +160,7 @@ export default class Call implements ICall {
 
   async playAsync(...play: ICallingPlay[]): Promise<PlayAction> {
     const component = new Play(this, play)
+    this._addComponent(component)
     await component.execute()
 
     return new PlayAction(component)
@@ -188,7 +192,7 @@ export default class Call implements ICall {
 
   async prompt(collect: ICallingCollect, ...play: ICallingPlay[]): Promise<PromptResult> {
     const component = new Prompt(this, collect, play)
-    await component.execute()
+    this._addComponent(component)
     await component._waitFor(CallPromptState.Error, CallPromptState.NoInput, CallPromptState.NoMatch, CallPromptState.Digit, CallPromptState.Speech)
 
     return new PromptResult(component)
@@ -196,6 +200,7 @@ export default class Call implements ICall {
 
   async promptAsync(collect: ICallingCollect, ...play: ICallingPlay[]): Promise<PromptAction> {
     const component = new Prompt(this, collect, play)
+    this._addComponent(component)
     await component.execute()
 
     return new PromptAction(component)
@@ -220,7 +225,7 @@ export default class Call implements ICall {
   async connect(...peers: DeepArray<IMakeCallParams>): Promise<ConnectResult> {
     const devices = reduceConnectParams(peers, this.device)
     const component = new Connect(this, devices)
-    await component.execute()
+    this._addComponent(component)
     await component._waitFor(CallConnectState.Failed, CallConnectState.Connected)
 
     return new ConnectResult(component)
@@ -229,6 +234,7 @@ export default class Call implements ICall {
   async connectAsync(...peers: DeepArray<IMakeCallParams>): Promise<ConnectAction> {
     const devices = reduceConnectParams(peers, this.device)
     const component = new Connect(this, devices)
+    this._addComponent(component)
     await component.execute()
 
     return new ConnectAction(component)
@@ -260,6 +266,7 @@ export default class Call implements ICall {
     const { call_state } = params
     this.prevState = this.state
     this.state = call_state
+    this._notifyComponents(CallNotification.State, this.tag, params)
     this._dispatchCallback('stateChange')
     this._dispatchCallback(call_state)
     if (this.state === CallState.Ended) {
@@ -269,22 +276,38 @@ export default class Call implements ICall {
 
   _connectChange(params: { connect_state: string }) {
     const { connect_state } = params
+    this._notifyComponents(CallNotification.Connect, this.tag, params)
     this._dispatchCallback('connect.stateChange')
     this._dispatchCallback(`connect.${connect_state}`)
   }
 
   _recordChange(params: any) {
+    this._notifyComponents(CallNotification.Record, params.control_id, params)
     this._dispatchCallback('record.stateChange', params)
     this._dispatchCallback(`record.${params.state}`, params)
   }
 
   _playChange(params: any) {
+    this._notifyComponents(CallNotification.Play, params.control_id, params)
     this._dispatchCallback('play.stateChange', params)
     this._dispatchCallback(`play.${params.state}`, params)
   }
 
   _collectChange(params: any) {
+    this._notifyComponents(CallNotification.Collect, params.control_id, params)
     this._dispatchCallback('collect', params)
+  }
+
+  private _notifyComponents(eventType: string, controlId: string, params: any): void {
+    this._components.forEach(component => {
+      if (component.eventType === eventType && component.controlId === controlId) {
+        component.notificationHandler(params)
+      }
+    })
+  }
+
+  private _addComponent(component: BaseComponent): void {
+    this._components.push(component)
   }
 
   private _dispatchCallback(key: string, ...params: any) {

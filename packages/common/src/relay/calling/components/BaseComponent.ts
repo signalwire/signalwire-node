@@ -65,6 +65,8 @@ export default abstract class BaseComponent {
     this._eventsToWait = events
     this.blocker = new Blocker(this.eventType, this.controlId)
 
+    this.execute()
+
     return this.blocker.promise
   }
 

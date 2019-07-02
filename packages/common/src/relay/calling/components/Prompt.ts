@@ -1,6 +1,6 @@
 import Controllable from './Controllable'
 import { ICallingPlay, ICallingCollect } from '../../../util/interfaces'
-import { CallNotification } from '../../../util/constants/relay'
+import { CallNotification, CallPromptState } from '../../../util/constants/relay'
 import Call from '../Call'
 
 export default class Prompt extends Controllable {
@@ -29,7 +29,21 @@ export default class Prompt extends Controllable {
   }
 
   notificationHandler(params: any): void {
-    const { state } = params
+    this.completed = true
+
+    const { result } = params
+    const state = result.type
+    switch (state) {
+      case CallPromptState.Digit:
+      case CallPromptState.Speech:
+        this.state = 'successful'
+        this.result = result
+        this.successful = true
+        break
+      default:
+        this.state = state
+        this.successful = false
+    }
 
     if (this._hasBlocker() && this._eventsToWait.includes(state)) {
       this.blocker.resolve()

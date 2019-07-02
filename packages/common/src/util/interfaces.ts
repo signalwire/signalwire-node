@@ -157,12 +157,12 @@ export interface ICall {
   playSilenceAsync: Function
   playTTS: Function
   playTTSAsync: Function
-  // Prompt: Function
-  // PromptAsync: Function
-  // PromptAudio: Function
-  // PromptAudioAsync: Function
-  // PromptTTS: Function
-  // PromptTTSAsync: Function
+  prompt: Function
+  promptAsync: Function
+  promptAudio: Function
+  promptAudioAsync: Function
+  promptTTS: Function
+  promptTTSAsync: Function
   // WaitFor: Function
 }
 

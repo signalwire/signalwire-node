@@ -23,15 +23,16 @@ export default class Hangup extends BaseComponent {
   }
 
   notificationHandler(params: any): void {
-    const { call_state, reason } = params
+    const { call_state, end_reason } = params
     if (call_state === CallState.Ended) {
-      this.reason = reason
+      this.reason = end_reason
       this.completed = true
+      this.successful = true
       this.result = params
     }
 
     if (this._hasBlocker() && this._eventsToWait.includes(call_state)) {
-      this.reason = reason
+      this.reason = end_reason
       this.blocker.resolve()
     }
   }

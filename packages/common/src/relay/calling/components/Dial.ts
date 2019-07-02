@@ -19,6 +19,8 @@ export default class Dial extends BaseComponent {
   notificationHandler(params: any): void {
     const { call_state } = params
 
+    this.result = params
+
     if (this._hasBlocker() && this._eventsToWait.includes(call_state)) {
       this.blocker.resolve()
     }

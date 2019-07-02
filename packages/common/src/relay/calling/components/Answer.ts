@@ -20,6 +20,7 @@ export default class Answer extends BaseComponent {
     const { call_state } = params
     if (call_state === CallState.Answered) {
       this.completed = true
+      this.successful = true
     }
 
     if (this._hasBlocker() && this._eventsToWait.includes(call_state)) {

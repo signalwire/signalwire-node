@@ -2,24 +2,16 @@ import RelayClient from '../../src/relay'
 import { ICallDevice, ICallingPlay } from '../../../common/src/util/interfaces'
 import Call from '../../../common/src/relay/calling/Call'
 import { CallNotification, CallState } from '../../../common/src/util/constants/relay'
-import { isQueued } from '../../../common/src/services/Handler'
 import { Execute } from '../../../common/src/messages/Blade'
 const Connection = require('../../../common/src/services/Connection')
-import Dial from '../../../common/src/relay/calling/components/Dial'
-import Hangup from '../../../common/src/relay/calling/components/Hangup'
 import HangupResult from '../../../common/src/relay/calling/results/HangupResult'
-import Record from '../../../common/src/relay/calling/components/Record'
 import RecordResult from '../../../common/src/relay/calling/results/RecordResult'
 import RecordAction from '../../../common/src/relay/calling/actions/RecordAction'
-import Answer from '../../../common/src/relay/calling/components/Answer'
 import AnswerResult from '../../../common/src/relay/calling/results/AnswerResult'
-import Play from '../../../common/src/relay/calling/components/Play'
 import PlayResult from '../../../common/src/relay/calling/results/PlayResult'
 import PlayAction from '../../../common/src/relay/calling/actions/PlayAction'
-import Prompt from '../../../common/src/relay/calling/components/Prompt'
 import PromptResult from '../../../common/src/relay/calling/results/PromptResult'
 import PromptAction from '../../../common/src/relay/calling/actions/PromptAction'
-import Connect from '../../../common/src/relay/calling/components/Connect'
 import ConnectResult from '../../../common/src/relay/calling/results/ConnectResult'
 import ConnectAction from '../../../common/src/relay/calling/actions/ConnectAction'
 jest.mock('../../../common/src/services/Connection')
@@ -95,8 +87,7 @@ describe('Call', () => {
     const _recordNotification = JSON.parse(`{"event_type":"calling.call.record","params":{"state":"no_input","record":{"audio":{"format":"mp3","direction":"speak","stereo":false}},"url":"record.mp3","control_id":"mocked-uuid","size":4096,"duration":4,"call_id":"call-id","node_id":"node-id"}}`)
     const _connectNotification = JSON.parse(`{"event_type":"calling.call.connect","params":{"connect_state":"connected","device":{"node_id":"other-node-id","call_id":"other-call-id","tag":"other-tag-id","peer":{"type":"phone","params":{"from_number":"+1555","to_number":"+1777"}}},"tag":"mocked-uuid","call_id":"call-id","node_id":"node-id"}}`)
     const _playNotification = JSON.parse(`{"event_type":"calling.call.play","params":{"control_id":"mocked-uuid","call_id":"call-id","node_id":"node-id","state":"finished"}}`)
-
-    // const _promptNotification = JSON.parse(`{"control_id":"mocked-uuid","call_id":"call-id","event_type":"${CallNotification.Collect}","result":{"type":"digit","params":{"digits":"12345","terminator":"#"}}}`)
+    const _collectNotification = JSON.parse(`{"event_type":"calling.call.collect","params":{"control_id":"mocked-uuid","call_id":"call-id","node_id":"node-id","result":{"type":"digit","params":{"digits":"12345","terminator":"#"}}}}`)
 
     beforeEach(() => {
       call.id = 'call-id'
@@ -408,5 +399,85 @@ describe('Call', () => {
       })
 
     })
+
+    describe('collecting methods', () => {
+      const collect = { initial_timeout: 10, digits: { max: 5, terminators: '#', digit_timeout: 10 } }
+      const audio = { type: 'audio', params: { url: 'audio.mp3' } }
+      const tts = { type: 'tts', params: { text: 'hello jest' } }
+
+      const getMsg = (...play: ICallingPlay[]) => new Execute({
+        protocol: 'signalwire_service_random_uuid',
+        method: 'call.play_and_collect',
+        params: { node_id: call.nodeId, call_id: call.id, control_id: 'mocked-uuid', collect, play }
+      })
+
+      it('.prompt() should wait until the playing ends', done => {
+        call.prompt(collect, audio).then(result => {
+          expect(result).toBeInstanceOf(PromptResult)
+          expect(result.successful).toBe(true)
+          expect(Connection.mockSend).nthCalledWith(1, getMsg(audio))
+          done()
+        })
+        // @ts-ignore
+        session.calling.notificationHandler(_collectNotification)
+      })
+
+      it('.promptAsync() should return a PromptAction for async control', async done => {
+        const action = await call.promptAsync(collect, audio)
+        expect(action).toBeInstanceOf(PromptAction)
+        expect(action.completed).toBe(false)
+        expect(Connection.mockSend).nthCalledWith(1, getMsg(audio))
+        // @ts-ignore
+        session.calling.notificationHandler(_collectNotification)
+        expect(action.completed).toBe(true)
+        done()
+      })
+
+      it('.promptAudio() should wait until the playing ends', done => {
+        call.promptAudio(collect, 'audio.mp3').then(result => {
+          expect(result).toBeInstanceOf(PromptResult)
+          expect(result.successful).toBe(true)
+          expect(Connection.mockSend).nthCalledWith(1, getMsg(audio))
+          done()
+        })
+        // @ts-ignore
+        session.calling.notificationHandler(_collectNotification)
+      })
+
+      it('.promptAudioAsync() should return a PromptAction for async control', async done => {
+        const action = await call.promptAudioAsync(collect, 'audio.mp3')
+        expect(action).toBeInstanceOf(PromptAction)
+        expect(action.completed).toBe(false)
+        expect(Connection.mockSend).nthCalledWith(1, getMsg(audio))
+        // @ts-ignore
+        session.calling.notificationHandler(_collectNotification)
+        expect(action.completed).toBe(true)
+        done()
+      })
+
+      it('.promptTTS() should wait until the collect finished', done => {
+        call.promptTTS(collect, { text: 'hello jest' }).then(result => {
+          expect(result).toBeInstanceOf(PromptResult)
+          expect(result.successful).toBe(true)
+          expect(Connection.mockSend).nthCalledWith(1, getMsg(tts))
+          done()
+        })
+        // @ts-ignore
+        session.calling.notificationHandler(_collectNotification)
+      })
+
+      it('.promptTTSAsync() should return a PromptAction for async control', async done => {
+        const action = await call.promptTTSAsync(collect, { text: 'hello jest' })
+        expect(action).toBeInstanceOf(PromptAction)
+        expect(action.completed).toBe(false)
+        expect(Connection.mockSend).nthCalledWith(1, getMsg(tts))
+        // @ts-ignore
+        session.calling.notificationHandler(_collectNotification)
+        expect(action.completed).toBe(true)
+        done()
+      })
+
+    })
+
   })
 })

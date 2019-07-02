@@ -5,7 +5,7 @@ import { ICall, ICallOptions, ICallDevice, IMakeCallParams, ICallingPlay, ICalli
 import { reduceConnectParams } from '../helpers'
 import Calling from './Calling'
 import { isFunction } from '../../util/helpers'
-import Dial from './components/Dial';
+import Dial from './components/Dial'
 import Hangup from './components/Hangup'
 import HangupResult from './results/HangupResult'
 import Record from './components/Record'
@@ -27,8 +27,8 @@ export default class Call implements ICall {
   public id: string
   public tag: string = uuidv4()
   public nodeId: string
-  public state: string
-  public prevState: string
+  public state: string = CallState.None
+  public prevState: string = CallState.None
   public failed: boolean
   public busy: boolean
 
@@ -232,6 +232,28 @@ export default class Call implements ICall {
     await component.execute()
 
     return new ConnectAction(component)
+  }
+
+  /**
+   * Registers a callback to dispatch when the 'event' occur.
+   * @param event - Event to listen to.
+   * @param callback - Function to dispatch.
+   * @return this
+   */
+  on(event: string, callback: Function) {
+    this._cbQueue[event] = callback
+    return this
+  }
+
+  /**
+   * Removes the callback registered for the 'event'.
+   * @param event - Event to listen to.
+   * @param callback - Function to remove.
+   * @return this
+   */
+  off(event: string, callback?: Function) {
+    delete this._cbQueue[event]
+    return this
   }
 
   _stateChange(params: { call_state: string }) {

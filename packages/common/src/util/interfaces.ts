@@ -1,3 +1,5 @@
+import Call from "../relay/calling/Call"
+
 interface IMessageBase { jsonrpc: string, id: string }
 
 type TBladeVersion = { major: number, minor: number, revision: number }
@@ -123,10 +125,45 @@ export interface IVideoSettings extends MediaTrackConstraints {
 
 export interface ICall {
   id: string
+  tag?: string
+  nodeId: string
   state: string
   prevState: string
-  on: Function
-  off: Function
+  context: string
+  peer: Call
+  type: string
+  to: string
+  from: string
+  timeout: number
+  active: boolean
+  failed: boolean
+  answered: boolean
+  ended: boolean
+  busy: boolean
+  // on: Function
+  // off: Function
+  dial: Function
+  hangup: Function
+  record: Function
+  recordAsync: Function
+  // answer: Function
+  // Connect: Function
+  // ConnectAsync: Function
+  // Play: Function
+  // PlayAsync: Function
+  // PlayAudio: Function
+  // PlayAudioAsync: Function
+  // PlaySilence: Function
+  // PlaySilenceAsync: Function
+  // PlayTTS: Function
+  // PlayTTSAsync: Function
+  // Prompt: Function
+  // PromptAsync: Function
+  // PromptAudio: Function
+  // PromptAudioAsync: Function
+  // PromptTTS: Function
+  // PromptTTSAsync: Function
+  // WaitFor: Function
 }
 
 export interface ICallDevice {

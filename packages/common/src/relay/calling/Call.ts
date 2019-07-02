@@ -2,20 +2,17 @@ import { v4 as uuidv4 } from 'uuid'
 import { Execute } from '../../messages/Blade'
 import { CallState, DisconnectReason, DEFAULT_CALL_TIMEOUT, CallNotification, CallRecordState, CallPlayState } from '../../util/constants/relay'
 import { ICall, ICallOptions, ICallDevice, IMakeCallParams, ICallingPlay, ICallingCollect, DeepArray } from '../../util/interfaces'
-// import * as Actions from './Actions'
-// import * as Results from './Results'
 import { reduceConnectParams } from '../helpers'
 import Calling from './Calling'
 import { isFunction } from '../../util/helpers'
-// import Blocker from './Blocker'
 import Dial from './components/Dial';
 import Hangup from './components/Hangup'
+import HangupResult from './results/HangupResult'
 import Record from './components/Record'
 import RecordResult from './results/RecordResult'
 import RecordAction from './actions/RecordAction'
-import HangupResult from './results/HangupResult'
-
-// type TAction = Actions.RecordAction | Actions.PlayAction | Actions.PromptAction | Actions.ConnectAction
+import Answer from './components/Answer'
+import AnswerResult from './results/AnswerResult'
 
 export default class Call implements ICall {
   public id: string
@@ -112,6 +109,14 @@ export default class Call implements ICall {
     await component._waitFor(CallState.Ended)
 
     return new HangupResult(component)
+  }
+
+  async answer() {
+    const component = new Answer(this)
+    await component.execute()
+    await component._waitFor(CallState.Answered, CallState.Ending, CallState.Ended)
+
+    return new AnswerResult(component)
   }
 
   async record(record: any) {

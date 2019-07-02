@@ -146,7 +146,7 @@ export interface ICall {
   hangup: Function
   record: Function
   recordAsync: Function
-  // answer: Function
+  answer: Function
   // Connect: Function
   // ConnectAsync: Function
   // Play: Function

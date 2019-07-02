@@ -16,6 +16,9 @@ export default abstract class BaseComponent {
   /** Whether the component has complete the execution */
   public completed: boolean = false
 
+  /** Whether the component has finished successfully */
+  public successful: boolean = false
+
   /** The final result of the component */
   public result: any
 

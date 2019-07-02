@@ -118,7 +118,7 @@ export default class Calling extends Relay {
       if (peer) {
         call.setOptions({ peer })
       }
-      call._connectStateChange(params)
+      call._connectChange(params)
     }
   }
 
@@ -140,7 +140,7 @@ export default class Calling extends Relay {
   private _onRecord(params: any): void {
     const call = this.getCallById(params.call_id)
     if (call) {
-      call._recordStateChange(params)
+      call._recordChange(params)
     }
   }
 
@@ -152,7 +152,7 @@ export default class Calling extends Relay {
   private _onPlay(params: any): void {
     const call = this.getCallById(params.call_id)
     if (call) {
-      call._playStateChange(params)
+      call._playChange(params)
     }
   }
 
@@ -164,7 +164,7 @@ export default class Calling extends Relay {
   private _onCollect(params: any): void {
     const call = this.getCallById(params.call_id)
     if (call) {
-      call._collectStateChange(params)
+      call._collectChange(params)
     }
   }
 }

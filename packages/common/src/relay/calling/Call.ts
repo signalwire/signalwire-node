@@ -90,6 +90,10 @@ export default class Call implements ICall {
     return timeout
   }
 
+  setOptions(opts: ICallOptions) {
+    this.options = { ...this.options, ...opts }
+  }
+
   async _execute(msg: Execute) {
     try {
       const { result } = await this.relayInstance.session.execute(msg)

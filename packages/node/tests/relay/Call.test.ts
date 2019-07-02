@@ -1,7 +1,7 @@
 import RelayClient from '../../src/relay'
 import { ICallDevice, ICallingPlay } from '../../../common/src/util/interfaces'
 import Call from '../../../common/src/relay/calling/Call'
-import { CallNotification, CallState } from '../../../common/src/util/constants/relay'
+import { CallState } from '../../../common/src/util/constants/relay'
 import { Execute } from '../../../common/src/messages/Blade'
 const Connection = require('../../../common/src/services/Connection')
 import HangupResult from '../../../common/src/relay/calling/results/HangupResult'

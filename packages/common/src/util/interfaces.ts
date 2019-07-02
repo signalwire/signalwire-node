@@ -1,4 +1,4 @@
-import Call from "../relay/calling/Call"
+import Call from '../relay/calling/Call'
 
 interface IMessageBase { jsonrpc: string, id: string }
 

@@ -5,6 +5,7 @@ import Call from '../Call'
 
 export default class Play extends Controllable {
   public eventType: string = CallNotification.Play
+  public controlId: string = this.controlId
 
   constructor(public call: Call, public play: ICallingPlay[]) {
     super(call)

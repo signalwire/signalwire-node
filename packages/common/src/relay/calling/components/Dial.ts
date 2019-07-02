@@ -3,6 +3,7 @@ import { CallNotification } from '../../../util/constants/relay'
 
 export default class Dial extends BaseComponent {
   public eventType: string = CallNotification.State
+  public controlId: string = this.call.tag
 
   get method(): string {
     return 'call.begin'

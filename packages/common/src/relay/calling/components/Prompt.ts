@@ -5,6 +5,7 @@ import Call from '../Call'
 
 export default class Prompt extends Controllable {
   public eventType: string = CallNotification.Collect
+  public controlId: string = this.controlId
 
   constructor(
     public call: Call,

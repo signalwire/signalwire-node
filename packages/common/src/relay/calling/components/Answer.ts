@@ -3,6 +3,7 @@ import { CallNotification, CallState } from '../../../util/constants/relay'
 
 export default class Answer extends BaseComponent {
   public eventType: string = CallNotification.State
+  public controlId: string = this.call.tag
 
   get method(): string {
     return 'call.answer'

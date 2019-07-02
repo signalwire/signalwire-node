@@ -4,11 +4,15 @@ import Call from '../Call'
 import Blocker from '../Blocker'
 
 export default abstract class BaseComponent {
+
+  /** Type of Relay events to handle. state|play|collect|record|connect */
   public abstract eventType: string
-  public blocker: Blocker
 
   /** ControlId to identify the component among the notifications */
-  public controlId: string = uuidv4()
+  public abstract controlId: string = uuidv4()
+
+  /** Blocker to wait some evens */
+  public blocker: Blocker
 
   /** Current component state */
   public state: string

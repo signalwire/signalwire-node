@@ -4,6 +4,7 @@ import Call from '../Call'
 
 export default class Record extends Controllable {
   public eventType: string = CallNotification.Record
+  public controlId: string = this.controlId
 
   constructor(public call: Call, public record: any) {
     super(call)

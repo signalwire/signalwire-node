@@ -5,6 +5,7 @@ import Call from '../Call'
 
 export default class Connect extends Controllable {
   public eventType: string = CallNotification.Connect
+  public controlId: string = this.call.tag
 
   constructor(public call: Call, public devices: DeepArray<ICallDevice>) {
     super(call)

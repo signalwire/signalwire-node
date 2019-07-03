@@ -24,6 +24,7 @@ import PromptAction from './actions/PromptAction'
 import Connect from './components/Connect'
 import ConnectResult from './results/ConnectResult'
 import ConnectAction from './actions/ConnectAction'
+import DialResult from './results/DialResult'
 
 export default class Call implements ICall {
   public id: string
@@ -111,8 +112,7 @@ export default class Call implements ICall {
     this._addComponent(component)
     await component._waitFor(CallState.Answered, CallState.Ending, CallState.Ended)
 
-    // FIXME:
-    return component.result
+    return new DialResult(component)
   }
 
   async hangup(reason: string = DisconnectReason.Hangup) {

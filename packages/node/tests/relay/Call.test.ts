@@ -14,6 +14,7 @@ import PromptResult from '../../../common/src/relay/calling/results/PromptResult
 import PromptAction from '../../../common/src/relay/calling/actions/PromptAction'
 import ConnectResult from '../../../common/src/relay/calling/results/ConnectResult'
 import ConnectAction from '../../../common/src/relay/calling/actions/ConnectAction'
+import DialResult from '../../../common/src/relay/calling/results/DialResult'
 jest.mock('../../../common/src/services/Connection')
 
 describe('Call', () => {
@@ -84,7 +85,7 @@ describe('Call', () => {
   describe('when call is ready', () => {
     const _stateNotificationAnswered = JSON.parse(`{"event_type":"calling.call.state","params":{"call_state":"answered","direction":"inbound","device":{"type":"phone","params":{"from_number":"+1234","to_number":"15678"}},"call_id":"call-id","node_id":"node-id"}}`)
     const _stateNotificationEnded = JSON.parse(`{"event_type":"calling.call.state","params":{"call_state":"ended","end_reason":"busy","direction":"inbound","device":{"type":"phone","params":{"from_number":"+1234","to_number":"15678"}},"call_id":"call-id","node_id":"node-id"}}`)
-    const _recordNotification = JSON.parse(`{"event_type":"calling.call.record","params":{"state":"no_input","record":{"audio":{"format":"mp3","direction":"speak","stereo":false}},"url":"record.mp3","control_id":"mocked-uuid","size":4096,"duration":4,"call_id":"call-id","node_id":"node-id"}}`)
+    const _recordNotification = JSON.parse(`{"event_type":"calling.call.record","params":{"state":"finished","record":{"audio":{"format":"mp3","direction":"speak","stereo":false}},"url":"record.mp3","control_id":"mocked-uuid","size":4096,"duration":4,"call_id":"call-id","node_id":"node-id"}}`)
     const _connectNotification = JSON.parse(`{"event_type":"calling.call.connect","params":{"connect_state":"connected","device":{"node_id":"other-node-id","call_id":"other-call-id","tag":"other-tag-id","peer":{"type":"phone","params":{"from_number":"+1555","to_number":"+1777"}}},"tag":"mocked-uuid","call_id":"call-id","node_id":"node-id"}}`)
     const _playNotification = JSON.parse(`{"event_type":"calling.call.play","params":{"control_id":"mocked-uuid","call_id":"call-id","node_id":"node-id","state":"finished"}}`)
     const _collectNotification = JSON.parse(`{"event_type":"calling.call.collect","params":{"control_id":"mocked-uuid","call_id":"call-id","node_id":"node-id","result":{"type":"digit","params":{"digits":"12345","terminator":"#"}}}}`)
@@ -123,7 +124,6 @@ describe('Call', () => {
     })
 
     it('.dial() should wait for "answered" event', done => {
-      // FIXME: Handle DialResult
       const msg = new Execute({
         protocol: 'signalwire_service_random_uuid',
         method: 'call.begin',
@@ -133,8 +133,8 @@ describe('Call', () => {
         }
       })
       call.dial().then(result => {
-        // expect(result).toBeInstanceOf(DialResult)
-        // expect(result.successful).toBe(true)
+        expect(result).toBeInstanceOf(DialResult)
+        expect(result.successful).toBe(true)
         expect(Connection.mockSend).nthCalledWith(1, msg)
         done()
       })
@@ -198,8 +198,8 @@ describe('Call', () => {
       it('.record() should wait until the recording ends', done => {
         call.record(record).then(result => {
           expect(result).toBeInstanceOf(RecordResult)
-          // expect(result.succeeded).toBe(true)
-          // expect(result.failed).toBe(false)
+          expect(result.successful).toBe(true)
+          expect(result.url).toEqual('record.mp3')
           expect(Connection.mockSend).nthCalledWith(1, getMsg())
           done()
         })
@@ -211,6 +211,7 @@ describe('Call', () => {
         const action = await call.recordAsync(record)
         expect(action).toBeInstanceOf(RecordAction)
         expect(action.completed).toBe(false)
+        expect(action.result).toBeInstanceOf(RecordResult)
         expect(Connection.mockSend).nthCalledWith(1, getMsg())
         // @ts-ignore
         session.calling.notificationHandler(_recordNotification)
@@ -251,7 +252,7 @@ describe('Call', () => {
         call.connect(..._tmpDevices).then(result => {
           expect(result).toBeInstanceOf(ConnectResult)
           expect(result.successful).toBe(true)
-          expect(result.result).toBe(call.peer)
+          expect(result.call).toBe(call.peer)
           expect(Connection.mockSend).nthCalledWith(1, getMsg(true))
           done()
         })
@@ -263,7 +264,7 @@ describe('Call', () => {
         call.connect(_tmpDevices).then(result => {
           expect(result).toBeInstanceOf(ConnectResult)
           expect(result.successful).toBe(true)
-          expect(result.result).toBe(call.peer)
+          expect(result.call).toBe(call.peer)
           expect(Connection.mockSend).nthCalledWith(1, getMsg(false))
           done()
         })
@@ -415,6 +416,8 @@ describe('Call', () => {
         call.prompt(collect, audio).then(result => {
           expect(result).toBeInstanceOf(PromptResult)
           expect(result.successful).toBe(true)
+          expect(result.terminator).toEqual('#')
+          expect(result.result).toEqual('12345')
           expect(Connection.mockSend).nthCalledWith(1, getMsg(audio))
           done()
         })
@@ -437,6 +440,8 @@ describe('Call', () => {
         call.promptAudio(collect, 'audio.mp3').then(result => {
           expect(result).toBeInstanceOf(PromptResult)
           expect(result.successful).toBe(true)
+          expect(result.terminator).toEqual('#')
+          expect(result.result).toEqual('12345')
           expect(Connection.mockSend).nthCalledWith(1, getMsg(audio))
           done()
         })
@@ -459,6 +464,8 @@ describe('Call', () => {
         call.promptTTS(collect, { text: 'hello jest' }).then(result => {
           expect(result).toBeInstanceOf(PromptResult)
           expect(result.successful).toBe(true)
+          expect(result.terminator).toEqual('#')
+          expect(result.result).toEqual('12345')
           expect(Connection.mockSend).nthCalledWith(1, getMsg(tts))
           done()
         })

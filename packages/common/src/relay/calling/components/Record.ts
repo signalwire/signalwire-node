@@ -6,6 +6,10 @@ export default class Record extends Controllable {
   public eventType: string = CallNotification.Record
   public controlId: string = this.controlId
 
+  public url: string
+  public duration: number
+  public size: number
+
   constructor(public call: Call, public record: any) {
     super(call)
   }
@@ -24,11 +28,16 @@ export default class Record extends Controllable {
   }
 
   notificationHandler(params: any): void {
-    this.state = params.state
+    const { state, url, duration, size } = params
+    this.state = state
 
-    if (this.state !== CallRecordState.Recording) {
-      this.completed = true
-      this.result = params
+    this.completed = this.state !== CallRecordState.Recording
+    if (this.completed) {
+      this.successful = this.state === CallRecordState.Finished
+      this.event = params
+      this.url = url
+      this.duration = duration
+      this.size = size
     }
 
     if (this._hasBlocker() && this._eventsToWait.includes(this.state)) {

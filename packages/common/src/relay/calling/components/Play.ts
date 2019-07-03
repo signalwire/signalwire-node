@@ -26,9 +26,12 @@ export default class Play extends Controllable {
 
   notificationHandler(params: any): void {
     this.state = params.state
-    this.completed = params.state !== CallPlayState.Playing
-    this.successful = params.state === CallPlayState.Finished
-    this.result = params
+
+    this.completed = this.state !== CallPlayState.Playing
+    if (this.completed) {
+      this.successful = this.state === CallPlayState.Finished
+      this.event = params
+    }
 
     if (this._hasBlocker() && this._eventsToWait.includes(this.state)) {
       this.blocker.resolve()

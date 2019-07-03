@@ -1,5 +1,5 @@
 import BaseComponent from './BaseComponent'
-import { CallNotification } from '../../../util/constants/relay'
+import { CallNotification, CallState } from '../../../util/constants/relay'
 
 export default class Dial extends BaseComponent {
   public eventType: string = CallNotification.State
@@ -17,11 +17,16 @@ export default class Dial extends BaseComponent {
   }
 
   notificationHandler(params: any): void {
-    const { call_state } = params
+    this.state = params.call_state
 
-    this.result = params
+    const events: string[] = [CallState.Answered, CallState.Ending, CallState.Ended]
+    this.completed = events.includes(this.state)
+    if (this.completed) {
+      this.successful = this.state === CallState.Answered
+      this.event = params
+    }
 
-    if (this._hasBlocker() && this._eventsToWait.includes(call_state)) {
+    if (this._hasBlocker() && this._eventsToWait.includes(this.state)) {
       this.blocker.resolve()
     }
   }

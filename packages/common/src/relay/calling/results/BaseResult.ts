@@ -7,7 +7,7 @@ export default abstract class BaseResult {
     return this.component.successful
   }
 
-  get result(): any {
-    return this.component.result
+  get event(): any {
+    return this.component.event
   }
 }

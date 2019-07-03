@@ -23,8 +23,8 @@ export default abstract class BaseComponent {
   /** Whether the component has finished successfully */
   public successful: boolean = false
 
-  /** The final result of the component */
-  public result: any
+  /** The final event of the component */
+  public event: any
 
   /** Relay response of the first execute. (200/400/500) */
   protected _executeResult: any

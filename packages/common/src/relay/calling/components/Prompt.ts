@@ -7,6 +7,11 @@ export default class Prompt extends Controllable {
   public eventType: string = CallNotification.Collect
   public controlId: string = this.controlId
 
+  public type: string
+  public input: string
+  public terminator: string
+  public confidence: number
+
   constructor(
     public call: Call,
     public collect: ICallingCollect,
@@ -31,22 +36,29 @@ export default class Prompt extends Controllable {
 
   notificationHandler(params: any): void {
     this.completed = true
-
     const { result } = params
-    this.result = result
-    const state = result.type
-    switch (state) {
+
+    this.event = result
+    this.type = result.type
+    switch (this.type) {
       case CallPromptState.Digit:
+        this.state = 'successful'
+        this.successful = true
+        this.input = result.params.digits
+        this.terminator = result.params.terminator
+        break
       case CallPromptState.Speech:
         this.state = 'successful'
         this.successful = true
+        this.input = result.params.text
+        this.confidence = result.params.confidence
         break
       default:
-        this.state = state
+        this.state = this.type
         this.successful = false
     }
 
-    if (this._hasBlocker() && this._eventsToWait.includes(state)) {
+    if (this._hasBlocker() && this._eventsToWait.includes(this.type)) {
       this.blocker.resolve()
     }
   }

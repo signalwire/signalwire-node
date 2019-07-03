@@ -1,7 +1,11 @@
 import BaseComponent from '../components/BaseComponent'
+import BaseResult from '../results/BaseResult'
 
 export default abstract class BaseAction {
   constructor(public component: BaseComponent) {}
+
+  /** Relay method to execute */
+  abstract get result(): BaseResult
 
   get controlId(): string {
     return this.component.controlId
@@ -17,9 +21,5 @@ export default abstract class BaseAction {
 
   get state(): string {
     return this.component.state
-  }
-
-  get result(): any {
-    return this.component.result
   }
 }

@@ -86,7 +86,8 @@ describe('Call', () => {
     const _stateNotificationAnswered = JSON.parse(`{"event_type":"calling.call.state","params":{"call_state":"answered","direction":"inbound","device":{"type":"phone","params":{"from_number":"+1234","to_number":"15678"}},"call_id":"call-id","node_id":"node-id"}}`)
     const _stateNotificationEnded = JSON.parse(`{"event_type":"calling.call.state","params":{"call_state":"ended","end_reason":"busy","direction":"inbound","device":{"type":"phone","params":{"from_number":"+1234","to_number":"15678"}},"call_id":"call-id","node_id":"node-id"}}`)
     const _recordNotification = JSON.parse(`{"event_type":"calling.call.record","params":{"state":"finished","record":{"audio":{"format":"mp3","direction":"speak","stereo":false}},"url":"record.mp3","control_id":"mocked-uuid","size":4096,"duration":4,"call_id":"call-id","node_id":"node-id"}}`)
-    const _connectNotification = JSON.parse(`{"event_type":"calling.call.connect","params":{"connect_state":"connected","device":{"node_id":"other-node-id","call_id":"other-call-id","tag":"other-tag-id","peer":{"type":"phone","params":{"from_number":"+1555","to_number":"+1777"}}},"tag":"mocked-uuid","call_id":"call-id","node_id":"node-id"}}`)
+    const _connectNotification = JSON.parse(`{"event_type":"calling.call.connect","params":{"connect_state":"connected","peer":{"call_id":"peer-call-id","node_id":"peer-node-id","device":{"type":"phone","params":{"from_number":"+1234","to_number":"+15678"}}},"call_id":"call-id","node_id":"node-id"}}`)
+    const _connectNotificationPeerCreated = JSON.parse('{"event_type":"calling.call.state","params":{"call_state":"created","direction":"outbound","device":{"type":"phone","params":{"from_number":"+1234","to_number":"15678"}},"peer":{"call_id":"call-id","node_id":"node-id"},"call_id":"peer-call-id","node_id":"peer-node-id"}}')
     const _playNotification = JSON.parse(`{"event_type":"calling.call.play","params":{"control_id":"mocked-uuid","call_id":"call-id","node_id":"node-id","state":"finished"}}`)
     const _collectNotification = JSON.parse(`{"event_type":"calling.call.collect","params":{"control_id":"mocked-uuid","call_id":"call-id","node_id":"node-id","result":{"type":"digit","params":{"digits":"12345","terminator":"#"}}}}`)
 
@@ -253,9 +254,12 @@ describe('Call', () => {
           expect(result).toBeInstanceOf(ConnectResult)
           expect(result.successful).toBe(true)
           expect(result.call).toBe(call.peer)
+          expect(result.call.id).toEqual('peer-call-id')
           expect(Connection.mockSend).nthCalledWith(1, getMsg(true))
           done()
         })
+        // @ts-ignore
+        session.calling.notificationHandler(_connectNotificationPeerCreated)
         // @ts-ignore
         session.calling.notificationHandler(_connectNotification)
       })
@@ -265,9 +269,12 @@ describe('Call', () => {
           expect(result).toBeInstanceOf(ConnectResult)
           expect(result.successful).toBe(true)
           expect(result.call).toBe(call.peer)
+          expect(result.call.id).toEqual('peer-call-id')
           expect(Connection.mockSend).nthCalledWith(1, getMsg(false))
           done()
         })
+        // @ts-ignore
+        session.calling.notificationHandler(_connectNotificationPeerCreated)
         // @ts-ignore
         session.calling.notificationHandler(_connectNotification)
       })
@@ -279,7 +286,10 @@ describe('Call', () => {
         expect(Connection.mockSend).nthCalledWith(1, getMsg(true))
 
         // @ts-ignore
+        session.calling.notificationHandler(_connectNotificationPeerCreated)
+        // @ts-ignore
         session.calling.notificationHandler(_connectNotification)
+        expect(action.result.call.id).toEqual('peer-call-id')
         expect(action.completed).toBe(true)
 
         done()
@@ -292,7 +302,10 @@ describe('Call', () => {
         expect(Connection.mockSend).nthCalledWith(1, getMsg(false))
 
         // @ts-ignore
+        session.calling.notificationHandler(_connectNotificationPeerCreated)
+        // @ts-ignore
         session.calling.notificationHandler(_connectNotification)
+        expect(action.result.call.id).toEqual('peer-call-id')
         expect(action.completed).toBe(true)
         done()
       })

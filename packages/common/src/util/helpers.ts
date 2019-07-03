@@ -58,7 +58,7 @@ export const checkWebSocketHost = (host: string): string => {
  * - JSON-RPC msg with 3 nested 'result' where the third level is the Verto JSON-RPC flat msg.
  *
  * @returns Object with error | result key to identify success or fail
-*/
+ */
 export const destructResponse = (response: any, nodeId: string = null): { [key: string]: any } => {
   const { result = {}, error } = response
   if (error) {

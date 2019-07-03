@@ -39,10 +39,24 @@ export default class Calling extends Relay {
     await this.Ready
     const { type, from: from_number, to: to_number, timeout = DEFAULT_CALL_TIMEOUT } = params
     if (!type || !from_number || !to_number || !timeout) {
-      throw new Error(`Invalid parameters for 'newCall'.`)
+      throw new TypeError(`Invalid parameters to create a new Call.`)
     }
     const device: ICallDevice = { type, params: { from_number, to_number, timeout } }
     return new Call(this, { device })
+  }
+
+  async dial(params: IMakeCallParams) {
+    await this.Ready
+    const { type, from: from_number, to: to_number, timeout = DEFAULT_CALL_TIMEOUT } = params
+    if (!type || !from_number || !to_number || !timeout) {
+      throw new TypeError(`Invalid parameters to create a new Call.`)
+    }
+    const device: ICallDevice = { type, params: { from_number, to_number, timeout } }
+    const call = new Call(this, { device })
+
+    await call.dial()
+
+    return call
   }
 
   async onInbound(context: string, handler: Function) {

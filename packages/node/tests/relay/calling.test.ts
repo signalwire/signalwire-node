@@ -133,6 +133,41 @@ describe('Calling', () => {
     })
   })
 
+  describe('.dial()', () => {
+    _common.call(this)
+
+    afterEach(() => {
+      session.calling._calls = []
+    })
+
+    const callOpts = { type: 'phone', from: '8992222222', to: '8991111111' }
+    const _stateNotificationCreated = JSON.parse(`{"event_type":"calling.call.state","params":{"call_state":"created","direction":"inbound","device":{"type":"phone","params":{"from_number":"+1234","to_number":"15678"}},"tag":"mocked-uuid","call_id":"call-id","node_id":"node-id"}}`)
+    const _stateNotificationAnswered = JSON.parse(`{"event_type":"calling.call.state","params":{"call_state":"answered","direction":"inbound","device":{"type":"phone","params":{"from_number":"+1234","to_number":"15678"}},"tag":"mocked-uuid","call_id":"call-id","node_id":"node-id"}}`)
+    const _stateNotificationEnded = JSON.parse(`{"event_type":"calling.call.state","params":{"call_state":"ended","end_reason":"busy","direction":"inbound","device":{"type":"phone","params":{"from_number":"+1234","to_number":"15678"}},"tag":"mocked-uuid","call_id":"call-id","node_id":"node-id"}}`)
+
+    it('should create a Call object, dial and wait the call to be answered', done => {
+      session.calling.dial(callOpts).then(call => {
+        expect(call).toBeInstanceOf(Call)
+        done()
+      })
+      // @ts-ignore
+      setTimeout(() => session.calling.notificationHandler(_stateNotificationCreated))
+      // @ts-ignore
+      setTimeout(() => session.calling.notificationHandler(_stateNotificationAnswered))
+    })
+
+    it('should create a Call object, dial and wait the call to be ended', done => {
+      session.calling.dial(callOpts).then(call => {
+        expect(call).toBeInstanceOf(Call)
+        done()
+      })
+      // @ts-ignore
+      setTimeout(() => session.calling.notificationHandler(_stateNotificationCreated))
+      // @ts-ignore
+      setTimeout(() => session.calling.notificationHandler(_stateNotificationEnded))
+    })
+  })
+
   describe('.onInbound()', () => {
     _common.call(this)
 

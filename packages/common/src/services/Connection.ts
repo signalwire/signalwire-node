@@ -144,7 +144,7 @@ export default class Connection {
   }
 
   private _ping() {
-    if (this._wsClient instanceof WebSocket) {
+    if (typeof WebSocket !== 'undefined' && this._wsClient instanceof WebSocket) {
       return
     }
     if (this._connected) {

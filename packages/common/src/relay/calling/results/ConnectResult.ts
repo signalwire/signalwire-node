@@ -7,10 +7,6 @@ export default class ConnectResult extends BaseResult {
     super(component)
   }
 
-  get state(): string {
-    return this.component.state
-  }
-
   get call(): Call {
     return this.component.call.peer
   }

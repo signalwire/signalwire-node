@@ -54,9 +54,8 @@ export default class Calling extends Relay {
     const device: ICallDevice = { type, params: { from_number, to_number, timeout } }
     const call = new Call(this, { device })
 
-    await call.dial()
-
-    return call
+    const result = await call.dial()
+    return result
   }
 
   async onInbound(context: string, handler: Function) {

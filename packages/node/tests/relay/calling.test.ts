@@ -3,6 +3,7 @@ import { isQueued, trigger } from '../../../common/src/services/Handler'
 import Call from '../../../common/src/relay/calling/Call'
 import Calling from '../../../common/src/relay/calling/Calling'
 import RelayClient from '../../src/relay'
+import DialResult from '../../../common/src/relay/calling/results/DialResult'
 
 const Connection = require('../../../common/src/services/Connection')
 
@@ -146,8 +147,9 @@ describe('Calling', () => {
     const _stateNotificationEnded = JSON.parse(`{"event_type":"calling.call.state","params":{"call_state":"ended","end_reason":"busy","direction":"inbound","device":{"type":"phone","params":{"from_number":"+1234","to_number":"15678"}},"tag":"mocked-uuid","call_id":"call-id","node_id":"node-id"}}`)
 
     it('should create a Call object, dial and wait the call to be answered', done => {
-      session.calling.dial(callOpts).then(call => {
-        expect(call).toBeInstanceOf(Call)
+      session.calling.dial(callOpts).then(result => {
+        expect(result).toBeInstanceOf(DialResult)
+        expect(result.successful).toBe(true)
         done()
       })
       // @ts-ignore
@@ -157,8 +159,9 @@ describe('Calling', () => {
     })
 
     it('should create a Call object, dial and wait the call to be ended', done => {
-      session.calling.dial(callOpts).then(call => {
-        expect(call).toBeInstanceOf(Call)
+      session.calling.dial(callOpts).then(result => {
+        expect(result).toBeInstanceOf(DialResult)
+        expect(result.successful).toBe(false)
         done()
       })
       // @ts-ignore

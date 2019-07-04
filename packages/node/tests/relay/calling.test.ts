@@ -149,6 +149,7 @@ describe('Calling', () => {
     it('should create a Call object, dial and wait the call to be answered', done => {
       session.calling.dial(callOpts).then(result => {
         expect(result).toBeInstanceOf(DialResult)
+        expect(result.call).toBeInstanceOf(Call)
         expect(result.successful).toBe(true)
         done()
       })
@@ -161,6 +162,7 @@ describe('Calling', () => {
     it('should create a Call object, dial and wait the call to be ended', done => {
       session.calling.dial(callOpts).then(result => {
         expect(result).toBeInstanceOf(DialResult)
+        expect(result.call).toBeInstanceOf(Call)
         expect(result.successful).toBe(false)
         done()
       })

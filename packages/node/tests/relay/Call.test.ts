@@ -135,6 +135,7 @@ describe('Call', () => {
       call.dial().then(result => {
         expect(result).toBeInstanceOf(DialResult)
         expect(result.successful).toBe(true)
+        expect(result.call).toEqual(call)
         expect(Connection.mockSend).nthCalledWith(1, msg)
         done()
       })
@@ -506,6 +507,7 @@ describe('Call', () => {
       call.dial().then(result => {
         expect(result).toBeInstanceOf(DialResult)
         expect(result.successful).toBe(false)
+        expect(result.call).toEqual(call)
         expect(Connection.mockSend).nthCalledWith(1, msg)
         done()
       })

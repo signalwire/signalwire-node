@@ -49,7 +49,10 @@ export default abstract class BaseComponent {
       params: this.payload
     })
 
-    this._executeResult = await this.call._execute(msg)
+    this._executeResult = await this.call._execute(msg).catch(error => {
+      this._failure()
+      return error
+    })
 
     return this._executeResult
   }
@@ -61,16 +64,25 @@ export default abstract class BaseComponent {
    */
   abstract notificationHandler(params: any): void
 
-  _waitFor(...events: string[]): Promise<any> {
+  async _waitFor(...events: string[]): Promise<any> {
     this._eventsToWait = events
     this.blocker = new Blocker(this.eventType, this.controlId)
 
-    this.execute()
+    await this.execute()
 
     return this.blocker.promise
   }
 
   protected _hasBlocker(): boolean {
-    return this._eventsToWait.length && this.blocker instanceof Blocker
+    return this.blocker instanceof Blocker
+  }
+
+  protected _failure(): void {
+    this.completed = true
+    this.successful = false
+    this.state = 'failed'
+    if (this._hasBlocker()) {
+      this.blocker.resolve()
+    }
   }
 }

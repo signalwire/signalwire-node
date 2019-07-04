@@ -25,6 +25,7 @@ describe('Call', () => {
   beforeAll(async done => {
     session = new RelayClient({ host: 'example.signalwire.com', project: 'project', token: 'token' })
     await session.connect()
+    session.__logger.setLevel(session.__logger.levels.SILENT)
 
     Connection.mockResponse
       .mockReturnValueOnce(JSON.parse('{"id":"c04d725a-c8bc-4b9e-bf1e-9c05150797cc","jsonrpc":"2.0","result":{"requester_nodeid":"05b1114c-XXXX-YYYY-ZZZZ-feaa30afad6c","responder_nodeid":"9811eb32-XXXX-YYYY-ZZZZ-ab56fa3b83c9","result":{"protocol":"signalwire_service_random_uuid"}}}'))
@@ -51,6 +52,32 @@ describe('Call', () => {
 
   it('should not have peers', () => {
     expect(call.peer).toBeUndefined()
+  })
+
+  it('.answered should return true if the call has been answered', () => {
+    call.state = 'ringing'
+    expect(call.answered).toBe(false)
+
+    call.state = 'answered'
+    expect(call.answered).toBe(true)
+  })
+
+  it('.active should return true if the state is not in ending or ended', () => {
+    call.state = 'answered'
+    expect(call.active).toBe(true)
+    call.state = 'ending'
+    expect(call.active).toBe(false)
+    call.state = 'ended'
+    expect(call.active).toBe(false)
+  })
+
+  it('.ended should return true if the state is in ending or ended', () => {
+    call.state = 'answered'
+    expect(call.ended).toBe(false)
+    call.state = 'ending'
+    expect(call.ended).toBe(true)
+    call.state = 'ended'
+    expect(call.ended).toBe(true)
   })
 
   describe('.on()', () => {
@@ -82,7 +109,8 @@ describe('Call', () => {
     })
   })
 
-  describe('when call is ready', () => {
+  describe('with success response code 200', () => {
+
     const _stateNotificationAnswered = JSON.parse(`{"event_type":"calling.call.state","params":{"call_state":"answered","direction":"inbound","device":{"type":"phone","params":{"from_number":"+1234","to_number":"15678"}},"call_id":"call-id","node_id":"node-id"}}`)
     const _stateNotificationEnded = JSON.parse(`{"event_type":"calling.call.state","params":{"call_state":"ended","end_reason":"busy","direction":"inbound","device":{"type":"phone","params":{"from_number":"+1234","to_number":"15678"}},"call_id":"call-id","node_id":"node-id"}}`)
     const _recordNotification = JSON.parse(`{"event_type":"calling.call.record","params":{"state":"finished","record":{"audio":{"format":"mp3","direction":"speak","stereo":false}},"url":"record.mp3","control_id":"mocked-uuid","size":4096,"duration":4,"call_id":"call-id","node_id":"node-id"}}`)
@@ -95,43 +123,14 @@ describe('Call', () => {
       call.id = 'call-id'
       call.nodeId = 'node-id'
       call.state = CallState.Created
-      // Connection.mockResponse.mockReturnValueOnce(JSON.parse('{"id":"c04d725a-c8bc-4b9e-bf1e-9c05150797cc","jsonrpc":"2.0","result":{"result":{"code":"200","message":"message","control_id":"control-id"}}}'))
-    })
-
-    it('.answered should return true if the call has been answered', () => {
-      call.state = 'ringing'
-      expect(call.answered).toBe(false)
-
-      call.state = 'answered'
-      expect(call.answered).toBe(true)
-    })
-
-    it('.active should return true if the state is not in ending or ended', () => {
-      call.state = 'answered'
-      expect(call.active).toBe(true)
-      call.state = 'ending'
-      expect(call.active).toBe(false)
-      call.state = 'ended'
-      expect(call.active).toBe(false)
-    })
-
-    it('.ended should return true if the state is in ending or ended', () => {
-      call.state = 'answered'
-      expect(call.ended).toBe(false)
-      call.state = 'ending'
-      expect(call.ended).toBe(true)
-      call.state = 'ended'
-      expect(call.ended).toBe(true)
+      Connection.mockResponse.mockReturnValueOnce(JSON.parse('{"id":"uuid","jsonrpc":"2.0","result":{"result":{"code":"200","message":"message","control_id":"control-id"}}}'))
     })
 
     it('.dial() should wait for "answered" event', done => {
       const msg = new Execute({
         protocol: 'signalwire_service_random_uuid',
         method: 'call.begin',
-        params: {
-          tag: 'mocked-uuid',
-          device: call.device
-        }
+        params: { tag: 'mocked-uuid', device: call.device }
       })
       call.dial().then(result => {
         expect(result).toBeInstanceOf(DialResult)
@@ -147,10 +146,7 @@ describe('Call', () => {
       const msg = new Execute({
         protocol: 'signalwire_service_random_uuid',
         method: 'call.answer',
-        params: {
-          node_id: call.nodeId,
-          call_id: call.id
-        }
+        params: { node_id: call.nodeId, call_id: call.id }
       })
       call.answer().then(result => {
         expect(result).toBeInstanceOf(AnswerResult)
@@ -166,11 +162,7 @@ describe('Call', () => {
       const msg = new Execute({
         protocol: 'signalwire_service_random_uuid',
         method: 'call.end',
-        params: {
-          node_id: call.nodeId,
-          call_id: call.id,
-          reason: 'busy'
-        }
+        params: { node_id: call.nodeId, call_id: call.id, reason: 'busy' }
       })
       call.hangup('busy').then(result => {
         expect(result).toBeInstanceOf(HangupResult)
@@ -188,12 +180,7 @@ describe('Call', () => {
       const getMsg = () => new Execute({
         protocol: 'signalwire_service_random_uuid',
         method: 'call.record',
-        params: {
-          node_id: call.nodeId,
-          call_id: call.id,
-          control_id: 'mocked-uuid',
-          record
-        }
+        params: { node_id: call.nodeId, call_id: call.id, control_id: 'mocked-uuid', record }
       })
 
       it('.record() should wait until the recording ends', done => {
@@ -494,6 +481,218 @@ describe('Call', () => {
         // @ts-ignore
         session.calling.notificationHandler(_collectNotification)
         expect(action.completed).toBe(true)
+        done()
+      })
+
+    })
+
+  })
+
+  describe('with fail response code not 200', () => {
+
+    beforeEach(() => {
+      call.id = 'call-id'
+      call.nodeId = 'node-id'
+      call.state = CallState.Created
+      Connection.mockResponse.mockReturnValueOnce(JSON.parse('{"id":"uuid","jsonrpc":"2.0","result":{"result":{"code":"400","message":"some error","control_id":"control-id"}}}'))
+    })
+
+    it('.dial() should wait for "answered" event', done => {
+      const msg = new Execute({
+        protocol: 'signalwire_service_random_uuid',
+        method: 'call.begin',
+        params: { tag: 'mocked-uuid', device: call.device }
+      })
+      call.dial().then(result => {
+        expect(result).toBeInstanceOf(DialResult)
+        expect(result.successful).toBe(false)
+        expect(Connection.mockSend).nthCalledWith(1, msg)
+        done()
+      })
+    })
+
+    it('.answer() should wait for "answered" event', done => {
+      const msg = new Execute({
+        protocol: 'signalwire_service_random_uuid',
+        method: 'call.answer',
+        params: { node_id: call.nodeId, call_id: call.id }
+      })
+      call.answer().then(result => {
+        expect(result).toBeInstanceOf(AnswerResult)
+        expect(result.successful).toBe(false)
+        expect(Connection.mockSend).nthCalledWith(1, msg)
+        done()
+      })
+    })
+
+    it('.hangup() should wait for "ended" event', done => {
+      const msg = new Execute({
+        protocol: 'signalwire_service_random_uuid',
+        method: 'call.end',
+        params: { node_id: call.nodeId, call_id: call.id, reason: 'busy' }
+      })
+      call.hangup('busy').then(result => {
+        expect(result).toBeInstanceOf(HangupResult)
+        expect(result.successful).toBe(false)
+        expect(result.reason).toEqual('busy')
+        expect(Connection.mockSend).nthCalledWith(1, msg)
+        done()
+      })
+    })
+
+    describe('recording methods', () => {
+      const record = { audio: { format: 'mp3', beep: true } }
+      const getMsg = () => new Execute({
+        protocol: 'signalwire_service_random_uuid',
+        method: 'call.record',
+        params: { node_id: call.nodeId, call_id: call.id, control_id: 'mocked-uuid', record }
+      })
+
+      it('.record() should wait until the recording ends', done => {
+        call.record(record).then(result => {
+          expect(result).toBeInstanceOf(RecordResult)
+          expect(result.successful).toBe(false)
+          expect(result.url).toBeUndefined()
+          expect(Connection.mockSend).nthCalledWith(1, getMsg())
+          done()
+        })
+      })
+
+      it('.recordAsync() should return a RecordAction for async control', async done => {
+        const action = await call.recordAsync(record)
+        expect(action).toBeInstanceOf(RecordAction)
+        expect(action.completed).toBe(true)
+        expect(action.result).toBeInstanceOf(RecordResult)
+        expect(Connection.mockSend).nthCalledWith(1, getMsg())
+        done()
+      })
+
+    })
+
+    describe('connect methods', () => {
+      const _tmpDevices = [
+        { type: 'phone', to: '999', from: '231', timeout: 10 },
+        { type: 'phone', to: '888', from: '234', timeout: 20 }
+      ]
+      const getMsg = (serial: boolean) => {
+        let devices = []
+        if (serial) {
+          devices = [
+            [{ type: 'phone', params: { to_number: '999', from_number: '231', timeout: 10 } }],
+            [{ type: 'phone', params: { to_number: '888', from_number: '234', timeout: 20 } }]
+          ]
+        } else {
+          devices = [
+            [
+              { type: 'phone', params: { to_number: '999', from_number: '231', timeout: 10 } },
+              { type: 'phone', params: { to_number: '888', from_number: '234', timeout: 20 } }
+            ]
+          ]
+        }
+        return new Execute({
+          protocol: 'signalwire_service_random_uuid',
+          method: 'call.connect',
+          params: { node_id: call.nodeId, call_id: call.id, devices }
+        })
+      }
+
+      it('.connect() in serial should wait until the call is connected', done => {
+        call.connect(..._tmpDevices).then(result => {
+          expect(result).toBeInstanceOf(ConnectResult)
+          expect(result.successful).toBe(false)
+          expect(result.call).toBeUndefined()
+          expect(Connection.mockSend).nthCalledWith(1, getMsg(true))
+          done()
+        })
+      })
+
+      it('.connect() in parallel should wait until the call is connected', done => {
+        call.connect(_tmpDevices).then(result => {
+          expect(result).toBeInstanceOf(ConnectResult)
+          expect(result.successful).toBe(false)
+          expect(result.call).toBeUndefined()
+          expect(Connection.mockSend).nthCalledWith(1, getMsg(false))
+          done()
+        })
+      })
+
+      it('.connectAsync() in serial should return a ConnectAction for async control', async done => {
+        const action = await call.connectAsync(..._tmpDevices)
+        expect(action).toBeInstanceOf(ConnectAction)
+        expect(action.completed).toBe(true)
+        expect(Connection.mockSend).nthCalledWith(1, getMsg(true))
+        expect(action.result.call).toBeUndefined()
+        done()
+      })
+
+      it('.connectAsync() in parallel should return a ConnectAction for async control', async done => {
+        const action = await call.connectAsync(_tmpDevices)
+        expect(action).toBeInstanceOf(ConnectAction)
+        expect(action.completed).toBe(true)
+        expect(Connection.mockSend).nthCalledWith(1, getMsg(false))
+        expect(action.result.call).toBeUndefined()
+        done()
+      })
+
+    })
+
+    describe('playing methods', () => {
+      const media = [
+        { type: 'audio', params: { url: 'audio.mp3' } },
+        { type: 'tts', params: { text: 'hello jest' } }
+      ]
+
+      const getMsg = (...play: ICallingPlay[]) => new Execute({
+        protocol: 'signalwire_service_random_uuid',
+        method: 'call.play',
+        params: { node_id: call.nodeId, call_id: call.id, control_id: 'mocked-uuid', play }
+      })
+
+      it('.play() should wait until the playing ends', done => {
+        call.play(...media).then(result => {
+          expect(result).toBeInstanceOf(PlayResult)
+          expect(result.successful).toBe(false)
+          expect(Connection.mockSend).nthCalledWith(1, getMsg(...media))
+          done()
+        })
+      })
+
+      it('.playAsync() should return a PlayAction for async control', async done => {
+        const action = await call.playAsync(...media)
+        expect(action).toBeInstanceOf(PlayAction)
+        expect(action.completed).toBe(true)
+        expect(Connection.mockSend).nthCalledWith(1, getMsg(...media))
+        done()
+      })
+
+    })
+
+    describe('collecting methods', () => {
+      const collect = { initial_timeout: 10, digits: { max: 5, terminators: '#', digit_timeout: 10 } }
+      const audio = { type: 'audio', params: { url: 'audio.mp3' } }
+
+      const getMsg = (...play: ICallingPlay[]) => new Execute({
+        protocol: 'signalwire_service_random_uuid',
+        method: 'call.play_and_collect',
+        params: { node_id: call.nodeId, call_id: call.id, control_id: 'mocked-uuid', collect, play }
+      })
+
+      it('.prompt() should wait until the collect ends', done => {
+        call.prompt(collect, audio).then(result => {
+          expect(result).toBeInstanceOf(PromptResult)
+          expect(result.successful).toBe(false)
+          expect(result.terminator).toBeUndefined()
+          expect(result.result).toBeUndefined()
+          expect(Connection.mockSend).nthCalledWith(1, getMsg(audio))
+          done()
+        })
+      })
+
+      it('.promptAsync() should return a PromptAction for async control', async done => {
+        const action = await call.promptAsync(collect, audio)
+        expect(action).toBeInstanceOf(PromptAction)
+        expect(action.completed).toBe(true)
+        expect(Connection.mockSend).nthCalledWith(1, getMsg(audio))
         done()
       })
 

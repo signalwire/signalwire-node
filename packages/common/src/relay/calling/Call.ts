@@ -103,7 +103,7 @@ export default class Call implements ICall {
       return await this.relayInstance.session.execute(msg)
     } catch (error) {
       logger.error(`Relay command failed with code: ${error.code} - ${error.message}`)
-      return error
+      throw error
     }
   }
 
@@ -297,7 +297,7 @@ export default class Call implements ICall {
 
   private _notifyComponents(eventType: string, controlId: string, params: any): void {
     this._components.forEach(component => {
-      if (component.eventType === eventType && component.controlId === controlId) {
+      if (component.completed === false && component.eventType === eventType && component.controlId === controlId) {
         component.notificationHandler(params)
       }
     })

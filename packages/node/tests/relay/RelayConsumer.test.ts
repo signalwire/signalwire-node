@@ -10,22 +10,6 @@ describe('RelayConsumer', () => {
     return new RelayConsumer(params)
   }
 
-  it('should throw without project AND token', () => {
-    expect(() => setupConsumer({ onIncomingCall: noOp })).toThrow()
-  })
-
-  it('should throw without project', () => {
-    expect(() => setupConsumer({ token: TOKEN })).toThrow()
-
-    expect(() => setupConsumer({ project: '', token: TOKEN })).toThrow()
-  })
-
-  it('should throw without token', () => {
-    expect(() => setupConsumer({ project: PROJECT })).toThrow()
-
-    expect(() => setupConsumer({ project: PROJECT, token: '' })).toThrow()
-  })
-
   it('should have no handler by default', () => {
     const consumer = setupConsumer({
       project: PROJECT,

@@ -199,8 +199,6 @@ export default abstract class BrowserSession extends BaseSession {
     return this._remoteElement
   }
 
-  abstract get webRtcProtocol(): string
-
   vertoBroadcast({ nodeId, channel: eventChannel = '', data }: BroadcastParams) {
     if (!eventChannel) {
       throw new Error('Invalid channel for broadcast: ' + eventChannel)
@@ -213,7 +211,7 @@ export default abstract class BrowserSession extends BaseSession {
   }
 
   async vertoSubscribe({ nodeId, channels: eventChannel = [], handler }: SubscribeParams) {
-    eventChannel = eventChannel.filter(channel => channel && !this._existsSubscription(this.webRtcProtocol, channel))
+    eventChannel = eventChannel.filter(channel => channel && !this._existsSubscription(this.relayProtocol, channel))
     if (!eventChannel.length) {
       return
     }
@@ -224,14 +222,14 @@ export default abstract class BrowserSession extends BaseSession {
     const response = await this.execute(msg)
     const { unauthorized = [], subscribed = [] } = destructSubscribeResponse(response)
     if (unauthorized.length) {
-      unauthorized.forEach(channel => this._removeSubscription(this.webRtcProtocol, channel))
+      unauthorized.forEach(channel => this._removeSubscription(this.relayProtocol, channel))
     }
-    subscribed.forEach(channel => this._addSubscription(this.webRtcProtocol, handler, channel))
+    subscribed.forEach(channel => this._addSubscription(this.relayProtocol, handler, channel))
     return response
   }
 
   async vertoUnsubscribe({ nodeId, channels: eventChannel = [] }: SubscribeParams) {
-    eventChannel = eventChannel.filter(channel => channel && this._existsSubscription(this.webRtcProtocol, channel))
+    eventChannel = eventChannel.filter(channel => channel && this._existsSubscription(this.relayProtocol, channel))
     if (!eventChannel.length) {
       return
     }
@@ -241,8 +239,8 @@ export default abstract class BrowserSession extends BaseSession {
     }
     const response = await this.execute(msg)
     const { unsubscribed = [], notSubscribed = [] } = destructSubscribeResponse(response)
-    unsubscribed.forEach(channel => this._removeSubscription(this.webRtcProtocol, channel))
-    notSubscribed.forEach(channel => this._removeSubscription(this.webRtcProtocol, channel))
+    unsubscribed.forEach(channel => this._removeSubscription(this.relayProtocol, channel))
+    notSubscribed.forEach(channel => this._removeSubscription(this.relayProtocol, channel))
     return response
   }
 }

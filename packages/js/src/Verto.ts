@@ -9,6 +9,9 @@ import VertoHandler from '../../common/src/webrtc/VertoHandler'
 
 export const VERTO_PROTOCOL = 'verto-protocol'
 export default class Verto extends BrowserSession {
+
+  public relayProtocol: string = VERTO_PROTOCOL
+
   validateOptions() {
     const { host, login, passwd, password } = this.options
     return Boolean(host) && Boolean(login && (passwd || password))
@@ -50,9 +53,5 @@ export default class Verto extends BrowserSession {
   protected _onSocketMessage(msg: any) {
     const handler = new VertoHandler(this)
     handler.handleMessage(msg)
-  }
-
-  get webRtcProtocol() {
-    return VERTO_PROTOCOL
   }
 }

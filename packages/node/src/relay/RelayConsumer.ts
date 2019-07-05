@@ -12,11 +12,12 @@ export default class RelayConsumer {
   onTask: Function
   setup: Function
   ready: Function
+  teardown: Function
 
   protected client: RelayClient
 
   constructor(params: IRelayConsumerParams) {
-    const { host, project, token, contexts = [], onIncomingCall, onTask, setup, ready } = params
+    const { host, project, token, contexts = [], onIncomingCall, onTask, setup, ready, teardown } = params
     this.host = host
     this.project = project
     this.token = token
@@ -32,6 +33,9 @@ export default class RelayConsumer {
     }
     if (isFunction(ready)) {
       this.ready = ready.bind(this)
+    }
+    if (isFunction(teardown)) {
+      process.on('exit', () => teardown(this))
     }
   }
 

@@ -1,23 +1,11 @@
-import { isQueued } from '../src/services/Handler'
 import RelayClientNode from '../../node/src/relay'
 import RelayClientWeb from '../../js/src/SignalWire'
-import { Setup } from '../src/services/Setup'
+import Setup from '../src/services/Setup'
 const Connection = require('../../common/src/services/Connection')
 jest.mock('../../common/src/services/Connection')
 
 describe('Setup', () => {
-  const fnMock = jest.fn()
-  const service = 'service'
   const swOptions = { host: 'example.signalwire.com', project: 'project', token: 'token' }
-  let session = null
-  const _test = async done => {
-    const protocol = await Setup(session, service, fnMock)
-    expect(protocol).toEqual('signalwire_service_random_uuid')
-    expect(session.subscriptions).toHaveProperty(protocol)
-    expect(isQueued(protocol, 'notifications')).toEqual(true)
-    expect(Connection.mockSend).toHaveBeenCalledTimes(2)
-    done()
-  }
 
   beforeEach(() => {
     Connection.mockSend.mockClear()
@@ -26,26 +14,23 @@ describe('Setup', () => {
       .mockImplementationOnce(() => JSON.parse('{"id":"24f9b545-8bed-49e1-8214-5dbadb545f7d","jsonrpc":"2.0","result":{"command":"add","failed_channels":[],"protocol":"signalwire_service_random_uuid","subscribe_channels":["notifications"]}}'))
   })
 
-  afterEach(() => {
-    session.disconnect()
-    session = null
+  const _common = async (session) => {
+    session.connection = Connection.default()
+    const protocol = await Setup(session)
+    expect(protocol).toEqual('signalwire_service_random_uuid')
+    expect(session.subscriptions).toHaveProperty(protocol)
+    expect(Connection.mockSend).toHaveBeenCalledTimes(2)
+  }
+
+  it('RelayClientWeb should setup a new protocol', async done => {
+    const session = new RelayClientWeb(swOptions)
+    await _common(session)
+    done()
   })
 
-  describe('RelayClientWeb', () => {
-    beforeAll(done => {
-      session = new RelayClientWeb(swOptions)
-      session.connect().then(done)
-    })
-
-    it('should setup a new protocol', _test)
-  })
-
-  describe('RelayClientNode', () => {
-    beforeAll(done => {
-      session = new RelayClientNode(swOptions)
-      session.connect().then(done)
-    })
-
-    it('should setup a new protocol', _test)
+  it('RelayClientNode should setup a new protocol', async done => {
+    const session = new RelayClientNode(swOptions)
+    await _common(session)
+    done()
   })
 })

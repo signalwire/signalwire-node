@@ -17,7 +17,7 @@ export default async (session: BaseSession): Promise<string> => {
   }
   const be = new Execute({ protocol: SETUP_PROTOCOL, method: SETUP_METHOD, params })
   const { protocol = null } = await session.execute(be)
-  if (!protocol) {
+  if (protocol) {
     await session.subscribe({ protocol, channels: [SETUP_CHANNEL] })
     await sessionStorage.setItem(storageKey, protocol)
   } else {

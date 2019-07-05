@@ -5,7 +5,7 @@ import Connection from './services/Connection'
 import Setup from './services/Setup'
 import BaseMessage from '../../common/src/messages/BaseMessage'
 import { deRegister, register, trigger, deRegisterAll } from './services/Handler'
-import { BroadcastHandler } from './services/Broadcast'
+import BroadcastHandler from './services/BroadcastHandler'
 import { ADD, REMOVE, SwEvent, BladeMethod, NOTIFICATION_TYPE } from './util/constants'
 import { BroadcastParams, ISignalWireOptions, SubscribeParams, IBladeConnectResult } from './util/interfaces'
 import { Subscription, Connect, Reauthenticate } from './messages/Blade'
@@ -260,7 +260,7 @@ export default abstract class BaseSession {
     const { method, params } = response
     switch (method) {
       case BladeMethod.Broadcast:
-        BroadcastHandler(params)
+        BroadcastHandler(this, params)
         break
       case BladeMethod.Disconnect:
         this._idle = true

@@ -30,7 +30,7 @@ export default function BroadcastHandler(session: any, broadcastParams: any): vo
     case 'webrtc.message':
       const handler = new VertoHandler(session)
       handler.nodeId = node_id
-      handler.handleMessage(params)
+      handler.handleMessage(params.params)
       break
     default:
       return logger.error(`Unknown notification type: ${event_type}`)

@@ -36,19 +36,19 @@ export default class Connection {
   }
 
   get connected(): boolean {
-    return this._wsClient.readyState === WS_STATE.OPEN
+    return this._wsClient && this._wsClient.readyState === WS_STATE.OPEN
   }
 
   get connecting(): boolean {
-    return this._wsClient.readyState === WS_STATE.CONNECTING
+    return this._wsClient && this._wsClient.readyState === WS_STATE.CONNECTING
   }
 
   get closing(): boolean {
-    return this._wsClient.readyState === WS_STATE.CLOSING
+    return this._wsClient && this._wsClient.readyState === WS_STATE.CLOSING
   }
 
   get closed(): boolean {
-    return this._wsClient.readyState === WS_STATE.CLOSED
+    return this._wsClient && this._wsClient.readyState === WS_STATE.CLOSED
   }
 
   get isAlive(): boolean {
@@ -151,6 +151,8 @@ export default class Connection {
       this._wsClient.ping('', () => this._connected = true)
       return setTimeout(() => this._ping(), PING_INTERVAL)
     }
-    isFunction(this._wsClient._beginClose) ? this._wsClient._beginClose() : this._wsClient.close()
+    if (this._wsClient) {
+      isFunction(this._wsClient._beginClose) ? this._wsClient._beginClose() : this._wsClient.close()
+    }
   }
 }

@@ -11,14 +11,12 @@ export default class RelayConsumer {
   onIncomingCall: Function
   onTask: Function
   setup: Function
+  ready: Function
 
   protected client: RelayClient
 
   constructor(params: IRelayConsumerParams) {
-    const { host, project, token, contexts = [], onIncomingCall, onTask, setup } = params
-    if (!project || !token) {
-      throw 'SignalWire "project" and "token" are required!'
-    }
+    const { host, project, token, contexts = [], onIncomingCall, onTask, setup, ready } = params
     this.host = host
     this.project = project
     this.token = token
@@ -32,10 +30,20 @@ export default class RelayConsumer {
     if (isFunction(setup)) {
       this.setup = setup.bind(this)
     }
+    if (isFunction(ready)) {
+      this.ready = ready.bind(this)
+    }
   }
 
   async run() {
+    if (isFunction(this.setup)) {
+      this.setup(this)
+    }
     const { host, project, token } = this
+    if (!project || !token) {
+      logger.error('SignalWire "project" and "token" are required!')
+      return
+    }
     this.client = new RelayClient({ host, project, token })
     this.client.__logger.setLevel(this.client.__logger.levels.INFO)
 
@@ -49,8 +57,8 @@ export default class RelayConsumer {
       } catch (error) {
         logger.error('RelayConsumer error registering contexts:', error)
       }
-      if (isFunction(this.setup)) {
-        this.setup(this)
+      if (isFunction(this.ready)) {
+        this.ready(this)
       }
     })
 

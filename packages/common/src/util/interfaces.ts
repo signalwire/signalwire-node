@@ -239,4 +239,5 @@ export interface IRelayConsumerParams {
   onIncomingCall?: Function
   onTask?: Function
   setup?: Function
+  ready?: Function
 }

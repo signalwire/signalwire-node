@@ -7,10 +7,9 @@ import BaseMessage from '../../common/src/messages/BaseMessage'
 import { deRegister, register, trigger, deRegisterAll } from './services/Handler'
 import { BroadcastHandler } from './services/Broadcast'
 import { ADD, REMOVE, SwEvent, BladeMethod, NOTIFICATION_TYPE } from './util/constants'
-import { BroadcastParams, ISignalWireOptions, SubscribeParams, Constructable, IBladeConnectResult } from './util/interfaces'
+import { BroadcastParams, ISignalWireOptions, SubscribeParams, IBladeConnectResult } from './util/interfaces'
 import { Subscription, Connect, Reauthenticate } from './messages/Blade'
 import { isFunction } from './util/helpers'
-import Relay from './relay/Relay'
 
 export default abstract class BaseSession {
   public uuid: string = uuidv4()
@@ -22,7 +21,6 @@ export default abstract class BaseSession {
   public relayProtocol: string = null
 
   protected connection: Connection = null
-  protected _relayInstances: { [service: string]: Relay } = {}
   protected _jwtAuth: boolean = false
 
   private _idle: boolean = false
@@ -37,9 +35,6 @@ export default abstract class BaseSession {
     this._onSocketClose = this._onSocketClose.bind(this)
     this._onSocketError = this._onSocketError.bind(this)
     this._onSocketMessage = this._onSocketMessage.bind(this)
-    if (this._onSessionConnect) {
-      this._onSessionConnect = this._onSessionConnect.bind(this)
-    }
     this._handleLoginError = this._handleLoginError.bind(this)
     this._checkTokenExpiration = this._checkTokenExpiration.bind(this)
   }
@@ -134,7 +129,6 @@ export default abstract class BaseSession {
    * @return void
    */
   async disconnect() {
-    this._destroyRelayInstances()
     await this._unsubscribeAll()
     this.subscriptions = {}
     this._autoReconnect = false
@@ -190,8 +184,6 @@ export default abstract class BaseSession {
    */
   abstract async connect(): Promise<void>
 
-  protected _onSessionConnect?(): void
-
   /**
    * If the connection is already active do nothing otherwise disconnect the current connection.
    * Setup the default listeners to the session.
@@ -236,7 +228,6 @@ export default abstract class BaseSession {
       this.sessionid = sessionid
       this.nodeid = nodeid
       this.master_nodeid = master_nodeid
-      trigger(SwEvent.Connect, null, this.uuid, false)
       this._emptyExecuteQueues()
       trigger(SwEvent.Ready, this, this.uuid)
     }
@@ -316,17 +307,6 @@ export default abstract class BaseSession {
   }
 
   /**
-   * Creates a new Relay instance if not already present.
-   * @return Relay object
-   */
-  protected _addRelayInstance(service: string, klass: Constructable<Relay>): Relay {
-    if (!this._relayInstances.hasOwnProperty(service)) {
-      this._relayInstances[service] = new klass(this)
-    }
-    return this._relayInstances[service]
-  }
-
-  /**
    * Check if a subscription for this protocol-channel already exists
    * @return boolean
    */
@@ -349,9 +329,6 @@ export default abstract class BaseSession {
     this.on(SwEvent.SocketClose, this._onSocketClose)
     this.on(SwEvent.SocketError, this._onSocketError)
     this.on(SwEvent.SocketMessage, this._onSocketMessage)
-    if (this._onSessionConnect) {
-      this.on(SwEvent.Connect, this._onSessionConnect)
-    }
   }
 
   /**
@@ -363,9 +340,6 @@ export default abstract class BaseSession {
     this.off(SwEvent.SocketClose, this._onSocketClose)
     this.off(SwEvent.SocketError, this._onSocketError)
     this.off(SwEvent.SocketMessage, this._onSocketMessage)
-    if (this._onSessionConnect) {
-      this.off(SwEvent.Connect, this._onSessionConnect)
-    }
   }
 
   /**
@@ -410,18 +384,6 @@ export default abstract class BaseSession {
     if (!this.expired) {
       setTimeout(this._checkTokenExpiration, 30 * 1000)
     }
-  }
-
-  /**
-   * Remove all Relay instances attached to this session. Cleanup on socket close.
-   * @return void
-   */
-  private _destroyRelayInstances() {
-    Object.keys(this._relayInstances).forEach(service => {
-      this._relayInstances[service].destroy()
-      delete this._relayInstances[service]
-      this._relayInstances[service] = null
-    })
   }
 
   /**

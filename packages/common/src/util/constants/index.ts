@@ -17,7 +17,6 @@ export enum SwEvent {
 
   // Internal events
   SpeedTest = 'signalwire.internal.speedtest',
-  Connect = 'signalwire.internal.connect',
 
   // Global Events
   Ready = 'signalwire.ready',

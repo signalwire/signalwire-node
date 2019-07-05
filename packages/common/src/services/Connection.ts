@@ -33,7 +33,6 @@ export default class Connection {
     if (host) {
       this._host = checkWebSocketHost(host)
     }
-    this.connect()
   }
 
   get connected(): boolean {

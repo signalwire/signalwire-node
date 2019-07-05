@@ -25,11 +25,9 @@ export default abstract class BrowserSession extends BaseSession {
   protected _speaker: string = null
 
   async connect(): Promise<void> {
-    super.setup()
-
     await this.refreshDevices()
     this.sessionid = await localStorage.getItem(SESSION_ID)
-    this.connection = new Connection(this)
+    super.connect()
   }
 
   /**

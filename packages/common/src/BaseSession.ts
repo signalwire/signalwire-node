@@ -37,6 +37,9 @@ export default abstract class BaseSession {
     this._onSocketMessage = this._onSocketMessage.bind(this)
     this._handleLoginError = this._handleLoginError.bind(this)
     this._checkTokenExpiration = this._checkTokenExpiration.bind(this)
+
+    this._attachListeners()
+    this.connection = new Connection(this)
   }
 
   get __logger(): log.Logger {
@@ -182,22 +185,15 @@ export default abstract class BaseSession {
    * @async
    * @return void
    */
-  abstract async connect(): Promise<void>
-
-  /**
-   * If the connection is already active do nothing otherwise disconnect the current connection.
-   * Setup the default listeners to the session.
-   * @return void
-   */
-  protected setup() {
-    if (this.connection) {
-      if (this.connection.isAlive) {
-        return
-      }
-      this._removeConnection()
+  async connect(): Promise<void> {
+    if (!this.connection) {
+      this.connection = new Connection(this)
+    } else if (this.connection.isAlive) {
+      return
     }
 
     this._attachListeners()
+    this.connection.connect()
   }
 
   /**

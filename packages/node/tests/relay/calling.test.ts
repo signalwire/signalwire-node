@@ -158,7 +158,7 @@ describe('Calling', () => {
       expect(Connection.mockSend).toHaveBeenCalledTimes(1)
       const { method } = Connection.mockSend.mock.calls[0][0].request.params
       expect(method).toEqual('call.receive')
-      expect(isQueued(session.relayProtocol, `ctx:context`)).toEqual(true)
+      expect(isQueued(session.relayProtocol, `calling.ctx.context`)).toEqual(true)
 
       done()
     })

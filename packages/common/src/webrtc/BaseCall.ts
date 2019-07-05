@@ -344,7 +344,7 @@ export default abstract class BaseCall {
     if (!this.channels.includes(channel)) {
       this.channels.push(channel)
     }
-    const protocol = this.session.webRtcProtocol
+    const protocol = this.session.relayProtocol
     if (this.session._existsSubscription(protocol, channel)) {
       this.session.subscriptions[protocol][channel] = {
         ...this.session.subscriptions[protocol][channel], callId: this.id

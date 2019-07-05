@@ -5,7 +5,7 @@ export default abstract class Controllable extends BaseComponent {
 
   stop() {
     const msg = new Execute({
-      protocol: this.call.relayInstance.protocol,
+      protocol: this.call.relayInstance.session.relayProtocol,
       method: `${this.method}.stop`,
       params: {
         node_id: this.call.nodeId,

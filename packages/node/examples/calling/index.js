@@ -1,3 +1,7 @@
+////
+//// This file must be update with the latests API v2.0
+////
+
 require('dotenv').config()
 const inquirer = require('inquirer')
 const SignalWire = require('../..')

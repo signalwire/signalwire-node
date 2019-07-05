@@ -7,14 +7,10 @@ import Relay from '../Relay'
 import Call from './Call'
 import { DEFAULT_CALL_TIMEOUT, CallNotification } from '../../util/constants/relay'
 
-const _ctxUniqueId = (context: string): string => `ctx:${context}`
+const _ctxUniqueId = (context: string): string => `calling.ctx.${context}`
 
 export default class Calling extends Relay {
   private _calls: Call[] = []
-
-  get service() {
-    return 'calling'
-  }
 
   notificationHandler(notification: any) {
     const { event_type, params } = notification
@@ -35,8 +31,7 @@ export default class Calling extends Relay {
     }
   }
 
-  async newCall(params: IMakeCallParams) {
-    await this.Ready
+  newCall(params: IMakeCallParams) {
     const { type, from: from_number, to: to_number, timeout = DEFAULT_CALL_TIMEOUT } = params
     if (!type || !from_number || !to_number || !timeout) {
       throw new TypeError(`Invalid parameters to create a new Call.`)
@@ -46,7 +41,6 @@ export default class Calling extends Relay {
   }
 
   async dial(params: IMakeCallParams) {
-    await this.Ready
     const { type, from: from_number, to: to_number, timeout = DEFAULT_CALL_TIMEOUT } = params
     if (!type || !from_number || !to_number || !timeout) {
       throw new TypeError(`Invalid parameters to create a new Call.`)
@@ -59,18 +53,17 @@ export default class Calling extends Relay {
   }
 
   async onInbound(context: string, handler: Function) {
-    await this.Ready
     if (!context || !isFunction(handler)) {
       throw new Error(`Invalid parameters for 'onInbound'.`)
     }
     const msg = new Execute({
-      protocol: this.protocol,
+      protocol: this.session.relayProtocol,
       method: 'call.receive',
       params: { context }
     })
 
     const response: any = await this.session.execute(msg)
-    register(this.protocol, handler, _ctxUniqueId(context))
+    register(this.session.relayProtocol, handler, _ctxUniqueId(context))
     return response
   }
 
@@ -137,7 +130,7 @@ export default class Calling extends Relay {
    */
   private _onReceive(params: any): void {
     const call = new Call(this, params)
-    trigger(this.protocol, call, _ctxUniqueId(call.context))
+    trigger(this.session.relayProtocol, call, _ctxUniqueId(call.context))
   }
 
   /**

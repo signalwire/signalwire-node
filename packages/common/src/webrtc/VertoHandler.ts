@@ -74,7 +74,7 @@ class VertoHandler {
           logger.error('Verto received an unknown event:', params)
           return
         }
-        const protocol = session.webRtcProtocol
+        const protocol = session.relayProtocol
         const firstValue = eventChannel.split('.')[0]
         if (session._existsSubscription(protocol, eventChannel)) {
           trigger(protocol, params, eventChannel)
@@ -115,7 +115,7 @@ class VertoHandler {
 
   private async _handlePvtEvent(pvtData: any) {
     const { session } = this
-    const protocol = session.webRtcProtocol
+    const protocol = session.relayProtocol
     const { action, laChannel, laName, chatChannel, infoChannel, modChannel, conferenceMemberID, role, callID } = pvtData
     switch (action) {
       case 'conference-liveArray-join': {

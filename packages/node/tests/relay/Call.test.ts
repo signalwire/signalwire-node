@@ -19,24 +19,18 @@ jest.mock('../../../common/src/services/Connection')
 
 describe('Call', () => {
   const device: ICallDevice = { type: 'phone', params: { from_number: '2345', to_number: '6789', timeout: 30 } }
-  let session: RelayClient = null
+  const session: RelayClient = new RelayClient({ host: 'example.signalwire.com', project: 'project', token: 'token' })
+  session.__logger.setLevel(session.__logger.levels.SILENT)
+  // @ts-ignore
+  session.connection = Connection.default()
+  session.relayProtocol = 'signalwire_service_random_uuid'
+
   let call: Call = null
-
-  beforeAll(async done => {
-    session = new RelayClient({ host: 'example.signalwire.com', project: 'project', token: 'token' })
-    await session.connect()
-    session.__logger.setLevel(session.__logger.levels.SILENT)
-
-    Connection.mockResponse
-      .mockReturnValueOnce(JSON.parse('{"id":"c04d725a-c8bc-4b9e-bf1e-9c05150797cc","jsonrpc":"2.0","result":{"requester_nodeid":"05b1114c-XXXX-YYYY-ZZZZ-feaa30afad6c","responder_nodeid":"9811eb32-XXXX-YYYY-ZZZZ-ab56fa3b83c9","result":{"protocol":"signalwire_service_random_uuid"}}}'))
-      .mockReturnValueOnce(JSON.parse('{"id":"24f9b545-8bed-49e1-8214-5dbadb545f7d","jsonrpc":"2.0","result":{"command":"add","failed_channels":[],"protocol":"signalwire_service_random_uuid","subscribe_channels":["notifications"]}}'))
-    done()
-  })
 
   beforeEach(() => {
     Connection.mockSend.mockClear()
-    session.calling._calls = []
     // @ts-ignore
+    session.calling._calls = []
     call = new Call(session.calling, { device })
   })
 
@@ -47,6 +41,7 @@ describe('Call', () => {
   })
 
   it('should add the call to the cache array', () => {
+    // @ts-ignore
     expect(session.calling._calls).toContain(call)
   })
 
@@ -139,7 +134,6 @@ describe('Call', () => {
         expect(Connection.mockSend).nthCalledWith(1, msg)
         done()
       })
-      // @ts-ignore
       session.calling.notificationHandler(_stateNotificationAnswered)
     })
 
@@ -155,7 +149,6 @@ describe('Call', () => {
         expect(Connection.mockSend).nthCalledWith(1, msg)
         done()
       })
-      // @ts-ignore
       session.calling.notificationHandler(_stateNotificationAnswered)
     })
 
@@ -172,7 +165,6 @@ describe('Call', () => {
         expect(Connection.mockSend).nthCalledWith(1, msg)
         done()
       })
-      // @ts-ignore
       session.calling.notificationHandler(_stateNotificationEnded)
     })
 
@@ -192,7 +184,6 @@ describe('Call', () => {
           expect(Connection.mockSend).nthCalledWith(1, getMsg())
           done()
         })
-        // @ts-ignore
         session.calling.notificationHandler(_recordNotification)
       })
 
@@ -202,7 +193,6 @@ describe('Call', () => {
         expect(action.completed).toBe(false)
         expect(action.result).toBeInstanceOf(RecordResult)
         expect(Connection.mockSend).nthCalledWith(1, getMsg())
-        // @ts-ignore
         session.calling.notificationHandler(_recordNotification)
         expect(action.completed).toBe(true)
         done()
@@ -246,9 +236,7 @@ describe('Call', () => {
           expect(Connection.mockSend).nthCalledWith(1, getMsg(true))
           done()
         })
-        // @ts-ignore
         session.calling.notificationHandler(_connectNotificationPeerCreated)
-        // @ts-ignore
         session.calling.notificationHandler(_connectNotification)
       })
 
@@ -261,9 +249,7 @@ describe('Call', () => {
           expect(Connection.mockSend).nthCalledWith(1, getMsg(false))
           done()
         })
-        // @ts-ignore
         session.calling.notificationHandler(_connectNotificationPeerCreated)
-        // @ts-ignore
         session.calling.notificationHandler(_connectNotification)
       })
 
@@ -273,9 +259,7 @@ describe('Call', () => {
         expect(action.completed).toBe(false)
         expect(Connection.mockSend).nthCalledWith(1, getMsg(true))
 
-        // @ts-ignore
         session.calling.notificationHandler(_connectNotificationPeerCreated)
-        // @ts-ignore
         session.calling.notificationHandler(_connectNotification)
         expect(action.result.call.id).toEqual('peer-call-id')
         expect(action.completed).toBe(true)
@@ -289,9 +273,7 @@ describe('Call', () => {
         expect(action.completed).toBe(false)
         expect(Connection.mockSend).nthCalledWith(1, getMsg(false))
 
-        // @ts-ignore
         session.calling.notificationHandler(_connectNotificationPeerCreated)
-        // @ts-ignore
         session.calling.notificationHandler(_connectNotification)
         expect(action.result.call.id).toEqual('peer-call-id')
         expect(action.completed).toBe(true)
@@ -319,7 +301,6 @@ describe('Call', () => {
           expect(Connection.mockSend).nthCalledWith(1, getMsg(...media))
           done()
         })
-        // @ts-ignore
         session.calling.notificationHandler(_playNotification)
       })
 
@@ -328,7 +309,6 @@ describe('Call', () => {
         expect(action).toBeInstanceOf(PlayAction)
         expect(action.completed).toBe(false)
         expect(Connection.mockSend).nthCalledWith(1, getMsg(...media))
-        // @ts-ignore
         session.calling.notificationHandler(_playNotification)
         expect(action.completed).toBe(true)
         done()
@@ -341,7 +321,6 @@ describe('Call', () => {
           expect(Connection.mockSend).nthCalledWith(1, getMsg(media[0]))
           done()
         })
-        // @ts-ignore
         session.calling.notificationHandler(_playNotification)
       })
 
@@ -350,7 +329,6 @@ describe('Call', () => {
         expect(action).toBeInstanceOf(PlayAction)
         expect(action.completed).toBe(false)
         expect(Connection.mockSend).nthCalledWith(1, getMsg(media[0]))
-        // @ts-ignore
         session.calling.notificationHandler(_playNotification)
         expect(action.completed).toBe(true)
         done()
@@ -363,7 +341,6 @@ describe('Call', () => {
           expect(Connection.mockSend).nthCalledWith(1, getMsg(media[1]))
           done()
         })
-        // @ts-ignore
         session.calling.notificationHandler(_playNotification)
       })
 
@@ -372,7 +349,6 @@ describe('Call', () => {
         expect(action).toBeInstanceOf(PlayAction)
         expect(action.completed).toBe(false)
         expect(Connection.mockSend).nthCalledWith(1, getMsg(media[1]))
-        // @ts-ignore
         session.calling.notificationHandler(_playNotification)
         expect(action.completed).toBe(true)
         done()
@@ -385,7 +361,6 @@ describe('Call', () => {
           expect(Connection.mockSend).nthCalledWith(1, getMsg({ type: 'silence', params: { duration: 5 } }))
           done()
         })
-        // @ts-ignore
         session.calling.notificationHandler(_playNotification)
       })
 
@@ -394,7 +369,6 @@ describe('Call', () => {
         expect(action).toBeInstanceOf(PlayAction)
         expect(action.completed).toBe(false)
         expect(Connection.mockSend).nthCalledWith(1, getMsg({ type: 'silence', params: { duration: 5 } }))
-        // @ts-ignore
         session.calling.notificationHandler(_playNotification)
         expect(action.completed).toBe(true)
         done()
@@ -422,7 +396,6 @@ describe('Call', () => {
           expect(Connection.mockSend).nthCalledWith(1, getMsg(audio))
           done()
         })
-        // @ts-ignore
         session.calling.notificationHandler(_collectNotification)
       })
 
@@ -431,7 +404,6 @@ describe('Call', () => {
         expect(action).toBeInstanceOf(PromptAction)
         expect(action.completed).toBe(false)
         expect(Connection.mockSend).nthCalledWith(1, getMsg(audio))
-        // @ts-ignore
         session.calling.notificationHandler(_collectNotification)
         expect(action.completed).toBe(true)
         done()
@@ -446,7 +418,6 @@ describe('Call', () => {
           expect(Connection.mockSend).nthCalledWith(1, getMsg(audio))
           done()
         })
-        // @ts-ignore
         session.calling.notificationHandler(_collectNotification)
       })
 
@@ -455,7 +426,6 @@ describe('Call', () => {
         expect(action).toBeInstanceOf(PromptAction)
         expect(action.completed).toBe(false)
         expect(Connection.mockSend).nthCalledWith(1, getMsg(audio))
-        // @ts-ignore
         session.calling.notificationHandler(_collectNotification)
         expect(action.completed).toBe(true)
         done()
@@ -470,7 +440,6 @@ describe('Call', () => {
           expect(Connection.mockSend).nthCalledWith(1, getMsg(tts))
           done()
         })
-        // @ts-ignore
         session.calling.notificationHandler(_collectNotification)
       })
 
@@ -479,7 +448,6 @@ describe('Call', () => {
         expect(action).toBeInstanceOf(PromptAction)
         expect(action.completed).toBe(false)
         expect(Connection.mockSend).nthCalledWith(1, getMsg(tts))
-        // @ts-ignore
         session.calling.notificationHandler(_collectNotification)
         expect(action.completed).toBe(true)
         done()

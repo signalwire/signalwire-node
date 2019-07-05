@@ -44,7 +44,7 @@ export default abstract class BaseComponent {
   /** Execute message and return the Relay response */
   async execute(): Promise<any> {
     const msg = new Execute({
-      protocol: this.call.relayInstance.protocol,
+      protocol: this.call.relayInstance.session.relayProtocol,
       method: this.method,
       params: this.payload
     })

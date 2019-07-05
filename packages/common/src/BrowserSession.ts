@@ -1,7 +1,8 @@
 import BaseSession from './BaseSession'
 import Connection from './services/Connection'
 import BaseCall from './webrtc/BaseCall'
-import { ICacheDevices, IAudioSettings, IVideoSettings, BroadcastParams, SubscribeParams } from './util/interfaces'
+import Call from './webrtc/Call'
+import { ICacheDevices, IAudioSettings, IVideoSettings, BroadcastParams, SubscribeParams, CallOptions } from './util/interfaces'
 import { registerOnce } from './services/Handler'
 import { SwEvent, SESSION_ID } from './util/constants'
 import { State } from './util/constants/call'
@@ -24,11 +25,9 @@ export default abstract class BrowserSession extends BaseSession {
   protected _speaker: string = null
 
   async connect(): Promise<void> {
-    super.setup()
-
     await this.refreshDevices()
     this.sessionid = await localStorage.getItem(SESSION_ID)
-    this.connection = new Connection(this)
+    super.connect()
   }
 
   /**
@@ -199,8 +198,6 @@ export default abstract class BrowserSession extends BaseSession {
     return this._remoteElement
   }
 
-  abstract get webRtcProtocol(): string
-
   vertoBroadcast({ nodeId, channel: eventChannel = '', data }: BroadcastParams) {
     if (!eventChannel) {
       throw new Error('Invalid channel for broadcast: ' + eventChannel)
@@ -213,7 +210,7 @@ export default abstract class BrowserSession extends BaseSession {
   }
 
   async vertoSubscribe({ nodeId, channels: eventChannel = [], handler }: SubscribeParams) {
-    eventChannel = eventChannel.filter(channel => channel && !this._existsSubscription(this.webRtcProtocol, channel))
+    eventChannel = eventChannel.filter(channel => channel && !this._existsSubscription(this.relayProtocol, channel))
     if (!eventChannel.length) {
       return
     }
@@ -224,14 +221,14 @@ export default abstract class BrowserSession extends BaseSession {
     const response = await this.execute(msg)
     const { unauthorized = [], subscribed = [] } = destructSubscribeResponse(response)
     if (unauthorized.length) {
-      unauthorized.forEach(channel => this._removeSubscription(this.webRtcProtocol, channel))
+      unauthorized.forEach(channel => this._removeSubscription(this.relayProtocol, channel))
     }
-    subscribed.forEach(channel => this._addSubscription(this.webRtcProtocol, handler, channel))
+    subscribed.forEach(channel => this._addSubscription(this.relayProtocol, handler, channel))
     return response
   }
 
   async vertoUnsubscribe({ nodeId, channels: eventChannel = [] }: SubscribeParams) {
-    eventChannel = eventChannel.filter(channel => channel && this._existsSubscription(this.webRtcProtocol, channel))
+    eventChannel = eventChannel.filter(channel => channel && this._existsSubscription(this.relayProtocol, channel))
     if (!eventChannel.length) {
       return
     }
@@ -241,8 +238,18 @@ export default abstract class BrowserSession extends BaseSession {
     }
     const response = await this.execute(msg)
     const { unsubscribed = [], notSubscribed = [] } = destructSubscribeResponse(response)
-    unsubscribed.forEach(channel => this._removeSubscription(this.webRtcProtocol, channel))
-    notSubscribed.forEach(channel => this._removeSubscription(this.webRtcProtocol, channel))
+    unsubscribed.forEach(channel => this._removeSubscription(this.relayProtocol, channel))
+    notSubscribed.forEach(channel => this._removeSubscription(this.relayProtocol, channel))
     return response
+  }
+
+  async newCall(options: CallOptions) {
+    const { destinationNumber = null } = options
+    if (!destinationNumber) {
+      throw new TypeError('destinationNumber is required')
+    }
+    const call = new Call(this, options)
+    call.invite()
+    return call
   }
 }

@@ -144,7 +144,7 @@ describe('Call', () => {
         _mockResponse()
         await call.handleConferenceUpdate(packet, pvtData)
         const channels = ['conference-chat-channel', 'conference-info-channel']
-        const subs = Object.keys(session.subscriptions[session.webRtcProtocol])
+        const subs = Object.keys(session.subscriptions[session.relayProtocol])
         expect(subs).toEqual(expect.arrayContaining(channels))
         expect(call.channels.sort()).toEqual(channels.sort())
         expect(call).toHaveProperty('hangup')
@@ -157,7 +157,7 @@ describe('Call', () => {
         pvtData = JSON.parse('{"action":"conference-liveArray-join","laChannel":"conference-liveArray-channel","laName":"3599","role":"moderator","chatID":"conf+3599@188.166.44.156","conferenceMemberID":"80","canvasCount":1,"modChannel":"conference-mod-channel","chatChannel":"conference-chat-channel","infoChannel":"conference-info-channel"}')
         await call.handleConferenceUpdate(packet, pvtData)
         const channels = ['conference-chat-channel', 'conference-info-channel', 'conference-mod-channel']
-        const subs = Object.keys(session.subscriptions[session.webRtcProtocol])
+        const subs = Object.keys(session.subscriptions[session.relayProtocol])
         expect(subs).toEqual(expect.arrayContaining(channels))
         expect(call.channels.sort()).toEqual(channels.sort())
         expect(call).toHaveProperty('sendChatMessage')

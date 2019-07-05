@@ -5,14 +5,12 @@ const Connection = require('../../src/services/Connection')
 export default (instance: any) => {
   describe('Inherit BaseClass', () => {
 
-    beforeEach(async done => {
-      await instance.connect()
+    beforeEach(() => {
       instance._idle = false
       instance._executeQueue = []
       instance.subscriptions = {}
       Connection.mockSend.mockClear()
       Connection.mockSendRawText.mockClear()
-      done()
     })
 
     describe('public methods', () => {

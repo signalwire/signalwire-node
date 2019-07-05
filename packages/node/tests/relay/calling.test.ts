@@ -8,48 +8,33 @@ import DialResult from '../../../common/src/relay/calling/results/DialResult'
 const Connection = require('../../../common/src/services/Connection')
 
 describe('Calling', () => {
-  let session: RelayClient = null
+  const session: RelayClient = new RelayClient({ host: 'example.signalwire.com', project: 'project', token: 'token' })
+  // @ts-ignore
+  session.connection = Connection.default()
+  session.relayProtocol = 'signalwire_service_random_uuid'
 
-  const _common = () => {
-    beforeAll(done => {
-      session = new RelayClient({ host: 'example.signalwire.com', project: 'project', token: 'token' })
-      session.connect().then(done)
-    })
+  // afterAll(() => {
+  //   session.disconnect()
+  //   session = null
+  // })
 
-    afterAll(() => {
-      session.disconnect()
-      session = null
-    })
+  // const _mockConnection = () => {
+  //   Connection.mockResponse
+  //     .mockReturnValueOnce(JSON.parse('{"id":"c04d725a-c8bc-4b9e-bf1e-9c05150797cc","jsonrpc":"2.0","result":{"requester_nodeid":"05b1114c-XXXX-YYYY-ZZZZ-feaa30afad6c","responder_nodeid":"9811eb32-XXXX-YYYY-ZZZZ-ab56fa3b83c9","result":{"protocol":"signalwire_service_random_uuid"}}}'))
+  //     .mockReturnValueOnce(JSON.parse('{"id":"24f9b545-8bed-49e1-8214-5dbadb545f7d","jsonrpc":"2.0","result":{"command":"add","failed_channels":[],"protocol":"signalwire_service_random_uuid","subscribe_channels":["notifications"]}}'))
+  // }
 
-    it('should setup its own protocol that persist on session', async done => {
-      _mockConnection()
-      expect(session.calling).toBeInstanceOf(Calling)
-
-      const proto = await session.calling.Ready
-      expect(proto).toEqual('signalwire_service_random_uuid')
-
-      Connection.mockSend.mockClear()
-      expect(session.calling.protocol).toEqual('signalwire_service_random_uuid')
-      expect(Connection.mockSend).not.toHaveBeenCalled()
-
-      done()
-    })
-  }
-
-  const _mockConnection = () => {
-    Connection.mockResponse
-      .mockReturnValueOnce(JSON.parse('{"id":"c04d725a-c8bc-4b9e-bf1e-9c05150797cc","jsonrpc":"2.0","result":{"requester_nodeid":"05b1114c-XXXX-YYYY-ZZZZ-feaa30afad6c","responder_nodeid":"9811eb32-XXXX-YYYY-ZZZZ-ab56fa3b83c9","result":{"protocol":"signalwire_service_random_uuid"}}}'))
-      .mockReturnValueOnce(JSON.parse('{"id":"24f9b545-8bed-49e1-8214-5dbadb545f7d","jsonrpc":"2.0","result":{"command":"add","failed_channels":[],"protocol":"signalwire_service_random_uuid","subscribe_channels":["notifications"]}}'))
-  }
+  afterEach(() => {
+    // @ts-ignore
+    session.calling._calls = []
+  })
 
   describe('.newCall()', () => {
-    _common.call(this)
     const callOpts = { type: 'phone', from: '8992222222', to: '8991111111' }
 
-    it('should return a new Call object', async done => {
-      const call = await session.calling.newCall(callOpts)
+    it('should return a new Call object', () => {
+      const call = session.calling.newCall(callOpts)
       expect(call).toBeInstanceOf(Call)
-      done()
     })
 
     describe('calling.call.state notification', () => {
@@ -64,14 +49,14 @@ describe('Calling', () => {
       }
 
       afterEach(() => {
-        session.calling.removeCall(session.calling.getCallByTag(CALL_TAG))
-        session.calling.removeCall(session.calling.getCallById(CALL_ID))
+        // session.calling.removeCall(session.calling.getCallByTag(CALL_TAG))
+        // session.calling.removeCall(session.calling.getCallById(CALL_ID))
 
         fnMock.mockClear()
       })
 
       it('should handle the "created" state setting up callId and nodeId', async done => {
-        const call = await session.calling.newCall(callOpts)
+        const call = session.calling.newCall(callOpts)
         call.tag = CALL_TAG
         call.on('stateChange', fnMock)
         call.on('created', fnMock)
@@ -85,7 +70,7 @@ describe('Calling', () => {
       })
 
       it('should handle the "ringing" state', async done => {
-        const call = await session.calling.newCall(callOpts)
+        const call = session.calling.newCall(callOpts)
         call.id = CALL_ID
         call.on('stateChange', fnMock)
         call.on('ringing', fnMock)
@@ -97,7 +82,7 @@ describe('Calling', () => {
       })
 
       it('should handle the "answered" state', async done => {
-        const call = await session.calling.newCall(callOpts)
+        const call = session.calling.newCall(callOpts)
         call.id = CALL_ID
         call.on('stateChange', fnMock)
         call.on('answered', fnMock)
@@ -109,7 +94,7 @@ describe('Calling', () => {
       })
 
       it('should handle the "ending" state', async done => {
-        const call = await session.calling.newCall(callOpts)
+        const call = session.calling.newCall(callOpts)
         call.id = CALL_ID
         call.on('stateChange', fnMock)
         call.on('ending', fnMock)
@@ -121,7 +106,7 @@ describe('Calling', () => {
       })
 
       it('should handle the "ended" state', async done => {
-        const call = await session.calling.newCall(callOpts)
+        const call = session.calling.newCall(callOpts)
         call.id = CALL_ID
         call.on('stateChange', fnMock)
         call.on('ended', fnMock)
@@ -135,11 +120,6 @@ describe('Calling', () => {
   })
 
   describe('.dial()', () => {
-    _common.call(this)
-
-    afterEach(() => {
-      session.calling._calls = []
-    })
 
     const callOpts = { type: 'phone', from: '8992222222', to: '8991111111' }
     const _stateNotificationCreated = JSON.parse(`{"event_type":"calling.call.state","params":{"call_state":"created","direction":"inbound","device":{"type":"phone","params":{"from_number":"+1234","to_number":"15678"}},"tag":"mocked-uuid","call_id":"call-id","node_id":"node-id"}}`)
@@ -153,9 +133,7 @@ describe('Calling', () => {
         expect(result.successful).toBe(true)
         done()
       })
-      // @ts-ignore
       setTimeout(() => session.calling.notificationHandler(_stateNotificationCreated))
-      // @ts-ignore
       setTimeout(() => session.calling.notificationHandler(_stateNotificationAnswered))
     })
 
@@ -166,15 +144,12 @@ describe('Calling', () => {
         expect(result.successful).toBe(false)
         done()
       })
-      // @ts-ignore
       setTimeout(() => session.calling.notificationHandler(_stateNotificationCreated))
-      // @ts-ignore
       setTimeout(() => session.calling.notificationHandler(_stateNotificationEnded))
     })
   })
 
   describe('.onInbound()', () => {
-    _common.call(this)
 
     it('should register the inbound listener', async done => {
       Connection.mockSend.mockClear()
@@ -183,7 +158,7 @@ describe('Calling', () => {
       expect(Connection.mockSend).toHaveBeenCalledTimes(1)
       const { method } = Connection.mockSend.mock.calls[0][0].request.params
       expect(method).toEqual('call.receive')
-      expect(isQueued(session.calling.protocol, `ctx:context`)).toEqual(true)
+      expect(isQueued(session.relayProtocol, `ctx:context`)).toEqual(true)
 
       done()
     })

@@ -1,6 +1,5 @@
 import BaseSession from '../../../common/src/BaseSession'
 import Calling from '../../../common/src/relay/calling/Calling'
-import Connection from '../../../common/src/services/Connection'
 
 export default class RelayClient extends BaseSession {
 

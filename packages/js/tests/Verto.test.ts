@@ -6,21 +6,20 @@ import Verto, { VERTO_PROTOCOL } from '../src/Verto'
 const Connection = require('../../common/src/services/Connection')
 
 describe('Verto', () => {
-  const _verto = new Verto({ host: 'example.signalwire.com', login: 'login', password: 'password' })
-  behaveLikeBaseSession.call(this, _verto)
+  const instance: Verto = new Verto({ host: 'example.signalwire.com', login: 'login', password: 'password' })
+  // @ts-ignore
+  instance.connection = Connection.default()
+  behaveLikeBaseSession.call(this, instance)
   VertoHandler.call(this, Verto)
   LayoutHandler.call(this, Verto)
 
-  let instance: Verto
   const noop = (): void => { }
 
-  beforeEach(done => {
+  beforeEach(() => {
     Connection.mockSend.mockClear()
     Connection.default.mockClear()
     Connection.mockClose.mockClear()
-    instance = new Verto({ host: 'example.fs.edo', login: 'login', password: 'passwd' })
     instance.subscriptions = {}
-    instance.connect().then(done)
   })
 
   it('should instantiate Verto with default methods', () => {
@@ -43,10 +42,6 @@ describe('Verto', () => {
   })
 
   describe('.connect()', () => {
-    it('should instantiate its own connection', () => {
-      expect(Connection.default).toHaveBeenCalledTimes(1)
-    })
-
     it('should register socket listeners', () => {
       const listeners = ['signalwire.socket.close', 'signalwire.socket.open', 'signalwire.socket.error', 'signalwire.socket.message']
       listeners.forEach(event => {
@@ -70,10 +65,10 @@ describe('Verto', () => {
 
     describe('with an invalid connection (closed/closing state)', () => {
       it('should close the previous one and create another', async done => {
+        Connection.mockConnect.mockClear()
         Connection.isAlive.mockReturnValueOnce(false)
         await instance.connect()
-        expect(Connection.mockClose).toHaveBeenCalledTimes(1)
-        expect(Connection.default).toHaveBeenCalledTimes(2)
+        expect(Connection.mockConnect).toHaveBeenCalledTimes(1)
         done()
       })
     })

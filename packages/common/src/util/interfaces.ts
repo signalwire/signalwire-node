@@ -240,4 +240,5 @@ export interface IRelayConsumerParams {
   onTask?: Function
   setup?: Function
   ready?: Function
+  tearDown?: Function
 }

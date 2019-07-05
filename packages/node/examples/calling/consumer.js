@@ -8,6 +8,9 @@ const consumer = new RelayConsumer({
     consumer.project = ''
     consumer.token = ''
   },
+  tearDown: (consumer) => {
+    console.log('tearDown now and close.')
+  },
   onIncomingCall: async (call) => {
     console.log('Inbound call', call.id, call.from, call.to)
     const answerResult = await call.answer()

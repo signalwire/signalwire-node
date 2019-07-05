@@ -2,6 +2,7 @@ import * as log from 'loglevel'
 import { v4 as uuidv4 } from 'uuid'
 import logger from './util/logger'
 import Connection from './services/Connection'
+import Setup from './services/Setup'
 import BaseMessage from '../../common/src/messages/BaseMessage'
 import { deRegister, register, trigger, deRegisterAll } from './services/Handler'
 import { BroadcastHandler } from './services/Broadcast'
@@ -18,6 +19,7 @@ export default abstract class BaseSession {
   public nodeid: string
   public master_nodeid: string
   public expiresAt: number = 0
+  public relayProtocol: string = null
 
   protected connection: Connection = null
   protected _relayInstances: { [service: string]: Relay } = {}
@@ -227,6 +229,7 @@ export default abstract class BaseSession {
     const response: IBladeConnectResult = await this.execute(bc).catch(this._handleLoginError)
     if (response) {
       this._autoReconnect = true
+      this.relayProtocol = await Setup(this)
       const { sessionid, nodeid, master_nodeid, authorization: { expires_at = null } = {} } = response
       this.expiresAt = +expires_at || 0
       this._checkTokenExpiration()

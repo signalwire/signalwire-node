@@ -1,4 +1,6 @@
-export const mockResponse = jest.fn((): { result: string, error?: string } => ({ result: 'fake' }))
+import { destructResponse } from '../../util/helpers'
+
+export const mockResponse = jest.fn((): { result: {}, error?: string } => ({ result: { message: 'fake' } }))
 
 export const mockSendRawText = jest.fn((str: string) => {})
 
@@ -7,7 +9,8 @@ export const mockSend = jest.fn((bladeObj: any) => {
   return new Promise((resolve, reject) => {
     if (!request.hasOwnProperty('result')) {
       const response = mockResponse()
-      response.hasOwnProperty('error') ? reject(response.error) : resolve(response.result)
+      const { result, error } = destructResponse(response)
+      return error ? reject(error) : resolve(result)
     } else {
       resolve()
     }

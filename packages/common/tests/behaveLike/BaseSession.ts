@@ -22,7 +22,7 @@ export default (instance: any) => {
         it('should send the message through the socket if the connection is live', async done => {
           const response = await instance.execute(payload)
           expect(Connection.mockSend).toHaveBeenLastCalledWith(payload)
-          expect(response).toEqual('fake')
+          expect(response).toEqual({ message: 'fake' })
           done()
         })
 
@@ -31,7 +31,7 @@ export default (instance: any) => {
           instance.execute(payload)
             .then(response => {
               expect(instance.connected).toEqual(true)
-              expect(response).toEqual('fake')
+              expect(response).toEqual({ message: 'fake' })
               done()
             })
           expect(Connection.mockSend).not.toHaveBeenCalled()
@@ -44,7 +44,7 @@ export default (instance: any) => {
         it('should queue the message if the connection is idle', async done => {
           instance._idle = true
           instance.execute(payload).then(response => {
-            expect(response).toEqual('fake')
+            expect(response).toEqual({ message: 'fake' })
             done()
           })
           expect(Connection.mockSend).not.toHaveBeenCalled()

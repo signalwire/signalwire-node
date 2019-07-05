@@ -197,12 +197,7 @@ const destructSubscribeResponse = (response: any): DestructuredResult => {
     unsubscribed: [],
     notSubscribed: []
   }
-  let wrapper = response
-  const { result = null } = response
-  if (result) {
-    wrapper = result || {}
-  }
-  Object.keys(tmp).forEach(k => { tmp[k] = wrapper[`${k}Channels`] || [] })
+  Object.keys(tmp).forEach(k => { tmp[k] = response[`${k}Channels`] || [] })
   return tmp
 }
 

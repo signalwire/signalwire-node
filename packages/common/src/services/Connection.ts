@@ -1,7 +1,7 @@
 import logger from '../util/logger'
 import BaseSession from '../BaseSession'
 import { SwEvent } from '../util/constants'
-import { safeParseJson, checkWebSocketHost } from '../util/helpers'
+import { safeParseJson, checkWebSocketHost, destructResponse } from '../util/helpers'
 import { registerOnce, trigger } from '../services/Handler'
 import { isFunction } from '../util/helpers'
 
@@ -98,21 +98,8 @@ export default class Connection {
         return resolve()
       }
       registerOnce(request.id, (response: any) => {
-        const { result, error } = response
-        if (error) {
-          return reject(error)
-        }
-        if (result) {
-          const { result: { code = null, node_id = null, result: nestedResult = null } = {} } = result
-          if (code && code !== '200') {
-            reject(result)
-          } else if (nestedResult) {
-            nestedResult.node_id = node_id
-            resolve(nestedResult)
-          } else {
-            resolve(result)
-          }
-        }
+        const { result, error } = destructResponse(response)
+        return error ? reject(error) : resolve(result)
       })
       this._setTimer(request.id)
     })
@@ -157,7 +144,7 @@ export default class Connection {
   }
 
   private _ping() {
-    if (this._wsClient instanceof WebSocket) {
+    if (typeof WebSocket !== 'undefined' && this._wsClient instanceof WebSocket) {
       return
     }
     if (this._connected) {

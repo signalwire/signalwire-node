@@ -1,13 +1,12 @@
 export enum CallState {
-  none,
-  created,
-  ringing,
-  answered,
-  ending,
-  ended
+  None = 'none',
+  Created = 'created',
+  Ringing = 'ringing',
+  Answered = 'answered',
+  Ending = 'ending',
+  Ended = 'ended'
 }
 
-// export const CALL_STATES = Object.keys(CallState).filter(k => isNaN(Number(k)))
 export const DEFAULT_CALL_TIMEOUT = 30
 
 export enum DisconnectReason {
@@ -33,10 +32,10 @@ export enum CallType {
 }
 
 export enum CallConnectState {
-  disconnected,
-  connecting,
-  connected,
-  failed
+  Disconnected = 'disconnected',
+  Connecting = 'connecting',
+  Connected = 'connected',
+  Failed = 'failed',
 }
 
 export enum CallNotification {
@@ -48,4 +47,22 @@ export enum CallNotification {
   Collect = 'calling.call.collect',
 }
 
-// export const CALL_CONNECT_STATES = Object.keys(CallConnectState).filter(k => isNaN(Number(k)))
+export enum CallPlayState {
+  Playing = 'playing',
+  Error = 'error',
+  Finished = 'finished',
+}
+
+export enum CallPromptState {
+  Error = 'error',
+  NoInput = 'no_input',
+  NoMatch = 'no_match',
+  Digit = 'digit',
+  Speech = 'speech',
+}
+
+export enum CallRecordState {
+  Recording = 'recording',
+  NoInput = 'no_input',
+  Finished = 'finished',
+}

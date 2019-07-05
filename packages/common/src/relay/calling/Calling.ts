@@ -39,10 +39,23 @@ export default class Calling extends Relay {
     await this.Ready
     const { type, from: from_number, to: to_number, timeout = DEFAULT_CALL_TIMEOUT } = params
     if (!type || !from_number || !to_number || !timeout) {
-      throw new Error(`Invalid parameters for 'newCall'.`)
+      throw new TypeError(`Invalid parameters to create a new Call.`)
     }
     const device: ICallDevice = { type, params: { from_number, to_number, timeout } }
     return new Call(this, { device })
+  }
+
+  async dial(params: IMakeCallParams) {
+    await this.Ready
+    const { type, from: from_number, to: to_number, timeout = DEFAULT_CALL_TIMEOUT } = params
+    if (!type || !from_number || !to_number || !timeout) {
+      throw new TypeError(`Invalid parameters to create a new Call.`)
+    }
+    const device: ICallDevice = { type, params: { from_number, to_number, timeout } }
+    const call = new Call(this, { device })
+
+    const result = await call.dial()
+    return result
   }
 
   async onInbound(context: string, handler: Function) {
@@ -58,7 +71,7 @@ export default class Calling extends Relay {
 
     const response: any = await this.session.execute(msg)
     register(this.protocol, handler, _ctxUniqueId(context))
-    return response.result
+    return response
   }
 
   addCall(call: Call): void {
@@ -113,7 +126,7 @@ export default class Calling extends Relay {
       if (peer) {
         call.setOptions({ peer })
       }
-      call._connectStateChange(params)
+      call._connectChange(params)
     }
   }
 
@@ -135,7 +148,7 @@ export default class Calling extends Relay {
   private _onRecord(params: any): void {
     const call = this.getCallById(params.call_id)
     if (call) {
-      call._recordStateChange(params)
+      call._recordChange(params)
     }
   }
 
@@ -147,7 +160,7 @@ export default class Calling extends Relay {
   private _onPlay(params: any): void {
     const call = this.getCallById(params.call_id)
     if (call) {
-      call._playStateChange(params)
+      call._playChange(params)
     }
   }
 
@@ -159,7 +172,7 @@ export default class Calling extends Relay {
   private _onCollect(params: any): void {
     const call = this.getCallById(params.call_id)
     if (call) {
-      call._collectStateChange(params)
+      call._collectChange(params)
     }
   }
 }

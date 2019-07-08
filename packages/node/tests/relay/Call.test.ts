@@ -494,6 +494,16 @@ describe('Call', () => {
         })
         session.calling.notificationHandler(_stateNotificationEnded)
       })
+
+      it('it should handle events that will never arrive', done => {
+        call.waitFor('answered').then(event => {
+          expect(event).toBeInstanceOf(Event)
+          expect(event.name).toBe('ended')
+          expect(event.payload).toEqual(_stateNotificationEnded.params)
+          done()
+        })
+        session.calling.notificationHandler(_stateNotificationEnded)
+      })
     })
 
   })

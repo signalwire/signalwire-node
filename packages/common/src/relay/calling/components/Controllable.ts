@@ -15,7 +15,7 @@ export default abstract class Controllable extends BaseComponent {
     })
 
     return this.call._execute(msg).catch(error => {
-      this._failure()
+      this.terminate()
       return error
     })
   }

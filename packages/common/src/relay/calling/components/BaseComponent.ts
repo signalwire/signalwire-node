@@ -54,7 +54,7 @@ export default abstract class BaseComponent {
     })
 
     this._executeResult = await this.call._execute(msg).catch(error => {
-      this._failure()
+      this.terminate()
       return error
     })
 
@@ -77,16 +77,20 @@ export default abstract class BaseComponent {
     return this.blocker.promise
   }
 
-  protected _hasBlocker(): boolean {
-    return this.blocker instanceof Blocker
-  }
-
-  protected _failure(): void {
+  terminate(params: any = {}): void {
     this.completed = true
     this.successful = false
     this.state = 'failed'
+    const { call_state } = params
+    if (call_state) {
+      this.event = new Event(call_state, params)
+    }
     if (this._hasBlocker()) {
       this.blocker.resolve()
     }
+  }
+
+  protected _hasBlocker(): boolean {
+    return this.blocker instanceof Blocker
   }
 }

@@ -287,6 +287,7 @@ export default class Call implements ICall {
     this._dispatchCallback('stateChange')
     this._dispatchCallback(call_state)
     if (this.state === CallState.Ended) {
+      this._terminateComponents(params)
       this.relayInstance.removeCall(this)
     }
   }
@@ -319,6 +320,14 @@ export default class Call implements ICall {
     this._components.forEach(component => {
       if (component.completed === false && component.eventType === eventType && component.controlId === controlId) {
         component.notificationHandler(params)
+      }
+    })
+  }
+
+  private _terminateComponents(params: any): void {
+    this._components.forEach(component => {
+      if (component.completed === false) {
+        component.terminate(params)
       }
     })
   }

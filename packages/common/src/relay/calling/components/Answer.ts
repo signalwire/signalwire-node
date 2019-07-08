@@ -1,5 +1,6 @@
 import BaseComponent from './BaseComponent'
 import { CallNotification, CallState } from '../../../util/constants/relay'
+import Event from '../Event'
 
 export default class Answer extends BaseComponent {
   public eventType: string = CallNotification.State
@@ -21,6 +22,7 @@ export default class Answer extends BaseComponent {
     if (call_state === CallState.Answered) {
       this.completed = true
       this.successful = true
+      this.event = new Event(call_state, params)
     }
 
     if (this._hasBlocker() && this._eventsToWait.includes(call_state)) {

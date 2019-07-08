@@ -2,6 +2,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { Execute } from '../../../messages/Blade'
 import Call from '../Call'
 import Blocker from '../Blocker'
+import Event from '../Event'
 
 export default abstract class BaseComponent {
 
@@ -24,7 +25,7 @@ export default abstract class BaseComponent {
   public successful: boolean = false
 
   /** The final event of the component */
-  public event: any
+  public event: Event
 
   /** Relay response of the first execute. (200/400/500) */
   protected _executeResult: any
@@ -43,6 +44,9 @@ export default abstract class BaseComponent {
 
   /** Execute message and return the Relay response */
   async execute(): Promise<any> {
+    if (!this.method) {
+      return null
+    }
     const msg = new Execute({
       protocol: this.call.relayInstance.session.relayProtocol,
       method: this.method,

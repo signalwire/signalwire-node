@@ -15,6 +15,7 @@ import PromptAction from '../../../common/src/relay/calling/actions/PromptAction
 import ConnectResult from '../../../common/src/relay/calling/results/ConnectResult'
 import ConnectAction from '../../../common/src/relay/calling/actions/ConnectAction'
 import DialResult from '../../../common/src/relay/calling/results/DialResult'
+import Event from '../../../common/src/relay/calling/Event'
 jest.mock('../../../common/src/services/Connection')
 
 describe('Call', () => {
@@ -32,6 +33,8 @@ describe('Call', () => {
     // @ts-ignore
     session.calling._calls = []
     call = new Call(session.calling, { device })
+    // @ts-ignore
+    call._components = []
   })
 
   it('should create the Call object with no id and nodeId', () => {
@@ -130,6 +133,7 @@ describe('Call', () => {
       call.dial().then(result => {
         expect(result).toBeInstanceOf(DialResult)
         expect(result.successful).toBe(true)
+        expect(result.event.name).toEqual('answered')
         expect(result.call).toEqual(call)
         expect(Connection.mockSend).nthCalledWith(1, msg)
         done()
@@ -146,6 +150,7 @@ describe('Call', () => {
       call.answer().then(result => {
         expect(result).toBeInstanceOf(AnswerResult)
         expect(result.successful).toBe(true)
+        expect(result.event.name).toEqual('answered')
         expect(Connection.mockSend).nthCalledWith(1, msg)
         done()
       })
@@ -162,6 +167,7 @@ describe('Call', () => {
         expect(result).toBeInstanceOf(HangupResult)
         expect(result.successful).toBe(true)
         expect(result.reason).toEqual('busy')
+        expect(result.event.name).toEqual('ended')
         expect(Connection.mockSend).nthCalledWith(1, msg)
         done()
       })
@@ -453,6 +459,41 @@ describe('Call', () => {
         done()
       })
 
+    })
+
+    describe('waitFor method', () => {
+
+      beforeEach(Connection.mockResponse) // Force-consume mock request because waitFor does not make requests.
+
+      it('it should wait for answered event', done => {
+        call.waitFor('answered').then(event => {
+          expect(event).toBeInstanceOf(Event)
+          expect(event.name).toBe('answered')
+          expect(event.payload).toEqual(_stateNotificationAnswered.params)
+          done()
+        })
+        session.calling.notificationHandler(_stateNotificationAnswered)
+      })
+
+      it('it should handle events already passed', done => {
+        call.state = 'answered'
+        call.waitFor('ringing', 'answered').then(event => {
+          expect(event).toBeInstanceOf(Event)
+          expect(event.name).toBe('ringing')
+          expect(event.payload).toBe(null)
+          done()
+        })
+      })
+
+      it('it should wait for ended event', done => {
+        call.waitFor('ended').then(event => {
+          expect(event).toBeInstanceOf(Event)
+          expect(event.name).toBe('ended')
+          expect(event.payload).toEqual(_stateNotificationEnded.params)
+          done()
+        })
+        session.calling.notificationHandler(_stateNotificationEnded)
+      })
     })
 
   })

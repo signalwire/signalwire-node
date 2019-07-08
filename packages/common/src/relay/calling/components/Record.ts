@@ -1,6 +1,7 @@
 import Controllable from './Controllable'
 import { CallNotification, CallRecordState } from '../../../util/constants/relay'
 import Call from '../Call'
+import Event from '../Event'
 
 export default class Record extends Controllable {
   public eventType: string = CallNotification.Record
@@ -34,7 +35,7 @@ export default class Record extends Controllable {
     this.completed = this.state !== CallRecordState.Recording
     if (this.completed) {
       this.successful = this.state === CallRecordState.Finished
-      this.event = params
+      this.event = new Event(this.state, params)
       this.url = url
       this.duration = duration
       this.size = size

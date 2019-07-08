@@ -2,6 +2,7 @@ import Controllable from './Controllable'
 import { ICallingPlay } from '../../../util/interfaces'
 import { CallNotification, CallPlayState } from '../../../util/constants/relay'
 import Call from '../Call'
+import Event from '../Event'
 
 export default class Play extends Controllable {
   public eventType: string = CallNotification.Play
@@ -30,7 +31,7 @@ export default class Play extends Controllable {
     this.completed = this.state !== CallPlayState.Playing
     if (this.completed) {
       this.successful = this.state === CallPlayState.Finished
-      this.event = params
+      this.event = new Event(this.state, params)
     }
 
     if (this._hasBlocker() && this._eventsToWait.includes(this.state)) {

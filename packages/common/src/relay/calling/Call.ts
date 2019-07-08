@@ -1,10 +1,11 @@
 import { v4 as uuidv4 } from 'uuid'
 import logger from '../../util/logger'
 import { Execute } from '../../messages/Blade'
-import { CallState, DisconnectReason, DEFAULT_CALL_TIMEOUT, CallNotification, CallRecordState, CallPlayState, CallPromptState, CallConnectState } from '../../util/constants/relay'
+import { CallState, DisconnectReason, DEFAULT_CALL_TIMEOUT, CallNotification, CallRecordState, CallPlayState, CallPromptState, CallConnectState, CALL_STATES } from '../../util/constants/relay'
 import { ICall, ICallOptions, ICallDevice, IMakeCallParams, ICallingPlay, ICallingCollect, DeepArray } from '../../util/interfaces'
 import { reduceConnectParams } from '../helpers'
 import Calling from './Calling'
+import Event from './Event'
 import { isFunction } from '../../util/helpers'
 import BaseComponent from './components/BaseComponent'
 import Dial from './components/Dial'
@@ -25,6 +26,7 @@ import Connect from './components/Connect'
 import ConnectResult from './results/ConnectResult'
 import ConnectAction from './actions/ConnectAction'
 import DialResult from './results/DialResult'
+import Await from './components/Await'
 
 export default class Call implements ICall {
   public id: string
@@ -237,6 +239,24 @@ export default class Call implements ICall {
     return new ConnectAction(component)
   }
 
+  async waitFor(...events: string[]): Promise<Event> {
+    if (!events.length) {
+      events = [CallState.Ended]
+    }
+    const currentStateIndex = CALL_STATES.indexOf(this.state)
+    for (let i = 0; i < events.length; i++) {
+      const index = CALL_STATES.indexOf(events[i])
+      if (index <= currentStateIndex) {
+        return new Event(events[i], null)
+      }
+    }
+    const component = new Await(this)
+    this._addComponent(component)
+    await component._waitFor(...events)
+
+    return component.event
+  }
+
   /**
    * Registers a callback to dispatch when the 'event' occur.
    * @param event - Event to listen to.
@@ -267,6 +287,7 @@ export default class Call implements ICall {
     this._dispatchCallback('stateChange')
     this._dispatchCallback(call_state)
     if (this.state === CallState.Ended) {
+      this._terminateComponents(params)
       this.relayInstance.removeCall(this)
     }
   }
@@ -299,6 +320,14 @@ export default class Call implements ICall {
     this._components.forEach(component => {
       if (component.completed === false && component.eventType === eventType && component.controlId === controlId) {
         component.notificationHandler(params)
+      }
+    })
+  }
+
+  private _terminateComponents(params: any): void {
+    this._components.forEach(component => {
+      if (component.completed === false) {
+        component.terminate(params)
       }
     })
   }

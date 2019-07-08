@@ -2,6 +2,7 @@ import BaseComponent from './BaseComponent'
 import { DeepArray, ICallDevice } from '../../../util/interfaces'
 import { CallNotification, CallConnectState } from '../../../util/constants/relay'
 import Call from '../Call'
+import Event from '../Event'
 
 export default class Connect extends BaseComponent {
   public eventType: string = CallNotification.Connect
@@ -29,7 +30,7 @@ export default class Connect extends BaseComponent {
     this.completed = this.state !== CallConnectState.Connecting
     if (this.completed) {
       this.successful = this.state === CallConnectState.Connected
-      this.event = params
+      this.event = new Event(this.state, params)
     }
 
     if (this._hasBlocker() && this._eventsToWait.includes(this.state)) {

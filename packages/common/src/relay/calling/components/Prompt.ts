@@ -2,6 +2,7 @@ import Controllable from './Controllable'
 import { ICallingPlay, ICallingCollect } from '../../../util/interfaces'
 import { CallNotification, CallPromptState } from '../../../util/constants/relay'
 import Call from '../Call'
+import Event from '../Event'
 
 export default class Prompt extends Controllable {
   public eventType: string = CallNotification.Collect
@@ -38,8 +39,8 @@ export default class Prompt extends Controllable {
     this.completed = true
     const { result } = params
 
-    this.event = result
     this.type = result.type
+    this.event = new Event(this.type, result)
     switch (this.type) {
       case CallPromptState.Digit:
         this.state = 'successful'

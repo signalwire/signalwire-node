@@ -4,7 +4,6 @@ import BaseResult from '../results/BaseResult'
 export default abstract class BaseAction {
   constructor(public component: BaseComponent) {}
 
-  /** Relay method to execute */
   abstract get result(): BaseResult
 
   get controlId(): string {

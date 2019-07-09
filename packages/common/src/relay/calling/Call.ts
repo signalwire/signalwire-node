@@ -34,8 +34,8 @@ export default class Call implements ICall {
   public nodeId: string
   public state: string = CallState.None
   public prevState: string = CallState.None
-  public failed: boolean
-  public busy: boolean
+  public failed: boolean = false
+  public busy: boolean = false
 
   private _cbQueue: { [state: string]: Function } = {}
   private _components: BaseComponent[] = []
@@ -295,14 +295,16 @@ export default class Call implements ICall {
     return this
   }
 
-  _stateChange(params: { call_state: string }) {
-    const { call_state } = params
+  _stateChange(params: { call_state: string, end_reason?: string }) {
+    const { call_state, end_reason } = params
     this.prevState = this.state
     this.state = call_state
     this._notifyComponents(CallNotification.State, this.tag, params)
     this._dispatchCallback('stateChange')
     this._dispatchCallback(call_state)
     if (this.state === CallState.Ended) {
+      this.busy = end_reason === DisconnectReason.Busy
+      this.failed = end_reason === DisconnectReason.Error
       this._terminateComponents(params)
       this.relayInstance.removeCall(this)
     }

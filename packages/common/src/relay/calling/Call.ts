@@ -257,6 +257,22 @@ export default class Call implements ICall {
     return component.event
   }
 
+  waitForRinging() {
+    return this.waitFor(CallState.Ringing)
+  }
+
+  waitForAnswered() {
+    return this.waitFor(CallState.Answered)
+  }
+
+  waitForEnding() {
+    return this.waitFor(CallState.Ending)
+  }
+
+  waitForEnded() {
+    return this.waitFor(CallState.Ended)
+  }
+
   /**
    * Registers a callback to dispatch when the 'event' occur.
    * @param event - Event to listen to.

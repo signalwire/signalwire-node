@@ -239,7 +239,7 @@ export default class Call implements ICall {
     return new ConnectAction(component)
   }
 
-  async waitFor(...events: string[]): Promise<Event> {
+  async waitFor(...events: string[]): Promise<boolean> {
     if (!events.length) {
       events = [CallState.Ended]
     }
@@ -247,14 +247,14 @@ export default class Call implements ICall {
     for (let i = 0; i < events.length; i++) {
       const index = CALL_STATES.indexOf(events[i])
       if (index <= currentStateIndex) {
-        return new Event(events[i], null)
+        return true
       }
     }
     const component = new Await(this)
     this._addComponent(component)
     await component._waitFor(...events)
 
-    return component.event
+    return component.successful
   }
 
   waitForRinging() {

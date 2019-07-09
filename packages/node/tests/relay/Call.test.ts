@@ -461,15 +461,13 @@ describe('Call', () => {
 
     })
 
-    describe('waitFor method', () => {
+    describe('waitFor methods', () => {
 
       beforeEach(Connection.mockResponse) // Force-consume mock request because waitFor does not make requests.
 
       it('it should wait for answered event', done => {
-        call.waitFor('answered').then(event => {
-          expect(event).toBeInstanceOf(Event)
-          expect(event.name).toBe('answered')
-          expect(event.payload).toEqual(_stateNotificationAnswered.params)
+        call.waitFor('answered').then(check => {
+          expect(check).toBe(true)
           done()
         })
         session.calling.notificationHandler(_stateNotificationAnswered)
@@ -477,29 +475,23 @@ describe('Call', () => {
 
       it('it should handle events already passed', done => {
         call.state = 'answered'
-        call.waitFor('ringing', 'answered').then(event => {
-          expect(event).toBeInstanceOf(Event)
-          expect(event.name).toBe('ringing')
-          expect(event.payload).toBe(null)
+        call.waitFor('ringing', 'answered').then(check => {
+          expect(check).toBe(true)
           done()
         })
       })
 
       it('it should wait for ended event', done => {
-        call.waitFor('ended').then(event => {
-          expect(event).toBeInstanceOf(Event)
-          expect(event.name).toBe('ended')
-          expect(event.payload).toEqual(_stateNotificationEnded.params)
+        call.waitFor('ended').then(check => {
+          expect(check).toBe(true)
           done()
         })
         session.calling.notificationHandler(_stateNotificationEnded)
       })
 
       it('it should handle events that will never arrive', done => {
-        call.waitFor('answered').then(event => {
-          expect(event).toBeInstanceOf(Event)
-          expect(event.name).toBe('ended')
-          expect(event.payload).toEqual(_stateNotificationEnded.params)
+        call.waitFor('answered').then(check => {
+          expect(check).toBe(false)
           done()
         })
         session.calling.notificationHandler(_stateNotificationEnded)

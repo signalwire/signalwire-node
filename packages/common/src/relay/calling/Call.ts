@@ -34,8 +34,8 @@ export default class Call implements ICall {
   public nodeId: string
   public state: string = CallState.None
   public prevState: string = CallState.None
-  public failed: boolean
-  public busy: boolean
+  public failed: boolean = false
+  public busy: boolean = false
 
   private _cbQueue: { [state: string]: Function } = {}
   private _components: BaseComponent[] = []
@@ -239,7 +239,7 @@ export default class Call implements ICall {
     return new ConnectAction(component)
   }
 
-  async waitFor(...events: string[]): Promise<Event> {
+  async waitFor(...events: string[]): Promise<boolean> {
     if (!events.length) {
       events = [CallState.Ended]
     }
@@ -247,14 +247,30 @@ export default class Call implements ICall {
     for (let i = 0; i < events.length; i++) {
       const index = CALL_STATES.indexOf(events[i])
       if (index <= currentStateIndex) {
-        return new Event(events[i], null)
+        return true
       }
     }
     const component = new Await(this)
     this._addComponent(component)
     await component._waitFor(...events)
 
-    return component.event
+    return component.successful
+  }
+
+  waitForRinging() {
+    return this.waitFor(CallState.Ringing)
+  }
+
+  waitForAnswered() {
+    return this.waitFor(CallState.Answered)
+  }
+
+  waitForEnding() {
+    return this.waitFor(CallState.Ending)
+  }
+
+  waitForEnded() {
+    return this.waitFor(CallState.Ended)
   }
 
   /**
@@ -279,14 +295,16 @@ export default class Call implements ICall {
     return this
   }
 
-  _stateChange(params: { call_state: string }) {
-    const { call_state } = params
+  _stateChange(params: { call_state: string, end_reason?: string }) {
+    const { call_state, end_reason } = params
     this.prevState = this.state
     this.state = call_state
     this._notifyComponents(CallNotification.State, this.tag, params)
     this._dispatchCallback('stateChange')
     this._dispatchCallback(call_state)
     if (this.state === CallState.Ended) {
+      this.busy = end_reason === DisconnectReason.Busy
+      this.failed = end_reason === DisconnectReason.Error
       this._terminateComponents(params)
       this.relayInstance.removeCall(this)
     }

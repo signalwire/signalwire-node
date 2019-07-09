@@ -56,7 +56,7 @@ describe('Helpers functions', () => {
 
     describe('on a signalwire space', () => {
       it('should add wss protocol and suffix if not present', () => {
-        expect(checkWebSocketHost('example.signalwire.com')).toEqual('wss://example.signalwire.com')
+        expect(checkWebSocketHost('example.signalwire.com')).toEqual('wss://example.signalwire.com:443/api/relay/wss')
       })
 
       it('should dont add suffix if its already specified', () => {

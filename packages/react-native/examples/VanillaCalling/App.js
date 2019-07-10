@@ -7,7 +7,7 @@
  */
 
 import React, { Component } from 'react';
-import { TouchableOpacity, StyleSheet, Text, View, TextInput, KeyboardAvoidingView } from 'react-native';
+import { TouchableOpacity, StyleSheet, Text, View, TextInput, KeyboardAvoidingView, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { Relay } from '@signalwire/react-native';
 import { RTCView } from 'react-native-webrtc';
@@ -42,7 +42,6 @@ export default class App extends Component<Props> {
       project: '',
       token: ''
     })
-    this.client.__logger.setLevel(1)
 
     this.client.on('signalwire.ready', () => {
       this.setState({ connected: true })
@@ -113,9 +112,25 @@ export default class App extends Component<Props> {
 
   _handleCallUpdate(call) {
     switch (call.state) {
-      case 'ringing':
-        call.answer()
+      case 'ringing': {
+        const { remoteCallerName, remoteCallerNumber } = call.options
+        const caller = remoteCallerName || remoteCallerNumber
+        Alert.alert('Inbound Call', `Call from ${caller}`,
+          [
+            {
+              text: 'Reject',
+              onPress: () => call.hangup(),
+              style: 'cancel'
+            },
+            {
+              text: 'Answer',
+              onPress: () => call.answer()
+            }
+          ],
+          { cancelable: false }
+        );
         break
+      }
       case 'active':
         this.setState({ call })
         break

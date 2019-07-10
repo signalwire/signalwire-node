@@ -1,6 +1,6 @@
 {
   "name": "@signalwire/node",
-  "version": "2.0.0-rc.1",
+  "version": "2.0.0-rc.2",
   "description": "Client library for connecting to SignalWire.",
   "author": "SignalWire Team <open.source@signalwire.com>",
   "main": "dist/node/index.js",
@@ -38,7 +38,7 @@
     "dotenv": "^6.2.0",
     "faye-websocket": "^0.11.1",
     "loglevel": "^1.6.1",
-    "twilio": "^3.28.0",
+    "twilio": "3.29.2",
     "@types/twilio": "0.0.10",
     "uuid": "^3.3.2"
   },
@@ -52,7 +52,7 @@
     "ts-jest": "^24.0.0",
     "ts-loader": "^5.3.3",
     "tslint": "^5.12.1",
-    "typescript": "^3.3.3",
+    "typescript": "~3.4.3",
     "graphql": "^0.12.0"
   }
 }

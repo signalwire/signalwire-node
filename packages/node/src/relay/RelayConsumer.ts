@@ -56,10 +56,10 @@ export default class RelayConsumer {
     })
 
     this.client.on('signalwire.ready', async (client: RelayClient) => {
-      try {
-        await this._registerCallingContexts()
-      } catch (error) {
-        logger.error('RelayConsumer error registering contexts:', error)
+      if (this.contexts.length && isFunction(this.onIncomingCall)) {
+        await client.calling.onInbound(this.contexts, this.onIncomingCall).catch(error => {
+          logger.error(`Error registering contexts: [${error.code}] ${error.message}`)
+        })
       }
       if (isFunction(this.ready)) {
         this.ready(this)
@@ -67,15 +67,5 @@ export default class RelayConsumer {
     })
 
     await this.client.connect()
-  }
-
-  private async _registerCallingContexts() {
-    if (!isFunction(this.onIncomingCall)) {
-      return null
-    }
-    const promises = this.contexts.map(context => this.client.calling.onInbound(context, this.onIncomingCall))
-    const results = await Promise.all(promises)
-    results.forEach(res => logger.info(res.message))
-    return results
   }
 }

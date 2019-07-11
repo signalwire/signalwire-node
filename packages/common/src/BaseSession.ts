@@ -226,6 +226,7 @@ export default abstract class BaseSession {
       this.master_nodeid = master_nodeid
       this._emptyExecuteQueues()
       trigger(SwEvent.Ready, this, this.uuid)
+      logger.info('Session Ready!')
     }
   }
 

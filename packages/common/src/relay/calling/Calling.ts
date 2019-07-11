@@ -52,18 +52,23 @@ export default class Calling extends Relay {
     return result
   }
 
-  async onInbound(context: string, handler: Function) {
-    if (!context || !isFunction(handler)) {
-      throw new Error(`Invalid parameters for 'onInbound'.`)
+  async onInbound(contexts: string | string[], handler: Function) {
+    if (typeof contexts === 'string') { // backwards compat: force to string[]
+      contexts = [contexts]
+    }
+    if (!contexts.length || !isFunction(handler)) {
+      logger.warn('Invalid parameters for calling onInbound. "contexts" and "handler" required.')
+      return
     }
     const msg = new Execute({
       protocol: this.session.relayProtocol,
       method: 'call.receive',
-      params: { context }
+      params: { contexts }
     })
 
     const response: any = await this.session.execute(msg)
-    register(this.session.relayProtocol, handler, _ctxUniqueId(context))
+    contexts.forEach(context => register(this.session.relayProtocol, handler, _ctxUniqueId(context)))
+    logger.info(response.message)
     return response
   }
 

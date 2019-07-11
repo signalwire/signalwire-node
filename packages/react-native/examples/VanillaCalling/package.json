@@ -9,6 +9,8 @@
   "dependencies": {
     "@react-native-community/async-storage": "^1.5.1",
     "@signalwire/react-native": "^1.0.0",
+    "braces": ">=2.3.1",
+    "mem": ">=4.0.0",
     "react": "16.8.3",
     "react-native": "0.59.9",
     "react-native-incall-manager": "^3.2.4",

@@ -1,11 +1,10 @@
 import { v4 as uuidv4 } from 'uuid'
 import logger from '../../util/logger'
 import { Execute } from '../../messages/Blade'
-import { CallState, DisconnectReason, DEFAULT_CALL_TIMEOUT, CallNotification, CallRecordState, CallPlayState, CallPromptState, CallConnectState, CALL_STATES } from '../../util/constants/relay'
+import { CallState, DisconnectReason, DEFAULT_CALL_TIMEOUT, CallNotification, CallRecordState, CallPlayState, CallPromptState, CallConnectState, CALL_STATES, CallFaxState } from '../../util/constants/relay'
 import { ICall, ICallOptions, ICallDevice, IMakeCallParams, ICallingPlay, ICallingCollect, DeepArray } from '../../util/interfaces'
 import { reduceConnectParams } from '../helpers'
 import Calling from './Calling'
-import Event from './Event'
 import { isFunction } from '../../util/helpers'
 import BaseComponent from './components/BaseComponent'
 import Dial from './components/Dial'
@@ -27,6 +26,10 @@ import ConnectResult from './results/ConnectResult'
 import ConnectAction from './actions/ConnectAction'
 import DialResult from './results/DialResult'
 import Await from './components/Await'
+import FaxReceive from './components/FaxReceive'
+import FaxResult from './results/FaxResult'
+import FaxAction from './actions/FaxAction'
+import FaxSend from './components/FaxSend'
 
 export default class Call implements ICall {
   public id: string
@@ -273,6 +276,38 @@ export default class Call implements ICall {
     return this.waitFor(CallState.Ended)
   }
 
+  async faxReceive(): Promise<FaxResult> {
+    const component = new FaxReceive(this)
+    this._addComponent(component)
+    await component._waitFor(CallFaxState.Error, CallFaxState.Finished)
+
+    return new FaxResult(component)
+  }
+
+  async faxReceiveAsync(): Promise<FaxAction> {
+    const component = new FaxReceive(this)
+    this._addComponent(component)
+    await component.execute()
+
+    return new FaxAction(component)
+  }
+
+  async faxSend(document: string, identity: string = null, header: string = null): Promise<FaxResult> {
+    const component = new FaxSend(this, document, identity, header)
+    this._addComponent(component)
+    await component._waitFor(CallFaxState.Error, CallFaxState.Finished)
+
+    return new FaxResult(component)
+  }
+
+  async faxSendAsync(document: string, identity: string = null, header: string = null): Promise<FaxAction> {
+    const component = new FaxSend(this, document, identity, header)
+    this._addComponent(component)
+    await component.execute()
+
+    return new FaxAction(component)
+  }
+
   /**
    * Registers a callback to dispatch when the 'event' occur.
    * @param event - Event to listen to.
@@ -332,6 +367,14 @@ export default class Call implements ICall {
   _collectChange(params: any) {
     this._notifyComponents(CallNotification.Collect, params.control_id, params)
     this._dispatchCallback('collect', params)
+  }
+
+  _faxChange(params: any) {
+    this._notifyComponents(CallNotification.Fax, params.control_id, params)
+    this._dispatchCallback('fax.stateChange', params)
+    if (params.fax && params.fax.type) {
+      this._dispatchCallback(`fax.${params.fax.type}`, params)
+    }
   }
 
   private _notifyComponents(eventType: string, controlId: string, params: any): void {

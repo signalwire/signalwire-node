@@ -15,7 +15,9 @@ import PromptAction from '../../../common/src/relay/calling/actions/PromptAction
 import ConnectResult from '../../../common/src/relay/calling/results/ConnectResult'
 import ConnectAction from '../../../common/src/relay/calling/actions/ConnectAction'
 import DialResult from '../../../common/src/relay/calling/results/DialResult'
-import Event from '../../../common/src/relay/calling/Event'
+// import Event from '../../../common/src/relay/calling/Event'
+import FaxResult from '../../../common/src/relay/calling/results/FaxResult'
+import FaxAction from '../../../common/src/relay/calling/actions/FaxAction'
 jest.mock('../../../common/src/services/Connection')
 
 describe('Call', () => {
@@ -116,6 +118,7 @@ describe('Call', () => {
     const _connectNotificationPeerCreated = JSON.parse('{"event_type":"calling.call.state","params":{"call_state":"created","direction":"outbound","device":{"type":"phone","params":{"from_number":"+1234","to_number":"15678"}},"peer":{"call_id":"call-id","node_id":"node-id"},"call_id":"peer-call-id","node_id":"peer-node-id"}}')
     const _playNotification = JSON.parse(`{"event_type":"calling.call.play","params":{"control_id":"mocked-uuid","call_id":"call-id","node_id":"node-id","state":"finished"}}`)
     const _collectNotification = JSON.parse(`{"event_type":"calling.call.collect","params":{"control_id":"mocked-uuid","call_id":"call-id","node_id":"node-id","result":{"type":"digit","params":{"digits":"12345","terminator":"#"}}}}`)
+    const _faxNotificationFinished = JSON.parse('{"event_type":"calling.call.fax","params":{"control_id":"mocked-uuid","call_id":"call-id","node_id":"node-id","fax":{"type":"finished","params":{"direction":"send","identity":"+1xxx","remote_identity":"+1yyy","document":"file.pdf","success":true,"result":"1231","result_text":"","pages":"1"}}}}')
 
     beforeEach(() => {
       call.id = 'call-id'
@@ -498,6 +501,64 @@ describe('Call', () => {
       })
     })
 
+    describe('faxReceive methods', () => {
+      const getMsg = () => new Execute({
+        protocol: 'signalwire_service_random_uuid',
+        method: 'call.receive_fax',
+        params: { node_id: call.nodeId, call_id: call.id, control_id: 'mocked-uuid' }
+      })
+
+      it('.faxReceive() should wait until the playing ends', done => {
+        call.faxReceive().then(result => {
+          expect(result).toBeInstanceOf(FaxResult)
+          expect(result.successful).toBe(true)
+          expect(Connection.mockSend).nthCalledWith(1, getMsg())
+          done()
+        })
+        session.calling.notificationHandler(_faxNotificationFinished)
+      })
+
+      it('.faxReceiveAsync() should return a FaxAction for async control', async done => {
+        const action = await call.faxReceiveAsync()
+        expect(action).toBeInstanceOf(FaxAction)
+        expect(action.completed).toBe(false)
+        expect(Connection.mockSend).nthCalledWith(1, getMsg())
+        session.calling.notificationHandler(_faxNotificationFinished)
+        expect(action.completed).toBe(true)
+        done()
+      })
+
+    })
+
+    describe('faxSend methods', () => {
+      const getMsg = () => new Execute({
+        protocol: 'signalwire_service_random_uuid',
+        method: 'call.send_fax',
+        params: { node_id: call.nodeId, call_id: call.id, control_id: 'mocked-uuid', document: 'document.pdf', header_info: 'custom' }
+      })
+
+      it('.faxSend() should wait until the playing ends', done => {
+        call.faxSend('document.pdf', null, 'custom').then(result => {
+          expect(result).toBeInstanceOf(FaxResult)
+          expect(result.successful).toBe(true)
+          expect(Connection.mockSend).nthCalledWith(1, getMsg())
+          done()
+        })
+        session.calling.notificationHandler(_faxNotificationFinished)
+      })
+
+      it('.faxSendAsync() should return a FaxAction for async control', async done => {
+        const action = await call.faxSendAsync('document.pdf', null, 'custom')
+        expect(action).toBeInstanceOf(FaxAction)
+        expect(action.completed).toBe(false)
+        expect(Connection.mockSend).nthCalledWith(1, getMsg())
+        session.calling.notificationHandler(_faxNotificationFinished)
+        expect(action.completed).toBe(true)
+        done()
+      })
+
+    })
+
   })
 
   describe('with fail response code not 200', () => {
@@ -706,6 +767,58 @@ describe('Call', () => {
         expect(action).toBeInstanceOf(PromptAction)
         expect(action.completed).toBe(true)
         expect(Connection.mockSend).nthCalledWith(1, getMsg(audio))
+        done()
+      })
+
+    })
+
+    describe('faxReceive methods', () => {
+      const getMsg = () => new Execute({
+        protocol: 'signalwire_service_random_uuid',
+        method: 'call.receive_fax',
+        params: { node_id: call.nodeId, call_id: call.id, control_id: 'mocked-uuid' }
+      })
+
+      it('.faxReceive() should wait until the playing ends', done => {
+        call.faxReceive().then(result => {
+          expect(result).toBeInstanceOf(FaxResult)
+          expect(result.successful).toBe(false)
+          expect(Connection.mockSend).nthCalledWith(1, getMsg())
+          done()
+        })
+      })
+
+      it('.faxReceiveAsync() should return a FaxAction for async control', async done => {
+        const action = await call.faxReceiveAsync()
+        expect(action).toBeInstanceOf(FaxAction)
+        expect(action.completed).toBe(true)
+        expect(Connection.mockSend).nthCalledWith(1, getMsg())
+        done()
+      })
+
+    })
+
+    describe('faxSend methods', () => {
+      const getMsg = () => new Execute({
+        protocol: 'signalwire_service_random_uuid',
+        method: 'call.send_fax',
+        params: { node_id: call.nodeId, call_id: call.id, control_id: 'mocked-uuid', document: 'document.pdf', header_info: 'custom' }
+      })
+
+      it('.faxSend() should wait until the playing ends', done => {
+        call.faxSend('document.pdf', null, 'custom').then(result => {
+          expect(result).toBeInstanceOf(FaxResult)
+          expect(result.successful).toBe(false)
+          expect(Connection.mockSend).nthCalledWith(1, getMsg())
+          done()
+        })
+      })
+
+      it('.faxSendAsync() should return a FaxAction for async control', async done => {
+        const action = await call.faxSendAsync('document.pdf', null, 'custom')
+        expect(action).toBeInstanceOf(FaxAction)
+        expect(action.completed).toBe(true)
+        expect(Connection.mockSend).nthCalledWith(1, getMsg())
         done()
       })
 

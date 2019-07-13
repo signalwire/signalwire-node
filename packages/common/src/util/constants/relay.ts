@@ -50,6 +50,10 @@ export enum CallNotification {
   Fax = 'calling.call.fax',
 }
 
+export enum TaskNotification {
+  Receive = 'tasking.task.receive',
+}
+
 export enum CallPlayState {
   Playing = 'playing',
   Error = 'error',

@@ -61,6 +61,9 @@ export default class RelayConsumer {
           logger.error(`Error registering contexts: [${error.code}] ${error.message}`)
         })
       }
+      if (this.contexts.length && isFunction(this.onTask)) {
+        this.contexts.forEach(context => client.tasking.onTask(context, this.onTask))
+      }
       if (isFunction(this.ready)) {
         this.ready(this)
       }

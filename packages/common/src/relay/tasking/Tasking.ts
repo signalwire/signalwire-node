@@ -11,7 +11,7 @@ export default class Tasking extends Relay {
     const { event_type, context, message } = notification
     switch (event_type) {
       case TaskNotification.Receive:
-        logger.info(`Receive task in context: ${context}`);
+        logger.info(`Receive task in context: ${context}`)
         trigger(this.session.relayProtocol, message, _ctxUniqueId(context))
         return
     }

@@ -60,7 +60,7 @@ describe('Calling', () => {
         call.tag = CALL_TAG
         call.on('stateChange', fnMock)
         call.on('created', fnMock)
-        const msg = JSON.parse('{"jsonrpc":"2.0","id":"fc2c53bb-0a58-495a-acae-8067d17c003b","method":"blade.broadcast","params":{"broadcaster_nodeid":"c8dc8b19-ef08-4569-XXXX-36978e36c9bd","protocol":"signalwire_service_random_uuid","channel":"notifications","event":"relay","params":{"event_type":"calling.call.state","event_channel":"signalwire_service_random_uuid","timestamp":1556036283.9593921,"project_id":"project","params":{"call_state":"created","direction":"outbound","device":{"type":"phone","params":{"from_number":"+12222222222","to_number":"+12222222223"}},"call_id":"0462e84a-2415-4599-bbf7-982d3c9bb310","node_id":"86e3fe27-955f-4bbf-XXXX-38d744578818","tag":"1ed7b040-812a-44b2-8dde-9f8adf6773af"}}}}')
+        const msg = JSON.parse('{"jsonrpc":"2.0","id":"fc2c53bb-0a58-495a-acae-8067d17c003b","method":"blade.broadcast","params":{"broadcaster_nodeid":"c8dc8b19-ef08-4569-XXXX-36978e36c9bd","protocol":"signalwire_service_random_uuid","channel":"notifications","event":"queuing.relay.events","params":{"event_type":"calling.call.state","event_channel":"signalwire_service_random_uuid","timestamp":1556036283.9593921,"project_id":"project","params":{"call_state":"created","direction":"outbound","device":{"type":"phone","params":{"from_number":"+12222222222","to_number":"+12222222223"}},"call_id":"0462e84a-2415-4599-bbf7-982d3c9bb310","node_id":"86e3fe27-955f-4bbf-XXXX-38d744578818","tag":"1ed7b040-812a-44b2-8dde-9f8adf6773af"}}}}')
         trigger(SwEvent.SocketMessage, msg, session.uuid)
 
         _commonExpect(call, 'created')
@@ -74,7 +74,7 @@ describe('Calling', () => {
         call.id = CALL_ID
         call.on('stateChange', fnMock)
         call.on('ringing', fnMock)
-        const msg = JSON.parse('{"jsonrpc":"2.0","id":"fc2c53bb-0a58-495a-acae-8067d17c003b","method":"blade.broadcast","params":{"broadcaster_nodeid":"c8dc8b19-ef08-4569-XXXX-36978e36c9bd","protocol":"signalwire_service_random_uuid","channel":"notifications","event":"relay","params":{"event_type":"calling.call.state","event_channel":"signalwire_service_random_uuid","timestamp":1556036283.9593921,"project_id":"project","params":{"call_state":"ringing","direction":"outbound","device":{"type":"phone","params":{"from_number":"+12222222222","to_number":"+12222222223"}},"call_id":"0462e84a-2415-4599-bbf7-982d3c9bb310","node_id":"86e3fe27-955f-4bbf-XXXX-38d744578818","tag":"1ed7b040-812a-44b2-8dde-9f8adf6773af"}}}}')
+        const msg = JSON.parse('{"jsonrpc":"2.0","id":"fc2c53bb-0a58-495a-acae-8067d17c003b","method":"blade.broadcast","params":{"broadcaster_nodeid":"c8dc8b19-ef08-4569-XXXX-36978e36c9bd","protocol":"signalwire_service_random_uuid","channel":"notifications","event":"queuing.relay.events","params":{"event_type":"calling.call.state","event_channel":"signalwire_service_random_uuid","timestamp":1556036283.9593921,"project_id":"project","params":{"call_state":"ringing","direction":"outbound","device":{"type":"phone","params":{"from_number":"+12222222222","to_number":"+12222222223"}},"call_id":"0462e84a-2415-4599-bbf7-982d3c9bb310","node_id":"86e3fe27-955f-4bbf-XXXX-38d744578818","tag":"1ed7b040-812a-44b2-8dde-9f8adf6773af"}}}}')
         trigger(SwEvent.SocketMessage, msg, session.uuid)
 
         _commonExpect(call, 'ringing')
@@ -86,7 +86,7 @@ describe('Calling', () => {
         call.id = CALL_ID
         call.on('stateChange', fnMock)
         call.on('answered', fnMock)
-        const msg = JSON.parse('{"jsonrpc":"2.0","id":"fc2c53bb-0a58-495a-acae-8067d17c003b","method":"blade.broadcast","params":{"broadcaster_nodeid":"c8dc8b19-ef08-4569-XXXX-36978e36c9bd","protocol":"signalwire_service_random_uuid","channel":"notifications","event":"relay","params":{"event_type":"calling.call.state","event_channel":"signalwire_service_random_uuid","timestamp":1556036283.9593921,"project_id":"project","params":{"call_state":"answered","direction":"outbound","device":{"type":"phone","params":{"from_number":"+12222222222","to_number":"+12222222223"}},"call_id":"0462e84a-2415-4599-bbf7-982d3c9bb310","node_id":"86e3fe27-955f-4bbf-XXXX-38d744578818","tag":"1ed7b040-812a-44b2-8dde-9f8adf6773af"}}}}')
+        const msg = JSON.parse('{"jsonrpc":"2.0","id":"fc2c53bb-0a58-495a-acae-8067d17c003b","method":"blade.broadcast","params":{"broadcaster_nodeid":"c8dc8b19-ef08-4569-XXXX-36978e36c9bd","protocol":"signalwire_service_random_uuid","channel":"notifications","event":"queuing.relay.events","params":{"event_type":"calling.call.state","event_channel":"signalwire_service_random_uuid","timestamp":1556036283.9593921,"project_id":"project","params":{"call_state":"answered","direction":"outbound","device":{"type":"phone","params":{"from_number":"+12222222222","to_number":"+12222222223"}},"call_id":"0462e84a-2415-4599-bbf7-982d3c9bb310","node_id":"86e3fe27-955f-4bbf-XXXX-38d744578818","tag":"1ed7b040-812a-44b2-8dde-9f8adf6773af"}}}}')
         trigger(SwEvent.SocketMessage, msg, session.uuid)
 
         _commonExpect(call, 'answered')
@@ -98,7 +98,7 @@ describe('Calling', () => {
         call.id = CALL_ID
         call.on('stateChange', fnMock)
         call.on('ending', fnMock)
-        const msg = JSON.parse('{"jsonrpc":"2.0","id":"fc2c53bb-0a58-495a-acae-8067d17c003b","method":"blade.broadcast","params":{"broadcaster_nodeid":"c8dc8b19-ef08-4569-XXXX-36978e36c9bd","protocol":"signalwire_service_random_uuid","channel":"notifications","event":"relay","params":{"event_type":"calling.call.state","event_channel":"signalwire_service_random_uuid","timestamp":1556036283.9593921,"project_id":"project","params":{"call_state":"ending","direction":"outbound","device":{"type":"phone","params":{"from_number":"+12222222222","to_number":"+12222222223"}},"call_id":"0462e84a-2415-4599-bbf7-982d3c9bb310","node_id":"86e3fe27-955f-4bbf-XXXX-38d744578818","tag":"1ed7b040-812a-44b2-8dde-9f8adf6773af"}}}}')
+        const msg = JSON.parse('{"jsonrpc":"2.0","id":"fc2c53bb-0a58-495a-acae-8067d17c003b","method":"blade.broadcast","params":{"broadcaster_nodeid":"c8dc8b19-ef08-4569-XXXX-36978e36c9bd","protocol":"signalwire_service_random_uuid","channel":"notifications","event":"queuing.relay.events","params":{"event_type":"calling.call.state","event_channel":"signalwire_service_random_uuid","timestamp":1556036283.9593921,"project_id":"project","params":{"call_state":"ending","direction":"outbound","device":{"type":"phone","params":{"from_number":"+12222222222","to_number":"+12222222223"}},"call_id":"0462e84a-2415-4599-bbf7-982d3c9bb310","node_id":"86e3fe27-955f-4bbf-XXXX-38d744578818","tag":"1ed7b040-812a-44b2-8dde-9f8adf6773af"}}}}')
         trigger(SwEvent.SocketMessage, msg, session.uuid)
 
         _commonExpect(call, 'ending')
@@ -110,7 +110,7 @@ describe('Calling', () => {
         call.id = CALL_ID
         call.on('stateChange', fnMock)
         call.on('ended', fnMock)
-        const msg = JSON.parse('{"jsonrpc":"2.0","id":"fc2c53bb-0a58-495a-acae-8067d17c003b","method":"blade.broadcast","params":{"broadcaster_nodeid":"c8dc8b19-ef08-4569-XXXX-36978e36c9bd","protocol":"signalwire_service_random_uuid","channel":"notifications","event":"relay","params":{"event_type":"calling.call.state","event_channel":"signalwire_service_random_uuid","timestamp":1556036283.9593921,"project_id":"project","params":{"call_state":"ended","direction":"outbound","device":{"type":"phone","params":{"from_number":"+12222222222","to_number":"+12222222223"}},"call_id":"0462e84a-2415-4599-bbf7-982d3c9bb310","node_id":"86e3fe27-955f-4bbf-XXXX-38d744578818","tag":"1ed7b040-812a-44b2-8dde-9f8adf6773af"}}}}')
+        const msg = JSON.parse('{"jsonrpc":"2.0","id":"fc2c53bb-0a58-495a-acae-8067d17c003b","method":"blade.broadcast","params":{"broadcaster_nodeid":"c8dc8b19-ef08-4569-XXXX-36978e36c9bd","protocol":"signalwire_service_random_uuid","channel":"notifications","event":"queuing.relay.events","params":{"event_type":"calling.call.state","event_channel":"signalwire_service_random_uuid","timestamp":1556036283.9593921,"project_id":"project","params":{"call_state":"ended","direction":"outbound","device":{"type":"phone","params":{"from_number":"+12222222222","to_number":"+12222222223"}},"call_id":"0462e84a-2415-4599-bbf7-982d3c9bb310","node_id":"86e3fe27-955f-4bbf-XXXX-38d744578818","tag":"1ed7b040-812a-44b2-8dde-9f8adf6773af"}}}}')
         trigger(SwEvent.SocketMessage, msg, session.uuid)
 
         _commonExpect(call, 'ended')
@@ -166,7 +166,7 @@ describe('Calling', () => {
     it('should handle the calling.call.receive notification', async done => {
       const fnMock = jest.fn()
       await session.calling.onInbound('context', fnMock)
-      const msg = JSON.parse('{"id":"a16dae67-212b-4391-bb78-a0b9e45310b9","jsonrpc":"2.0","method":"blade.broadcast","params":{"broadcaster_nodeid":"9811eb32-1234-1234-1234-ab56fa3b83c9","channel":"notifications","event":"relay","params":{"event_channel":"signalwire_service_random_uuid","event_type":"calling.call.receive","params":{"call_id":"849982ab-1234-5678-1234-311534fa20d6","call_state":"created","context":"context","device":{"params":{"from_number":"+12222222222","to_number":"+12222222223"},"type":"phone"},"node_id":"9811eb32-1234-5678-XXXX-ab56fa3b83c9"},"project_id":"project","space_id":"space","timestamp":1149889452.302629},"protocol":"signalwire_service_random_uuid"}}')
+      const msg = JSON.parse('{"id":"a16dae67-212b-4391-bb78-a0b9e45310b9","jsonrpc":"2.0","method":"blade.broadcast","params":{"broadcaster_nodeid":"9811eb32-1234-1234-1234-ab56fa3b83c9","channel":"notifications","event":"queuing.relay.events","params":{"event_channel":"signalwire_service_random_uuid","event_type":"calling.call.receive","params":{"call_id":"849982ab-1234-5678-1234-311534fa20d6","call_state":"created","context":"context","device":{"params":{"from_number":"+12222222222","to_number":"+12222222223"},"type":"phone"},"node_id":"9811eb32-1234-5678-XXXX-ab56fa3b83c9"},"project_id":"project","space_id":"space","timestamp":1149889452.302629},"protocol":"signalwire_service_random_uuid"}}')
       trigger(SwEvent.SocketMessage, msg, session.uuid)
       expect(fnMock).toHaveBeenCalledTimes(1)
       expect(fnMock).toBeCalledWith(expect.any(Call))

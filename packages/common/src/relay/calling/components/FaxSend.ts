@@ -17,7 +17,7 @@ export default class FaxSend extends BaseFax {
   }
 
   get payload(): any {
-    let payload: any = {
+    const payload: any = {
       node_id: this.call.nodeId,
       call_id: this.call.id,
       control_id: this.controlId,

@@ -47,10 +47,17 @@ export enum CallNotification {
   Record = 'calling.call.record',
   Play = 'calling.call.play',
   Collect = 'calling.call.collect',
+  Fax = 'calling.call.fax',
 }
 
 export enum CallPlayState {
   Playing = 'playing',
+  Error = 'error',
+  Finished = 'finished',
+}
+
+export enum CallFaxState {
+  Page = 'page',
   Error = 'error',
   Finished = 'finished',
 }

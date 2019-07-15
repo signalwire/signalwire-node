@@ -25,6 +25,7 @@ export default function BroadcastHandler(session: any, broadcastParams: any): vo
     case CallNotification.Record:
     case CallNotification.Play:
     case CallNotification.Collect:
+    case CallNotification.Fax:
       session.calling.notificationHandler(params)
       break
     case 'webrtc.message':

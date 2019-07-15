@@ -28,6 +28,8 @@ export default class Calling extends Relay {
         return this._onPlay(params)
       case CallNotification.Collect:
         return this._onCollect(params)
+      case CallNotification.Fax:
+        return this._onFax(params)
     }
   }
 
@@ -171,6 +173,18 @@ export default class Calling extends Relay {
     const call = this.getCallById(params.call_id)
     if (call) {
       call._collectChange(params)
+    }
+  }
+
+  /**
+   * Handle calling.call.fax notification params
+   * @param params - Inner params of calling.call.fax notification
+   * @return void
+   */
+  private _onFax(params: any): void {
+    const call = this.getCallById(params.call_id)
+    if (call) {
+      call._faxChange(params)
     }
   }
 }

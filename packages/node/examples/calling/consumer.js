@@ -26,6 +26,17 @@ const consumer = new RelayConsumer({
       await call.playTTS({ text: 'Errors during prompt.' })
     }
     await call.hangup()
+
+    // - Handle Fax Receive
+    // const result = await call.faxReceive()
+    // if (result.successful) {
+    //   console.log('getDirection: ', result.direction)
+    //   console.log('getIdentity: ', result.identity)
+    //   console.log('getRemoteIdentity: ', result.remoteIdentity)
+    //   console.log('getDocument: ', result.document)
+    //   console.log('getPages: ', result.pages)
+    //   console.log('event: ', result.event)
+    // }
   }
 })
 

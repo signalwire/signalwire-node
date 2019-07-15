@@ -17,7 +17,7 @@ export default class Task {
         host: this.host,
         port: 443,
         method: 'POST',
-        path: '/api/relay/rest/tasksaa',
+        path: '/api/relay/rest/tasks',
         headers: {
           'Authorization': 'Basic ' + Buffer.from(`${this.project}:${this.token}`).toString('base64'),
           'Content-Type': 'application/json',

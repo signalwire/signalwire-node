@@ -17,7 +17,7 @@ client.on('signalwire.ready', async (client) => {
     return
   }
 
-  const result = await call.faxSend('https://www.antennahouse.com/XSLsample/pdf-v32/Sample-multi-pdf3.pdf')
+  const result = await call.faxSend('https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf')
   if (result.successful) {
     console.log('getDirection: ', result.direction)
     console.log('getIdentity: ', result.identity)

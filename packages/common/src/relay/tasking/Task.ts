@@ -6,7 +6,7 @@ export default class Task {
 
   constructor(public project: string, public token: string) {
     if (!project || !token) {
-      throw new Error("Invalid options: project and token required!")
+      throw new Error('Invalid options: project and token required!')
     }
   }
 

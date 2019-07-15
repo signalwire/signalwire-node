@@ -4,36 +4,34 @@ export default class Task {
 
   public host: string = 'relay.signalwire.com'
 
-  constructor(public project: string, public token: string) {}
+  constructor(public project: string, public token: string) {
+    if (!project || !token) {
+      throw new Error("Invalid options: project and token required!")
+    }
+  }
 
   deliver(context: string, message: any) {
-    const data = JSON.stringify({ context, message })
-    const options = {
-      host: this.host,
-      port: 443,
-      path: '/api/relay/private/tasks',
-      headers: {
-        'Authorization': 'Basic ' + new Buffer(`${this.project}:${this.token}`).toString('base64'),
-        'Content-Type': 'application/json',
-        'Content-Length': data.length
+    return new Promise((resolve, reject) => {
+      const data = JSON.stringify({ context, message })
+      const options = {
+        host: this.host,
+        port: 443,
+        method: 'POST',
+        path: '/api/relay/rest/tasksaa',
+        headers: {
+          'Authorization': 'Basic ' + Buffer.from(`${this.project}:${this.token}`).toString('base64'),
+          'Content-Type': 'application/json',
+          'Content-Length': data.length
+        }
       }
-    };
-    const req = request(options, (res) => {
-      console.log(`statusCode: ${res.statusCode}`)
-      const chunks = []
-      res.on('data', chunk => chunks.push(chunk))
-      res.on('end', () => {
-        console.log('chunks', chunks.length)
-        const body = Buffer.concat(chunks).toString()
-        console.log('body:', JSON.parse(JSON.parse(body).data))
+      const req = request(options, ({ statusCode }) => {
+        statusCode === 204 ? resolve() : reject()
       })
-    })
 
-    req.on('error', (error) => {
-      console.error(error)
-    })
+      req.on('error', reject)
 
-    req.write(data)
-    req.end()
+      req.write(data)
+      req.end()
+    })
   }
 }

@@ -22,6 +22,7 @@ export default abstract class BaseSession {
 
   protected connection: Connection = null
   protected _jwtAuth: boolean = false
+  protected _reconnectDelay: number = 5000
 
   private _idle: boolean = false
   private _executeQueue: { resolve?: Function, msg: any}[] = []
@@ -241,7 +242,7 @@ export default abstract class BaseSession {
       this.expiresAt = 0
     }
     if (this._autoReconnect) {
-      setTimeout(() => this.connect(), 1000)
+      setTimeout(() => this.connect(), this._reconnectDelay)
     }
   }
 

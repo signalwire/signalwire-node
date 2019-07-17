@@ -23,10 +23,10 @@ export default abstract class BaseSession {
   protected connection: Connection = null
   protected _jwtAuth: boolean = false
   protected _reconnectDelay: number = 5000
+  protected _autoReconnect: boolean = false
 
   private _idle: boolean = false
   private _executeQueue: { resolve?: Function, msg: any}[] = []
-  private _autoReconnect: boolean = false
 
   constructor(public options: ISignalWireOptions) {
     if (!this.validateOptions()) {

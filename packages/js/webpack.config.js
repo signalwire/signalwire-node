@@ -1,4 +1,5 @@
 const webpack = require('webpack')
+const VERSION = require('./package.json').version
 
 module.exports = (env, argv) => {
   const outputDir = __dirname + '/dist'
@@ -40,6 +41,9 @@ module.exports = (env, argv) => {
         'process.env': {
           NODE_ENV: mode,
         }
+      }),
+      new webpack.BannerPlugin({
+        banner: `Relay SDK for JavaScript v${VERSION} (https://signalwire.com)\nCopyright 2018-2019 SignalWire\nLicensed under MIT(https://github.com/signalwire/signalwire-node/blob/master/LICENSE)`
       })
     ]
   }

@@ -44,6 +44,7 @@ export default class Verto extends BrowserSession {
     const msg = new Login(login, (password || passwd), this.sessionid, userVariables)
     const response = await this.execute(msg).catch(this._handleLoginError)
     if (response) {
+      this._autoReconnect = true
       this.sessionid = response.sessid
       localStorage.setItem(SESSION_ID, this.sessionid)
       trigger(SwEvent.Ready, this, this.uuid)

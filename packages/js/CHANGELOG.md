@@ -27,6 +27,10 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Security
 - Update dependencies
 
+## [1.1.2] - 2019-07-17
+### Fixed
+- Fix reconnection logic on Verto client.
+
 ## [1.1.1] - 2019-06-26
 ### Fixed
 - Update Call.localStream if microphone or webcam has changed.

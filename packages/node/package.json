@@ -35,11 +35,12 @@
   "homepage": "https://github.com/signalwire/signalwire-node",
   "license": "MIT",
   "dependencies": {
+    "@types/twilio": "0.0.10",
     "dotenv": "^6.2.0",
     "faye-websocket": "^0.11.1",
     "loglevel": "^1.6.1",
+    "nock": "^10.0.6",
     "twilio": "3.29.2",
-    "@types/twilio": "0.0.10",
     "uuid": "^3.3.2"
   },
   "devDependencies": {

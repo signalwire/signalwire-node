@@ -11,6 +11,9 @@ const consumer = new RelayConsumer({
   teardown: (consumer) => {
     console.log('teardown now and close.')
   },
+  onTask: async (message) => {
+    console.log('New task:', message)
+  },
   onIncomingCall: async (call) => {
     console.log('Inbound call', call.id, call.from, call.to)
     const answerResult = await call.answer()

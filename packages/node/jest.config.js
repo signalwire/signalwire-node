@@ -14,7 +14,6 @@ module.exports = {
   },
   testEnvironment: 'node',
   setupFiles: [
-    '<rootDir>/common/tests/setup/browsers.ts',
     '<rootDir>/common/tests/setup/connection.ts'
   ]
 }

@@ -3,6 +3,10 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+### Added
+- Create your own Relay Tasks and enable `onTask` method on RelayConsumer to receive/handle them.
+
 ## [2.0.0] - 2019-07-16
 ### Added
 - Add support for faxing. New call methods: `faxReceive`, `faxReceiveAsync`, `faxSend`, `faxSendAsync`.

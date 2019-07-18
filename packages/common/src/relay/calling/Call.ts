@@ -1,8 +1,8 @@
 import { v4 as uuidv4 } from 'uuid'
 import logger from '../../util/logger'
 import { Execute } from '../../messages/Blade'
-import { CallState, DisconnectReason, DEFAULT_CALL_TIMEOUT, CallNotification, CallRecordState, CallPlayState, CallPromptState, CallConnectState, CALL_STATES, CallFaxState, CallDetectState } from '../../util/constants/relay'
-import { ICall, ICallOptions, ICallDevice, IMakeCallParams, ICallingPlay, ICallingCollect, DeepArray } from '../../util/interfaces'
+import { CallState, DisconnectReason, DEFAULT_CALL_TIMEOUT, CallNotification, CallRecordState, CallPlayState, CallPromptState, CallConnectState, CALL_STATES, CallFaxState, CallDetectState, CallDetectType } from '../../util/constants/relay'
+import { ICall, ICallOptions, ICallDevice, IMakeCallParams, ICallingPlay, ICallingCollect, DeepArray, ICallingDetect } from '../../util/interfaces'
 import { reduceConnectParams } from '../helpers'
 import Calling from './Calling'
 import { isFunction } from '../../util/helpers'
@@ -30,6 +30,9 @@ import FaxReceive from './components/FaxReceive'
 import FaxResult from './results/FaxResult'
 import FaxAction from './actions/FaxAction'
 import FaxSend from './components/FaxSend'
+import Detect from './components/Detect'
+import DetectResult from './results/DetectResult'
+import DetectAction from './actions/DetectAction'
 
 export default class Call implements ICall {
   public id: string
@@ -306,6 +309,52 @@ export default class Call implements ICall {
     await component.execute()
 
     return new FaxAction(component)
+  }
+
+  async detect(type: string, params: ICallingDetect['params'] = {}, timeout: number = null): Promise<DetectResult> {
+    const detect: ICallingDetect = { type, params }
+    const component = new Detect(this, detect, timeout)
+    this._addComponent(component)
+    await component._waitFor(CallFaxState.Error, CallFaxState.Finished)
+
+    return new DetectResult(component)
+  }
+
+  async detectAsync(type: string, params: ICallingDetect['params'] = {}, timeout: number = null): Promise<DetectAction> {
+    const detect: ICallingDetect = { type, params }
+    const component = new Detect(this, detect, timeout)
+    this._addComponent(component)
+    await component.execute()
+
+    return new DetectAction(component)
+  }
+
+  async detectMachine(params: ICallingDetect['params'] = {}, timeout: number = null): Promise<DetectResult> {
+    return this.detect(CallDetectType.Machine, params, timeout)
+  }
+
+  async detectMachineAsync(params: ICallingDetect['params'] = {}, timeout: number = null): Promise<DetectAction> {
+    return this.detectAsync(CallDetectType.Machine, params, timeout)
+  }
+
+  async detectFax(tone: string = null, timeout: number = null): Promise<DetectResult> {
+    const params = tone ? { tone } : {}
+    return this.detect(CallDetectType.Fax, params, timeout)
+  }
+
+  async detectFaxAsync(tone: string = null, timeout: number = null): Promise<DetectAction> {
+    const params = tone ? { tone } : {}
+    return this.detectAsync(CallDetectType.Fax, params, timeout)
+  }
+
+  async detectDigit(digits: string = null, timeout: number = null): Promise<DetectResult> {
+    const params = digits ? { digits } : {}
+    return this.detect(CallDetectType.Digit, params, timeout)
+  }
+
+  async detectDigitAsync(digits: string = null, timeout: number = null): Promise<DetectAction> {
+    const params = digits ? { digits } : {}
+    return this.detectAsync(CallDetectType.Digit, params, timeout)
   }
 
   /**

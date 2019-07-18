@@ -4,12 +4,14 @@ import { CallNotification, CallDetectState } from '../../../util/constants/relay
 import Call from '../Call'
 import Event from '../Event'
 
-export default class Prompt extends Controllable {
+export default class Detect extends Controllable {
   public eventType: string = CallNotification.Detect
   public controlId: string = this.controlId
 
   public type: string
   public result: string
+
+  protected _eventsToWait: string[] = [CallDetectState.Error, CallDetectState.Finished]
 
   private _events: string[] = []
 
@@ -44,17 +46,16 @@ export default class Prompt extends Controllable {
 
     this.type = type
     this.state = event
-    this.completed = [CallDetectState.Finished, CallDetectState.Error].includes(event)
+    this.completed = this._eventsToWait.includes(this.state)
     if (this.completed) {
-      this.successful = this.state === CallDetectState.Finished
+      this.successful = this.state !== CallDetectState.Error
       this.result = this._events.join('')
       this.event = new Event(this.state, detect)
+      if (this._hasBlocker()) {
+        this.blocker.resolve()
+      }
     } else {
       this._events.push(event)
-    }
-
-    if (this._hasBlocker() && this._eventsToWait.includes(this.state)) {
-      this.blocker.resolve()
     }
   }
 }

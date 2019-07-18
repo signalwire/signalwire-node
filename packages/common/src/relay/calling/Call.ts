@@ -316,7 +316,7 @@ export default class Call implements ICall {
     const detect: ICallingDetect = { type, params }
     const component = new Detect(this, detect, timeout)
     this._addComponent(component)
-    await component._waitFor(CallFaxState.Error, CallFaxState.Finished)
+    await component._waitFor(CallDetectState.Error, CallDetectState.Finished)
 
     return new DetectResult(component)
   }
@@ -331,7 +331,26 @@ export default class Call implements ICall {
     return new DetectAction(component)
   }
 
-  // TODO: detectHuman
+  async detectHuman(params: ICallingDetect['params'] = {}, timeout: number = null): Promise<DetectResult> {
+    params = params || {}
+    const detect: ICallingDetect = { type: CallDetectType.Machine, params }
+    const component = new Detect(this, detect, timeout)
+    this._addComponent(component)
+    await component._waitFor(CallDetectState.Human, CallDetectState.Error, CallDetectState.Finished)
+
+    return new DetectResult(component)
+  }
+
+  async detectHumanAsync(params: ICallingDetect['params'] = {}, timeout: number = null): Promise<DetectAction> {
+    params = params || {}
+    const detect: ICallingDetect = { type: CallDetectType.Machine, params }
+    const component = new Detect(this, detect, timeout)
+    component.eventsToWait = [CallDetectState.Human, CallDetectState.Error, CallDetectState.Finished]
+    this._addComponent(component)
+    await component.execute()
+
+    return new DetectAction(component)
+  }
 
   async detectMachine(params: ICallingDetect['params'] = {}, timeout: number = null): Promise<DetectResult> {
     return this.detect(CallDetectType.Machine, params, timeout)

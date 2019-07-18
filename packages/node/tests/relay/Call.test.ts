@@ -673,6 +673,31 @@ describe('Call', () => {
         done()
       })
 
+      it('.detectHuman() should wait until the detect ends', done => {
+        const params = { initial_timeout: 5 }
+        call.detectHuman(params, 30).then(result => {
+          expect(result).toBeInstanceOf(DetectResult)
+          expect(result.successful).toBe(true)
+          expect(result.type).toBe('machine')
+          expect(result.result).toBe('')
+          expect(Connection.mockSend).nthCalledWith(1, getMsg('machine', params))
+          done()
+        })
+        session.calling.notificationHandler(_notificationMachineHuman)
+      })
+
+      it('.detectHumanAsync() should return a DetectAction for async control', async done => {
+        const action = await call.detectHumanAsync(null, 30)
+        expect(action).toBeInstanceOf(DetectAction)
+        expect(action.completed).toBe(false)
+        expect(Connection.mockSend).nthCalledWith(1, getMsg('machine', {}))
+        console.log(' ----- ')
+        session.calling.notificationHandler(_notificationMachineHuman)
+        console.log(' ----- ')
+        expect(action.completed).toBe(true)
+        done()
+      })
+
     })
 
   })

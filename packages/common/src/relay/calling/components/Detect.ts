@@ -11,7 +11,7 @@ export default class Prompt extends Controllable {
   public type: string
   public result: string
 
-  private _events: string[]
+  private _events: string[] = []
 
   constructor(
     public call: Call,
@@ -46,7 +46,7 @@ export default class Prompt extends Controllable {
     this.state = event
     this.completed = [CallDetectState.Finished, CallDetectState.Error].includes(event)
     if (this.completed) {
-      this.successful = type
+      this.successful = this.state === CallDetectState.Finished
       this.result = this._events.join('')
       this.event = new Event(this.state, detect)
     } else {

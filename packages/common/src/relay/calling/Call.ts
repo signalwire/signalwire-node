@@ -312,6 +312,7 @@ export default class Call implements ICall {
   }
 
   async detect(type: string, params: ICallingDetect['params'] = {}, timeout: number = null): Promise<DetectResult> {
+    params = params || {}
     const detect: ICallingDetect = { type, params }
     const component = new Detect(this, detect, timeout)
     this._addComponent(component)
@@ -321,6 +322,7 @@ export default class Call implements ICall {
   }
 
   async detectAsync(type: string, params: ICallingDetect['params'] = {}, timeout: number = null): Promise<DetectAction> {
+    params = params || {}
     const detect: ICallingDetect = { type, params }
     const component = new Detect(this, detect, timeout)
     this._addComponent(component)
@@ -328,6 +330,8 @@ export default class Call implements ICall {
 
     return new DetectAction(component)
   }
+
+  // TODO: detectHuman
 
   async detectMachine(params: ICallingDetect['params'] = {}, timeout: number = null): Promise<DetectResult> {
     return this.detect(CallDetectType.Machine, params, timeout)

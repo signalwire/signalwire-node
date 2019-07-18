@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid'
 import logger from '../../util/logger'
 import { Execute } from '../../messages/Blade'
-import { CallState, DisconnectReason, DEFAULT_CALL_TIMEOUT, CallNotification, CallRecordState, CallPlayState, CallPromptState, CallConnectState, CALL_STATES, CallFaxState } from '../../util/constants/relay'
+import { CallState, DisconnectReason, DEFAULT_CALL_TIMEOUT, CallNotification, CallRecordState, CallPlayState, CallPromptState, CallConnectState, CALL_STATES, CallFaxState, CallDetectState } from '../../util/constants/relay'
 import { ICall, ICallOptions, ICallDevice, IMakeCallParams, ICallingPlay, ICallingCollect, DeepArray } from '../../util/interfaces'
 import { reduceConnectParams } from '../helpers'
 import Calling from './Calling'
@@ -374,6 +374,17 @@ export default class Call implements ICall {
     this._dispatchCallback('fax.stateChange', params)
     if (params.fax && params.fax.type) {
       this._dispatchCallback(`fax.${params.fax.type}`, params)
+    }
+  }
+
+  _detectChange(params: any) {
+    this._notifyComponents(CallNotification.Detect, params.control_id, params)
+
+    const { params: { event = null } } = params.detect
+    if (event === CallDetectState.Finished || event === CallDetectState.Error) {
+      this._dispatchCallback(`detect.${event}`, params)
+    } else if (event) {
+      this._dispatchCallback('detect.update', params)
     }
   }
 

@@ -563,15 +563,15 @@ describe('Call', () => {
 
     describe('detect methods', () => {
       const _notificationFaxCED = JSON.parse('{"event_type":"calling.call.detect","params":{"control_id":"mocked-uuid","call_id":"call-id","node_id":"node-id","detect":{"type":"fax","params":{"event":"CED"}}}}');
-      const _notificationFaxError = JSON.parse('{"event_type":"calling.call.detect","params":{"control_id":"mocked-uuid","call_id":"call-id","node_id":"node-id","detect":{"type":"fax","params":{"event":"error"}}}}');
+      // const _notificationFaxError = JSON.parse('{"event_type":"calling.call.detect","params":{"control_id":"mocked-uuid","call_id":"call-id","node_id":"node-id","detect":{"type":"fax","params":{"event":"error"}}}}');
       const _notificationFaxFinished = JSON.parse('{"event_type":"calling.call.detect","params":{"control_id":"mocked-uuid","call_id":"call-id","node_id":"node-id","detect":{"type":"fax","params":{"event":"finished"}}}}');
 
       const _notificationMachineHuman = JSON.parse('{"event_type":"calling.call.detect","params":{"control_id":"mocked-uuid","call_id":"call-id","node_id":"node-id","detect":{"type":"machine","params":{"event":"HUMAN"}}}}');
-      const _notificationMachineError = JSON.parse('{"event_type":"calling.call.detect","params":{"control_id":"mocked-uuid","call_id":"call-id","node_id":"node-id","detect":{"type":"machine","params":{"event":"error"}}}}');
+      // const _notificationMachineError = JSON.parse('{"event_type":"calling.call.detect","params":{"control_id":"mocked-uuid","call_id":"call-id","node_id":"node-id","detect":{"type":"machine","params":{"event":"error"}}}}');
       const _notificationMachineFinished = JSON.parse('{"event_type":"calling.call.detect","params":{"control_id":"mocked-uuid","call_id":"call-id","node_id":"node-id","detect":{"type":"machine","params":{"event":"finished"}}}}');
 
       const _notificationDigitDTMF = JSON.parse('{"event_type":"calling.call.detect","params":{"control_id":"mocked-uuid","call_id":"call-id","node_id":"node-id","detect":{"type":"digit","params":{"event":"1#"}}}}');
-      const _notificationDigitError = JSON.parse('{"event_type":"calling.call.detect","params":{"control_id":"mocked-uuid","call_id":"call-id","node_id":"node-id","detect":{"type":"digit","params":{"event":"error"}}}}');
+      // const _notificationDigitError = JSON.parse('{"event_type":"calling.call.detect","params":{"control_id":"mocked-uuid","call_id":"call-id","node_id":"node-id","detect":{"type":"digit","params":{"event":"error"}}}}');
       const _notificationDigitFinished = JSON.parse('{"event_type":"calling.call.detect","params":{"control_id":"mocked-uuid","call_id":"call-id","node_id":"node-id","detect":{"type":"digit","params":{"event":"finished"}}}}');
       const getMsg = (type: string, params: any, timeout = 30) => new Execute({
         protocol: 'signalwire_service_random_uuid',

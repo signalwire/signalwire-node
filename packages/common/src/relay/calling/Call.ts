@@ -312,7 +312,6 @@ export default class Call implements ICall {
   }
 
   async detect(type: string, params: ICallingDetect['params'] = {}, timeout: number = null): Promise<DetectResult> {
-    params = params || {}
     const detect: ICallingDetect = { type, params }
     const component = new Detect(this, detect, timeout)
     this._addComponent(component)
@@ -322,7 +321,6 @@ export default class Call implements ICall {
   }
 
   async detectAsync(type: string, params: ICallingDetect['params'] = {}, timeout: number = null): Promise<DetectAction> {
-    params = params || {}
     const detect: ICallingDetect = { type, params }
     const component = new Detect(this, detect, timeout)
     this._addComponent(component)
@@ -332,7 +330,6 @@ export default class Call implements ICall {
   }
 
   async detectHuman(params: ICallingDetect['params'] = {}, timeout: number = null): Promise<DetectResult> {
-    params = params || {}
     const detect: ICallingDetect = { type: CallDetectType.Machine, params }
     const component = new Detect(this, detect, timeout)
     this._addComponent(component)
@@ -342,7 +339,6 @@ export default class Call implements ICall {
   }
 
   async detectHumanAsync(params: ICallingDetect['params'] = {}, timeout: number = null): Promise<DetectAction> {
-    params = params || {}
     const detect: ICallingDetect = { type: CallDetectType.Machine, params }
     const component = new Detect(this, detect, timeout)
     component.eventsToWait = [CallDetectState.Human, CallDetectState.Error, CallDetectState.Finished]
@@ -353,21 +349,61 @@ export default class Call implements ICall {
   }
 
   async detectMachine(params: ICallingDetect['params'] = {}, timeout: number = null): Promise<DetectResult> {
-    return this.detect(CallDetectType.Machine, params, timeout)
+    const detect: ICallingDetect = { type: CallDetectType.Machine, params }
+    const component = new Detect(this, detect, timeout)
+    this._addComponent(component)
+    await component._waitFor(CallDetectState.Machine, CallDetectState.Ready, CallDetectState.NotReady, CallDetectState.Error, CallDetectState.Finished)
+
+    return new DetectResult(component)
   }
 
   async detectMachineAsync(params: ICallingDetect['params'] = {}, timeout: number = null): Promise<DetectAction> {
-    return this.detectAsync(CallDetectType.Machine, params, timeout)
+    const detect: ICallingDetect = { type: CallDetectType.Machine, params }
+    const component = new Detect(this, detect, timeout)
+    component.eventsToWait = [CallDetectState.Machine, CallDetectState.Ready, CallDetectState.NotReady, CallDetectState.Error, CallDetectState.Finished]
+    this._addComponent(component)
+    await component.execute()
+
+    return new DetectAction(component)
   }
 
   async detectFax(tone: string = null, timeout: number = null): Promise<DetectResult> {
-    const params = tone ? { tone } : {}
-    return this.detect(CallDetectType.Fax, params, timeout)
+    const faxEvents: string[] = [CallDetectState.CED, CallDetectState.CNG]
+    let events: string[] = [CallDetectState.Error, CallDetectState.Finished]
+    let params: { tone?: string } = {}
+    if (tone && faxEvents.includes(tone)) {
+      params.tone = tone
+      events.push(tone)
+    } else {
+      events = events.concat(faxEvents)
+    }
+
+    const detect: ICallingDetect = { type: CallDetectType.Fax, params }
+    const component = new Detect(this, detect, timeout)
+    this._addComponent(component)
+    await component._waitFor(...events)
+
+    return new DetectResult(component)
   }
 
   async detectFaxAsync(tone: string = null, timeout: number = null): Promise<DetectAction> {
-    const params = tone ? { tone } : {}
-    return this.detectAsync(CallDetectType.Fax, params, timeout)
+    const faxEvents: string[] = [CallDetectState.CED, CallDetectState.CNG]
+    let events: string[] = [CallDetectState.Error, CallDetectState.Finished]
+    let params: { tone?: string } = {}
+    if (tone && faxEvents.includes(tone)) {
+      params.tone = tone
+      events.push(tone)
+    } else {
+      events = events.concat(faxEvents)
+    }
+
+    const detect: ICallingDetect = { type: CallDetectType.Fax, params }
+    const component = new Detect(this, detect, timeout)
+    component.eventsToWait = events
+    this._addComponent(component)
+    await component.execute()
+
+    return new DetectAction(component)
   }
 
   async detectDigit(digits: string = null, timeout: number = null): Promise<DetectResult> {

@@ -679,7 +679,7 @@ describe('Call', () => {
           expect(result).toBeInstanceOf(DetectResult)
           expect(result.successful).toBe(true)
           expect(result.type).toBe('machine')
-          expect(result.result).toBe('')
+          expect(result.result).toBe('HUMAN')
           expect(Connection.mockSend).nthCalledWith(1, getMsg('machine', params))
           done()
         })

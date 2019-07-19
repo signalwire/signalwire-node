@@ -28,6 +28,8 @@ export default class Detect extends Controllable {
   }
 
   get payload(): any {
+    const { params } = this._detect
+    this._detect.params = params || {}
     const payload: any = {
       node_id: this.call.nodeId,
       call_id: this.call.id,
@@ -46,6 +48,9 @@ export default class Detect extends Controllable {
 
     this.type = type
     this.state = event
+    if (event !== CallDetectState.Finished && event !== CallDetectState.Error) {
+      this._events.push(event)
+    }
     this.completed = this._eventsToWait.includes(this.state)
     if (this.completed) {
       this.successful = this.state !== CallDetectState.Error
@@ -54,8 +59,6 @@ export default class Detect extends Controllable {
       if (this._hasBlocker()) {
         this.blocker.resolve()
       }
-    } else {
-      this._events.push(event)
     }
   }
 }

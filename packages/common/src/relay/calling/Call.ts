@@ -370,7 +370,7 @@ export default class Call implements ICall {
   async detectFax(tone: string = null, timeout: number = null): Promise<DetectResult> {
     const faxEvents: string[] = [CallDetectState.CED, CallDetectState.CNG]
     let events: string[] = [CallDetectState.Error, CallDetectState.Finished]
-    let params: { tone?: string } = {}
+    const params: { tone?: string } = {}
     if (tone && faxEvents.includes(tone)) {
       params.tone = tone
       events.push(tone)
@@ -389,7 +389,7 @@ export default class Call implements ICall {
   async detectFaxAsync(tone: string = null, timeout: number = null): Promise<DetectAction> {
     const faxEvents: string[] = [CallDetectState.CED, CallDetectState.CNG]
     let events: string[] = [CallDetectState.Error, CallDetectState.Finished]
-    let params: { tone?: string } = {}
+    const params: { tone?: string } = {}
     if (tone && faxEvents.includes(tone)) {
       params.tone = tone
       events.push(tone)

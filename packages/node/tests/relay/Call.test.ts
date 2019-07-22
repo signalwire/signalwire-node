@@ -1117,7 +1117,7 @@ describe('Call', () => {
         })
       })
 
-      it('.recordAsync() should return a TapAction for async control', async done => {
+      it('.tapAsync() should return a TapAction for async control', async done => {
         const action = await call.tapAsync(tap, device)
         expect(action).toBeInstanceOf(TapAction)
         expect(action.completed).toBe(true)

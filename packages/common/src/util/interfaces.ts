@@ -229,6 +229,19 @@ export interface ICallingCollect {
   }
 }
 
+export interface ICallingDetect {
+  type: string
+  params: {
+    initial_timeout?: number
+    end_silence_timeout?: number
+    machine_voice_threshold?: number
+    machine_words_threshold?: number
+    tone?: string
+    digits?: string
+  }
+  timeout?: number
+}
+
 export interface DeepArray<T> extends Array<T | DeepArray<T>> { }
 
 export interface IRelayConsumerParams {

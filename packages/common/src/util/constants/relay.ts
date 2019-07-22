@@ -48,6 +48,7 @@ export enum CallNotification {
   Play = 'calling.call.play',
   Collect = 'calling.call.collect',
   Fax = 'calling.call.fax',
+  Detect = 'calling.call.detect',
 }
 
 export enum CallPlayState {
@@ -74,4 +75,22 @@ export enum CallRecordState {
   Recording = 'recording',
   NoInput = 'no_input',
   Finished = 'finished',
+}
+
+export enum CallDetectState {
+  Error = 'error',
+  Finished = 'finished',
+  CED = 'CED',
+  CNG = 'CNG',
+  Machine = 'MACHINE',
+  Human = 'HUMAN',
+  Unknown = 'UNKNOWN',
+  Ready = 'READY',
+  NotReady = 'NOT_READY',
+}
+
+export enum CallDetectType {
+  Fax = 'fax',
+  Machine = 'machine',
+  Digit = 'digit',
 }

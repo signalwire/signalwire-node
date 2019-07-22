@@ -28,6 +28,7 @@ export default function BroadcastHandler(session: any, broadcastParams: any): vo
       case CallNotification.Collect:
       case CallNotification.Fax:
       case CallNotification.Detect:
+      case CallNotification.Tap:
         session.calling.notificationHandler(params)
         break
       case 'webrtc.message':

@@ -49,11 +49,17 @@ export enum CallNotification {
   Collect = 'calling.call.collect',
   Fax = 'calling.call.fax',
   Detect = 'calling.call.detect',
+  Tap = 'calling.call.tap',
 }
 
 export enum CallPlayState {
   Playing = 'playing',
   Error = 'error',
+  Finished = 'finished',
+}
+
+export enum CallTapState {
+  Tapping = 'tapping',
   Finished = 'finished',
 }
 

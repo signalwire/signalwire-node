@@ -242,6 +242,25 @@ export interface ICallingDetect {
   timeout?: number
 }
 
+export interface ICallingTapTap {
+  type: 'audio'
+  params: {
+    direction?: string
+  }
+}
+
+export interface ICallingTapDevice {
+  type: 'rtp' | 'ws'
+  params: {
+    addr?: string
+    port?: number
+    codec?: string
+    ptime?: number
+    uri?: string
+    rate?: number
+  }
+}
+
 export interface DeepArray<T> extends Array<T | DeepArray<T>> { }
 
 export interface IRelayConsumerParams {

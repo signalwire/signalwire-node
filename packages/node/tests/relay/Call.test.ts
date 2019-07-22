@@ -705,11 +705,11 @@ describe('Call', () => {
       beforeEach(() => {
         Connection.mockResponse() // Consume mock request because TAP has a different resposnse
         const response = JSON.parse('{"id":"uuid","jsonrpc":"2.0","result":{"result":{"code":"200","message":"message","control_id":"control-id"}}}')
-        response.result.result.source_device = sourceCevice
+        response.result.result.source_device = sourceService
         Connection.mockResponse.mockReturnValueOnce(response)
       })
 
-      const sourceCevice: ICallingTapDevice = { type: 'rtp', params: { addr: '10.10.10.10', port: 3000, codec: 'PCMU', rate: 8000 } }
+      const sourceService: ICallingTapDevice = { type: 'rtp', params: { addr: '10.10.10.10', port: 3000, codec: 'PCMU', rate: 8000 } }
       const tap: ICallingTapTap = { type: 'audio', params: { direction: 'listen' } }
       const device: ICallingTapDevice = { type: 'rtp', params: { addr: '127.0.0.1', port: 1234 } }
       const getMsg = () => new Execute({
@@ -722,7 +722,7 @@ describe('Call', () => {
         call.tap(tap, device).then(result => {
           expect(result).toBeInstanceOf(TapResult)
           expect(result.successful).toBe(true)
-          expect(result.sourceDevice).toEqual(sourceCevice)
+          expect(result.sourceDevice).toEqual(sourceService)
           expect(result.destinationDevice).toEqual({ type: 'rtp', params: { addr: '127.0.0.1', port: '1234', codec: 'PCMU', ptime: '20' } })
           expect(Connection.mockSend).nthCalledWith(1, getMsg())
           done()

@@ -1,5 +1,5 @@
 import RelayClient from '../../src/relay'
-import { ICallDevice, ICallingPlay } from '../../../common/src/util/interfaces'
+import { ICallDevice, ICallingPlay, ICallingTapTap, ICallingTapDevice } from '../../../common/src/util/interfaces'
 import Call from '../../../common/src/relay/calling/Call'
 import { CallState } from '../../../common/src/util/constants/relay'
 import { Execute } from '../../../common/src/messages/Blade'
@@ -15,11 +15,12 @@ import PromptAction from '../../../common/src/relay/calling/actions/PromptAction
 import ConnectResult from '../../../common/src/relay/calling/results/ConnectResult'
 import ConnectAction from '../../../common/src/relay/calling/actions/ConnectAction'
 import DialResult from '../../../common/src/relay/calling/results/DialResult'
-// import Event from '../../../common/src/relay/calling/Event'
 import FaxResult from '../../../common/src/relay/calling/results/FaxResult'
 import FaxAction from '../../../common/src/relay/calling/actions/FaxAction'
 import DetectResult from '../../../common/src/relay/calling/results/DetectResult'
 import DetectAction from '../../../common/src/relay/calling/actions/DetectAction'
+import TapResult from '../../../common/src/relay/calling/results/TapResult'
+import TapAction from '../../../common/src/relay/calling/actions/TapAction'
 jest.mock('../../../common/src/services/Connection')
 
 describe('Call', () => {
@@ -121,6 +122,7 @@ describe('Call', () => {
     const _playNotification = JSON.parse(`{"event_type":"calling.call.play","params":{"control_id":"mocked-uuid","call_id":"call-id","node_id":"node-id","state":"finished"}}`)
     const _collectNotification = JSON.parse(`{"event_type":"calling.call.collect","params":{"control_id":"mocked-uuid","call_id":"call-id","node_id":"node-id","result":{"type":"digit","params":{"digits":"12345","terminator":"#"}}}}`)
     const _faxNotificationFinished = JSON.parse('{"event_type":"calling.call.fax","params":{"control_id":"mocked-uuid","call_id":"call-id","node_id":"node-id","fax":{"type":"finished","params":{"direction":"send","identity":"+1xxx","remote_identity":"+1yyy","document":"file.pdf","success":true,"result":"1231","result_text":"","pages":"1"}}}}')
+    const _tapNotificationFinished = JSON.parse('{"event_type":"calling.call.tap","params":{"control_id":"mocked-uuid","call_id":"call-id","node_id":"node-id","state":"finished","tap":{"type":"audio","params":{"direction":"listen"}},"device":{"type":"rtp","params":{"addr":"127.0.0.1","port":"1234","codec":"PCMU","ptime":"20"}}}}')
 
     beforeEach(() => {
       call.id = 'call-id'
@@ -698,6 +700,49 @@ describe('Call', () => {
 
     })
 
+    describe('tap methods', () => {
+
+      beforeEach(() => {
+        Connection.mockResponse() // Consume mock request because TAP has a different resposnse
+        const response = JSON.parse('{"id":"uuid","jsonrpc":"2.0","result":{"result":{"code":"200","message":"message","control_id":"control-id"}}}')
+        response.result.result.source_device = sourceCevice
+        Connection.mockResponse.mockReturnValueOnce(response)
+      })
+
+      const sourceCevice: ICallingTapDevice = { type: 'rtp', params: { addr: '10.10.10.10', port: 3000, codec: 'PCMU', rate: 8000 } }
+      const tap: ICallingTapTap = { type: 'audio', params: { direction: 'listen' } }
+      const device: ICallingTapDevice = { type: 'rtp', params: { addr: '127.0.0.1', port: 1234 } }
+      const getMsg = () => new Execute({
+        protocol: 'signalwire_service_random_uuid',
+        method: 'call.tap',
+        params: { node_id: call.nodeId, call_id: call.id, control_id: 'mocked-uuid', tap, device }
+      })
+
+      it('.tap() should wait until the tapping ends', done => {
+        call.tap(tap, device).then(result => {
+          expect(result).toBeInstanceOf(TapResult)
+          expect(result.successful).toBe(true)
+          expect(result.sourceDevice).toEqual(sourceCevice)
+          expect(result.destinationDevice).toEqual({ type: 'rtp', params: { addr: '127.0.0.1', port: '1234', codec: 'PCMU', ptime: '20' } })
+          expect(Connection.mockSend).nthCalledWith(1, getMsg())
+          done()
+        })
+        session.calling.notificationHandler(_tapNotificationFinished)
+      })
+
+      it('.tapAsync() should return a TapAction for async control', async done => {
+        const action = await call.tapAsync(tap, device)
+        expect(action).toBeInstanceOf(TapAction)
+        expect(action.completed).toBe(false)
+        expect(action.result).toBeInstanceOf(TapResult)
+        expect(Connection.mockSend).nthCalledWith(1, getMsg())
+        session.calling.notificationHandler(_tapNotificationFinished)
+        expect(action.completed).toBe(true)
+        done()
+      })
+
+    })
+
   })
 
   describe('with fail response code not 200', () => {
@@ -1052,5 +1097,35 @@ describe('Call', () => {
 
     })
 
+    describe('tap methods', () => {
+      const tap: ICallingTapTap = { type: 'audio', params: { direction: 'listen' } }
+      const device: ICallingTapDevice = { type: 'rtp', params: { addr: '127.0.0.1', port: 1234 } }
+      const getMsg = () => new Execute({
+        protocol: 'signalwire_service_random_uuid',
+        method: 'call.tap',
+        params: { node_id: call.nodeId, call_id: call.id, control_id: 'mocked-uuid', tap, device }
+      })
+
+
+      it('.tap() should wait until the tapping ends/fails', done => {
+        call.tap(tap, device).then(result => {
+          expect(result).toBeInstanceOf(TapResult)
+          expect(result.successful).toBe(false)
+          expect(result.sourceDevice).toBe(null)
+          expect(Connection.mockSend).nthCalledWith(1, getMsg())
+          done()
+        })
+      })
+
+      it('.recordAsync() should return a TapAction for async control', async done => {
+        const action = await call.tapAsync(tap, device)
+        expect(action).toBeInstanceOf(TapAction)
+        expect(action.completed).toBe(true)
+        expect(action.result).toBeInstanceOf(TapResult)
+        expect(Connection.mockSend).nthCalledWith(1, getMsg())
+        done()
+      })
+
+    })
   })
 })

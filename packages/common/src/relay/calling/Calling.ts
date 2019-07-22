@@ -32,6 +32,8 @@ export default class Calling extends Relay {
         return this._onFax(params)
       case CallNotification.Detect:
         return this._onDetect(params)
+      case CallNotification.Tap:
+        return this._onTap(params)
     }
   }
 
@@ -199,6 +201,18 @@ export default class Calling extends Relay {
     const call = this.getCallById(params.call_id)
     if (call) {
       call._detectChange(params)
+    }
+  }
+
+  /**
+   * Handle calling.call.tap notification params
+   * @param params - Inner params of calling.call.tap notification
+   * @return void
+   */
+  private _onTap(params: any): void {
+    const call = this.getCallById(params.call_id)
+    if (call) {
+      call._tapChange(params)
     }
   }
 }

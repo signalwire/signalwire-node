@@ -229,16 +229,23 @@ export interface ICallingCollect {
   }
 }
 
+interface ICallingDetectParams {
+  initial_timeout?: number
+  end_silence_timeout?: number
+  machine_voice_threshold?: number
+  machine_words_threshold?: number
+  tone?: string
+  digits?: string
+}
+
 export interface ICallingDetect {
   type: string
-  params: {
-    initial_timeout?: number
-    end_silence_timeout?: number
-    machine_voice_threshold?: number
-    machine_words_threshold?: number
-    tone?: string
-    digits?: string
-  }
+  params: ICallingDetectParams
+  timeout?: number
+}
+
+export interface ICallingDetectArg extends ICallingDetectParams {
+  type: string
   timeout?: number
 }
 

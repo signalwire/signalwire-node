@@ -1,8 +1,8 @@
 import { v4 as uuidv4 } from 'uuid'
 import logger from '../../util/logger'
 import { Execute } from '../../messages/Blade'
-import { CallState, DisconnectReason, DEFAULT_CALL_TIMEOUT, CallNotification, CallRecordState, CallPlayState, CallPromptState, CallConnectState, CALL_STATES, CallFaxState, CallDetectState, CallDetectType } from '../../util/constants/relay'
-import { ICall, ICallOptions, ICallDevice, IMakeCallParams, ICallingPlay, ICallingCollect, DeepArray, ICallingDetect } from '../../util/interfaces'
+import { CallState, DisconnectReason, DEFAULT_CALL_TIMEOUT, CallNotification, CallRecordState, CallPlayState, CallPromptState, CallConnectState, CALL_STATES, CallFaxState, CallDetectState, CallDetectType, CallTapState } from '../../util/constants/relay'
+import { ICall, ICallOptions, ICallDevice, IMakeCallParams, ICallingPlay, ICallingCollect, DeepArray, ICallingDetect, ICallingTapTapArg, ICallingTapDeviceArg } from '../../util/interfaces'
 import { reduceConnectParams } from '../helpers'
 import Calling from './Calling'
 import { isFunction } from '../../util/helpers'
@@ -33,6 +33,9 @@ import FaxSend from './components/FaxSend'
 import Detect from './components/Detect'
 import DetectResult from './results/DetectResult'
 import DetectAction from './actions/DetectAction'
+import Tap from './components/Tap'
+import TapResult from './results/TapResult'
+import TapAction from './actions/TapAction'
 
 export default class Call implements ICall {
   public id: string
@@ -416,6 +419,26 @@ export default class Call implements ICall {
     return this.detectAsync(CallDetectType.Digit, params, timeout)
   }
 
+  async tap(tap: ICallingTapTapArg, device: ICallingTapDeviceArg): Promise<TapResult> {
+    const { type: tapType, ...tapParams } = tap
+    const { type: deviceType, ...deviceParams } = device
+    const component = new Tap(this, { type: tapType, params: tapParams }, { type: deviceType, params: deviceParams })
+    this._addComponent(component)
+    await component._waitFor(CallTapState.Finished)
+
+    return new TapResult(component)
+  }
+
+  async tapAsync(tap: ICallingTapTapArg, device: ICallingTapDeviceArg): Promise<TapAction> {
+    const { type: tapType, ...tapParams } = tap
+    const { type: deviceType, ...deviceParams } = device
+    const component = new Tap(this, { type: tapType, params: tapParams }, { type: deviceType, params: deviceParams })
+    this._addComponent(component)
+    await component.execute()
+
+    return new TapAction(component)
+  }
+
   /**
    * Registers a callback to dispatch when the 'event' occur.
    * @param event - Event to listen to.
@@ -494,6 +517,11 @@ export default class Call implements ICall {
     } else if (event) {
       this._dispatchCallback('detect.update', params)
     }
+  }
+
+  _tapChange(params: any) {
+    this._notifyComponents(CallNotification.Tap, params.control_id, params)
+    this._dispatchCallback(`tap.${params.state}`, params)
   }
 
   private _notifyComponents(eventType: string, controlId: string, params: any): void {

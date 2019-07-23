@@ -242,23 +242,35 @@ export interface ICallingDetect {
   timeout?: number
 }
 
+export interface ICallingTapTapParams {
+  direction?: string
+}
+
 export interface ICallingTapTap {
   type: 'audio'
-  params: {
-    direction?: string
-  }
+  params: ICallingTapTapParams
+}
+
+export interface ICallingTapTapArg extends ICallingTapTapParams {
+  type: ICallingTapTap['type']
+}
+
+interface ICallingTapDeviceParams {
+  addr?: string
+  port?: number
+  codec?: string
+  ptime?: number
+  uri?: string
+  rate?: number
 }
 
 export interface ICallingTapDevice {
   type: 'rtp' | 'ws'
-  params: {
-    addr?: string
-    port?: number
-    codec?: string
-    ptime?: number
-    uri?: string
-    rate?: number
-  }
+  params: ICallingTapDeviceParams
+}
+
+export interface ICallingTapDeviceArg extends ICallingTapDeviceParams {
+  type: ICallingTapDevice['type']
 }
 
 export interface DeepArray<T> extends Array<T | DeepArray<T>> { }

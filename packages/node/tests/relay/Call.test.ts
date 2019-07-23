@@ -1,5 +1,5 @@
 import RelayClient from '../../src/relay'
-import { ICallDevice, ICallingPlay, ICallingTapTap, ICallingTapDevice } from '../../../common/src/util/interfaces'
+import { ICallDevice, ICallingPlay, ICallingTapDevice, ICallingTapTapArg, ICallingTapDeviceArg } from '../../../common/src/util/interfaces'
 import Call from '../../../common/src/relay/calling/Call'
 import { CallState } from '../../../common/src/util/constants/relay'
 import { Execute } from '../../../common/src/messages/Blade'
@@ -710,12 +710,14 @@ describe('Call', () => {
       })
 
       const sourceService: ICallingTapDevice = { type: 'rtp', params: { addr: '10.10.10.10', port: 3000, codec: 'PCMU', rate: 8000 } }
-      const tap: ICallingTapTap = { type: 'audio', params: { direction: 'listen' } }
-      const device: ICallingTapDevice = { type: 'rtp', params: { addr: '127.0.0.1', port: 1234 } }
+      const tap: ICallingTapTapArg = { type: 'audio', direction: 'listen' }
+      const device: ICallingTapDeviceArg = { type: 'rtp', addr: '127.0.0.1', port: 1234 }
       const getMsg = () => new Execute({
         protocol: 'signalwire_service_random_uuid',
         method: 'call.tap',
-        params: { node_id: call.nodeId, call_id: call.id, control_id: 'mocked-uuid', tap, device }
+        params: {
+          node_id: call.nodeId, call_id: call.id, control_id: 'mocked-uuid', tap: { type: 'audio', params: { direction: 'listen' } }, device: { type: 'rtp', params: { addr: '127.0.0.1', port: 1234 } }
+        }
       })
 
       it('.tap() should wait until the tapping ends', done => {
@@ -1098,12 +1100,14 @@ describe('Call', () => {
     })
 
     describe('tap methods', () => {
-      const tap: ICallingTapTap = { type: 'audio', params: { direction: 'listen' } }
-      const device: ICallingTapDevice = { type: 'rtp', params: { addr: '127.0.0.1', port: 1234 } }
+      const tap: ICallingTapTapArg = { type: 'audio', direction: 'listen' }
+      const device: ICallingTapDeviceArg = { type: 'rtp', addr: '127.0.0.1', port: 1234 }
       const getMsg = () => new Execute({
         protocol: 'signalwire_service_random_uuid',
         method: 'call.tap',
-        params: { node_id: call.nodeId, call_id: call.id, control_id: 'mocked-uuid', tap, device }
+        params: {
+          node_id: call.nodeId, call_id: call.id, control_id: 'mocked-uuid', tap: { type: 'audio', params: { direction: 'listen' } }, device: { type: 'rtp', params: { addr: '127.0.0.1', port: 1234 } }
+        }
       })
 
 

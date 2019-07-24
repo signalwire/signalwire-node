@@ -245,7 +245,7 @@ export interface ICallingDetect {
 }
 
 export interface ICallingDetectArg extends ICallingDetectParams {
-  type: string
+  type?: string
   timeout?: number
 }
 

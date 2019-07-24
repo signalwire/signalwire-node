@@ -582,7 +582,7 @@ describe('Call', () => {
       })
 
       it('.detect() should wait until the detect ends', done => {
-        call.detect('fax', null, 30).then(result => {
+        call.detect({ type: 'fax', timeout: 30 }).then(result => {
           expect(result).toBeInstanceOf(DetectResult)
           expect(result.successful).toBe(true)
           expect(result.type).toBe('fax')
@@ -595,7 +595,7 @@ describe('Call', () => {
       })
 
       it('.detectAsync() should return a DetectAction for async control', async done => {
-        const action = await call.detectAsync('fax', null, 30)
+        const action = await call.detectAsync({ type: 'fax', timeout: 30 })
         expect(action).toBeInstanceOf(DetectAction)
         expect(action.completed).toBe(false)
         expect(Connection.mockSend).nthCalledWith(1, getMsg('fax', {}))
@@ -605,13 +605,12 @@ describe('Call', () => {
       })
 
       it('.detectMachine() should wait until the detect ends', done => {
-        const params = { initial_timeout: 5 }
-        call.detectMachine(params, 30).then(result => {
+        call.detectMachine({ initial_timeout: 5, timeout: 30 }).then(result => {
           expect(result).toBeInstanceOf(DetectResult)
           expect(result.successful).toBe(true)
           expect(result.type).toBe('machine')
           expect(result.result).toBe('HUMAN')
-          expect(Connection.mockSend).nthCalledWith(1, getMsg('machine', params))
+          expect(Connection.mockSend).nthCalledWith(1, getMsg('machine', { initial_timeout: 5 }, 30))
           done()
         })
         session.calling.notificationHandler(_notificationMachineHuman)
@@ -619,18 +618,17 @@ describe('Call', () => {
       })
 
       it('.detectMachineAsync() should return a DetectAction for async control', async done => {
-        const params = { initial_timeout: 5 }
-        const action = await call.detectMachineAsync(params, 30)
+        const action = await call.detectMachineAsync({ initial_timeout: 5, timeout: 30 })
         expect(action).toBeInstanceOf(DetectAction)
         expect(action.completed).toBe(false)
-        expect(Connection.mockSend).nthCalledWith(1, getMsg('machine', params))
+        expect(Connection.mockSend).nthCalledWith(1, getMsg('machine', { initial_timeout: 5 }, 30))
         session.calling.notificationHandler(_notificationMachineFinished)
         expect(action.completed).toBe(true)
         done()
       })
 
       it('.detectFax() should wait until the detect ends', done => {
-        call.detectFax(null, 30).then(result => {
+        call.detectFax({ timeout: 30 }).then(result => {
           expect(result).toBeInstanceOf(DetectResult)
           expect(result.successful).toBe(true)
           expect(result.type).toBe('fax')
@@ -643,7 +641,7 @@ describe('Call', () => {
       })
 
       it('.detectFaxAsync() should return a DetectAction for async control', async done => {
-        const action = await call.detectFaxAsync('CED', 30)
+        const action = await call.detectFaxAsync({ tone: 'CED', timeout: 30 })
         expect(action).toBeInstanceOf(DetectAction)
         expect(action.completed).toBe(false)
         expect(Connection.mockSend).nthCalledWith(1, getMsg('fax', { tone: 'CED' }))
@@ -653,7 +651,7 @@ describe('Call', () => {
       })
 
       it('.detectDigit() should wait until the detect ends', done => {
-        call.detectDigit('', 30).then(result => {
+        call.detectDigit({ timeout: 30 }).then(result => {
           expect(result).toBeInstanceOf(DetectResult)
           expect(result.successful).toBe(true)
           expect(result.type).toBe('digit')
@@ -666,7 +664,7 @@ describe('Call', () => {
       })
 
       it('.detectDigitAsync() should return a DetectAction for async control', async done => {
-        const action = await call.detectDigitAsync('12', 30)
+        const action = await call.detectDigitAsync({ digits: '12', timeout: 30 })
         expect(action).toBeInstanceOf(DetectAction)
         expect(action.completed).toBe(false)
         expect(Connection.mockSend).nthCalledWith(1, getMsg('digit', { digits: '12' }))
@@ -676,20 +674,19 @@ describe('Call', () => {
       })
 
       it('.detectHuman() should wait until the detect ends', done => {
-        const params = { initial_timeout: 5 }
-        call.detectHuman(params, 30).then(result => {
+        call.detectHuman({ initial_timeout: 5, timeout: 30 }).then(result => {
           expect(result).toBeInstanceOf(DetectResult)
           expect(result.successful).toBe(true)
           expect(result.type).toBe('machine')
           expect(result.result).toBe('HUMAN')
-          expect(Connection.mockSend).nthCalledWith(1, getMsg('machine', params))
+          expect(Connection.mockSend).nthCalledWith(1, getMsg('machine', { initial_timeout: 5 }, 30))
           done()
         })
         session.calling.notificationHandler(_notificationMachineHuman)
       })
 
       it('.detectHumanAsync() should return a DetectAction for async control', async done => {
-        const action = await call.detectHumanAsync(null, 30)
+        const action = await call.detectHumanAsync({ timeout: 30 })
         expect(action).toBeInstanceOf(DetectAction)
         expect(action.completed).toBe(false)
         expect(Connection.mockSend).nthCalledWith(1, getMsg('machine', {}))
@@ -1018,7 +1015,7 @@ describe('Call', () => {
       })
 
       it('.detect() should resolve the Promise with no-success response', done => {
-        call.detect('fax', null, 30).then(result => {
+        call.detect({ type: 'fax', timeout: 30 }).then(result => {
           expect(result).toBeInstanceOf(DetectResult)
           expect(result.successful).toBe(false)
           expect(result.type).toBeUndefined()
@@ -1029,7 +1026,7 @@ describe('Call', () => {
       })
 
       it('.detectAsync() should return a DetectAction for async control', async done => {
-        const action = await call.detectAsync('fax', null, 30)
+        const action = await call.detectAsync({ type: 'fax', timeout: 30 })
         expect(action).toBeInstanceOf(DetectAction)
         expect(action.completed).toBe(true)
         expect(action.result).toBeInstanceOf(DetectResult)
@@ -1038,7 +1035,7 @@ describe('Call', () => {
       })
 
       it('.detectMachine() should resolve the Promise with no-success response', done => {
-        call.detectMachine(null, 30).then(result => {
+        call.detectMachine({ timeout: 30 }).then(result => {
           expect(result).toBeInstanceOf(DetectResult)
           expect(result.successful).toBe(false)
           expect(result.type).toBeUndefined()
@@ -1049,7 +1046,7 @@ describe('Call', () => {
       })
 
       it('.detectMachineAsync() should return a DetectAction for async control', async done => {
-        const action = await call.detectMachineAsync(null, 30)
+        const action = await call.detectMachineAsync({ timeout: 30 })
         expect(action).toBeInstanceOf(DetectAction)
         expect(action.completed).toBe(true)
         expect(action.result).toBeInstanceOf(DetectResult)
@@ -1058,7 +1055,7 @@ describe('Call', () => {
       })
 
       it('.detectFax() should resolve the Promise with no-success response', done => {
-        call.detectFax(null, 30).then(result => {
+        call.detectFax({ timeout: 30 }).then(result => {
           expect(result).toBeInstanceOf(DetectResult)
           expect(result.successful).toBe(false)
           expect(result.type).toBeUndefined()
@@ -1069,7 +1066,7 @@ describe('Call', () => {
       })
 
       it('.detectFaxAsync() should return a DetectAction for async control', async done => {
-        const action = await call.detectFaxAsync(null, 30)
+        const action = await call.detectFaxAsync({ timeout: 30 })
         expect(action).toBeInstanceOf(DetectAction)
         expect(action.completed).toBe(true)
         expect(action.result).toBeInstanceOf(DetectResult)
@@ -1078,7 +1075,7 @@ describe('Call', () => {
       })
 
       it('.detectDigit() should resolve the Promise with no-success response', done => {
-        call.detectDigit(null, 30).then(result => {
+        call.detectDigit({ timeout: 30 }).then(result => {
           expect(result).toBeInstanceOf(DetectResult)
           expect(result.successful).toBe(false)
           expect(result.type).toBeUndefined()
@@ -1089,7 +1086,7 @@ describe('Call', () => {
       })
 
       it('.detectDigitAsync() should return a DetectAction for async control', async done => {
-        const action = await call.detectDigitAsync(null, 30)
+        const action = await call.detectDigitAsync({ timeout: 30 })
         expect(action).toBeInstanceOf(DetectAction)
         expect(action.completed).toBe(true)
         expect(action.result).toBeInstanceOf(DetectResult)

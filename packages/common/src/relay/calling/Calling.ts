@@ -1,15 +1,12 @@
-import { Execute } from '../../messages/Blade'
-import { isFunction } from '../../util/helpers'
-import { register, trigger } from '../../services/Handler'
+import { trigger } from '../../services/Handler'
 import { ICallDevice, IMakeCallParams } from '../../util/interfaces'
 import logger from '../../util/logger'
 import Relay from '../Relay'
 import Call from './Call'
 import { DEFAULT_CALL_TIMEOUT, CallNotification } from '../../util/constants/relay'
 
-const _ctxUniqueId = (context: string): string => `calling.ctx.${context}`
-
 export default class Calling extends Relay {
+  protected service: string = 'calling'
   private _calls: Call[] = []
 
   notificationHandler(notification: any) {
@@ -56,26 +53,6 @@ export default class Calling extends Relay {
 
     const result = await call.dial()
     return result
-  }
-
-  async onInbound(contexts: string | string[], handler: Function) {
-    if (typeof contexts === 'string') { // backwards compat: force to string[]
-      contexts = [contexts]
-    }
-    if (!contexts.length || !isFunction(handler)) {
-      logger.warn('Invalid parameters for calling onInbound. "contexts" and "handler" required.')
-      return
-    }
-    const msg = new Execute({
-      protocol: this.session.relayProtocol,
-      method: 'call.receive',
-      params: { contexts }
-    })
-
-    const response: any = await this.session.execute(msg)
-    contexts.forEach(context => register(this.session.relayProtocol, handler, _ctxUniqueId(context)))
-    logger.info(response.message)
-    return response
   }
 
   addCall(call: Call): void {
@@ -141,7 +118,7 @@ export default class Calling extends Relay {
    */
   private _onReceive(params: any): void {
     const call = new Call(this, params)
-    trigger(this.session.relayProtocol, call, _ctxUniqueId(call.context))
+    trigger(this.session.relayProtocol, call, this._ctxUniqueId(call.context))
   }
 
   /**

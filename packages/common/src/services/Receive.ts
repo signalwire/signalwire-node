@@ -19,7 +19,9 @@ export default async (session: BaseSession, contexts: string | string[]): Promis
   }
   const { relayProtocol: protocol } = session
   const be = new Execute({ protocol, method, params: { contexts } })
-  const response = await session.execute(be)
+  const response = await session.execute(be).catch(error => {
+    logger.error(`Error registering contexts: [${error.code}] ${error.message}`)
+  })
   logger.info(response.message)
   session.contexts = session.contexts.concat(contexts)
 

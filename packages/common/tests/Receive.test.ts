@@ -1,5 +1,4 @@
 import RelayClientNode from '../../node/src/relay'
-import RelayClientWeb from '../../js/src/SignalWire'
 import Receive from '../src/services/Receive'
 const Connection = require('../../common/src/services/Connection')
 jest.mock('../../common/src/services/Connection')
@@ -56,11 +55,6 @@ describe('Receive', () => {
       done()
     })
   }
-
-  describe('on a web client', () => {
-    const session = new RelayClientWeb(swOptions)
-    _common(session)
-  })
 
   describe('on a node client', () => {
     const session = new RelayClientNode(swOptions)

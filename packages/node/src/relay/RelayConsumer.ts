@@ -2,6 +2,7 @@ import RelayClient from './index'
 import logger from '../../../common/src/util/logger'
 import { isFunction } from 'util'
 import { IRelayConsumerParams } from '../../../common/src/util/interfaces'
+import Receive from '../../../common/src/services/Receive'
 
 export default class RelayConsumer {
   host: string = null
@@ -43,9 +44,9 @@ export default class RelayConsumer {
     if (isFunction(this.setup)) {
       this.setup(this)
     }
-    const { host, project, token } = this
-    if (!project || !token) {
-      logger.error('SignalWire "project" and "token" are required!')
+    const { host, project, token, contexts } = this
+    if (!project || !token || !contexts.length) {
+      logger.error('"project", "token" and "contexts" are required!')
       return
     }
     this.client = new RelayClient({ host, project, token })
@@ -56,13 +57,16 @@ export default class RelayConsumer {
     })
 
     this.client.on('signalwire.ready', async (client: RelayClient) => {
-      if (this.contexts.length && isFunction(this.onIncomingCall)) {
-        await client.calling.onInbound(this.contexts, this.onIncomingCall).catch(error => {
-          logger.error(`Error registering contexts: [${error.code}] ${error.message}`)
-        })
-      }
-      if (this.contexts.length && isFunction(this.onTask)) {
-        this.contexts.forEach(context => client.tasking.onTask(context, this.onTask))
+      const success = await Receive(this.client, this.contexts)
+      if (success) {
+        const promises = []
+        if (isFunction(this.onIncomingCall)) {
+          promises.push(client.calling.registerContexts(this.contexts, this.onIncomingCall))
+        }
+        if (isFunction(this.onTask)) {
+          promises.push(client.tasking.registerContexts(this.contexts, this.onTask))
+        }
+        await promises
       }
       if (isFunction(this.ready)) {
         this.ready(this)

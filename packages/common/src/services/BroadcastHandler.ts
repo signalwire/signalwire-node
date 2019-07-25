@@ -48,6 +48,9 @@ export default function BroadcastHandler(session: any, broadcastParams: any): vo
     case 'queuing.relay.tasks':
       session.tasking.notificationHandler(params)
       break
+    case 'queuing.relay.messaging':
+      session.messaging.notificationHandler(params)
+      break
     default:
       return logger.error(`Unknown notification type: ${event_type}`)
   }

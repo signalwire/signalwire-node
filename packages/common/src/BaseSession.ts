@@ -19,6 +19,7 @@ export default abstract class BaseSession {
   public master_nodeid: string
   public expiresAt: number = 0
   public relayProtocol: string = null
+  public contexts: string[] = []
 
   protected connection: Connection = null
   protected _jwtAuth: boolean = false

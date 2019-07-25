@@ -2,7 +2,7 @@ import logger from '../../util/logger'
 import { register, trigger } from '../../services/Handler'
 import { MessageNotification } from '../../util/constants/relay'
 import Relay from '../Relay'
-import { Execute } from '../../messages/Blade';
+import { Execute } from '../../messages/Blade'
 import SendResult from './SendResult'
 import Message from './Message'
 

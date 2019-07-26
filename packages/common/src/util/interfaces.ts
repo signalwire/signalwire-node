@@ -288,6 +288,8 @@ export interface IRelayConsumerParams {
   token: string
   contexts?: string[]
   onIncomingCall?: Function
+  onIncomingMessage?: Function
+  onMessageStateChange?: Function
   onTask?: Function
   setup?: Function
   ready?: Function

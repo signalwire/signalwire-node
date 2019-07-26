@@ -10,6 +10,8 @@ export default class RelayConsumer {
   token: string = null
   contexts: string[] = []
   onIncomingCall: Function
+  onIncomingMessage: Function
+  onMessageStateChange: Function
   onTask: Function
   setup: Function
   ready: Function
@@ -18,13 +20,19 @@ export default class RelayConsumer {
   protected client: RelayClient
 
   constructor(params: IRelayConsumerParams) {
-    const { host, project, token, contexts = [], onIncomingCall, onTask, setup, ready, teardown } = params
+    const { host, project, token, contexts = [], onIncomingCall, onIncomingMessage, onMessageStateChange, onTask, setup, ready, teardown } = params
     this.host = host
     this.project = project
     this.token = token
     this.contexts = contexts
     if (isFunction(onIncomingCall)) {
       this.onIncomingCall = onIncomingCall.bind(this)
+    }
+    if (isFunction(onIncomingMessage)) {
+      this.onIncomingMessage = onIncomingMessage.bind(this)
+    }
+    if (isFunction(onMessageStateChange)) {
+      this.onMessageStateChange = onMessageStateChange.bind(this)
     }
     if (isFunction(onTask)) {
       this.onTask = onTask.bind(this)
@@ -60,11 +68,17 @@ export default class RelayConsumer {
       const success = await Receive(this.client, this.contexts)
       if (success) {
         const promises = []
-        if (isFunction(this.onIncomingCall)) {
-          promises.push(client.calling.registerContexts(this.contexts, this.onIncomingCall))
+        if (this.onIncomingCall) {
+          promises.push(client.calling.onReceive(this.contexts, this.onIncomingCall))
         }
-        if (isFunction(this.onTask)) {
-          promises.push(client.tasking.registerContexts(this.contexts, this.onTask))
+        if (this.onIncomingMessage) {
+          promises.push(client.messaging.onReceive(this.contexts, this.onIncomingMessage))
+        }
+        if (this.onMessageStateChange) {
+          promises.push(client.messaging.onStateChange(this.contexts, this.onMessageStateChange))
+        }
+        if (this.onTask) {
+          promises.push(client.tasking.onReceive(this.contexts, this.onTask))
         }
         await promises
       }

@@ -27,7 +27,7 @@ export default class Messaging extends Relay {
       params
     })
 
-    const response: any = await this.session.execute(msg)
+    const response: any = await this.session.execute(msg).catch(error => error)
     logger.debug('Send message response', response)
     return new SendResult(response)
   }

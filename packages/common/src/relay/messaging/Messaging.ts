@@ -14,7 +14,7 @@ export default class Messaging extends Relay {
     const message = new Message(params)
     switch (event_type) {
       case MessageNotification.State: {
-        logger.info(`Relay message '${message.direction}' changes state to '${message.state}'`)
+        logger.info(`Relay message '${message.id}' changes state to '${message.state}'`)
         return trigger(this.session.relayProtocol, message, this._ctxStateUniqueId(context))
       }
       case MessageNotification.Receive: {

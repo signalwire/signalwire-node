@@ -11,7 +11,7 @@ console.log('Init client with: ', project, token, '\n')
 const client = new RelayClient({ project, token })
 
 client.on('signalwire.ready', async (client) => {
-  const { successful, call } = await client.calling.dial({ type: 'phone', from: '+12029195378', to: '+12014296600' })
+  const { successful, call } = await client.calling.dial({ type: 'phone', from: '+1xxx', to: '+1yyy' })
   if (!successful) {
     console.error('Dial error!')
     return
@@ -28,5 +28,4 @@ client.on('signalwire.ready', async (client) => {
   }
 })
 
-// client.__logger.setLevel(1)
 client.connect()

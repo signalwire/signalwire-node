@@ -8,7 +8,7 @@ if (!project || !token) {
 }
 
 console.log('Init client with: ', project, token, '\n')
-const client = new RelayClient({ host: 'relay.swire.io', project, token })
+const client = new RelayClient({ project, token })
 
 client.on('signalwire.ready', async (client) => {
   const params = { context: 'office', from_number: '+1yyy', to_number: '+1xxx', body: 'Welcome!' }

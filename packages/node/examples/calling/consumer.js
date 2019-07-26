@@ -1,7 +1,6 @@
 const { RelayConsumer } = require('../..')
 
 const consumer = new RelayConsumer({
-  host: 'relay.swire.io',
   project: process.env.PROJECT,
   token: process.env.TOKEN,
   contexts: ['home', 'office'],

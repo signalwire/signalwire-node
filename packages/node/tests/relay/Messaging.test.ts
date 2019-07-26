@@ -57,4 +57,27 @@ describe('Messaging', () => {
       done()
     })
   })
+
+  describe('.onStateChange()', () => {
+
+    it('should register the state change listener', async done => {
+      Connection.mockSend.mockClear()
+      await session.messaging.onStateChange(['other'], jest.fn())
+      expect(Connection.mockSend).toHaveBeenCalledTimes(1)
+      const { method } = Connection.mockSend.mock.calls[0][0].request.params
+      expect(method).toEqual('signalwire.receive')
+      expect(isQueued(session.relayProtocol, 'messaging.ctxState.other')).toEqual(true)
+      done()
+    })
+
+    it('should handle the messaging.state notification', async done => {
+      const fnMock = jest.fn()
+      await session.messaging.onStateChange(['other'], fnMock)
+      const msg = JSON.parse('{"jsonrpc":"2.0","id":"req-id","method":"blade.broadcast","params":{"broadcaster_nodeid":"uuid","protocol":"signalwire_service_random_uuid","channel":"notifications","event":"queuing.relay.messaging","params":{"event_type":"messaging.state","space_id":"uuid","project_id":"uuid","context":"other","params":{"message_id":"224d1192-b266-4ca2-bd8e-48c64a44d830","context":"other","direction":"outbound","tags":["message","outbound","SMS","office","relay-client"],"from_number":"+1xxx","to_number":"+1yyy","body":"Welcome at SignalWire!","media":[],"segments":1,"message_state":"queued"}}}}')
+      trigger(SwEvent.SocketMessage, msg, session.uuid)
+      expect(fnMock).toHaveBeenCalledTimes(1)
+      expect(fnMock).toBeCalledWith(expect.any(Message))
+      done()
+    })
+  })
 })

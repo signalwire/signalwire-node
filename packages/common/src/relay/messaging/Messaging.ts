@@ -1,5 +1,5 @@
 import logger from '../../util/logger'
-import { register, trigger } from '../../services/Handler'
+import { trigger } from '../../services/Handler'
 import { MessageNotification } from '../../util/constants/relay'
 import Relay from '../Relay'
 import { Execute } from '../../messages/Blade'
@@ -10,20 +10,13 @@ export default class Messaging extends Relay {
   protected service: string = 'messaging'
 
   notificationHandler(notification: any) {
-    const { event_type, params } = notification
-    params.event_type = event_type
+    const { event_type, params, context } = notification
+    const message = new Message(params)
     switch (event_type) {
-      case MessageNotification.State: {
-        // TODO: to implement
-        const message = new Message(params)
-        logger.debug('Message state!!', message)
-        break
-      }
-      case MessageNotification.Receive: {
-        const message = new Message(params)
-        trigger(this.session.relayProtocol, message, this._ctxUniqueId(message.context))
-        break
-      }
+      case MessageNotification.State:
+        return trigger(this.session.relayProtocol, message, this._ctxStateUniqueId(context))
+      case MessageNotification.Receive:
+        return trigger(this.session.relayProtocol, message, this._ctxReceiveUniqueId(context))
     }
   }
 
@@ -38,5 +31,4 @@ export default class Messaging extends Relay {
     logger.debug('Send message response', response)
     return new SendResult(response)
   }
-
 }

@@ -118,7 +118,7 @@ export default class Calling extends Relay {
    */
   private _onReceive(params: any): void {
     const call = new Call(this, params)
-    trigger(this.session.relayProtocol, call, this._ctxUniqueId(call.context))
+    trigger(this.session.relayProtocol, call, this._ctxReceiveUniqueId(call.context))
   }
 
   /**

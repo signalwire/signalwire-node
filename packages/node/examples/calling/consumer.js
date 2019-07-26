@@ -1,18 +1,21 @@
 const { RelayConsumer } = require('../..')
 
 const consumer = new RelayConsumer({
-  project: '',
-  token: '',
+  host: 'relay.swire.io',
+  project: process.env.PROJECT,
+  token: process.env.TOKEN,
   contexts: ['home', 'office'],
-  setup: (consumer) => {
-    consumer.project = ''
-    consumer.token = ''
-  },
   teardown: (consumer) => {
     console.log('teardown now and close.')
   },
   onTask: async (message) => {
     console.log('New task:', message)
+  },
+  onIncomingMessage: async (message) => {
+    console.log('Inbound message', message.id, message.from, message.to)
+  },
+  onMessageStateChange: async (message) => {
+    console.log('Message state changed', message.id, message.state)
   },
   onIncomingCall: async (call) => {
     console.log('Inbound call', call.id, call.from, call.to)

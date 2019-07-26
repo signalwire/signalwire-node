@@ -1,4 +1,3 @@
-import logger from '../../util/logger'
 import { IMessage, IMessageOptions } from '../../util/interfaces'
 
 export default class Message implements IMessage {
@@ -26,7 +25,5 @@ export default class Message implements IMessage {
     this.segments = options.segments
     this.tags = options.tags || []
     this.reason = options.reason
-
-    logger.info(`New Relay ${this.direction} message ${this.id} in context ${this.context}`)
   }
 }

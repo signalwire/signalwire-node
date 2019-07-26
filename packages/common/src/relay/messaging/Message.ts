@@ -27,6 +27,6 @@ export default class Message implements IMessage {
     this.tags = options.tags || []
     this.reason = options.reason
 
-    logger.info(`New Relay message ${this.id} in context ${this.context}`)
+    logger.info(`New Relay ${this.direction} message ${this.id} in context ${this.context}`)
   }
 }

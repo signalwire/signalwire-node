@@ -14,7 +14,7 @@ describe('Messaging', () => {
 
   describe('.send()', () => {
 
-    const messageOpts = { context: 'office', from_number: '8992222222', to_number: '8991111111', body: 'Hello' }
+    const messageOpts = { context: 'office', from: '8992222222', to: '8991111111', body: 'Hello' }
 
     it('should return a SendResult with success 200 response code', async done => {
       Connection.mockResponse.mockReturnValueOnce(JSON.parse('{"id":"uuid","jsonrpc":"2.0","result":{"result":{"code":"200","message":"message","message_id":"message-uuid"}}}'))

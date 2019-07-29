@@ -25,6 +25,11 @@ export default class Messaging extends Relay {
   }
 
   async send(params: any): Promise<SendResult> {
+    const { from = '', to = '' } = params
+    params.from_number = from
+    params.to_number = to
+    delete params.from
+    delete params.to
     const msg = new Execute({
       protocol: this.session.relayProtocol,
       method: 'messaging.send',

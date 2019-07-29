@@ -100,3 +100,8 @@ export enum CallDetectType {
   Machine = 'machine',
   Digit = 'digit',
 }
+
+export enum MessageNotification {
+  State = 'messaging.state',
+  Receive = 'messaging.receive',
+}

@@ -14,27 +14,6 @@ export default class Call extends BaseCall {
     }
   }
 
-  deaf() {
-    const { remoteStream } = this.options
-    if (streamIsValid(remoteStream)) {
-      remoteStream.getAudioTracks().forEach(t => t.enabled = false)
-    }
-  }
-
-  undeaf() {
-    const { remoteStream } = this.options
-    if (streamIsValid(remoteStream)) {
-      remoteStream.getAudioTracks().forEach(t => t.enabled = true)
-    }
-  }
-
-  toggleDeaf() {
-    const { remoteStream } = this.options
-    if (streamIsValid(remoteStream)) {
-      remoteStream.getAudioTracks().forEach(t => t.enabled = !t.enabled)
-    }
-  }
-
   setSpeakerPhone(flag: boolean) {
     InCallManager.setForceSpeakerphoneOn(flag)
   }

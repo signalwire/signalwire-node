@@ -47,18 +47,6 @@ export default class Call extends BaseCall {
     }
   }
 
-  deaf() {
-    muteMediaElement(this.options.remoteElement)
-  }
-
-  undeaf() {
-    unmuteMediaElement(this.options.remoteElement)
-  }
-
-  toggleDeaf() {
-    toggleMuteMediaElement(this.options.remoteElement)
-  }
-
   async setAudioOutDevice(deviceId: string): Promise<boolean> {
     this.options.speakerId = deviceId
     const { remoteElement, speakerId } = this.options

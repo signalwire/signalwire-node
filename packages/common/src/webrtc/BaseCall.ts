@@ -7,7 +7,7 @@ import Peer from './Peer'
 import { PeerType, VertoMethod, SwEvent, NOTIFICATION_TYPE, Direction } from '../util/constants'
 import { State, DEFAULT_CALL_OPTIONS, ConferenceAction, Role } from '../util/constants/call'
 import { trigger, register, deRegister } from '../services/Handler'
-import { sdpStereoHack, sdpMediaOrderHack, checkSubscribeResponse } from './helpers'
+import { sdpStereoHack, sdpMediaOrderHack, checkSubscribeResponse, enableAudioTracks, disableAudioTracks, toggleAudioTracks, enableVideoTracks, disableVideoTracks, toggleVideoTracks } from './helpers'
 import { objEmpty, mutateLiveArrayData, isFunction } from '../util/helpers'
 import { CallOptions } from '../util/interfaces'
 import { attachMediaStream, detachMediaStream, sdpToJsonHack, stopStream, getUserMedia, setMediaElementSinkId } from '../util/webrtc'
@@ -136,15 +136,15 @@ export default abstract class BaseCall {
   }
 
   muteAudio() {
-    this.peer.audioState = 'off'
+    disableAudioTracks(this.options.localStream)
   }
 
   unmuteAudio() {
-    this.peer.audioState = 'on'
+    enableAudioTracks(this.options.localStream)
   }
 
   toggleAudioMute() {
-    this.peer.audioState = 'toggle'
+    toggleAudioTracks(this.options.localStream)
   }
 
   async setAudioInDevice(deviceId: string): Promise<void> {
@@ -164,15 +164,15 @@ export default abstract class BaseCall {
   }
 
   muteVideo() {
-    this.peer.videoState = 'off'
+    disableVideoTracks(this.options.localStream)
   }
 
   unmuteVideo() {
-    this.peer.videoState = 'on'
+    enableVideoTracks(this.options.localStream)
   }
 
   toggleVideoMute() {
-    this.peer.videoState = 'toggle'
+    toggleVideoTracks(this.options.localStream)
   }
 
   async setVideoDevice(deviceId: string): Promise<void> {
@@ -192,11 +192,17 @@ export default abstract class BaseCall {
     }
   }
 
-  abstract deaf(): void
+  deaf() {
+    disableAudioTracks(this.options.remoteStream)
+  }
 
-  abstract undeaf(): void
+  undeaf() {
+    enableAudioTracks(this.options.remoteStream)
+  }
 
-  abstract toggleDeaf(): void
+  toggleDeaf() {
+    toggleAudioTracks(this.options.remoteStream)
+  }
 
   setState(state: State) {
     this._prevState = this._state

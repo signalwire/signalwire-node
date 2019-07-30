@@ -20,22 +20,6 @@ export default class Peer {
     this._init()
   }
 
-  set audioState(what: boolean | string) {
-    this._setTracks(this._audioTracks(), what)
-  }
-
-  get audioState() {
-    return this._audioTracks().every(t => t.enabled)
-  }
-
-  set videoState(what: boolean | string) {
-    this._setTracks(this._videoTracks(), what)
-  }
-
-  get videoState() {
-    return this._videoTracks().every(t => t.enabled)
-  }
-
   startNegotiation() {
     this._negotiating = true
 
@@ -154,37 +138,5 @@ export default class Peer {
     const config: RTCConfiguration = { sdpSemantics: 'plan-b', bundlePolicy: 'max-compat', iceServers }
     logger.info('RTC config', config)
     return config
-  }
-
-  private _audioTracks() {
-    if (!streamIsValid(this.options.localStream)) {
-      throw new Error('Invalid Local Stream')
-    }
-    return this.options.localStream.getAudioTracks()
-  }
-
-  private _videoTracks() {
-    if (!streamIsValid(this.options.localStream)) {
-      throw new Error('Invalid Local Stream')
-    }
-    return this.options.localStream.getVideoTracks()
-  }
-
-  private _setTracks(tracks: MediaStreamTrack[], what: boolean | string) {
-    for (let i = 0; i < tracks.length; i++) {
-      switch (what) {
-        case true:
-        case 'on':
-          tracks[i].enabled = true
-          break
-        case false:
-        case 'off':
-          tracks[i].enabled = false
-          break
-        case 'toggle':
-          tracks[i].enabled = !tracks[i].enabled
-          break
-      }
-    }
   }
 }

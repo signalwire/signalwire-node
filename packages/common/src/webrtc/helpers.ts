@@ -211,6 +211,63 @@ const destructSubscribeResponse = (response: any): DestructuredResult => {
   return tmp
 }
 
+const enableAudioTracks = (stream: MediaStream) => {
+  _updateMediaStreamTracks(stream, 'audio', true)
+}
+
+const disableAudioTracks = (stream: MediaStream) => {
+  _updateMediaStreamTracks(stream, 'audio', false)
+}
+
+const toggleAudioTracks = (stream: MediaStream) => {
+  _updateMediaStreamTracks(stream, 'audio', null)
+}
+
+const enableVideoTracks = (stream: MediaStream) => {
+  _updateMediaStreamTracks(stream, 'video', true)
+}
+
+const disableVideoTracks = (stream: MediaStream) => {
+  _updateMediaStreamTracks(stream, 'video', false)
+}
+
+const toggleVideoTracks = (stream: MediaStream) => {
+  _updateMediaStreamTracks(stream, 'video', null)
+}
+
+const _updateMediaStreamTracks = (stream: MediaStream, kind: string = null, enabled: boolean | string = null) => {
+  if (!WebRTC.streamIsValid(stream)) {
+    return null
+  }
+  let tracks: MediaStreamTrack[] = []
+  switch (kind) {
+    case 'audio':
+      tracks = stream.getAudioTracks()
+      break
+    case 'video':
+      tracks = stream.getVideoTracks()
+      break
+    default:
+      tracks = stream.getTracks()
+      break
+  }
+  tracks.forEach((track: MediaStreamTrack) => {
+    switch (enabled) {
+      case 'on':
+      case true:
+        track.enabled = true
+        break
+      case 'off':
+      case false:
+        track.enabled = false
+        break
+      default:
+        track.enabled = !track.enabled
+        break
+    }
+  })
+}
+
 export {
   getUserMedia,
   getDevices,
@@ -222,5 +279,11 @@ export {
   sdpStereoHack,
   sdpMediaOrderHack,
   checkSubscribeResponse,
-  destructSubscribeResponse
+  destructSubscribeResponse,
+  enableAudioTracks,
+  disableAudioTracks,
+  toggleAudioTracks,
+  enableVideoTracks,
+  disableVideoTracks,
+  toggleVideoTracks,
 }

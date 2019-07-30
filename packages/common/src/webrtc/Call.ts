@@ -1,7 +1,7 @@
 import logger from '../util/logger'
 import BaseCall from './BaseCall'
 import { CallOptions } from '../util/interfaces'
-import { getDisplayMedia, setMediaElementSinkId, muteMediaElement, unmuteMediaElement, toggleMuteMediaElement } from '../util/webrtc'
+import { getDisplayMedia, setMediaElementSinkId } from '../util/webrtc'
 
 export default class Call extends BaseCall {
 

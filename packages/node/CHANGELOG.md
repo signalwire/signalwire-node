@@ -3,7 +3,7 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [2.1.0] - 2019-07-30
 ### Added
 - Create your own Relay Tasks and enable `onTask` method on RelayConsumer to receive/handle them.
 - Methods to start a detector on a Call: `detect`, `detectAsync`, `detectHuman`, `detectHumanAsync`, `detectMachine`, `detectMachineAsync`, `detectFax`, `detectFaxAsync`, `detectDigit`, `detectDigitAsync`

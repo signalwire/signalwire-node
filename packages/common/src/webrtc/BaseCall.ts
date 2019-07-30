@@ -50,22 +50,6 @@ export default abstract class BaseCall {
     this._targetNodeId = what
   }
 
-  set audioState(what: boolean | string) {
-    this.peer.audioState = what
-  }
-
-  get audioState() {
-    return this.peer.audioState
-  }
-
-  set videoState(what: boolean | string) {
-    this.peer.videoState = what
-  }
-
-  get videoState() {
-    return this.peer.videoState
-  }
-
   get localStream() {
     return this.options.localStream
   }

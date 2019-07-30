@@ -94,6 +94,16 @@ const getMediaConstraints = (options: CallOptions): MediaStreamConstraints => {
 
 const assureDeviceId = async (id: string, label: string, kind: MediaDeviceInfo['kind']): Promise<string> => {
   const devices = await WebRTC.enumerateDevices().catch(error => [])
+  const empty = devices.length && devices.every((d: MediaDeviceInfo) => d.deviceId === '' && d.label === '')
+  if (empty) {
+    const stream = await WebRTC.getUserMedia({ audio: true, video: true }).catch(error => null)
+    if (stream) {
+      WebRTC.stopStream(stream)
+      return assureDeviceId(id, label, kind)
+    } else {
+      return null
+    }
+  }
   for (let i = 0; i < devices.length; i++) {
     const { deviceId, label: deviceLabel, kind: deviceKind } = devices[i]
     if (kind === deviceKind && (id === deviceId || label === deviceLabel)) {

@@ -1,7 +1,7 @@
 import logger from '../util/logger'
 import BaseCall from './BaseCall'
 import { CallOptions } from '../util/interfaces'
-import { getDisplayMedia, setMediaElementSinkId, muteMediaElement, unmuteMediaElement, toggleMuteMediaElement } from '../util/webrtc'
+import { getDisplayMedia, setMediaElementSinkId } from '../util/webrtc'
 
 export default class Call extends BaseCall {
 
@@ -45,18 +45,6 @@ export default class Call extends BaseCall {
     if (this.screenShare instanceof Call) {
       this.screenShare.hangup()
     }
-  }
-
-  deaf() {
-    muteMediaElement(this.options.remoteElement)
-  }
-
-  undeaf() {
-    unmuteMediaElement(this.options.remoteElement)
-  }
-
-  toggleDeaf() {
-    toggleMuteMediaElement(this.options.remoteElement)
   }
 
   async setAudioOutDevice(deviceId: string): Promise<boolean> {

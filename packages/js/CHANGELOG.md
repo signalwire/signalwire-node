@@ -27,6 +27,10 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Security
 - Update dependencies
 
+## [1.1.3] - 2019-07-31
+### Changed
+- Auto-discover webrtc devices if all `deviceIds` or `labels` are empty. (Help on Safari)
+
 ## [1.1.2] - 2019-07-17
 ### Fixed
 - Fix reconnection logic on Verto client.

@@ -94,6 +94,16 @@ const getMediaConstraints = (options: CallOptions): MediaStreamConstraints => {
 
 const assureDeviceId = async (id: string, label: string, kind: MediaDeviceInfo['kind']): Promise<string> => {
   const devices = await WebRTC.enumerateDevices().catch(error => [])
+  const empty = devices.length && devices.every((d: MediaDeviceInfo) => d.deviceId === '' && d.label === '')
+  if (empty) {
+    const stream = await WebRTC.getUserMedia({ audio: true, video: true }).catch(error => null)
+    if (stream) {
+      WebRTC.stopStream(stream)
+      return assureDeviceId(id, label, kind)
+    } else {
+      return null
+    }
+  }
   for (let i = 0; i < devices.length; i++) {
     const { deviceId, label: deviceLabel, kind: deviceKind } = devices[i]
     if (kind === deviceKind && (id === deviceId || label === deviceLabel)) {
@@ -201,6 +211,63 @@ const destructSubscribeResponse = (response: any): DestructuredResult => {
   return tmp
 }
 
+const enableAudioTracks = (stream: MediaStream) => {
+  _updateMediaStreamTracks(stream, 'audio', true)
+}
+
+const disableAudioTracks = (stream: MediaStream) => {
+  _updateMediaStreamTracks(stream, 'audio', false)
+}
+
+const toggleAudioTracks = (stream: MediaStream) => {
+  _updateMediaStreamTracks(stream, 'audio', null)
+}
+
+const enableVideoTracks = (stream: MediaStream) => {
+  _updateMediaStreamTracks(stream, 'video', true)
+}
+
+const disableVideoTracks = (stream: MediaStream) => {
+  _updateMediaStreamTracks(stream, 'video', false)
+}
+
+const toggleVideoTracks = (stream: MediaStream) => {
+  _updateMediaStreamTracks(stream, 'video', null)
+}
+
+const _updateMediaStreamTracks = (stream: MediaStream, kind: string = null, enabled: boolean | string = null) => {
+  if (!WebRTC.streamIsValid(stream)) {
+    return null
+  }
+  let tracks: MediaStreamTrack[] = []
+  switch (kind) {
+    case 'audio':
+      tracks = stream.getAudioTracks()
+      break
+    case 'video':
+      tracks = stream.getVideoTracks()
+      break
+    default:
+      tracks = stream.getTracks()
+      break
+  }
+  tracks.forEach((track: MediaStreamTrack) => {
+    switch (enabled) {
+      case 'on':
+      case true:
+        track.enabled = true
+        break
+      case 'off':
+      case false:
+        track.enabled = false
+        break
+      default:
+        track.enabled = !track.enabled
+        break
+    }
+  })
+}
+
 export {
   getUserMedia,
   getDevices,
@@ -212,5 +279,11 @@ export {
   sdpStereoHack,
   sdpMediaOrderHack,
   checkSubscribeResponse,
-  destructSubscribeResponse
+  destructSubscribeResponse,
+  enableAudioTracks,
+  disableAudioTracks,
+  toggleAudioTracks,
+  enableVideoTracks,
+  disableVideoTracks,
+  toggleVideoTracks,
 }

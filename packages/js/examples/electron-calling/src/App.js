@@ -15,8 +15,8 @@ export default class App extends React.Component {
     this.setState({ connectStatus: 'Connecting..' })
 
     this.session = new Relay({
-      project: '', // Fill in your Project ID here
-      token: '' // Fill in your JWT here
+      project: '4b7ae78a-d02e-4889-a63b-08b156d5916e', // Fill in your Project ID here
+      token: 'eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE1NjQ1ODA0NjMsImlzcyI6IlNpZ25hbFdpcmUgSldUIiwianRpIjoiMFloQU5tZ3BnTnMtYkR2LVZBdUE2LXdVUmZJIiwic2NvcGUiOiJ3ZWJydGMiLCJzdWIiOiI0YjdhZTc4YS1kMDJlLTQ4ODktYTYzYi0wOGIxNTZkNTkxNmUiLCJyZXNvdXJjZSI6ImVsZW5hIiwiZXhwIjoxNTY0NTg3NjYzfQ.pJTJx6dfTlDNg3PZnmKEOBD8rR-oMTtnF5TDwRIRLcFBCEkZCJfO3GU0ZUo9Gi9vS8pSiYPD6zzo7GZt5CI9aQ' // Fill in your JWT here
     })
     this.session.iceServers = [
       { urls: 'stun:stun.l.google.com:19302' }

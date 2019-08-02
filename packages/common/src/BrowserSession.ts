@@ -130,12 +130,32 @@ export default abstract class BrowserSession extends BaseSession {
 
   /**
    * Refresh the device list doing an enumerateDevices
+   * @deprecated
    */
   async refreshDevices() {
-    this._devices = await getDevices()
+    const cache = {};
+    ['videoinput', 'audioinput', 'audiooutput'].map((kind: string) => {
+      cache[kind] = {}
+      Object.defineProperty(cache[kind], 'toArray', {
+        value: function () {
+          return Object.keys(this).map(k => this[k])
+        }
+      })
+    })
+    const devices = await this.getDevices()
+    devices.forEach((t: MediaDeviceInfo) => {
+      if (cache.hasOwnProperty(t.kind)) {
+        cache[t.kind][t.deviceId] = t
+      }
+    })
+
+    this._devices = cache
     return this.devices
   }
 
+  /**
+   * @deprecated
+   */
   get devices() {
     return this._devices
   }
@@ -151,14 +171,23 @@ export default abstract class BrowserSession extends BaseSession {
     }
   }
 
+  /**
+   * @deprecated
+   */
   get videoDevices() {
     return this._devices.videoinput
   }
 
+  /**
+   * @deprecated
+   */
   get audioInDevices() {
     return this._devices.audioinput
   }
 
+  /**
+   * @deprecated
+   */
   get audioOutDevices() {
     return this._devices.audiooutput
   }

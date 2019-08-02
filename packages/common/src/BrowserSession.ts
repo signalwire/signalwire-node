@@ -251,12 +251,7 @@ export default abstract class BrowserSession extends BaseSession {
   }
 
   set speaker(deviceId: string) {
-    const knownSpeakers = Object.keys(this.audioOutDevices)
-    if (knownSpeakers.includes(deviceId)) {
-      this._speaker = deviceId
-    } else {
-      throw new Error(`Unknown device ${deviceId}.`)
-    }
+    this._speaker = deviceId
   }
 
   get speaker() {

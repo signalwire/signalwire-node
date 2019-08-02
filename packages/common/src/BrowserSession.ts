@@ -14,6 +14,10 @@ import { stopStream } from './util/webrtc'
 
 export default abstract class BrowserSession extends BaseSession {
   public calls: { [callId: string]: BaseCall } = {}
+  public micId: string
+  public micLabel: string
+  public camId: string
+  public camLabel: string
 
   private _iceServers: RTCIceServer[] = []
   private _localElement: HTMLMediaElement = null
@@ -26,7 +30,6 @@ export default abstract class BrowserSession extends BaseSession {
   protected _speaker: string = null
 
   async connect(): Promise<void> {
-    await this.refreshDevices()
     this.sessionid = await localStorage.getItem(SESSION_ID)
     super.connect()
   }
@@ -205,6 +208,8 @@ export default abstract class BrowserSession extends BaseSession {
     const { micId, micLabel, ...constraints } = settings
     removeUnsupportedConstraints(constraints)
     this._audioConstraints = await checkDeviceIdConstraints(micId, micLabel, 'audioinput', constraints)
+    this.micId = micId
+    this.micLabel = micLabel
     return this._audioConstraints
   }
 
@@ -220,6 +225,8 @@ export default abstract class BrowserSession extends BaseSession {
     const { camId, camLabel, ...constraints } = settings
     removeUnsupportedConstraints(constraints)
     this._videoConstraints = await checkDeviceIdConstraints(camId, camLabel, 'videoinput', constraints)
+    this.camId = camId
+    this.camLabel = camLabel
     return this._videoConstraints
   }
 

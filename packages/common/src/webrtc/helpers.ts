@@ -45,6 +45,9 @@ const getDevices = async (kind: string = null): Promise<MediaDeviceInfo[]> => {
   }
   const found = []
   devices = devices.filter(({ kind, groupId }: MediaDeviceInfo) => {
+    if (!groupId) {
+      return true;
+    }
     const key = `${kind}-${groupId}`
     if (!found.includes(key)) {
       found.push(key)

@@ -29,7 +29,7 @@ const _constraintsByKind = (kind: string = null): { audio: boolean, video: boole
 
 /**
  * Retrieve device list using the browser APIs
- * If devices are missing 'deviceId' or 'label' it means we are on Safari (macOS or iOS)
+ * If 'deviceId' or 'label' are missing it means we are on Safari (macOS or iOS)
  * so we must request permissions to the user and then refresh the device list.
  */
 const getDevices = async (kind: string = null): Promise<MediaDeviceInfo[]> => {
@@ -102,20 +102,18 @@ const getMediaConstraints = (options: CallOptions): MediaStreamConstraints => {
 }
 
 const assureDeviceId = async (id: string, label: string, kind: MediaDeviceInfo['kind']): Promise<string> => {
-  const devices = await WebRTC.enumerateDevices().catch(error => [])
-  const empty = devices.length && devices.every((d: MediaDeviceInfo) => d.deviceId === '' && d.label === '')
-  if (empty) {
-    const stream = await WebRTC.getUserMedia({ audio: true, video: true }).catch(error => null)
-    if (stream) {
-      WebRTC.stopStream(stream)
-      return assureDeviceId(id, label, kind)
-    } else {
-      return null
-    }
+  const devices = await WebRTC.enumerateDevices()
+    .catch(error => [])
+    .then(all => all.filter((d: MediaDeviceInfo) => d.kind === kind))
+  const invalid: boolean = devices.length && devices.every((d: MediaDeviceInfo) => (!d.deviceId || !d.label))
+  if (invalid) {
+    const stream = await WebRTC.getUserMedia(_constraintsByKind(kind))
+    WebRTC.stopStream(stream)
+    return assureDeviceId(id, label, kind)
   }
   for (let i = 0; i < devices.length; i++) {
-    const { deviceId, label: deviceLabel, kind: deviceKind } = devices[i]
-    if (kind === deviceKind && (id === deviceId || label === deviceLabel)) {
+    const { deviceId, label: deviceLabel } = devices[i]
+    if (id === deviceId || label === deviceLabel) {
       return deviceId
     }
   }
@@ -135,7 +133,7 @@ const removeUnsupportedConstraints = (constraints: MediaTrackConstraints): void 
 const checkDeviceIdConstraints = async (id: string, label: string, kind: MediaDeviceInfo['kind'], constraints: MediaTrackConstraints) => {
   const { deviceId } = constraints
   if (!isDefined(deviceId) && (id || label)) {
-    const deviceId = await assureDeviceId(id, label, kind)
+    const deviceId = await assureDeviceId(id, label, kind).catch(error => null)
     if (deviceId) {
       constraints.deviceId = { exact: deviceId }
     }

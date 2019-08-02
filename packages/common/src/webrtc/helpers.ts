@@ -81,21 +81,27 @@ const scanResolutions = async (deviceId: string) => {
   return supported
 }
 
-const getMediaConstraints = (options: CallOptions): MediaStreamConstraints => {
-  let { audio = true } = options
-  if (options.micId) {
-    if (typeof audio === 'boolean') {
-      audio = {}
+const getMediaConstraints = async (options: CallOptions): Promise<MediaStreamConstraints> => {
+  let { audio = true, micId, micLabel = '' } = options
+  if (micId) {
+    micId = await assureDeviceId(micId, micLabel, DeviceType.AudioIn).catch(error => null)
+    if (micId) {
+      if (typeof audio === 'boolean') {
+        audio = {}
+      }
+      audio.deviceId = { exact: micId }
     }
-    audio.deviceId = { exact: options.micId }
   }
 
-  let { video = false } = options
-  if (options.camId) {
-    if (typeof video === 'boolean') {
-      video = {}
+  let { video = false, camId, camLabel = '' } = options
+  if (camId) {
+    camId = await assureDeviceId(camId, camLabel, DeviceType.Video).catch(error => null)
+    if (camId) {
+      if (typeof video === 'boolean') {
+        video = {}
+      }
+      video.deviceId = { exact: camId }
     }
-    video.deviceId = { exact: options.camId }
   }
 
   return { audio, video }

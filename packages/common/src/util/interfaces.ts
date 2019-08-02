@@ -86,7 +86,9 @@ export interface CallOptions {
   attach?: boolean
   useStereo?: boolean
   micId?: string
+  micLabel?: string
   camId?: string
+  camLabel?: string
   speakerId?: string
   userVariables?: Object
   screenShare?: boolean

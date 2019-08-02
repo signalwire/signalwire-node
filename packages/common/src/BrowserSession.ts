@@ -1,3 +1,4 @@
+import logger from './util/logger'
 import BaseSession from './BaseSession'
 import BaseCall from './webrtc/BaseCall'
 import Call from './webrtc/Call'
@@ -133,6 +134,7 @@ export default abstract class BrowserSession extends BaseSession {
    * @deprecated
    */
   async refreshDevices() {
+    logger.warn('This method has been deprecated. Use getDevices() instead.')
     const cache = {};
     ['videoinput', 'audioinput', 'audiooutput'].map((kind: string) => {
       cache[kind] = {}
@@ -175,6 +177,7 @@ export default abstract class BrowserSession extends BaseSession {
    * @deprecated
    */
   get videoDevices() {
+    logger.warn('This property has been deprecated. Use getVideoDevices() instead.')
     return this._devices.videoinput
   }
 
@@ -182,6 +185,7 @@ export default abstract class BrowserSession extends BaseSession {
    * @deprecated
    */
   get audioInDevices() {
+    logger.warn('This property has been deprecated. Use getAudioInDevices() instead.')
     return this._devices.audioinput
   }
 
@@ -189,6 +193,7 @@ export default abstract class BrowserSession extends BaseSession {
    * @deprecated
    */
   get audioOutDevices() {
+    logger.warn('This property has been deprecated. Use getAudioOutDevices() instead.')
     return this._devices.audiooutput
   }
 

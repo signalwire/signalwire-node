@@ -46,7 +46,7 @@ const getDevices = async (kind: string = null): Promise<MediaDeviceInfo[]> => {
   const found = []
   devices = devices.filter(({ kind, groupId }: MediaDeviceInfo) => {
     if (!groupId) {
-      return true;
+      return true
     }
     const key = `${kind}-${groupId}`
     if (!found.includes(key)) {
@@ -85,7 +85,8 @@ const scanResolutions = async (deviceId: string) => {
 }
 
 const getMediaConstraints = async (options: CallOptions): Promise<MediaStreamConstraints> => {
-  let { audio = true, micId, micLabel = '' } = options
+  let { audio = true, micId } = options
+  const { micLabel = '' } = options
   if (micId) {
     micId = await assureDeviceId(micId, micLabel, DeviceType.AudioIn).catch(error => null)
     if (micId) {
@@ -96,7 +97,8 @@ const getMediaConstraints = async (options: CallOptions): Promise<MediaStreamCon
     }
   }
 
-  let { video = false, camId, camLabel = '' } = options
+  let { video = false, camId } = options
+  const { camLabel = '' } = options
   if (camId) {
     camId = await assureDeviceId(camId, camLabel, DeviceType.Video).catch(error => null)
     if (camId) {

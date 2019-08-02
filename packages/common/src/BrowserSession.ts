@@ -286,7 +286,7 @@ export default abstract class BrowserSession extends BaseSession {
   async vertoSubscribe({ nodeId, channels: eventChannel = [], handler }: SubscribeParams) {
     eventChannel = eventChannel.filter(channel => channel && !this._existsSubscription(this.relayProtocol, channel))
     if (!eventChannel.length) {
-      return
+      return {}
     }
     const msg = new Subscribe({ sessid: this.sessionid, eventChannel })
     if (nodeId) {
@@ -304,7 +304,7 @@ export default abstract class BrowserSession extends BaseSession {
   async vertoUnsubscribe({ nodeId, channels: eventChannel = [] }: SubscribeParams) {
     eventChannel = eventChannel.filter(channel => channel && this._existsSubscription(this.relayProtocol, channel))
     if (!eventChannel.length) {
-      return
+      return {}
     }
     const msg = new Unsubscribe({ sessid: this.sessionid, eventChannel })
     if (nodeId) {

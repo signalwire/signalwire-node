@@ -162,7 +162,7 @@ export default abstract class BrowserSession extends BaseSession {
    * @deprecated
    */
   get devices() {
-    return this._devices
+    return this._devices || {}
   }
 
   /**
@@ -181,7 +181,7 @@ export default abstract class BrowserSession extends BaseSession {
    */
   get videoDevices() {
     logger.warn('This property has been deprecated. Use getVideoDevices() instead.')
-    return this._devices.videoinput
+    return this._devices.videoinput || {}
   }
 
   /**
@@ -189,7 +189,7 @@ export default abstract class BrowserSession extends BaseSession {
    */
   get audioInDevices() {
     logger.warn('This property has been deprecated. Use getAudioInDevices() instead.')
-    return this._devices.audioinput
+    return this._devices.audioinput || {}
   }
 
   /**
@@ -197,7 +197,7 @@ export default abstract class BrowserSession extends BaseSession {
    */
   get audioOutDevices() {
     logger.warn('This property has been deprecated. Use getAudioOutDevices() instead.')
-    return this._devices.audiooutput
+    return this._devices.audiooutput || {}
   }
 
   get mediaConstraints() {

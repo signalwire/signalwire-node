@@ -91,7 +91,7 @@ describe('Verto', () => {
     it('should do nothing if subscription already exists and return NULL', async () => {
       instance.subscriptions = { [VERTO_PROTOCOL]: { 'channel-already-there': {} } }
       const response = await instance.subscribe({ channels: ['channel-already-there'], handler: noop })
-      expect(response).toBeUndefined()
+      expect(response).toEqual({})
       expect(Connection.mockSend.mock.calls).toHaveLength(0)
       expect(instance.subscriptions[VERTO_PROTOCOL]).toHaveProperty('channel-already-there')
     })
@@ -119,7 +119,7 @@ describe('Verto', () => {
     it('should do nothing if subscription does not exists', async () => {
       const cName = 'channel-fake'
       const response = await instance.unsubscribe({ channels: [cName] })
-      expect(response).toBeUndefined()
+      expect(response).toEqual({})
       expect(instance.subscriptions).not.toHaveProperty(VERTO_PROTOCOL)
     })
   })

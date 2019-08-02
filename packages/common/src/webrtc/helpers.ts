@@ -2,8 +2,9 @@ import logger from '../util/logger'
 import { localStorage } from '../util/storage'
 import * as WebRTC from '../util/webrtc'
 import { isDefined } from '../util/helpers'
-import { CallOptions, ICacheDevices } from '../util/interfaces'
+import { CallOptions } from '../util/interfaces'
 import { stopStream } from '../util/webrtc'
+import { DeviceType } from '../util/constants'
 
 const getUserMedia = async (constraints: MediaStreamConstraints): Promise<MediaStream | null> => {
   logger.info('RTCService.getUserMedia', constraints)
@@ -19,32 +20,40 @@ const getUserMedia = async (constraints: MediaStreamConstraints): Promise<MediaS
   }
 }
 
-const getDevices = async (): Promise<ICacheDevices> => {
-  const cache = {};
-  ['videoinput', 'audioinput', 'audiooutput'].map((kind: string) => {
-    cache[kind] = {}
-    Object.defineProperty(cache[kind], 'toArray', {
-      value: function () {
-        return Object.keys(this).map(k => this[k])
-      }
-    })
-  })
-  try {
-    const devices = await WebRTC.enumerateDevices()
-    devices.forEach((t: MediaDeviceInfo) => {
-      if (!cache.hasOwnProperty(t.kind)) {
-        logger.warn(`Unknown device type: ${t.kind}`, t)
-        return true
-      }
-      if (t.groupId && Object.keys(cache[t.kind]).some(k => cache[t.kind][k].groupId == t.groupId)) {
-        return true
-      }
-      cache[t.kind][t.deviceId] = t
-    })
-  } catch (error) {
-    logger.error('enumerateDevices Error', error)
+const _constraintsByKind = (kind: string = null): { audio: boolean, video: boolean } => {
+  return {
+    audio: !kind || kind === DeviceType.AudioIn,
+    video: !kind || kind === DeviceType.Video
   }
-  return cache
+}
+
+/**
+ * Retrieve device list using the browser APIs
+ * If devices are missing 'deviceId' or 'label' it means we are on Safari (macOS or iOS)
+ * so we must request permissions to the user and then refresh the device list.
+ */
+const getDevices = async (kind: string = null): Promise<MediaDeviceInfo[]> => {
+  let devices = await WebRTC.enumerateDevices().catch(error => [])
+  const invalid: boolean = devices.length && devices.every((d: MediaDeviceInfo) => (!d.deviceId || !d.label))
+  if (invalid) {
+    const stream = await WebRTC.getUserMedia(_constraintsByKind(kind))
+    WebRTC.stopStream(stream)
+    return getDevices(kind)
+  }
+  if (kind) {
+    devices = devices.filter((d: MediaDeviceInfo) => d.kind === kind)
+  }
+  const found = []
+  devices = devices.filter(({ kind, groupId }: MediaDeviceInfo) => {
+    const key = `${kind}-${groupId}`
+    if (!found.includes(key)) {
+      found.push(key)
+      return true
+    }
+    return false
+  })
+
+  return devices
 }
 
 const resolutionList = [[320, 240], [640, 360], [640, 480], [1280, 720], [1920, 1080]]

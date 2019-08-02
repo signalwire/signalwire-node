@@ -1,10 +1,9 @@
 import BaseSession from './BaseSession'
-import Connection from './services/Connection'
 import BaseCall from './webrtc/BaseCall'
 import Call from './webrtc/Call'
 import { ICacheDevices, IAudioSettings, IVideoSettings, BroadcastParams, SubscribeParams, CallOptions } from './util/interfaces'
-import { registerOnce } from './services/Handler'
-import { SwEvent, SESSION_ID } from './util/constants'
+import { registerOnce, trigger } from './services/Handler'
+import { SwEvent, SESSION_ID, DeviceType } from './util/constants'
 import { State } from './util/constants/call'
 import { getDevices, scanResolutions, removeUnsupportedConstraints, checkDeviceIdConstraints, destructSubscribeResponse, getUserMedia } from './webrtc/helpers'
 import { findElementByType } from './util/helpers'
@@ -86,6 +85,46 @@ export default abstract class BrowserSession extends BaseSession {
         this.executeRaw(`#SPB ${dots}`)
       }
       this.executeRaw('#SPE')
+    })
+  }
+
+  /**
+   * Return the device list supported by the browser
+   */
+  getDevices(): Promise<MediaDeviceInfo[]> {
+    return getDevices().catch(error => {
+      trigger(SwEvent.MediaError, error, this.uuid)
+      return []
+    })
+  }
+
+  /**
+   * Return the device list supported by the browser
+   */
+  getVideoDevices(): Promise<MediaDeviceInfo[]> {
+    return getDevices(DeviceType.Video).catch(error => {
+      trigger(SwEvent.MediaError, error, this.uuid)
+      return []
+    })
+  }
+
+  /**
+   * Return the device list supported by the browser
+   */
+  getAudioInDevices(): Promise<MediaDeviceInfo[]> {
+    return getDevices(DeviceType.AudioIn).catch(error => {
+      trigger(SwEvent.MediaError, error, this.uuid)
+      return []
+    })
+  }
+
+  /**
+   * Return the device list supported by the browser
+   */
+  getAudioOutDevices(): Promise<MediaDeviceInfo[]> {
+    return getDevices(DeviceType.AudioOut).catch(error => {
+      trigger(SwEvent.MediaError, error, this.uuid)
+      return []
     })
   }
 

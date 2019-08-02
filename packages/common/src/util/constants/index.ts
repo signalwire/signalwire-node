@@ -74,3 +74,9 @@ export enum BladeMethod {
   Broadcast = 'blade.broadcast',
   Disconnect = 'blade.disconnect'
 }
+
+export enum DeviceType {
+  Video = 'videoinput',
+  AudioIn = 'audioinput',
+  AudioOut = 'audiooutput'
+}

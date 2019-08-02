@@ -1,5 +1,5 @@
 import { findElementByType } from '../../../common/src/util/helpers'
-import { sdpStereoHack, sdpMediaOrderHack } from '../../src/webrtc/helpers'
+import { sdpStereoHack, sdpMediaOrderHack, getDevices } from '../../src/webrtc/helpers'
 
 describe('Helpers browser functions', () => {
   describe('findElementByType', () => {
@@ -55,6 +55,58 @@ describe('Helpers browser functions', () => {
 
     it('if audio already comes first, do nothing', () => {
       expect(sdpMediaOrderHack(ANSWER, OFFER_OK)).toEqual(ANSWER)
+    })
+  })
+
+  describe('getDevices', () => {
+    it('should return the device list removing the duplicated', async done => {
+      const devices = await getDevices()
+      expect(devices).toHaveLength(5)
+      done()
+    })
+
+    it('should return the audioIn device list with kind audioinput', async done => {
+      const devices = await getDevices('audioinput')
+      expect(devices).toHaveLength(2)
+      expect(devices[0].deviceId).toEqual('default')
+      done()
+    })
+
+    it('should return the video device list with kind videoinput', async done => {
+      const devices = await getDevices('videoinput')
+      expect(devices).toHaveLength(2)
+      expect(devices[0].deviceId).toEqual('2060bf50ab9c29c12598bf4eafeafa71d4837c667c7c172bb4407ec6c5150206')
+      done()
+    })
+
+    it('should return the audioOut device list with kind audiooutput', async done => {
+      const devices = await getDevices('audiooutput')
+      expect(devices).toHaveLength(1)
+      expect(devices[0].deviceId).toEqual('default')
+      done()
+    })
+
+    describe('on safari without deviceId or label', () => {
+      const ENUMERATED_MEDIA_DEVICES_SAFARI = [
+        { 'deviceId': 'default', 'kind': 'audioinput', 'label': '', 'groupId': '83ef347b97d14abd837e8c6dbb819c5be84cfe0756dd41455b375cfd4c0ddb4f' },
+        { 'deviceId': '', 'kind': 'audioinput', 'label': '', 'groupId': '83ef347b97d14abd837e8c6dbb819c5be84cfe0756dd41455b375cfd4c0ddb4f' },
+        { 'deviceId': '', 'kind': 'audioinput', 'label': '', 'groupId': '67a612f4ac80c6c9854b50d664348e69b5a11421a0ba8d68e2c00f3539992b4c' },
+
+        { 'deviceId': 'default', 'kind': 'videoinput', 'label': '', 'groupId': '72e8ab9444144c3f8e04276a5801e520e83fc801702a6ef68e9e344083f6f6ce' },
+        { 'deviceId': '', 'kind': 'videoinput', 'label': '', 'groupId': '67a612f4ac80c6c9854b50d664348e69b5a11421a0ba8d68e2c00f3539992b4c' },
+
+        { 'deviceId': 'default', 'kind': 'audiooutput', 'label': '', 'groupId': '83ef347b97d14abd837e8c6dbb819c5be84cfe0756dd41455b375cfd4c0ddb4f' },
+        { 'deviceId': '', 'kind': 'audiooutput', 'label': '', 'groupId': '83ef347b97d14abd837e8c6dbb819c5be84cfe0756dd41455b375cfd4c0ddb4f' },
+      ]
+      it('should return the device list removing the duplicated', async done => {
+        // @ts-ignore
+        navigator.mediaDevices.enumerateDevices.mockResolvedValueOnce(ENUMERATED_MEDIA_DEVICES_SAFARI)
+        const devices = await getDevices()
+        expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalledTimes(1)
+        expect(devices).toHaveLength(5)
+        expect(devices[0].label).toEqual('Default - External Microphone (Built-in)')
+        done()
+      })
     })
   })
 })

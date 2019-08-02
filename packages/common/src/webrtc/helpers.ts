@@ -124,7 +124,7 @@ const assureDeviceId = async (id: string, label: string, kind: MediaDeviceInfo['
 const removeUnsupportedConstraints = (constraints: MediaTrackConstraints): void => {
   const supported = WebRTC.getSupportedConstraints()
   Object.keys(constraints).map(key => {
-    if (!supported.hasOwnProperty(key)) {
+    if (!supported.hasOwnProperty(key) || constraints[key] === null || constraints[key] === undefined) {
       delete constraints[key]
     }
   })

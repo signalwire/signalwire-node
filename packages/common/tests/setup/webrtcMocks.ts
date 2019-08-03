@@ -94,7 +94,8 @@ class MediaStreamTrackMock implements MediaStreamTrack {
   }
 
   stop() {
-    throw new Error("Method not implemented.");
+    this.enabled = false
+    this.readyState = 'ended'
   }
 
   addEventListener(type: any, listener: any, options?: any) {

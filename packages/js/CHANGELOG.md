@@ -27,6 +27,13 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Security
 - Update dependencies
 
+## [1.2.0-beta.1] - 2019-08-02
+### Added
+- New methods to manage browser devices: `getDevices()`, `getVideoDevices()`, `getAudioInDevices()`, `getAudioOutDevices()`.
+### Deprecated
+- Deprecated getters to retrieve cached values for devices: `devices`, `videoDevices`, `audioInDevices`, `audioOutDevices`.
+- Deprecated `refreshDevices()` method to refresh cached devices. Use `getDevices()` instead.
+
 ## [1.1.3] - 2019-07-31
 ### Changed
 - Auto-discover webrtc devices if all `deviceIds` or `labels` are empty. (Help on Safari)

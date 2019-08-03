@@ -1,10 +1,10 @@
+import logger from './util/logger'
 import BaseSession from './BaseSession'
-import Connection from './services/Connection'
 import BaseCall from './webrtc/BaseCall'
 import Call from './webrtc/Call'
 import { ICacheDevices, IAudioSettings, IVideoSettings, BroadcastParams, SubscribeParams, CallOptions } from './util/interfaces'
-import { registerOnce } from './services/Handler'
-import { SwEvent, SESSION_ID } from './util/constants'
+import { registerOnce, trigger } from './services/Handler'
+import { SwEvent, SESSION_ID, DeviceType } from './util/constants'
 import { State } from './util/constants/call'
 import { getDevices, scanResolutions, removeUnsupportedConstraints, checkDeviceIdConstraints, destructSubscribeResponse, getUserMedia } from './webrtc/helpers'
 import { findElementByType } from './util/helpers'
@@ -14,6 +14,10 @@ import { stopStream } from './util/webrtc'
 
 export default abstract class BrowserSession extends BaseSession {
   public calls: { [callId: string]: BaseCall } = {}
+  public micId: string
+  public micLabel: string
+  public camId: string
+  public camLabel: string
 
   private _iceServers: RTCIceServer[] = []
   private _localElement: HTMLMediaElement = null
@@ -26,7 +30,6 @@ export default abstract class BrowserSession extends BaseSession {
   protected _speaker: string = null
 
   async connect(): Promise<void> {
-    await this.refreshDevices()
     this.sessionid = await localStorage.getItem(SESSION_ID)
     super.connect()
   }
@@ -90,15 +93,76 @@ export default abstract class BrowserSession extends BaseSession {
   }
 
   /**
+   * Return the device list supported by the browser
+   */
+  getDevices(): Promise<MediaDeviceInfo[]> {
+    return getDevices().catch(error => {
+      trigger(SwEvent.MediaError, error, this.uuid)
+      return []
+    })
+  }
+
+  /**
+   * Return the device list supported by the browser
+   */
+  getVideoDevices(): Promise<MediaDeviceInfo[]> {
+    return getDevices(DeviceType.Video).catch(error => {
+      trigger(SwEvent.MediaError, error, this.uuid)
+      return []
+    })
+  }
+
+  /**
+   * Return the device list supported by the browser
+   */
+  getAudioInDevices(): Promise<MediaDeviceInfo[]> {
+    return getDevices(DeviceType.AudioIn).catch(error => {
+      trigger(SwEvent.MediaError, error, this.uuid)
+      return []
+    })
+  }
+
+  /**
+   * Return the device list supported by the browser
+   */
+  getAudioOutDevices(): Promise<MediaDeviceInfo[]> {
+    return getDevices(DeviceType.AudioOut).catch(error => {
+      trigger(SwEvent.MediaError, error, this.uuid)
+      return []
+    })
+  }
+
+  /**
    * Refresh the device list doing an enumerateDevices
+   * @deprecated
    */
   async refreshDevices() {
-    this._devices = await getDevices()
+    logger.warn('This method has been deprecated. Use getDevices() instead.')
+    const cache = {};
+    ['videoinput', 'audioinput', 'audiooutput'].map((kind: string) => {
+      cache[kind] = {}
+      Object.defineProperty(cache[kind], 'toArray', {
+        value: function () {
+          return Object.keys(this).map(k => this[k])
+        }
+      })
+    })
+    const devices = await this.getDevices()
+    devices.forEach((t: MediaDeviceInfo) => {
+      if (cache.hasOwnProperty(t.kind)) {
+        cache[t.kind][t.deviceId] = t
+      }
+    })
+
+    this._devices = cache
     return this.devices
   }
 
+  /**
+   * @deprecated
+   */
   get devices() {
-    return this._devices
+    return this._devices || {}
   }
 
   /**
@@ -112,16 +176,28 @@ export default abstract class BrowserSession extends BaseSession {
     }
   }
 
+  /**
+   * @deprecated
+   */
   get videoDevices() {
-    return this._devices.videoinput
+    logger.warn('This property has been deprecated. Use getVideoDevices() instead.')
+    return this._devices.videoinput || {}
   }
 
+  /**
+   * @deprecated
+   */
   get audioInDevices() {
-    return this._devices.audioinput
+    logger.warn('This property has been deprecated. Use getAudioInDevices() instead.')
+    return this._devices.audioinput || {}
   }
 
+  /**
+   * @deprecated
+   */
   get audioOutDevices() {
-    return this._devices.audiooutput
+    logger.warn('This property has been deprecated. Use getAudioOutDevices() instead.')
+    return this._devices.audiooutput || {}
   }
 
   get mediaConstraints() {
@@ -132,6 +208,8 @@ export default abstract class BrowserSession extends BaseSession {
     const { micId, micLabel, ...constraints } = settings
     removeUnsupportedConstraints(constraints)
     this._audioConstraints = await checkDeviceIdConstraints(micId, micLabel, 'audioinput', constraints)
+    this.micId = micId
+    this.micLabel = micLabel
     return this._audioConstraints
   }
 
@@ -147,6 +225,8 @@ export default abstract class BrowserSession extends BaseSession {
     const { camId, camLabel, ...constraints } = settings
     removeUnsupportedConstraints(constraints)
     this._videoConstraints = await checkDeviceIdConstraints(camId, camLabel, 'videoinput', constraints)
+    this.camId = camId
+    this.camLabel = camLabel
     return this._videoConstraints
   }
 
@@ -171,12 +251,7 @@ export default abstract class BrowserSession extends BaseSession {
   }
 
   set speaker(deviceId: string) {
-    const knownSpeakers = Object.keys(this.audioOutDevices)
-    if (knownSpeakers.includes(deviceId)) {
-      this._speaker = deviceId
-    } else {
-      throw new Error(`Unknown device ${deviceId}.`)
-    }
+    this._speaker = deviceId
   }
 
   get speaker() {
@@ -213,7 +288,7 @@ export default abstract class BrowserSession extends BaseSession {
   async vertoSubscribe({ nodeId, channels: eventChannel = [], handler }: SubscribeParams) {
     eventChannel = eventChannel.filter(channel => channel && !this._existsSubscription(this.relayProtocol, channel))
     if (!eventChannel.length) {
-      return
+      return {}
     }
     const msg = new Subscribe({ sessid: this.sessionid, eventChannel })
     if (nodeId) {
@@ -231,7 +306,7 @@ export default abstract class BrowserSession extends BaseSession {
   async vertoUnsubscribe({ nodeId, channels: eventChannel = [] }: SubscribeParams) {
     eventChannel = eventChannel.filter(channel => channel && this._existsSubscription(this.relayProtocol, channel))
     if (!eventChannel.length) {
-      return
+      return {}
     }
     const msg = new Unsubscribe({ sessid: this.sessionid, eventChannel })
     if (nodeId) {

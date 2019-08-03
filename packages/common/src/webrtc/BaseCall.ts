@@ -35,8 +35,8 @@ export default abstract class BaseCall {
   private _iceDone: boolean = false
 
   constructor(protected session: BrowserSession, opts?: CallOptions) {
-    const { iceServers, speaker: speakerId, localElement, remoteElement, mediaConstraints: { audio, video } } = session
-    this.options = Object.assign({}, DEFAULT_CALL_OPTIONS, { audio, video, iceServers, localElement, remoteElement, speakerId }, opts)
+    const { iceServers, speaker: speakerId, micId, micLabel, camId, camLabel, localElement, remoteElement, mediaConstraints: { audio, video } } = session
+    this.options = Object.assign({}, DEFAULT_CALL_OPTIONS, { audio, video, iceServers, localElement, remoteElement, micId, micLabel, camId, camLabel, speakerId }, opts)
 
     this._onMediaError = this._onMediaError.bind(this)
     this._init()

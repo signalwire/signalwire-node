@@ -121,7 +121,8 @@ export default class Peer {
     if (streamIsValid(this.options.localStream)) {
       return this.options.localStream
     }
-    return getUserMedia(getMediaConstraints(this.options))
+    const constraints = await getMediaConstraints(this.options)
+    return getUserMedia(constraints)
   }
 
   private _isOffer(): boolean {

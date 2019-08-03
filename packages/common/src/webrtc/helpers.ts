@@ -2,8 +2,9 @@ import logger from '../util/logger'
 import { localStorage } from '../util/storage'
 import * as WebRTC from '../util/webrtc'
 import { isDefined } from '../util/helpers'
-import { CallOptions, ICacheDevices } from '../util/interfaces'
+import { CallOptions } from '../util/interfaces'
 import { stopStream } from '../util/webrtc'
+import { DeviceType } from '../util/constants'
 
 const getUserMedia = async (constraints: MediaStreamConstraints): Promise<MediaStream | null> => {
   logger.info('RTCService.getUserMedia', constraints)
@@ -19,32 +20,43 @@ const getUserMedia = async (constraints: MediaStreamConstraints): Promise<MediaS
   }
 }
 
-const getDevices = async (): Promise<ICacheDevices> => {
-  const cache = {};
-  ['videoinput', 'audioinput', 'audiooutput'].map((kind: string) => {
-    cache[kind] = {}
-    Object.defineProperty(cache[kind], 'toArray', {
-      value: function () {
-        return Object.keys(this).map(k => this[k])
-      }
-    })
-  })
-  try {
-    const devices = await WebRTC.enumerateDevices()
-    devices.forEach((t: MediaDeviceInfo) => {
-      if (!cache.hasOwnProperty(t.kind)) {
-        logger.warn(`Unknown device type: ${t.kind}`, t)
-        return true
-      }
-      if (t.groupId && Object.keys(cache[t.kind]).some(k => cache[t.kind][k].groupId == t.groupId)) {
-        return true
-      }
-      cache[t.kind][t.deviceId] = t
-    })
-  } catch (error) {
-    logger.error('enumerateDevices Error', error)
+const _constraintsByKind = (kind: string = null): { audio: boolean, video: boolean } => {
+  return {
+    audio: !kind || kind === DeviceType.AudioIn,
+    video: !kind || kind === DeviceType.Video
   }
-  return cache
+}
+
+/**
+ * Retrieve device list using the browser APIs
+ * If 'deviceId' or 'label' are missing it means we are on Safari (macOS or iOS)
+ * so we must request permissions to the user and then refresh the device list.
+ */
+const getDevices = async (kind: string = null): Promise<MediaDeviceInfo[]> => {
+  let devices = await WebRTC.enumerateDevices().catch(error => [])
+  const invalid: boolean = devices.length && devices.every((d: MediaDeviceInfo) => (!d.deviceId || !d.label))
+  if (invalid) {
+    const stream = await WebRTC.getUserMedia(_constraintsByKind(kind))
+    WebRTC.stopStream(stream)
+    return getDevices(kind)
+  }
+  if (kind) {
+    devices = devices.filter((d: MediaDeviceInfo) => d.kind === kind)
+  }
+  const found = []
+  devices = devices.filter(({ kind, groupId }: MediaDeviceInfo) => {
+    if (!groupId) {
+      return true
+    }
+    const key = `${kind}-${groupId}`
+    if (!found.includes(key)) {
+      found.push(key)
+      return true
+    }
+    return false
+  })
+
+  return devices
 }
 
 const resolutionList = [[320, 240], [640, 360], [640, 480], [1280, 720], [1920, 1080]]
@@ -72,41 +84,47 @@ const scanResolutions = async (deviceId: string) => {
   return supported
 }
 
-const getMediaConstraints = (options: CallOptions): MediaStreamConstraints => {
-  let { audio = true } = options
-  if (options.micId) {
-    if (typeof audio === 'boolean') {
-      audio = {}
+const getMediaConstraints = async (options: CallOptions): Promise<MediaStreamConstraints> => {
+  let { audio = true, micId } = options
+  const { micLabel = '' } = options
+  if (micId) {
+    micId = await assureDeviceId(micId, micLabel, DeviceType.AudioIn).catch(error => null)
+    if (micId) {
+      if (typeof audio === 'boolean') {
+        audio = {}
+      }
+      audio.deviceId = { exact: micId }
     }
-    audio.deviceId = { exact: options.micId }
   }
 
-  let { video = false } = options
-  if (options.camId) {
-    if (typeof video === 'boolean') {
-      video = {}
+  let { video = false, camId } = options
+  const { camLabel = '' } = options
+  if (camId) {
+    camId = await assureDeviceId(camId, camLabel, DeviceType.Video).catch(error => null)
+    if (camId) {
+      if (typeof video === 'boolean') {
+        video = {}
+      }
+      video.deviceId = { exact: camId }
     }
-    video.deviceId = { exact: options.camId }
   }
 
   return { audio, video }
 }
 
 const assureDeviceId = async (id: string, label: string, kind: MediaDeviceInfo['kind']): Promise<string> => {
-  const devices = await WebRTC.enumerateDevices().catch(error => [])
-  const empty = devices.length && devices.every((d: MediaDeviceInfo) => d.deviceId === '' && d.label === '')
-  if (empty) {
-    const stream = await WebRTC.getUserMedia({ audio: true, video: true }).catch(error => null)
-    if (stream) {
-      WebRTC.stopStream(stream)
-      return assureDeviceId(id, label, kind)
-    } else {
-      return null
-    }
+  const devices = await WebRTC.enumerateDevices()
+    .catch(error => [])
+    .then(all => all.filter((d: MediaDeviceInfo) => d.kind === kind))
+  const invalid: boolean = devices.length && devices.every((d: MediaDeviceInfo) => (!d.deviceId || !d.label))
+  if (invalid) {
+    const stream = await WebRTC.getUserMedia(_constraintsByKind(kind))
+    WebRTC.stopStream(stream)
+    return assureDeviceId(id, label, kind)
   }
   for (let i = 0; i < devices.length; i++) {
-    const { deviceId, label: deviceLabel, kind: deviceKind } = devices[i]
-    if (kind === deviceKind && (id === deviceId || label === deviceLabel)) {
+    const { deviceId, label: deviceLabel } = devices[i]
+    if (id === deviceId || label === deviceLabel) {
       return deviceId
     }
   }
@@ -117,7 +135,7 @@ const assureDeviceId = async (id: string, label: string, kind: MediaDeviceInfo['
 const removeUnsupportedConstraints = (constraints: MediaTrackConstraints): void => {
   const supported = WebRTC.getSupportedConstraints()
   Object.keys(constraints).map(key => {
-    if (!supported.hasOwnProperty(key)) {
+    if (!supported.hasOwnProperty(key) || constraints[key] === null || constraints[key] === undefined) {
       delete constraints[key]
     }
   })
@@ -126,7 +144,7 @@ const removeUnsupportedConstraints = (constraints: MediaTrackConstraints): void 
 const checkDeviceIdConstraints = async (id: string, label: string, kind: MediaDeviceInfo['kind'], constraints: MediaTrackConstraints) => {
   const { deviceId } = constraints
   if (!isDefined(deviceId) && (id || label)) {
-    const deviceId = await assureDeviceId(id, label, kind)
+    const deviceId = await assureDeviceId(id, label, kind).catch(error => null)
     if (deviceId) {
       constraints.deviceId = { exact: deviceId }
     }

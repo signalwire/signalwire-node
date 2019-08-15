@@ -6,12 +6,12 @@ jest.mock('../../common/src/services/Connection')
 describe('Receive', () => {
   const swOptions = { project: 'project', token: 'token' }
 
-
   const _common = async (session) => {
     beforeEach(() => {
       session.contexts = []
       Connection.mockSend.mockClear()
       Connection.mockResponse
+        .mockReset()
         .mockImplementationOnce(() => JSON.parse('{"id":"c04d725a-c8bc-4b9e-bf1e-9c05150797cc","jsonrpc":"2.0","result":{"requester_nodeid":"uuid","responder_nodeid":"uuid","result":{"code":"200","message":"Receiving all inbound related to the requested relay contexts"}}}'))
     })
 
@@ -56,8 +56,30 @@ describe('Receive', () => {
     })
   }
 
-  describe('on a node client', () => {
+  describe('on a node client with success response', () => {
     const session = new RelayClientNode(swOptions)
     _common(session)
+  })
+
+  describe('on a node client with failure response', () => {
+    const session = new RelayClientNode(swOptions)
+    // @ts-ignore
+    session.connection = Connection.default()
+
+    beforeEach(() => {
+      session.contexts = []
+      Connection.mockSend.mockClear()
+      Connection.mockResponse
+        .mockReset()
+        .mockImplementationOnce(() => JSON.parse('{"jsonrpc":"2.0","id":"req-uuid","error":{"requester_nodeid":"uuid","responder_nodeid":"uuid","code":-32601,"message":"Error message.."}}'))
+    })
+
+    it('should return false', async done => {
+      const success = await Receive(session, 'test')
+      expect(success).toEqual(false)
+      expect(session.contexts).toHaveLength(0)
+      expect(Connection.mockSend).toHaveBeenCalledTimes(1)
+      done()
+    })
   })
 })

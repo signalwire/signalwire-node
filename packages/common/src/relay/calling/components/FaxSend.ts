@@ -13,7 +13,7 @@ export default class FaxSend extends BaseFax {
   }
 
   get method(): string {
-    return 'call.send_fax'
+    return 'calling.send_fax'
   }
 
   get payload(): any {

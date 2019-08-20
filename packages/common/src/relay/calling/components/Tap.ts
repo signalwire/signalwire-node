@@ -13,7 +13,7 @@ export default class Tap extends Controllable {
   }
 
   get method(): string {
-    return 'call.tap'
+    return 'calling.tap'
   }
 
   get payload(): any {

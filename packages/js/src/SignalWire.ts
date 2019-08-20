@@ -4,8 +4,6 @@ import { Execute } from '../../common/src/messages/Blade'
 import BaseRequest from '../../common/src/messages/verto/BaseRequest'
 
 export default class SignalWire extends BrowserSession {
-  protected _jwtAuth: boolean = true
-
   execute(message: BaseMessage) {
     let msg: BaseMessage = message
     if (message instanceof BaseRequest) {

@@ -18,6 +18,7 @@ export default abstract class BaseSession {
   public nodeid: string
   public master_nodeid: string
   public expiresAt: number = 0
+  public signature: string = null
   public relayProtocol: string = null
   public contexts: string[] = []
 
@@ -219,9 +220,10 @@ export default abstract class BaseSession {
     const response: IBladeConnectResult = await this.execute(bc).catch(this._handleLoginError)
     if (response) {
       this._autoReconnect = true
-      this.relayProtocol = await Setup(this)
-      const { sessionid, nodeid, master_nodeid, authorization: { expires_at = null } = {} } = response
+      const { sessionid, nodeid, master_nodeid, authorization: { expires_at = null, signature = null } = {} } = response
       this.expiresAt = +expires_at || 0
+      this.signature = signature
+      this.relayProtocol = await Setup(this)
       this._checkTokenExpiration()
       this.sessionid = sessionid
       this.nodeid = nodeid

@@ -24,6 +24,7 @@ export interface IBladeConnectResult extends IMessageBase {
   protocols_uncertified: string[]
   authorization: {
     expires_at: number
+    signature: string
   }
 }
 

@@ -4,26 +4,8 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
-### Added
-- Expose moderator methods on the Call object.
-- A notification that belongs to a Call now contains a reference to the call itself.
-- Set/Get default `localElement` for the client to handle the localStream for all calls.
-- Set/Get default `remoteElement` for the client to handle the remoteStream for all calls.
-- newCall() method now accepts `localElement` and `remoteElement` to override the default ones.
-- Set default audio & video settings.
-- Expose speedTest() method.
-- Force SDP to use plan-b.
-- Set default iceServers.
-- User can now join conferences without audio & video.
-- Expose static method uuid().
-- Retrieve supported resolution during client init
-- Add property `resolutions` to get supported resolutions.
-- Add async method `refreshResolutions()` to refresh cached resolutions
-### Changed
-- client.connect() is now async to check browser permissions before open the websocket connection.
-- client.supportedResolutions() now returns a device list for each resolution supported.
-### Removed
-- `chatChannel` / `infoChannel` / `conferenceChannel` have been removed from the `conferenceUpdate` notification (**join** & **leave** actions).
+### Fixed
+- Try to re-establish the previous protocol only if the signature has not changed.
 ### Security
 - Update dependencies
 

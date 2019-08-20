@@ -10,6 +10,7 @@ import { ADD, REMOVE, SwEvent, BladeMethod, NOTIFICATION_TYPE } from './util/con
 import { BroadcastParams, ISignalWireOptions, SubscribeParams, IBladeConnectResult } from './util/interfaces'
 import { Subscription, Connect, Reauthenticate } from './messages/Blade'
 import { isFunction } from './util/helpers'
+import { sessionStorage } from './util/storage/'
 
 export default abstract class BaseSession {
   public uuid: string = uuidv4()
@@ -139,6 +140,7 @@ export default abstract class BaseSession {
     this.subscriptions = {}
     this._autoReconnect = false
     this._removeConnection()
+    await sessionStorage.removeItem(this.signature)
     this._executeQueue = []
     this._detachListeners()
   }

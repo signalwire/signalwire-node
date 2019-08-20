@@ -7,7 +7,7 @@ export default class Answer extends BaseComponent {
   public controlId: string = this.call.tag
 
   get method(): string {
-    return 'call.answer'
+    return 'calling.answer'
   }
 
   get payload(): any {

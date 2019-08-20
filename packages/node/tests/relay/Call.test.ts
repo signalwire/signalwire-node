@@ -134,7 +134,7 @@ describe('Call', () => {
     it('.dial() should wait for "answered" event', done => {
       const msg = new Execute({
         protocol: 'signalwire_service_random_uuid',
-        method: 'call.begin',
+        method: 'calling.begin',
         params: { tag: 'mocked-uuid', device: call.device }
       })
       call.dial().then(result => {
@@ -151,7 +151,7 @@ describe('Call', () => {
     it('.answer() should wait for "answered" event', done => {
       const msg = new Execute({
         protocol: 'signalwire_service_random_uuid',
-        method: 'call.answer',
+        method: 'calling.answer',
         params: { node_id: call.nodeId, call_id: call.id }
       })
       call.answer().then(result => {
@@ -167,7 +167,7 @@ describe('Call', () => {
     it('.hangup() should wait for "ended" event', done => {
       const msg = new Execute({
         protocol: 'signalwire_service_random_uuid',
-        method: 'call.end',
+        method: 'calling.end',
         params: { node_id: call.nodeId, call_id: call.id, reason: 'busy' }
       })
       call.hangup('busy').then(result => {
@@ -185,7 +185,7 @@ describe('Call', () => {
       const record = { audio: { format: 'mp3', beep: true } }
       const getMsg = () => new Execute({
         protocol: 'signalwire_service_random_uuid',
-        method: 'call.record',
+        method: 'calling.record',
         params: { node_id: call.nodeId, call_id: call.id, control_id: 'mocked-uuid', record }
       })
 
@@ -235,7 +235,7 @@ describe('Call', () => {
         }
         return new Execute({
           protocol: 'signalwire_service_random_uuid',
-          method: 'call.connect',
+          method: 'calling.connect',
           params: { node_id: call.nodeId, call_id: call.id, devices }
         })
       }
@@ -303,7 +303,7 @@ describe('Call', () => {
 
       const getMsg = (...play: ICallingPlay[]) => new Execute({
         protocol: 'signalwire_service_random_uuid',
-        method: 'call.play',
+        method: 'calling.play',
         params: { node_id: call.nodeId, call_id: call.id, control_id: 'mocked-uuid', play }
       })
 
@@ -396,7 +396,7 @@ describe('Call', () => {
 
       const getMsg = (...play: ICallingPlay[]) => new Execute({
         protocol: 'signalwire_service_random_uuid',
-        method: 'call.play_and_collect',
+        method: 'calling.play_and_collect',
         params: { node_id: call.nodeId, call_id: call.id, control_id: 'mocked-uuid', collect, play }
       })
 
@@ -508,7 +508,7 @@ describe('Call', () => {
     describe('faxReceive methods', () => {
       const getMsg = () => new Execute({
         protocol: 'signalwire_service_random_uuid',
-        method: 'call.receive_fax',
+        method: 'calling.receive_fax',
         params: { node_id: call.nodeId, call_id: call.id, control_id: 'mocked-uuid' }
       })
 
@@ -537,7 +537,7 @@ describe('Call', () => {
     describe('faxSend methods', () => {
       const getMsg = () => new Execute({
         protocol: 'signalwire_service_random_uuid',
-        method: 'call.send_fax',
+        method: 'calling.send_fax',
         params: { node_id: call.nodeId, call_id: call.id, control_id: 'mocked-uuid', document: 'document.pdf', header_info: 'custom' }
       })
 
@@ -577,7 +577,7 @@ describe('Call', () => {
       const _notificationDigitFinished = JSON.parse('{"event_type":"calling.call.detect","params":{"control_id":"mocked-uuid","call_id":"call-id","node_id":"node-id","detect":{"type":"digit","params":{"event":"finished"}}}}');
       const getMsg = (type: string, params: any, timeout = 30) => new Execute({
         protocol: 'signalwire_service_random_uuid',
-        method: 'call.detect',
+        method: 'calling.detect',
         params: { node_id: call.nodeId, call_id: call.id, control_id: 'mocked-uuid', detect: { type, params }, timeout }
       })
 
@@ -711,7 +711,7 @@ describe('Call', () => {
       const device: ICallingTapDeviceArg = { type: 'rtp', addr: '127.0.0.1', port: 1234 }
       const getMsg = () => new Execute({
         protocol: 'signalwire_service_random_uuid',
-        method: 'call.tap',
+        method: 'calling.tap',
         params: {
           node_id: call.nodeId, call_id: call.id, control_id: 'mocked-uuid', tap: { type: 'audio', params: { direction: 'listen' } }, device: { type: 'rtp', params: { addr: '127.0.0.1', port: 1234 } }
         }
@@ -756,7 +756,7 @@ describe('Call', () => {
     it('.dial() should wait for "answered" event', done => {
       const msg = new Execute({
         protocol: 'signalwire_service_random_uuid',
-        method: 'call.begin',
+        method: 'calling.begin',
         params: { tag: 'mocked-uuid', device: call.device }
       })
       call.dial().then(result => {
@@ -771,7 +771,7 @@ describe('Call', () => {
     it('.answer() should wait for "answered" event', done => {
       const msg = new Execute({
         protocol: 'signalwire_service_random_uuid',
-        method: 'call.answer',
+        method: 'calling.answer',
         params: { node_id: call.nodeId, call_id: call.id }
       })
       call.answer().then(result => {
@@ -785,7 +785,7 @@ describe('Call', () => {
     it('.hangup() should wait for "ended" event', done => {
       const msg = new Execute({
         protocol: 'signalwire_service_random_uuid',
-        method: 'call.end',
+        method: 'calling.end',
         params: { node_id: call.nodeId, call_id: call.id, reason: 'busy' }
       })
       call.hangup('busy').then(result => {
@@ -801,7 +801,7 @@ describe('Call', () => {
       const record = { audio: { format: 'mp3', beep: true } }
       const getMsg = () => new Execute({
         protocol: 'signalwire_service_random_uuid',
-        method: 'call.record',
+        method: 'calling.record',
         params: { node_id: call.nodeId, call_id: call.id, control_id: 'mocked-uuid', record }
       })
 
@@ -848,7 +848,7 @@ describe('Call', () => {
         }
         return new Execute({
           protocol: 'signalwire_service_random_uuid',
-          method: 'call.connect',
+          method: 'calling.connect',
           params: { node_id: call.nodeId, call_id: call.id, devices }
         })
       }
@@ -901,7 +901,7 @@ describe('Call', () => {
 
       const getMsg = (...play: ICallingPlay[]) => new Execute({
         protocol: 'signalwire_service_random_uuid',
-        method: 'call.play',
+        method: 'calling.play',
         params: { node_id: call.nodeId, call_id: call.id, control_id: 'mocked-uuid', play }
       })
 
@@ -930,7 +930,7 @@ describe('Call', () => {
 
       const getMsg = (...play: ICallingPlay[]) => new Execute({
         protocol: 'signalwire_service_random_uuid',
-        method: 'call.play_and_collect',
+        method: 'calling.play_and_collect',
         params: { node_id: call.nodeId, call_id: call.id, control_id: 'mocked-uuid', collect, play }
       })
 
@@ -958,7 +958,7 @@ describe('Call', () => {
     describe('faxReceive methods', () => {
       const getMsg = () => new Execute({
         protocol: 'signalwire_service_random_uuid',
-        method: 'call.receive_fax',
+        method: 'calling.receive_fax',
         params: { node_id: call.nodeId, call_id: call.id, control_id: 'mocked-uuid' }
       })
 
@@ -984,7 +984,7 @@ describe('Call', () => {
     describe('faxSend methods', () => {
       const getMsg = () => new Execute({
         protocol: 'signalwire_service_random_uuid',
-        method: 'call.send_fax',
+        method: 'calling.send_fax',
         params: { node_id: call.nodeId, call_id: call.id, control_id: 'mocked-uuid', document: 'document.pdf', header_info: 'custom' }
       })
 
@@ -1010,7 +1010,7 @@ describe('Call', () => {
     describe('detect methods', () => {
       const getMsg = (type: string, params: any, timeout = 30) => new Execute({
         protocol: 'signalwire_service_random_uuid',
-        method: 'call.detect',
+        method: 'calling.detect',
         params: { node_id: call.nodeId, call_id: call.id, control_id: 'mocked-uuid', detect: { type, params }, timeout }
       })
 
@@ -1101,7 +1101,7 @@ describe('Call', () => {
       const device: ICallingTapDeviceArg = { type: 'rtp', addr: '127.0.0.1', port: 1234 }
       const getMsg = () => new Execute({
         protocol: 'signalwire_service_random_uuid',
-        method: 'call.tap',
+        method: 'calling.tap',
         params: {
           node_id: call.nodeId, call_id: call.id, control_id: 'mocked-uuid', tap: { type: 'audio', params: { direction: 'listen' } }, device: { type: 'rtp', params: { addr: '127.0.0.1', port: 1234 } }
         }

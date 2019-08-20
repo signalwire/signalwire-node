@@ -3,7 +3,7 @@ import BaseFax from './BaseFax'
 export default class FaxReceive extends BaseFax {
 
   get method(): string {
-    return 'call.receive_fax'
+    return 'calling.receive_fax'
   }
 
   get payload(): any {

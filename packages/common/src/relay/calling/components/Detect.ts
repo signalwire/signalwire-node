@@ -24,7 +24,7 @@ export default class Detect extends Controllable {
   }
 
   get method(): string {
-    return 'call.detect'
+    return 'calling.detect'
   }
 
   get payload(): any {

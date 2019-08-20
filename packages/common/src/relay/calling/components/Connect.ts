@@ -13,7 +13,7 @@ export default class Connect extends BaseComponent {
   }
 
   get method(): string {
-    return 'call.connect'
+    return 'calling.connect'
   }
 
   get payload(): any {

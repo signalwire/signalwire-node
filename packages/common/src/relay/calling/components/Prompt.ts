@@ -22,7 +22,7 @@ export default class Prompt extends Controllable {
   }
 
   get method(): string {
-    return 'call.play_and_collect'
+    return 'calling.play_and_collect'
   }
 
   get payload(): any {

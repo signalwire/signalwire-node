@@ -12,7 +12,7 @@ export default class Hangup extends BaseComponent {
   }
 
   get method(): string {
-    return 'call.end'
+    return 'calling.end'
   }
 
   get payload(): any {

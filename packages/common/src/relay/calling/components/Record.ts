@@ -16,7 +16,7 @@ export default class Record extends Controllable {
   }
 
   get method(): string {
-    return 'call.record'
+    return 'calling.record'
   }
 
   get payload(): any {

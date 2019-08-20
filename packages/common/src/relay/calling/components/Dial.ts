@@ -7,7 +7,7 @@ export default class Dial extends BaseComponent {
   public controlId: string = this.call.tag
 
   get method(): string {
-    return 'call.begin'
+    return 'calling.begin'
   }
 
   get payload(): any {

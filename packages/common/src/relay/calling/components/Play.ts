@@ -13,7 +13,7 @@ export default class Play extends Controllable {
   }
 
   get method(): string {
-    return 'call.play'
+    return 'calling.play'
   }
 
   get payload(): any {

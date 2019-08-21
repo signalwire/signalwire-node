@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid'
 import logger from '../../util/logger'
 import { Execute } from '../../messages/Blade'
-import { CallState, DisconnectReason, DEFAULT_CALL_TIMEOUT, CallNotification, CallRecordState, CallPlayState, CallPromptState, CallConnectState, CALL_STATES, CallFaxState, CallDetectState, CallDetectType, CallTapState } from '../../util/constants/relay'
+import { CallState, DisconnectReason, DEFAULT_CALL_TIMEOUT, CallNotification, CallRecordState, CallPlayState, CallPromptState, CallConnectState, CALL_STATES, CallFaxState, CallDetectState, CallDetectType, CallTapState, SendDigitsState } from '../../util/constants/relay'
 import { ICall, ICallOptions, ICallDevice, IMakeCallParams, ICallingPlay, ICallingCollect, DeepArray, ICallingDetect, ICallingDetectArg, ICallingTapTapArg, ICallingTapDeviceArg } from '../../util/interfaces'
 import { reduceConnectParams } from '../helpers'
 import Calling from './Calling'
@@ -36,6 +36,7 @@ import DetectAction from './actions/DetectAction'
 import Tap from './components/Tap'
 import TapResult from './results/TapResult'
 import TapAction from './actions/TapAction'
+import SendDigits from './components/SendDigits'
 
 export default class Call implements ICall {
   public id: string
@@ -421,6 +422,15 @@ export default class Call implements ICall {
     await component.execute()
 
     return new TapAction(component)
+  }
+
+  async sendDigits(digits: string) {
+    const component = new SendDigits(this, digits)
+    this._addComponent(component)
+    await component._waitFor(SendDigitsState.Finished)
+
+    // return new HangupResult(component)
+    return component.successful // TODO: return a bool here?
   }
 
   /**

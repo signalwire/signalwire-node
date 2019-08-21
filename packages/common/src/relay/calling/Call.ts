@@ -429,7 +429,7 @@ export default class Call implements ICall {
     this._addComponent(component)
     await component._waitFor(SendDigitsState.Finished)
 
-    // return new HangupResult(component)
+    // return new SendDigitsResult(component)
     return component.successful // TODO: return a bool here?
   }
 
@@ -519,8 +519,8 @@ export default class Call implements ICall {
   }
 
   _sendDigitsChange(params: any) {
-    this._notifyComponents(CallNotification.SendDigits, params.control_id, params) // FIXME: there's no "tag" in calling.call.send_digits events
-    // this._dispatchCallback(`tap.${params.state}`, params)
+    this._notifyComponents(CallNotification.SendDigits, params.control_id, params)
+    // this._dispatchCallback(`send_digits.${params.state}`, params) // FIXME: is it necessary?
   }
 
   private _notifyComponents(eventType: string, controlId: string, params: any): void {

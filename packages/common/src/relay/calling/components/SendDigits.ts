@@ -4,7 +4,7 @@ import Call from '../Call'
 
 export default class SendDigits extends BaseComponent {
   public eventType: string = CallNotification.SendDigits
-  public controlId: string = this.call.tag // FIXME: there's no "tag" in calling.call.send_digits events
+  public controlId: string = this.controlId
 
   constructor(public call: Call, public digits: string) {
     super(call)
@@ -18,6 +18,7 @@ export default class SendDigits extends BaseComponent {
     return {
       node_id: this.call.nodeId,
       call_id: this.call.id,
+      control_id: this.controlId,
       digits: this.digits
     }
   }

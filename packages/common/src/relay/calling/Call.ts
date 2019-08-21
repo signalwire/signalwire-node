@@ -37,6 +37,8 @@ import Tap from './components/Tap'
 import TapResult from './results/TapResult'
 import TapAction from './actions/TapAction'
 import SendDigits from './components/SendDigits'
+import SendDigitsResult from './results/SendDigitsResult'
+import SendDigitsAction from './actions/SendDigitsAction'
 
 export default class Call implements ICall {
   public id: string
@@ -424,13 +426,20 @@ export default class Call implements ICall {
     return new TapAction(component)
   }
 
-  async sendDigits(digits: string) {
+  async sendDigits(digits: string): Promise<SendDigitsResult> {
     const component = new SendDigits(this, digits)
     this._addComponent(component)
     await component._waitFor(SendDigitsState.Finished)
 
-    // return new SendDigitsResult(component)
-    return component.successful // TODO: return a bool here?
+    return new SendDigitsResult(component)
+  }
+
+  async sendDigitsAsync(digits: string): Promise<SendDigitsAction> {
+    const component = new SendDigits(this, digits)
+    this._addComponent(component)
+    await component.execute()
+
+    return new SendDigitsAction(component)
   }
 
   /**
@@ -520,7 +529,8 @@ export default class Call implements ICall {
 
   _sendDigitsChange(params: any) {
     this._notifyComponents(CallNotification.SendDigits, params.control_id, params)
-    // this._dispatchCallback(`send_digits.${params.state}`, params) // FIXME: is it necessary?
+    this._dispatchCallback(`sendDigits.stateChange`, params)
+    this._dispatchCallback(`sendDigits.${params.state}`, params)
   }
 
   private _notifyComponents(eventType: string, controlId: string, params: any): void {

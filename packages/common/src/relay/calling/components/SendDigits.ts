@@ -1,6 +1,7 @@
 import BaseComponent from './BaseComponent'
 import { CallNotification, SendDigitsState } from '../../../util/constants/relay'
 import Call from '../Call'
+import Event from '../Event'
 
 export default class SendDigits extends BaseComponent {
   public eventType: string = CallNotification.SendDigits
@@ -27,9 +28,8 @@ export default class SendDigits extends BaseComponent {
     this.state = params.state
 
     this.completed = this.state === SendDigitsState.Finished
-    if (this.completed) {
-      this.successful = true
-    }
+    this.successful = this.completed
+    this.event = new Event(this.state, params)
 
     if (this._hasBlocker() && this._eventsToWait.includes(this.state)) {
       this.blocker.resolve()

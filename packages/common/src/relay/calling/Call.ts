@@ -508,6 +508,11 @@ export default class Call implements ICall {
     this._dispatchCallback(`tap.${params.state}`, params)
   }
 
+  _sendDigitsChange(params: any) {
+    this._notifyComponents(CallNotification.SendDigits, params.control_id, params) // FIXME: there's no "tag" in calling.call.send_digits events
+    // this._dispatchCallback(`tap.${params.state}`, params)
+  }
+
   private _notifyComponents(eventType: string, controlId: string, params: any): void {
     this._components.forEach(component => {
       if (component.completed === false && component.eventType === eventType && component.controlId === controlId) {

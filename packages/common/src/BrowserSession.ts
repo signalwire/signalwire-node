@@ -22,8 +22,9 @@ export default abstract class BrowserSession extends BaseSession {
   private _iceServers: RTCIceServer[] = []
   private _localElement: HTMLMediaElement = null
   private _remoteElement: HTMLMediaElement = null
-  protected _reconnectDelay: number = 1000
 
+  protected _jwtAuth: boolean = true
+  protected _reconnectDelay: number = 1000
   protected _devices: ICacheDevices = {}
   protected _audioConstraints: boolean | MediaTrackConstraints = true
   protected _videoConstraints: boolean | MediaTrackConstraints = false

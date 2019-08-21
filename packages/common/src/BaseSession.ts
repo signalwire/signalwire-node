@@ -10,6 +10,7 @@ import { ADD, REMOVE, SwEvent, BladeMethod, NOTIFICATION_TYPE } from './util/con
 import { BroadcastParams, ISignalWireOptions, SubscribeParams, IBladeConnectResult } from './util/interfaces'
 import { Subscription, Connect, Reauthenticate } from './messages/Blade'
 import { isFunction } from './util/helpers'
+import { sessionStorage } from './util/storage/'
 
 export default abstract class BaseSession {
   public uuid: string = uuidv4()
@@ -18,6 +19,7 @@ export default abstract class BaseSession {
   public nodeid: string
   public master_nodeid: string
   public expiresAt: number = 0
+  public signature: string = null
   public relayProtocol: string = null
   public contexts: string[] = []
 
@@ -138,6 +140,7 @@ export default abstract class BaseSession {
     this.subscriptions = {}
     this._autoReconnect = false
     this._removeConnection()
+    await sessionStorage.removeItem(this.signature)
     this._executeQueue = []
     this._detachListeners()
   }
@@ -219,9 +222,10 @@ export default abstract class BaseSession {
     const response: IBladeConnectResult = await this.execute(bc).catch(this._handleLoginError)
     if (response) {
       this._autoReconnect = true
-      this.relayProtocol = await Setup(this)
-      const { sessionid, nodeid, master_nodeid, authorization: { expires_at = null } = {} } = response
+      const { sessionid, nodeid, master_nodeid, authorization: { expires_at = null, signature = null } = {} } = response
       this.expiresAt = +expires_at || 0
+      this.signature = signature
+      this.relayProtocol = await Setup(this)
       this._checkTokenExpiration()
       this.sessionid = sessionid
       this.nodeid = nodeid

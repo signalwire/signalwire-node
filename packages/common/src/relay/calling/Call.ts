@@ -332,22 +332,18 @@ export default class Call implements ICall {
     return new DetectAction(component)
   }
 
-  async detectHuman(options: ICallingDetectArg): Promise<DetectResult> {
+  async detectHuman({ type, timeout, ...params }: ICallingDetectArg = {}): Promise<DetectResult> {
     logger.warn('detectHuman has been deprecated: use detectAnsweringMachine instead.')
-    options.type = CallDetectType.Machine
-    const { type, timeout, ...params } = options
-    const component = new Detect(this, { type, params }, timeout)
+    const component = new Detect(this, { type: CallDetectType.Machine, params }, timeout)
     this._addComponent(component)
     await component._waitFor(CallDetectState.Human)
 
     return new DetectResult(component)
   }
 
-  async detectHumanAsync(options: ICallingDetectArg): Promise<DetectAction> {
+  async detectHumanAsync({ type, timeout, ...params }: ICallingDetectArg = {}): Promise<DetectAction> {
     logger.warn('detectHumanAsync has been deprecated: use detectAnsweringMachine instead.')
-    options.type = CallDetectType.Machine
-    const { type, timeout, ...params } = options
-    const component = new Detect(this, { type, params }, timeout)
+    const component = new Detect(this, { type: CallDetectType.Machine, params }, timeout)
     component.eventsToWait = [CallDetectState.Human]
     this._addComponent(component)
     await component.execute()
@@ -355,22 +351,18 @@ export default class Call implements ICall {
     return new DetectAction(component)
   }
 
-  async detectMachine(options: ICallingDetectArg): Promise<DetectResult> {
+  async detectMachine({ type, timeout, ...params }: ICallingDetectArg = {}): Promise<DetectResult> {
     logger.warn('detectMachine has been deprecated: use detectAnsweringMachine instead.')
-    options.type = CallDetectType.Machine
-    const { type, timeout, ...params } = options
-    const component = new Detect(this, { type, params }, timeout)
+    const component = new Detect(this, { type: CallDetectType.Machine, params }, timeout)
     this._addComponent(component)
     await component._waitFor(CallDetectState.Machine)
 
     return new DetectResult(component)
   }
 
-  async detectMachineAsync(options: ICallingDetectArg): Promise<DetectAction> {
+  async detectMachineAsync({ type, timeout, ...params }: ICallingDetectArg = {}): Promise<DetectAction> {
     logger.warn('detectMachineAsync has been deprecated: use detectAnsweringMachine instead.')
-    options.type = CallDetectType.Machine
-    const { type, timeout, ...params } = options
-    const component = new Detect(this, { type, params }, timeout)
+    const component = new Detect(this, { type: CallDetectType.Machine, params }, timeout)
     component.eventsToWait = [CallDetectState.Machine]
     this._addComponent(component)
     await component.execute()

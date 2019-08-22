@@ -333,6 +333,7 @@ export default class Call implements ICall {
   }
 
   async detectHuman(options: ICallingDetectArg): Promise<DetectResult> {
+    logger.warn('detectHuman has been deprecated: use detectAnsweringMachine instead.')
     options.type = CallDetectType.Machine
     const { type, timeout, ...params } = options
     const component = new Detect(this, { type, params }, timeout)
@@ -343,6 +344,7 @@ export default class Call implements ICall {
   }
 
   async detectHumanAsync(options: ICallingDetectArg): Promise<DetectAction> {
+    logger.warn('detectHumanAsync has been deprecated: use detectAnsweringMachine instead.')
     options.type = CallDetectType.Machine
     const { type, timeout, ...params } = options
     const component = new Detect(this, { type, params }, timeout)
@@ -354,6 +356,7 @@ export default class Call implements ICall {
   }
 
   async detectMachine(options: ICallingDetectArg): Promise<DetectResult> {
+    logger.warn('detectMachine has been deprecated: use detectAnsweringMachine instead.')
     options.type = CallDetectType.Machine
     const { type, timeout, ...params } = options
     const component = new Detect(this, { type, params }, timeout)
@@ -364,6 +367,7 @@ export default class Call implements ICall {
   }
 
   async detectMachineAsync(options: ICallingDetectArg): Promise<DetectAction> {
+    logger.warn('detectMachineAsync has been deprecated: use detectAnsweringMachine instead.')
     options.type = CallDetectType.Machine
     const { type, timeout, ...params } = options
     const component = new Detect(this, { type, params }, timeout)

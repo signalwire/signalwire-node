@@ -397,14 +397,12 @@ export default class Call implements ICall {
     return new DetectAction(component)
   }
 
-  async detectDigit(params: ICallingDetectArg): Promise<DetectResult> {
-    params.type = CallDetectType.Digit
-    return this.detect(params)
+  async detectDigit({ digits, timeout }: ICallingDetectArg = {}): Promise<DetectResult> {
+    return this.detect({ type: CallDetectType.Digit, digits, timeout })
   }
 
-  async detectDigitAsync(params: ICallingDetectArg): Promise<DetectAction> {
-    params.type = CallDetectType.Digit
-    return this.detectAsync(params)
+  async detectDigitAsync({ digits, timeout }: ICallingDetectArg = {}): Promise<DetectAction> {
+    return this.detectAsync({ type: CallDetectType.Digit, digits, timeout })
   }
 
   async tap(tap: ICallingTapTapArg, device: ICallingTapDeviceArg): Promise<TapResult> {

@@ -338,7 +338,7 @@ export default class Call implements ICall {
     const { type, timeout, ...params } = options
     const component = new Detect(this, { type, params }, timeout)
     this._addComponent(component)
-    await component._waitFor(CallDetectState.Human, CallDetectState.Error, CallDetectState.Finished)
+    await component._waitFor(CallDetectState.Human)
 
     return new DetectResult(component)
   }
@@ -348,7 +348,7 @@ export default class Call implements ICall {
     options.type = CallDetectType.Machine
     const { type, timeout, ...params } = options
     const component = new Detect(this, { type, params }, timeout)
-    component.eventsToWait = [CallDetectState.Human, CallDetectState.Error, CallDetectState.Finished]
+    component.eventsToWait = [CallDetectState.Human]
     this._addComponent(component)
     await component.execute()
 
@@ -361,7 +361,7 @@ export default class Call implements ICall {
     const { type, timeout, ...params } = options
     const component = new Detect(this, { type, params }, timeout)
     this._addComponent(component)
-    await component._waitFor(CallDetectState.Machine, CallDetectState.Ready, CallDetectState.NotReady, CallDetectState.Error, CallDetectState.Finished)
+    await component._waitFor(CallDetectState.Machine)
 
     return new DetectResult(component)
   }
@@ -371,7 +371,7 @@ export default class Call implements ICall {
     options.type = CallDetectType.Machine
     const { type, timeout, ...params } = options
     const component = new Detect(this, { type, params }, timeout)
-    component.eventsToWait = [CallDetectState.Machine, CallDetectState.Ready, CallDetectState.NotReady, CallDetectState.Error, CallDetectState.Finished]
+    component.eventsToWait = [CallDetectState.Machine]
     this._addComponent(component)
     await component.execute()
 
@@ -542,7 +542,7 @@ export default class Call implements ICall {
   private _prepareDetectFaxParams(options: ICallingDetectArg): { detect: ICallingDetect, events: string[], timeout: number } {
     const { tone, timeout } = options
     const faxEvents: string[] = [CallDetectState.CED, CallDetectState.CNG]
-    let events: string[] = [CallDetectState.Error, CallDetectState.Finished]
+    let events: string[] = []
     const params: { tone?: string } = {}
     if (tone && faxEvents.includes(tone)) {
       params.tone = tone

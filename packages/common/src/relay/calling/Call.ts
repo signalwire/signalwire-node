@@ -352,6 +352,9 @@ export default class Call implements ICall {
     return new DetectAction(component)
   }
 
+  /**
+   * @deprecated Since version 2.2. Will be deleted in version 3.0. Use detectAnsweringMachine instead.
+   */
   async detectHuman({ type, timeout, ...params }: ICallingDetectArg = {}): Promise<DetectResult> {
     logger.warn('detectHuman has been deprecated: use detectAnsweringMachine instead.')
     const component = new Detect(this, { type: CallDetectType.Machine, params }, timeout)
@@ -362,8 +365,11 @@ export default class Call implements ICall {
     return new DetectResult(component)
   }
 
+  /**
+   * @deprecated Since version 2.2. Will be deleted in version 3.0. Use detectAnsweringMachineAsync instead.
+   */
   async detectHumanAsync({ type, timeout, ...params }: ICallingDetectArg = {}): Promise<DetectAction> {
-    logger.warn('detectHumanAsync has been deprecated: use detectAnsweringMachine instead.')
+    logger.warn('detectHumanAsync has been deprecated: use detectAnsweringMachineAsync instead.')
     const component = new Detect(this, { type: CallDetectType.Machine, params }, timeout)
     this._addComponent(component)
     await component.execute()
@@ -371,6 +377,9 @@ export default class Call implements ICall {
     return new DetectAction(component)
   }
 
+  /**
+   * @deprecated Since version 2.2. Will be deleted in version 3.0. Use detectAnsweringMachine instead.
+   */
   async detectMachine({ type, timeout, ...params }: ICallingDetectArg = {}): Promise<DetectResult> {
     logger.warn('detectMachine has been deprecated: use detectAnsweringMachine instead.')
     const component = new Detect(this, { type: CallDetectType.Machine, params }, timeout)
@@ -381,8 +390,11 @@ export default class Call implements ICall {
     return new DetectResult(component)
   }
 
+  /**
+   * @deprecated Since version 2.2. Will be deleted in version 3.0. Use detectAnsweringMachineAsync instead.
+   */
   async detectMachineAsync({ type, timeout, ...params }: ICallingDetectArg = {}): Promise<DetectAction> {
-    logger.warn('detectMachineAsync has been deprecated: use detectAnsweringMachine instead.')
+    logger.warn('detectMachineAsync has been deprecated: use detectAnsweringMachineAsync instead.')
     const component = new Detect(this, { type: CallDetectType.Machine, params }, timeout)
     this._addComponent(component)
     await component.execute()

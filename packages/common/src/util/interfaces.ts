@@ -244,12 +244,12 @@ interface ICallingDetectParams {
 export interface ICallingDetect {
   type: string
   params: ICallingDetectParams
-  timeout?: number
 }
 
 export interface ICallingDetectArg extends ICallingDetectParams {
   type?: string
   timeout?: number
+  waitForBeep?: boolean
 }
 
 export interface ICallingTapTapParams {

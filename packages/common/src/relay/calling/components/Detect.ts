@@ -1,8 +1,10 @@
 import Controllable from './Controllable'
 import { ICallingDetect } from '../../../util/interfaces'
-import { CallNotification, CallDetectState } from '../../../util/constants/relay'
+import { CallNotification, CallDetectState, CallDetectType } from '../../../util/constants/relay'
 import Call from '../Call'
 import Event from '../Event'
+
+const _finishedEvents: string[] = [CallDetectState.Error, CallDetectState.Finished]
 
 export default class Detect extends Controllable {
   public eventType: string = CallNotification.Detect
@@ -11,14 +13,16 @@ export default class Detect extends Controllable {
   public type: string
   public result: string
 
-  protected _eventsToWait: string[] = [CallDetectState.Error, CallDetectState.Finished]
+  protected _eventsToWait: string[] = _finishedEvents
 
   private _events: string[] = []
+  private _waitingForReady: boolean = false
 
   constructor(
     public call: Call,
     private _detect: ICallingDetect,
-    private _timeout: number = null
+    private _timeout: number = null,
+    private _waitForBeep: boolean = false
   ) {
     super(call)
   }
@@ -48,17 +52,46 @@ export default class Detect extends Controllable {
 
     this.type = type
     this.state = event
-    if (event !== CallDetectState.Finished && event !== CallDetectState.Error) {
-      this._events.push(event)
+
+    if (_finishedEvents.includes(event)) {
+      return this._complete(detect)
     }
-    this.completed = this._eventsToWait.includes(this.state)
-    if (this.completed) {
-      this.successful = this.state !== CallDetectState.Error
-      this.result = this._events.join('')
-      this.event = new Event(this.state, detect)
-      if (this._hasBlocker()) {
-        this.blocker.resolve()
+    this._events.push(this.state)
+
+    if (!this._hasBlocker()) {
+      return
+    }
+
+    if (this.type === CallDetectType.Digit) {
+      return this._complete(detect)
+    }
+
+    if (this._waitingForReady) {
+      if (event === CallDetectState.Ready) {
+        return this._complete(detect)
       }
+      return
+    }
+
+    if (this._waitForBeep && event === CallDetectState.Machine) {
+      this._waitingForReady = true
+      return
+    }
+
+    if (this._eventsToWait.includes(this.state)) {
+      return this._complete(detect)
+    }
+  }
+
+  private _complete(detect: { type: string, params: any }): void {
+    this.completed = true
+    this.result = this._events.join(',')
+    this.event = new Event(this.state, detect)
+    if (this._hasBlocker()) {
+      this.successful = !_finishedEvents.includes(this.state)
+      this.blocker.resolve()
+    } else {
+      this.successful = this.state !== CallDetectState.Error
     }
   }
 }

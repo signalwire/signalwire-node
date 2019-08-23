@@ -659,6 +659,73 @@ describe('Call', () => {
         done()
       })
 
+      it('.detectAnsweringMachine() without waitForBeep should resolve on the first valid event', done => {
+        call.detectAnsweringMachine({ initial_timeout: 5, timeout: 30 }).then(result => {
+          expect(result).toBeInstanceOf(DetectResult)
+          expect(result.successful).toBe(true)
+          expect(result.type).toBe('machine')
+          expect(result.result).toBe('UNKNOWN')
+          expect(Connection.mockSend).nthCalledWith(1, getMsg('machine', { initial_timeout: 5 }))
+          done()
+        })
+        session.calling.notificationHandler(_notificationMachineUnknown)
+      })
+
+      it('.detectAnsweringMachine() with waitForBeep should wait until READY in case of MACHINE', done => {
+        call.detectAnsweringMachine({ initial_timeout: 5, timeout: 30, waitForBeep: true }).then(result => {
+          expect(result).toBeInstanceOf(DetectResult)
+          expect(result.successful).toBe(true)
+          expect(result.type).toBe('machine')
+          expect(result.result).toBe('MACHINE,NOT_READY,READY')
+          expect(Connection.mockSend).nthCalledWith(1, getMsg('machine', { initial_timeout: 5 }))
+          done()
+        })
+        session.calling.notificationHandler(_notificationMachineMachine)
+        session.calling.notificationHandler(_notificationMachineNotReady)
+        session.calling.notificationHandler(_notificationMachineReady)
+        session.calling.notificationHandler(_notificationMachineNotReady) // This will be ignored by Detect component
+      })
+
+      it('.detectAnsweringMachine() with waitForBeep should resolve if the first event is not MACHINE', done => {
+        call.detectAnsweringMachine({ initial_timeout: 5, timeout: 30, waitForBeep: true }).then(result => {
+          expect(result).toBeInstanceOf(DetectResult)
+          expect(result.successful).toBe(true)
+          expect(result.type).toBe('machine')
+          expect(result.result).toBe('HUMAN')
+          expect(Connection.mockSend).nthCalledWith(1, getMsg('machine', { initial_timeout: 5 }))
+          done()
+        })
+        session.calling.notificationHandler(_notificationMachineHuman)
+      })
+
+      it('.detectAnsweringMachine() should fail if detector reach timeout', done => {
+        call.detectAnsweringMachine({ initial_timeout: 5, timeout: 30 }).then(result => {
+          expect(result).toBeInstanceOf(DetectResult)
+          expect(result.successful).toBe(false)
+          expect(result.type).toBe('machine')
+          expect(result.result).toBe('')
+          expect(Connection.mockSend).nthCalledWith(1, getMsg('machine', { initial_timeout: 5 }))
+          done()
+        })
+        session.calling.notificationHandler(_notificationMachineFinished)
+      })
+
+      it('.detectAnsweringMachineAsync() should return a DetectAction for async control', async done => {
+        const action = await call.detectAnsweringMachineAsync({ initial_timeout: 5, timeout: 30 })
+        expect(action).toBeInstanceOf(DetectAction)
+        expect(action.completed).toBe(false)
+        expect(Connection.mockSend).nthCalledWith(1, getMsg('machine', { initial_timeout: 5 }))
+        session.calling.notificationHandler(_notificationMachineMachine)
+        session.calling.notificationHandler(_notificationMachineNotReady)
+        session.calling.notificationHandler(_notificationMachineReady)
+        session.calling.notificationHandler(_notificationMachineUnknown)
+        session.calling.notificationHandler(_notificationMachineHuman)
+        expect(action.completed).toBe(false)
+        session.calling.notificationHandler(_notificationMachineFinished)
+        expect(action.completed).toBe(true)
+        done()
+      })
+
       it('.detectMachine() should resolve successfully on the first MACHINE event', done => {
         call.detectMachine({ initial_timeout: 5, timeout: 30 }).then(result => {
           expect(result).toBeInstanceOf(DetectResult)

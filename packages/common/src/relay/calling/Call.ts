@@ -332,6 +332,22 @@ export default class Call implements ICall {
     return new DetectAction(component)
   }
 
+  async detectAnsweringMachine({ timeout, waitForBeep = false, ...params }: ICallingDetectArg = {}): Promise<DetectResult> {
+    const component = new Detect(this, { type: CallDetectType.Machine, params }, timeout, waitForBeep)
+    this._addComponent(component)
+    await component._waitFor(CallDetectState.Machine, CallDetectState.Human, CallDetectState.Unknown)
+
+    return new DetectResult(component)
+  }
+
+  async detectAnsweringMachineAsync({ timeout, waitForBeep = false, ...params }: ICallingDetectArg = {}): Promise<DetectAction> {
+    const component = new Detect(this, { type: CallDetectType.Machine, params }, timeout, waitForBeep)
+    this._addComponent(component)
+    await component.execute()
+
+    return new DetectAction(component)
+  }
+
   async detectHuman({ type, timeout, ...params }: ICallingDetectArg = {}): Promise<DetectResult> {
     logger.warn('detectHuman has been deprecated: use detectAnsweringMachine instead.')
     const component = new Detect(this, { type: CallDetectType.Machine, params }, timeout)

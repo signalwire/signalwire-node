@@ -45,6 +45,8 @@ export default class Call implements ICall {
   public prevState: string = CallState.None
   public failed: boolean = false
   public busy: boolean = false
+  public amd: Function
+  public amdAsync: Function
 
   private _cbQueue: { [state: string]: Function } = {}
   private _components: BaseComponent[] = []
@@ -53,6 +55,8 @@ export default class Call implements ICall {
     const { call_id, node_id } = options
     this.id = call_id
     this.nodeId = node_id
+    this.amd = this.detectAnsweringMachine.bind(this)
+    this.amdAsync = this.detectAnsweringMachineAsync.bind(this)
     this.relayInstance.addCall(this)
   }
 

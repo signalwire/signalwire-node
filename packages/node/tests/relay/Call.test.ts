@@ -83,6 +83,11 @@ describe('Call', () => {
     expect(call.ended).toBe(true)
   })
 
+  it('should expose the proper alias methods', () => {
+    expect(call.amd).toBeInstanceOf(Function)
+    expect(call.amdAsync).toBeInstanceOf(Function)
+  })
+
   describe('.on()', () => {
     it('should be chainable', () => {
       expect(call.on('created', jest.fn())).toBe(call)

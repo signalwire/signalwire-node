@@ -42,10 +42,6 @@ export default abstract class BaseComponent {
   /** Payload sent to Relay in requests */
   abstract get payload(): any
 
-  set eventsToWait(events: string[]) {
-    this._eventsToWait = events
-  }
-
   /** Execute message and return the Relay response */
   async execute(): Promise<any> {
     if (!this.method) {

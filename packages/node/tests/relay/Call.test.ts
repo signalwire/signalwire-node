@@ -85,6 +85,11 @@ describe('Call', () => {
     expect(call.ended).toBe(true)
   })
 
+  it('should expose the proper alias methods', () => {
+    expect(call.amd).toBeInstanceOf(Function)
+    expect(call.amdAsync).toBeInstanceOf(Function)
+  })
+
   describe('.on()', () => {
     it('should be chainable', () => {
       expect(call.on('created', jest.fn())).toBe(call)
@@ -567,125 +572,228 @@ describe('Call', () => {
     })
 
     describe('detect methods', () => {
-      const _notificationFaxCED = JSON.parse('{"event_type":"calling.call.detect","params":{"control_id":"mocked-uuid","call_id":"call-id","node_id":"node-id","detect":{"type":"fax","params":{"event":"CED"}}}}');
-      // const _notificationFaxError = JSON.parse('{"event_type":"calling.call.detect","params":{"control_id":"mocked-uuid","call_id":"call-id","node_id":"node-id","detect":{"type":"fax","params":{"event":"error"}}}}');
-      const _notificationFaxFinished = JSON.parse('{"event_type":"calling.call.detect","params":{"control_id":"mocked-uuid","call_id":"call-id","node_id":"node-id","detect":{"type":"fax","params":{"event":"finished"}}}}');
+      const _notificationFaxCED = JSON.parse('{"event_type":"calling.call.detect","params":{"control_id":"mocked-uuid","call_id":"call-id","node_id":"node-id","detect":{"type":"fax","params":{"event":"CED"}}}}')
+      // const _notificationFaxError = JSON.parse('{"event_type":"calling.call.detect","params":{"control_id":"mocked-uuid","call_id":"call-id","node_id":"node-id","detect":{"type":"fax","params":{"event":"error"}}}}')
+      const _notificationFaxFinished = JSON.parse('{"event_type":"calling.call.detect","params":{"control_id":"mocked-uuid","call_id":"call-id","node_id":"node-id","detect":{"type":"fax","params":{"event":"finished"}}}}')
 
-      const _notificationMachineHuman = JSON.parse('{"event_type":"calling.call.detect","params":{"control_id":"mocked-uuid","call_id":"call-id","node_id":"node-id","detect":{"type":"machine","params":{"event":"HUMAN"}}}}');
-      // const _notificationMachineError = JSON.parse('{"event_type":"calling.call.detect","params":{"control_id":"mocked-uuid","call_id":"call-id","node_id":"node-id","detect":{"type":"machine","params":{"event":"error"}}}}');
-      const _notificationMachineFinished = JSON.parse('{"event_type":"calling.call.detect","params":{"control_id":"mocked-uuid","call_id":"call-id","node_id":"node-id","detect":{"type":"machine","params":{"event":"finished"}}}}');
+      const _notificationMachineHuman = JSON.parse('{"event_type":"calling.call.detect","params":{"control_id":"mocked-uuid","call_id":"call-id","node_id":"node-id","detect":{"type":"machine","params":{"event":"HUMAN"}}}}')
+      const _notificationMachineMachine = JSON.parse('{"event_type":"calling.call.detect","params":{"control_id":"mocked-uuid","call_id":"call-id","node_id":"node-id","detect":{"type":"machine","params":{"event":"MACHINE"}}}}')
+      const _notificationMachineUnknown = JSON.parse('{"event_type":"calling.call.detect","params":{"control_id":"mocked-uuid","call_id":"call-id","node_id":"node-id","detect":{"type":"machine","params":{"event":"UNKNOWN"}}}}')
+      const _notificationMachineReady = JSON.parse('{"event_type":"calling.call.detect","params":{"control_id":"mocked-uuid","call_id":"call-id","node_id":"node-id","detect":{"type":"machine","params":{"event":"READY"}}}}')
+      const _notificationMachineNotReady = JSON.parse('{"event_type":"calling.call.detect","params":{"control_id":"mocked-uuid","call_id":"call-id","node_id":"node-id","detect":{"type":"machine","params":{"event":"NOT_READY"}}}}')
+      // const _notificationMachineError = JSON.parse('{"event_type":"calling.call.detect","params":{"control_id":"mocked-uuid","call_id":"call-id","node_id":"node-id","detect":{"type":"machine","params":{"event":"error"}}}}')
+      const _notificationMachineFinished = JSON.parse('{"event_type":"calling.call.detect","params":{"control_id":"mocked-uuid","call_id":"call-id","node_id":"node-id","detect":{"type":"machine","params":{"event":"finished"}}}}')
 
-      const _notificationDigitDTMF = JSON.parse('{"event_type":"calling.call.detect","params":{"control_id":"mocked-uuid","call_id":"call-id","node_id":"node-id","detect":{"type":"digit","params":{"event":"1#"}}}}');
-      // const _notificationDigitError = JSON.parse('{"event_type":"calling.call.detect","params":{"control_id":"mocked-uuid","call_id":"call-id","node_id":"node-id","detect":{"type":"digit","params":{"event":"error"}}}}');
-      const _notificationDigitFinished = JSON.parse('{"event_type":"calling.call.detect","params":{"control_id":"mocked-uuid","call_id":"call-id","node_id":"node-id","detect":{"type":"digit","params":{"event":"finished"}}}}');
-      const getMsg = (type: string, params: any, timeout = 30) => new Execute({
+      const _notificationDigitDTMF = JSON.parse('{"event_type":"calling.call.detect","params":{"control_id":"mocked-uuid","call_id":"call-id","node_id":"node-id","detect":{"type":"digit","params":{"event":"1#"}}}}')
+      const _notificationDigitError = JSON.parse('{"event_type":"calling.call.detect","params":{"control_id":"mocked-uuid","call_id":"call-id","node_id":"node-id","detect":{"type":"digit","params":{"event":"error"}}}}')
+      const _notificationDigitFinished = JSON.parse('{"event_type":"calling.call.detect","params":{"control_id":"mocked-uuid","call_id":"call-id","node_id":"node-id","detect":{"type":"digit","params":{"event":"finished"}}}}')
+
+      const getMsg = (type: string, params: any = {}, timeout = 30) => new Execute({
         protocol: 'signalwire_service_random_uuid',
         method: 'calling.detect',
         params: { node_id: call.nodeId, call_id: call.id, control_id: 'mocked-uuid', detect: { type, params }, timeout }
       })
 
-      it('.detect() should wait until the detect ends', done => {
+      it('.detect() with type "fax" should resolve successfully on the first valid event', done => {
         call.detect({ type: 'fax', timeout: 30 }).then(result => {
           expect(result).toBeInstanceOf(DetectResult)
           expect(result.successful).toBe(true)
           expect(result.type).toBe('fax')
           expect(result.result).toBe('CED')
-          expect(Connection.mockSend).nthCalledWith(1, getMsg('fax', {}))
+          expect(Connection.mockSend).nthCalledWith(1, getMsg('fax'))
           done()
         })
         session.calling.notificationHandler(_notificationFaxCED)
-        session.calling.notificationHandler(_notificationFaxFinished)
+      })
+
+      it('.detect() with type "machine" should resolve successfully on the first valid event', done => {
+        call.detect({ type: 'machine', timeout: 30 }).then(result => {
+          expect(result).toBeInstanceOf(DetectResult)
+          expect(result.successful).toBe(true)
+          expect(result.type).toBe('machine')
+          expect(result.result).toBe('MACHINE')
+          expect(Connection.mockSend).nthCalledWith(1, getMsg('machine'))
+          done()
+        })
+        session.calling.notificationHandler(_notificationMachineMachine)
+      })
+
+      it('.detect() with type "digit" should resolve successfully on the first valid event', done => {
+        call.detect({ type: 'digit', timeout: 30 }).then(result => {
+          expect(result).toBeInstanceOf(DetectResult)
+          expect(result.successful).toBe(true)
+          expect(result.type).toBe('digit')
+          expect(result.result).toBe('1#')
+          expect(Connection.mockSend).nthCalledWith(1, getMsg('digit'))
+          done()
+        })
+        session.calling.notificationHandler(_notificationDigitDTMF)
+      })
+
+      it('.detect() should fail if detector reach timeout', done => {
+        call.detect({ type: 'digit', timeout: 30 }).then(result => {
+          expect(result).toBeInstanceOf(DetectResult)
+          expect(result.successful).toBe(false)
+          expect(result.type).toBe('digit')
+          expect(result.result).toBeUndefined()
+          expect(Connection.mockSend).nthCalledWith(1, getMsg('digit'))
+          done()
+        })
+        session.calling.notificationHandler(_notificationDigitFinished)
+      })
+
+      it('.detect() should fail if detector returns an error', done => {
+        call.detect({ type: 'digit', timeout: 30 }).then(result => {
+          expect(result).toBeInstanceOf(DetectResult)
+          expect(result.successful).toBe(false)
+          expect(result.type).toBe('digit')
+          expect(result.result).toBeUndefined()
+          expect(Connection.mockSend).nthCalledWith(1, getMsg('digit'))
+          done()
+        })
+        session.calling.notificationHandler(_notificationDigitError)
       })
 
       it('.detectAsync() should return a DetectAction for async control', async done => {
         const action = await call.detectAsync({ type: 'fax', timeout: 30 })
         expect(action).toBeInstanceOf(DetectAction)
         expect(action.completed).toBe(false)
-        expect(Connection.mockSend).nthCalledWith(1, getMsg('fax', {}))
+        expect(Connection.mockSend).nthCalledWith(1, getMsg('fax'))
+        session.calling.notificationHandler(_notificationFaxCED)
+        expect(action.completed).toBe(false)
         session.calling.notificationHandler(_notificationFaxFinished)
         expect(action.completed).toBe(true)
+        expect(action.result.result).toBe('CED')
         done()
       })
 
-      it('.detectMachine() should wait until the detect ends', done => {
-        call.detectMachine({ initial_timeout: 5, timeout: 30 }).then(result => {
+      it('.detectAnsweringMachine() without waitForBeep should resolve on the first valid event', done => {
+        call.detectAnsweringMachine({ initial_timeout: 5, timeout: 30 }).then(result => {
+          expect(result).toBeInstanceOf(DetectResult)
+          expect(result.successful).toBe(true)
+          expect(result.type).toBe('machine')
+          expect(result.result).toBe('UNKNOWN')
+          expect(Connection.mockSend).nthCalledWith(1, getMsg('machine', { initial_timeout: 5 }))
+          done()
+        })
+        session.calling.notificationHandler(_notificationMachineUnknown)
+      })
+
+      it('.detectAnsweringMachine() with waitForBeep should wait until READY in case of MACHINE', done => {
+        call.detectAnsweringMachine({ initial_timeout: 5, timeout: 30, waitForBeep: true }).then(result => {
+          expect(result).toBeInstanceOf(DetectResult)
+          expect(result.successful).toBe(true)
+          expect(result.type).toBe('machine')
+          expect(result.result).toBe('MACHINE')
+          expect(Connection.mockSend).nthCalledWith(1, getMsg('machine', { initial_timeout: 5 }))
+          done()
+        })
+        session.calling.notificationHandler(_notificationMachineMachine)
+        session.calling.notificationHandler(_notificationMachineNotReady)
+        session.calling.notificationHandler(_notificationMachineReady)
+        session.calling.notificationHandler(_notificationMachineNotReady) // This will be ignored by Detect component
+      })
+
+      it('.detectAnsweringMachine() with waitForBeep should resolve if the first event is not MACHINE', done => {
+        call.detectAnsweringMachine({ initial_timeout: 5, timeout: 30, waitForBeep: true }).then(result => {
           expect(result).toBeInstanceOf(DetectResult)
           expect(result.successful).toBe(true)
           expect(result.type).toBe('machine')
           expect(result.result).toBe('HUMAN')
-          expect(Connection.mockSend).nthCalledWith(1, getMsg('machine', { initial_timeout: 5 }, 30))
+          expect(Connection.mockSend).nthCalledWith(1, getMsg('machine', { initial_timeout: 5 }))
           done()
         })
         session.calling.notificationHandler(_notificationMachineHuman)
+      })
+
+      it('.detectAnsweringMachine() should fail if detector reach timeout', done => {
+        call.detectAnsweringMachine({ initial_timeout: 5, timeout: 30 }).then(result => {
+          expect(result).toBeInstanceOf(DetectResult)
+          expect(result.successful).toBe(false)
+          expect(result.type).toBe('machine')
+          expect(result.result).toBeUndefined()
+          expect(Connection.mockSend).nthCalledWith(1, getMsg('machine', { initial_timeout: 5 }))
+          done()
+        })
         session.calling.notificationHandler(_notificationMachineFinished)
+      })
+
+      it('.detectAnsweringMachineAsync() should return a DetectAction for async control', async done => {
+        const action = await call.detectAnsweringMachineAsync({ initial_timeout: 5, timeout: 30 })
+        expect(action).toBeInstanceOf(DetectAction)
+        expect(action.completed).toBe(false)
+        expect(Connection.mockSend).nthCalledWith(1, getMsg('machine', { initial_timeout: 5 }))
+        session.calling.notificationHandler(_notificationMachineMachine)
+        session.calling.notificationHandler(_notificationMachineNotReady)
+        session.calling.notificationHandler(_notificationMachineReady)
+        session.calling.notificationHandler(_notificationMachineUnknown)
+        session.calling.notificationHandler(_notificationMachineHuman)
+        expect(action.completed).toBe(false)
+        session.calling.notificationHandler(_notificationMachineFinished)
+        expect(action.completed).toBe(true)
+        done()
+      })
+
+      it('.detectMachine() should resolve successfully on the first MACHINE event', done => {
+        call.detectMachine({ initial_timeout: 5, timeout: 30 }).then(result => {
+          expect(result).toBeInstanceOf(DetectResult)
+          expect(result.successful).toBe(true)
+          expect(result.type).toBe('machine')
+          expect(result.result).toBe('MACHINE')
+          expect(Connection.mockSend).nthCalledWith(1, getMsg('machine', { initial_timeout: 5 }))
+          done()
+        })
+        session.calling.notificationHandler(_notificationMachineMachine)
+      })
+
+      it('.detectMachine() should fail if the first event is not MACHINE', done => {
+        call.detectMachine({ initial_timeout: 5, timeout: 30 }).then(result => {
+          expect(result).toBeInstanceOf(DetectResult)
+          expect(result.successful).toBe(false)
+          expect(result.type).toBe('machine')
+          expect(result.result).toBe('HUMAN')
+          expect(Connection.mockSend).nthCalledWith(1, getMsg('machine', { initial_timeout: 5 }))
+          done()
+        })
+        session.calling.notificationHandler(_notificationMachineHuman)
       })
 
       it('.detectMachineAsync() should return a DetectAction for async control', async done => {
         const action = await call.detectMachineAsync({ initial_timeout: 5, timeout: 30 })
         expect(action).toBeInstanceOf(DetectAction)
         expect(action.completed).toBe(false)
-        expect(Connection.mockSend).nthCalledWith(1, getMsg('machine', { initial_timeout: 5 }, 30))
+        expect(Connection.mockSend).nthCalledWith(1, getMsg('machine', { initial_timeout: 5 }))
+        session.calling.notificationHandler(_notificationMachineMachine)
+        session.calling.notificationHandler(_notificationMachineNotReady)
+        session.calling.notificationHandler(_notificationMachineReady)
+        expect(action.completed).toBe(false)
         session.calling.notificationHandler(_notificationMachineFinished)
         expect(action.completed).toBe(true)
         done()
       })
 
-      it('.detectFax() should wait until the detect ends', done => {
-        call.detectFax({ timeout: 30 }).then(result => {
-          expect(result).toBeInstanceOf(DetectResult)
-          expect(result.successful).toBe(true)
-          expect(result.type).toBe('fax')
-          expect(result.result).toBe('CED')
-          expect(Connection.mockSend).nthCalledWith(1, getMsg('fax', {}))
-          done()
-        })
-        session.calling.notificationHandler(_notificationFaxCED)
-        session.calling.notificationHandler(_notificationFaxFinished)
-      })
-
-      it('.detectFaxAsync() should return a DetectAction for async control', async done => {
-        const action = await call.detectFaxAsync({ tone: 'CED', timeout: 30 })
-        expect(action).toBeInstanceOf(DetectAction)
-        expect(action.completed).toBe(false)
-        expect(Connection.mockSend).nthCalledWith(1, getMsg('fax', { tone: 'CED' }))
-        session.calling.notificationHandler(_notificationFaxFinished)
-        expect(action.completed).toBe(true)
-        done()
-      })
-
-      it('.detectDigit() should wait until the detect ends', done => {
-        call.detectDigit({ timeout: 30 }).then(result => {
-          expect(result).toBeInstanceOf(DetectResult)
-          expect(result.successful).toBe(true)
-          expect(result.type).toBe('digit')
-          expect(result.result).toBe('1#')
-          expect(Connection.mockSend).nthCalledWith(1, getMsg('digit', {}))
-          done()
-        })
-        session.calling.notificationHandler(_notificationDigitDTMF)
-        session.calling.notificationHandler(_notificationDigitFinished)
-      })
-
-      it('.detectDigitAsync() should return a DetectAction for async control', async done => {
-        const action = await call.detectDigitAsync({ digits: '12', timeout: 30 })
-        expect(action).toBeInstanceOf(DetectAction)
-        expect(action.completed).toBe(false)
-        expect(Connection.mockSend).nthCalledWith(1, getMsg('digit', { digits: '12' }))
-        session.calling.notificationHandler(_notificationDigitFinished)
-        expect(action.completed).toBe(true)
-        done()
-      })
-
-      it('.detectHuman() should wait until the detect ends', done => {
+      it('.detectHuman() should resolve successfully on the first HUMAN event', done => {
         call.detectHuman({ initial_timeout: 5, timeout: 30 }).then(result => {
           expect(result).toBeInstanceOf(DetectResult)
           expect(result.successful).toBe(true)
           expect(result.type).toBe('machine')
           expect(result.result).toBe('HUMAN')
-          expect(Connection.mockSend).nthCalledWith(1, getMsg('machine', { initial_timeout: 5 }, 30))
+          expect(Connection.mockSend).nthCalledWith(1, getMsg('machine', { initial_timeout: 5 }))
           done()
         })
         session.calling.notificationHandler(_notificationMachineHuman)
+      })
+
+      it('.detectHuman() should fail if the first event is not HUMAN', done => {
+        call.detectHuman({ initial_timeout: 5, timeout: 30 }).then(result => {
+          expect(result).toBeInstanceOf(DetectResult)
+          expect(result.successful).toBe(false)
+          expect(result.type).toBe('machine')
+          expect(result.result).toBe('UNKNOWN')
+          expect(Connection.mockSend).nthCalledWith(1, getMsg('machine', { initial_timeout: 5 }))
+          done()
+        })
+        session.calling.notificationHandler(_notificationMachineUnknown)
       })
 
       it('.detectHumanAsync() should return a DetectAction for async control', async done => {
@@ -693,7 +801,58 @@ describe('Call', () => {
         expect(action).toBeInstanceOf(DetectAction)
         expect(action.completed).toBe(false)
         expect(Connection.mockSend).nthCalledWith(1, getMsg('machine', {}))
+        session.calling.notificationHandler(_notificationMachineUnknown)
         session.calling.notificationHandler(_notificationMachineHuman)
+        expect(action.completed).toBe(false)
+        session.calling.notificationHandler(_notificationMachineFinished)
+        expect(action.completed).toBe(true)
+        expect(action.result.result).toEqual('UNKNOWN,HUMAN')
+        done()
+      })
+
+      it('.detectFax() should resolve successfully on the first CED|CNG event', done => {
+        call.detectFax({ timeout: 30 }).then(result => {
+          expect(result).toBeInstanceOf(DetectResult)
+          expect(result.successful).toBe(true)
+          expect(result.type).toBe('fax')
+          expect(result.result).toBe('CED')
+          expect(Connection.mockSend).nthCalledWith(1, getMsg('fax'))
+          done()
+        })
+        session.calling.notificationHandler(_notificationFaxCED)
+      })
+
+      it('.detectFaxAsync() should return a DetectAction for async control', async done => {
+        const action = await call.detectFaxAsync({ tone: 'CED', timeout: 30 })
+        expect(action).toBeInstanceOf(DetectAction)
+        session.calling.notificationHandler(_notificationFaxCED)
+        expect(action.completed).toBe(false)
+        expect(Connection.mockSend).nthCalledWith(1, getMsg('fax', { tone: 'CED' }))
+        session.calling.notificationHandler(_notificationFaxFinished)
+        expect(action.completed).toBe(true)
+        done()
+      })
+
+      it('.detectDigit() should resolve successfully on the first DTMF event', done => {
+        call.detectDigit({ timeout: 30 }).then(result => {
+          expect(result).toBeInstanceOf(DetectResult)
+          expect(result.successful).toBe(true)
+          expect(result.type).toBe('digit')
+          expect(result.result).toBe('1#')
+          expect(Connection.mockSend).nthCalledWith(1, getMsg('digit'))
+          done()
+        })
+        session.calling.notificationHandler(_notificationDigitDTMF)
+      })
+
+      it('.detectDigitAsync() should return a DetectAction for async control', async done => {
+        const action = await call.detectDigitAsync({ digits: '12', timeout: 30 })
+        expect(action).toBeInstanceOf(DetectAction)
+        session.calling.notificationHandler(_notificationDigitDTMF)
+        session.calling.notificationHandler(_notificationDigitDTMF)
+        expect(action.completed).toBe(false)
+        expect(Connection.mockSend).nthCalledWith(1, getMsg('digit', { digits: '12' }))
+        session.calling.notificationHandler(_notificationDigitFinished)
         expect(action.completed).toBe(true)
         done()
       })
@@ -1041,7 +1200,7 @@ describe('Call', () => {
     })
 
     describe('detect methods', () => {
-      const getMsg = (type: string, params: any, timeout = 30) => new Execute({
+      const getMsg = (type: string, params: any = {}, timeout = 30) => new Execute({
         protocol: 'signalwire_service_random_uuid',
         method: 'calling.detect',
         params: { node_id: call.nodeId, call_id: call.id, control_id: 'mocked-uuid', detect: { type, params }, timeout }
@@ -1053,7 +1212,7 @@ describe('Call', () => {
           expect(result.successful).toBe(false)
           expect(result.type).toBeUndefined()
           expect(result.result).toBeUndefined()
-          expect(Connection.mockSend).nthCalledWith(1, getMsg('fax', {}))
+          expect(Connection.mockSend).nthCalledWith(1, getMsg('fax'))
           done()
         })
       })
@@ -1063,7 +1222,7 @@ describe('Call', () => {
         expect(action).toBeInstanceOf(DetectAction)
         expect(action.completed).toBe(true)
         expect(action.result).toBeInstanceOf(DetectResult)
-        expect(Connection.mockSend).nthCalledWith(1, getMsg('fax', {}))
+        expect(Connection.mockSend).nthCalledWith(1, getMsg('fax'))
         done()
       })
 
@@ -1073,7 +1232,7 @@ describe('Call', () => {
           expect(result.successful).toBe(false)
           expect(result.type).toBeUndefined()
           expect(result.result).toBeUndefined()
-          expect(Connection.mockSend).nthCalledWith(1, getMsg('machine', {}))
+          expect(Connection.mockSend).nthCalledWith(1, getMsg('machine'))
           done()
         })
       })
@@ -1083,7 +1242,7 @@ describe('Call', () => {
         expect(action).toBeInstanceOf(DetectAction)
         expect(action.completed).toBe(true)
         expect(action.result).toBeInstanceOf(DetectResult)
-        expect(Connection.mockSend).nthCalledWith(1, getMsg('machine', {}))
+        expect(Connection.mockSend).nthCalledWith(1, getMsg('machine'))
         done()
       })
 
@@ -1093,7 +1252,7 @@ describe('Call', () => {
           expect(result.successful).toBe(false)
           expect(result.type).toBeUndefined()
           expect(result.result).toBeUndefined()
-          expect(Connection.mockSend).nthCalledWith(1, getMsg('fax', {}))
+          expect(Connection.mockSend).nthCalledWith(1, getMsg('fax'))
           done()
         })
       })
@@ -1103,7 +1262,7 @@ describe('Call', () => {
         expect(action).toBeInstanceOf(DetectAction)
         expect(action.completed).toBe(true)
         expect(action.result).toBeInstanceOf(DetectResult)
-        expect(Connection.mockSend).nthCalledWith(1, getMsg('fax', {}))
+        expect(Connection.mockSend).nthCalledWith(1, getMsg('fax'))
         done()
       })
 
@@ -1113,7 +1272,7 @@ describe('Call', () => {
           expect(result.successful).toBe(false)
           expect(result.type).toBeUndefined()
           expect(result.result).toBeUndefined()
-          expect(Connection.mockSend).nthCalledWith(1, getMsg('digit', {}))
+          expect(Connection.mockSend).nthCalledWith(1, getMsg('digit'))
           done()
         })
       })
@@ -1123,7 +1282,7 @@ describe('Call', () => {
         expect(action).toBeInstanceOf(DetectAction)
         expect(action.completed).toBe(true)
         expect(action.result).toBeInstanceOf(DetectResult)
-        expect(Connection.mockSend).nthCalledWith(1, getMsg('digit', {}))
+        expect(Connection.mockSend).nthCalledWith(1, getMsg('digit'))
         done()
       })
 

@@ -11,7 +11,11 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - Minor change at the lower level APIs: using `calling.` instead of `call.` prefix for calling methods.
 
 ### Added
+- New methods to perform answering machine detection: `amd` (alias to `detectAnsweringMachine`) and `amdAsync` (alias to `detectAnsweringMachineAsync`).
 - Methods to send digits on a Call: `sendDigits`, `sendDigitsAsync`.
+
+### Deprecated
+- Deprecated the following methods on Call: `detectHuman`, `detectHumanAsync`, `detectMachine`, `detectMachineAsync`.
 
 ## [2.1.0] - 2019-07-30
 ### Added

@@ -10,6 +10,9 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Changed
 - Minor change at the lower level APIs: using `calling.` instead of `call.` prefix for calling methods.
 
+### Added
+- Methods to send digits on a Call: `sendDigits`, `sendDigitsAsync`.
+
 ## [2.1.0] - 2019-07-30
 ### Added
 - Create your own Relay Tasks and enable `onTask` method on RelayConsumer to receive/handle them.

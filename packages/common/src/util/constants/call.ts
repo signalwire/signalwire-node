@@ -8,7 +8,7 @@ export const DEFAULT_CALL_OPTIONS: CallOptions = {
   callerNumber: '',
   audio: true,
   video: false,
-  useStereo: true,
+  useStereo: false,
   attach: false,
   screenShare: false,
   userVariables: {}

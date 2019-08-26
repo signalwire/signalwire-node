@@ -93,7 +93,7 @@ export default class Peer {
     if (!this._isAnswer()) {
       return
     }
-    const { remoteSdp, useStereo = true } = this.options
+    const { remoteSdp, useStereo } = this.options
     const sdp = useStereo ? sdpStereoHack(remoteSdp) : remoteSdp
     const sessionDescr: RTCSessionDescription = sdpToJsonHack({ sdp, type: PeerType.Offer })
     this.instance.setRemoteDescription(sessionDescr)

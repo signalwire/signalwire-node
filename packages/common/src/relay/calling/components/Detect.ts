@@ -5,6 +5,7 @@ import Call from '../Call'
 import Event from '../Event'
 
 const _finishedEvents: string[] = [CallDetectState.Error, CallDetectState.Finished]
+const _machineStateEvents: string[] = [CallDetectState.Ready, CallDetectState.NotReady]
 
 export default class Detect extends Controllable {
   public eventType: string = CallNotification.Detect
@@ -56,9 +57,9 @@ export default class Detect extends Controllable {
     if (_finishedEvents.includes(event)) {
       return this._complete(detect)
     }
-    this._events.push(this.state)
 
     if (!this._hasBlocker()) {
+      this._events.push(this.state)
       return
     }
 
@@ -85,12 +86,17 @@ export default class Detect extends Controllable {
 
   private _complete(detect: { type: string, params: any }): void {
     this.completed = true
-    this.result = this._events.join(',')
     this.event = new Event(this.state, detect)
     if (this._hasBlocker()) {
       this.successful = !_finishedEvents.includes(this.state)
+      if (_machineStateEvents.includes(this.state)) {
+        this.result = CallDetectState.Machine
+      } else if (this.successful) {
+        this.result = this.state
+      }
       this.blocker.resolve()
     } else {
+      this.result = this._events.join(',')
       this.successful = this.state !== CallDetectState.Error
     }
   }

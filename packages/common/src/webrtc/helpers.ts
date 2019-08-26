@@ -161,7 +161,7 @@ const sdpStereoHack = (sdp: string) => {
   const sdpLines = sdp.split(endOfLine)
 
   const opusIndex = sdpLines.findIndex(s => /^a=rtpmap/.test(s) && /opus\/48000/.test(s))
-  if (!opusIndex) {
+  if (opusIndex < 0) {
     return sdp
   }
 

@@ -12,6 +12,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Added
 - New methods to perform answering machine detection: `amd` (alias to `detectAnsweringMachine`) and `amdAsync` (alias to `detectAnsweringMachineAsync`).
+- Methods to send digits on a Call: `sendDigits`, `sendDigitsAsync`.
 
 ### Deprecated
 - Deprecated the following methods on Call: `detectHuman`, `detectHumanAsync`, `detectMachine`, `detectMachineAsync`.

@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid'
 import logger from '../../util/logger'
 import { Execute } from '../../messages/Blade'
-import { CallState, DisconnectReason, DEFAULT_CALL_TIMEOUT, CallNotification, CallRecordState, CallPlayState, CallPromptState, CallConnectState, CALL_STATES, CallFaxState, CallDetectState, CallDetectType, CallTapState } from '../../util/constants/relay'
+import { CallState, DisconnectReason, DEFAULT_CALL_TIMEOUT, CallNotification, CallRecordState, CallPlayState, CallPromptState, CallConnectState, CALL_STATES, CallFaxState, CallDetectState, CallDetectType, CallTapState, SendDigitsState } from '../../util/constants/relay'
 import { ICall, ICallOptions, ICallDevice, IMakeCallParams, ICallingPlay, ICallingCollect, DeepArray, ICallingDetect, ICallingDetectArg, ICallingTapTapArg, ICallingTapDeviceArg } from '../../util/interfaces'
 import { reduceConnectParams } from '../helpers'
 import Calling from './Calling'
@@ -36,6 +36,9 @@ import DetectAction from './actions/DetectAction'
 import Tap from './components/Tap'
 import TapResult from './results/TapResult'
 import TapAction from './actions/TapAction'
+import SendDigits from './components/SendDigits'
+import SendDigitsResult from './results/SendDigitsResult'
+import SendDigitsAction from './actions/SendDigitsAction'
 
 export default class Call implements ICall {
   public id: string
@@ -423,6 +426,22 @@ export default class Call implements ICall {
     return new TapAction(component)
   }
 
+  async sendDigits(digits: string): Promise<SendDigitsResult> {
+    const component = new SendDigits(this, digits)
+    this._addComponent(component)
+    await component._waitFor(SendDigitsState.Finished)
+
+    return new SendDigitsResult(component)
+  }
+
+  async sendDigitsAsync(digits: string): Promise<SendDigitsAction> {
+    const component = new SendDigits(this, digits)
+    this._addComponent(component)
+    await component.execute()
+
+    return new SendDigitsAction(component)
+  }
+
   /**
    * Registers a callback to dispatch when the 'event' occur.
    * @param event - Event to listen to.
@@ -506,6 +525,12 @@ export default class Call implements ICall {
   _tapChange(params: any) {
     this._notifyComponents(CallNotification.Tap, params.control_id, params)
     this._dispatchCallback(`tap.${params.state}`, params)
+  }
+
+  _sendDigitsChange(params: any) {
+    this._notifyComponents(CallNotification.SendDigits, params.control_id, params)
+    this._dispatchCallback(`sendDigits.stateChange`, params)
+    this._dispatchCallback(`sendDigits.${params.state}`, params)
   }
 
   private _notifyComponents(eventType: string, controlId: string, params: any): void {

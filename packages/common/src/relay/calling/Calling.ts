@@ -31,6 +31,8 @@ export default class Calling extends Relay {
         return this._onDetect(params)
       case CallNotification.Tap:
         return this._onTap(params)
+      case CallNotification.SendDigits:
+        return this._onSendDigits(params)
     }
   }
 
@@ -190,6 +192,18 @@ export default class Calling extends Relay {
     const call = this.getCallById(params.call_id)
     if (call) {
       call._tapChange(params)
+    }
+  }
+
+  /**
+   * Handle calling.call.send_digits notification params
+   * @param params - Inner params of calling.call.send_digits notification
+   * @return void
+   */
+  private _onSendDigits(params: any): void {
+    const call = this.getCallById(params.call_id)
+    if (call) {
+      call._sendDigitsChange(params)
     }
   }
 }

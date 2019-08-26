@@ -50,6 +50,11 @@ export enum CallNotification {
   Fax = 'calling.call.fax',
   Detect = 'calling.call.detect',
   Tap = 'calling.call.tap',
+  SendDigits = 'calling.call.send_digits',
+}
+
+export enum SendDigitsState {
+  Finished = 'finished',
 }
 
 export enum CallPlayState {

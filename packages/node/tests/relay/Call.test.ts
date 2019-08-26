@@ -21,6 +21,8 @@ import DetectResult from '../../../common/src/relay/calling/results/DetectResult
 import DetectAction from '../../../common/src/relay/calling/actions/DetectAction'
 import TapResult from '../../../common/src/relay/calling/results/TapResult'
 import TapAction from '../../../common/src/relay/calling/actions/TapAction'
+import SendDigitsResult from '../../../common/src/relay/calling/results/SendDigitsResult'
+import SendDigitsAction from '../../../common/src/relay/calling/actions/SendDigitsAction'
 jest.mock('../../../common/src/services/Connection')
 
 describe('Call', () => {
@@ -123,6 +125,7 @@ describe('Call', () => {
     const _collectNotification = JSON.parse(`{"event_type":"calling.call.collect","params":{"control_id":"mocked-uuid","call_id":"call-id","node_id":"node-id","result":{"type":"digit","params":{"digits":"12345","terminator":"#"}}}}`)
     const _faxNotificationFinished = JSON.parse('{"event_type":"calling.call.fax","params":{"control_id":"mocked-uuid","call_id":"call-id","node_id":"node-id","fax":{"type":"finished","params":{"direction":"send","identity":"+1xxx","remote_identity":"+1yyy","document":"file.pdf","success":true,"result":"1231","result_text":"","pages":"1"}}}}')
     const _tapNotificationFinished = JSON.parse('{"event_type":"calling.call.tap","params":{"control_id":"mocked-uuid","call_id":"call-id","node_id":"node-id","state":"finished","tap":{"type":"audio","params":{"direction":"listen"}},"device":{"type":"rtp","params":{"addr":"127.0.0.1","port":"1234","codec":"PCMU","ptime":"20"}}}}')
+    const _sendDigitsNotificationFinished = JSON.parse(`{"event_type":"calling.call.send_digits","params":{"control_id":"mocked-uuid","state":"finished","call_id":"call-id","node_id":"node-id"}}`)
 
     beforeEach(() => {
       call.id = 'call-id'
@@ -742,6 +745,36 @@ describe('Call', () => {
 
     })
 
+    describe('sendDigits methods', () => {
+      const getMsg = () => new Execute({
+        protocol: 'signalwire_service_random_uuid',
+        method: 'calling.send_digits',
+        params: { node_id: call.nodeId, call_id: call.id, control_id: 'mocked-uuid', digits: '1234' }
+      })
+
+      it('.sendDigits() should wait until finished arrived', done => {
+        call.sendDigits('1234').then(result => {
+          expect(result).toBeInstanceOf(SendDigitsResult)
+          expect(result.successful).toBe(true)
+          expect(Connection.mockSend).nthCalledWith(1, getMsg())
+          done()
+        })
+        session.calling.notificationHandler(_sendDigitsNotificationFinished)
+      })
+
+      it('.sendDigitsAsync() should return a SendDigitsAction', async done => {
+        const action = await call.sendDigitsAsync('1234')
+        expect(action).toBeInstanceOf(SendDigitsAction)
+        expect(action.completed).toBe(false)
+        expect(Connection.mockSend).nthCalledWith(1, getMsg())
+        session.calling.notificationHandler(_sendDigitsNotificationFinished)
+        expect(action.completed).toBe(true)
+        expect(action.result).toBeInstanceOf(SendDigitsResult)
+        done()
+      })
+
+    })
+
   })
 
   describe('with fail response code not 200', () => {
@@ -1128,5 +1161,33 @@ describe('Call', () => {
       })
 
     })
+
+    describe('sendDigits methods', () => {
+      const getMsg = () => new Execute({
+        protocol: 'signalwire_service_random_uuid',
+        method: 'calling.send_digits',
+        params: { node_id: call.nodeId, call_id: call.id, control_id: 'mocked-uuid', digits: '1234' }
+      })
+
+      it('.sendDigits() should wait until finished arrived', done => {
+        call.sendDigits('1234').then(result => {
+          expect(result).toBeInstanceOf(SendDigitsResult)
+          expect(result.successful).toBe(false)
+          expect(Connection.mockSend).nthCalledWith(1, getMsg())
+          done()
+        })
+      })
+
+      it('.sendDigitsAsync() should return a SendDigitsAction', async done => {
+        const action = await call.sendDigitsAsync('1234')
+        expect(action).toBeInstanceOf(SendDigitsAction)
+        expect(action.completed).toBe(true)
+        expect(Connection.mockSend).nthCalledWith(1, getMsg())
+        expect(action.result).toBeInstanceOf(SendDigitsResult)
+        done()
+      })
+
+    })
+
   })
 })

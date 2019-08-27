@@ -667,7 +667,7 @@ describe('Call', () => {
         done()
       })
 
-      it('.detectAnsweringMachine() without waitForBeep should resolve on the first valid event', done => {
+      it('.detectAnsweringMachine() without wait_for_beep should resolve on the first valid event', done => {
         call.detectAnsweringMachine({ initial_timeout: 5, timeout: 30 }).then(result => {
           expect(result).toBeInstanceOf(DetectResult)
           expect(result.successful).toBe(true)
@@ -679,8 +679,8 @@ describe('Call', () => {
         session.calling.notificationHandler(_notificationMachineUnknown)
       })
 
-      it('.detectAnsweringMachine() with waitForBeep should wait until READY in case of MACHINE', done => {
-        call.detectAnsweringMachine({ initial_timeout: 5, timeout: 30, waitForBeep: true }).then(result => {
+      it('.detectAnsweringMachine() with wait_for_beep should wait until READY in case of MACHINE', done => {
+        call.detectAnsweringMachine({ initial_timeout: 5, timeout: 30, wait_for_beep: true }).then(result => {
           expect(result).toBeInstanceOf(DetectResult)
           expect(result.successful).toBe(true)
           expect(result.type).toBe('machine')
@@ -694,8 +694,8 @@ describe('Call', () => {
         session.calling.notificationHandler(_notificationMachineNotReady) // This will be ignored by Detect component
       })
 
-      it('.detectAnsweringMachine() with waitForBeep should resolve if the first event is not MACHINE', done => {
-        call.detectAnsweringMachine({ initial_timeout: 5, timeout: 30, waitForBeep: true }).then(result => {
+      it('.detectAnsweringMachine() with wait_for_beep should resolve if the first event is not MACHINE', done => {
+        call.detectAnsweringMachine({ initial_timeout: 5, timeout: 30, wait_for_beep: true }).then(result => {
           expect(result).toBeInstanceOf(DetectResult)
           expect(result.successful).toBe(true)
           expect(result.type).toBe('machine')

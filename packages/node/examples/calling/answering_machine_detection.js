@@ -15,7 +15,7 @@ const consumer = new RelayConsumer({
     }
 
     // Try to detect a machine and wait for 'beep'
-    const { successful, result, event } = await call.amd({ waitForBeep: true })
+    const { successful, result, event } = await call.amd({ wait_for_beep: true })
 
     if (successful) {
       console.log('Detection result:', result, 'Last event:', event)

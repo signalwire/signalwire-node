@@ -339,16 +339,16 @@ export default class Call implements ICall {
     return new DetectAction(component)
   }
 
-  async detectAnsweringMachine({ timeout, waitForBeep = false, ...params }: ICallingDetectArg = {}): Promise<DetectResult> {
-    const component = new Detect(this, { type: CallDetectType.Machine, params }, timeout, waitForBeep)
+  async detectAnsweringMachine({ timeout, wait_for_beep = false, ...params }: ICallingDetectArg = {}): Promise<DetectResult> {
+    const component = new Detect(this, { type: CallDetectType.Machine, params }, timeout, wait_for_beep)
     this._addComponent(component)
     await component._waitFor(CallDetectState.Machine, CallDetectState.Human, CallDetectState.Unknown)
 
     return new DetectResult(component)
   }
 
-  async detectAnsweringMachineAsync({ timeout, waitForBeep = false, ...params }: ICallingDetectArg = {}): Promise<DetectAction> {
-    const component = new Detect(this, { type: CallDetectType.Machine, params }, timeout, waitForBeep)
+  async detectAnsweringMachineAsync({ timeout, wait_for_beep = false, ...params }: ICallingDetectArg = {}): Promise<DetectAction> {
+    const component = new Detect(this, { type: CallDetectType.Machine, params }, timeout, wait_for_beep)
     this._addComponent(component)
     await component.execute()
 

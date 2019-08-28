@@ -2,8 +2,8 @@ import { v4 as uuidv4 } from 'uuid'
 import logger from '../../util/logger'
 import { Execute } from '../../messages/Blade'
 import { CallState, DisconnectReason, DEFAULT_CALL_TIMEOUT, CallNotification, CallRecordState, CallPlayState, CallPlayType, CallPromptState, CallConnectState, CALL_STATES, CallFaxState, CallDetectState, CallDetectType, CallTapState, SendDigitsState } from '../../util/constants/relay'
-import { ICall, ICallOptions, ICallDevice, IMakeCallParams, ICallingPlay, ICallingCollect, DeepArray, ICallingDetect, ICallingDetectArg, ICallingTapTapArg, ICallingTapDeviceArg, ICallingRecord, IRelayCallingPlay, ICallingPlayTTS } from '../../util/interfaces'
-import { reduceConnectParams, prepareRecordParams, preparePlayParams } from '../helpers'
+import { ICall, ICallOptions, ICallDevice, IMakeCallParams, ICallingPlay, ICallingCollect, DeepArray, ICallingDetect, ICallingDetectArg, ICallingTapTapArg, ICallingTapDeviceArg, ICallingRecord, IRelayCallingPlay, ICallingPlayTTS, ICallingCollectAudio, ICallingCollectTTS } from '../../util/interfaces'
+import { reduceConnectParams, prepareRecordParams, preparePlayParams, preparePromptParams, preparePromptAudioParams, preparePromptTTSParams } from '../helpers'
 import Calling from './Calling'
 import { isFunction } from '../../util/helpers'
 import { Answer, Await, BaseComponent, Connect, Detect, Dial, FaxReceive, FaxSend, Hangup, Play, Prompt, Record, SendDigits, Tap } from './components'
@@ -175,36 +175,42 @@ export default class Call implements ICall {
     return this.playAsync({ type: CallPlayType.TTS, params })
   }
 
-  async prompt(collect: ICallingCollect, ...play: (IRelayCallingPlay | ICallingPlay)[]): Promise<PromptResult> {
-    const component = new Prompt(this, collect, preparePlayParams(play))
+  async prompt(params: ICallingCollect, ...mediaList: (IRelayCallingPlay | ICallingPlay)[]): Promise<PromptResult> {
+    const [collect, play] = preparePromptParams(params, mediaList)
+    const component = new Prompt(this, collect, play)
     this._addComponent(component)
     await component._waitFor(CallPromptState.Error, CallPromptState.NoInput, CallPromptState.NoMatch, CallPromptState.Digit, CallPromptState.Speech)
 
     return new PromptResult(component)
   }
 
-  async promptAsync(collect: ICallingCollect, ...play: (IRelayCallingPlay | ICallingPlay)[]): Promise<PromptAction> {
-    const component = new Prompt(this, collect, preparePlayParams(play))
+  async promptAsync(params: ICallingCollect, ...mediaList: (IRelayCallingPlay | ICallingPlay)[]): Promise<PromptAction> {
+    const [collect, play] = preparePromptParams(params, mediaList)
+    const component = new Prompt(this, collect, play)
     this._addComponent(component)
     await component.execute()
 
     return new PromptAction(component)
   }
 
-  promptAudio(collect: ICallingCollect, url: string): Promise<PromptResult> {
-    return this.prompt(collect, { type: 'audio', params: { url } })
+  promptAudio(params: ICallingCollectAudio, url: string = ''): Promise<PromptResult> {
+    const collect = preparePromptAudioParams(params, url)
+    return this.prompt(collect)
   }
 
-  promptAudioAsync(collect: ICallingCollect, url: string): Promise<PromptAction> {
-    return this.promptAsync(collect, { type: 'audio', params: { url } })
+  promptAudioAsync(params: ICallingCollectAudio, url: string = ''): Promise<PromptAction> {
+    const collect = preparePromptAudioParams(params, url)
+    return this.promptAsync(collect)
   }
 
-  promptTTS(collect: ICallingCollect, params: any): Promise<PromptResult> {
-    return this.prompt(collect, { type: 'tts', params })
+  promptTTS(params: ICallingCollectTTS, ttsOptions: ICallingPlayTTS = { text: '' }): Promise<PromptResult> {
+    const collect = preparePromptTTSParams(params, ttsOptions)
+    return this.prompt(collect)
   }
 
-  promptTTSAsync(collect: ICallingCollect, params: any): Promise<PromptAction> {
-    return this.promptAsync(collect, { type: 'tts', params })
+  promptTTSAsync(params: ICallingCollectTTS, ttsOptions: ICallingPlayTTS = { text: '' }): Promise<PromptAction> {
+    const collect = preparePromptTTSParams(params, ttsOptions)
+    return this.promptAsync(collect)
   }
 
   async connect(...peers: DeepArray<IMakeCallParams>): Promise<ConnectResult> {

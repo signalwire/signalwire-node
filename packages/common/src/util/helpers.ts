@@ -1,6 +1,9 @@
 import logger from './logger'
 import { STORAGE_PREFIX } from './constants'
 
+// hack to remove undefined values from the object
+export const deepCopy = (obj: Object) => JSON.parse(JSON.stringify(obj))
+
 export const objEmpty = (obj: Object) => Object.keys(obj).length === 0
 
 export const mutateStorageKey = (key: string) => `${STORAGE_PREFIX}${key}`

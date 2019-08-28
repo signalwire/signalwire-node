@@ -1,4 +1,4 @@
-import { reduceConnectParams, prepareRecordParams, preparePlayParams } from '../../src/relay/helpers'
+import { reduceConnectParams, prepareRecordParams, preparePlayParams, preparePromptParams, preparePromptAudioParams, preparePromptTTSParams } from '../../src/relay/helpers'
 import { ICallDevice } from '../../src/util/interfaces'
 
 describe('reduceConnectParams()', () => {
@@ -223,5 +223,129 @@ describe('preparePlayParams()', () => {
       { type: 'tts', text: 'welcome', gender: 'male' }
     ]
     expect(preparePlayParams(input)).toEqual(expected)
+  })
+})
+
+describe('preparePromptParams()', () => {
+  it('should handle only required parameters', () => {
+    const collectExpected = { initial_timeout: 5, digits: {}, speech: {} }
+    const playExpected = [
+      { type: 'audio', params: { url: 'audio.mp3' } },
+      { type: 'tts', params: { text: 'hello', gender: 'male' } }
+    ]
+    const params = {
+      initial_timeout: 5,
+      type: 'both',
+      media: [
+        { type: 'audio', url: 'audio.mp3' },
+        { type: 'tts', text: 'hello', gender: 'male' }
+      ]
+    }
+    expect(preparePromptParams(params)).toEqual([collectExpected, playExpected])
+  })
+
+  it('should handle nested params', () => {
+    const collectExpected = {
+      initial_timeout: 5,
+      digits: {
+        max: 5, digit_timeout: 2, terminators: '#'
+      }
+    }
+    const playExpected = [
+      { type: 'audio', params: { url: 'audio.mp3' } },
+      { type: 'tts', params: { text: 'hello', gender: 'male' } }
+    ]
+    expect(preparePromptParams(collectExpected, playExpected)).toEqual([collectExpected, playExpected])
+  })
+
+  it('should handle nested params and flattened media', () => {
+    const collectExpected = {
+      initial_timeout: 5,
+      speech: {
+        end_silence_timeout: 5
+      }
+    }
+    const playExpected = [
+      { type: 'audio', params: { url: 'audio.mp3' } },
+      { type: 'tts', params: { text: 'hello', gender: 'male' } }
+    ]
+    const playFlat = [
+      { type: 'audio', url: 'audio.mp3' },
+      { type: 'tts', text: 'hello', gender: 'male' }
+    ]
+    expect(preparePromptParams(collectExpected, playFlat)).toEqual([collectExpected, playExpected])
+  })
+
+  it('should handle flattened params', () => {
+    const collectExpected = {
+      initial_timeout: 5,
+      digits: {
+        max: 3, digit_timeout: 2, terminators: '#'
+      },
+      speech: {
+        speech_timeout: 3,
+        end_silence_timeout: 3
+      }
+    }
+    const playExpected = [
+      { type: 'audio', params: { url: 'audio.mp3' } },
+      { type: 'tts', params: { text: 'hello', gender: 'male' } }
+    ]
+    const params = {
+      initial_timeout: 5,
+      digits_max: 3,
+      digits_timeout: 2,
+      digits_terminators: '#',
+      end_silence_timeout: 3,
+      speech_timeout: 3,
+      NOT_EXISTS: 'this will be ignored',
+      media: [
+        { type: 'audio', url: 'audio.mp3' },
+        { type: 'tts', text: 'hello', gender: 'male' }
+      ]
+    }
+    expect(preparePromptParams(params)).toEqual([collectExpected, playExpected])
+  })
+
+  it('should handle flattened params without media', () => {
+    const collectExpected = {
+      initial_timeout: 5,
+      speech: {
+        end_silence_timeout: 3
+      }
+    }
+    const playExpected = []
+    const params = { initial_timeout: 5, end_silence_timeout: 3 }
+    expect(preparePromptParams(params)).toEqual([collectExpected, playExpected])
+  })
+})
+
+describe('preparePromptAudioParams()', () => {
+  it('should handle only required parameters', () => {
+    const expected = {
+      initial_timeout: 5,
+      media: [
+        { type: 'audio', params: { url: 'audio.mp3' } }
+      ]
+    }
+    const params = { initial_timeout: 5, url: 'audio.mp3' }
+    expect(preparePromptAudioParams(params)).toEqual(expected)
+
+    expect(preparePromptAudioParams({ initial_timeout: 5 }, 'audio.mp3')).toEqual(expected)
+  })
+})
+
+describe('preparePromptTTSParams()', () => {
+  it('should handle only required parameters', () => {
+    const expected = {
+      initial_timeout: 5,
+      media: [
+        { type: 'tts', params: { text: 'hello', gender: 'male' } }
+      ]
+    }
+    const params = { initial_timeout: 5, text: 'hello', gender: 'male' }
+    expect(preparePromptTTSParams(params)).toEqual(expected)
+
+    expect(preparePromptTTSParams({ initial_timeout: 5 }, { text: 'hello', gender: 'male' })).toEqual(expected)
   })
 })

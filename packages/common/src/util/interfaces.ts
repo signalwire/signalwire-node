@@ -273,18 +273,42 @@ export interface ICallingPlayTTS {
   gender?: string
 }
 
-export interface ICallingCollect {
-  initial_timeout: number
+export interface IRelayCallingCollect {
+  initial_timeout?: number
   digits?: {
     max: number
     terminators?: string
     digit_timeout: number
   },
   speech?: {
-    end_silence_timeout?: number,
+    end_silence_timeout?: number
+    speech_timeout?: number
     language?: string
     hints?: string[]
   }
+  partial_results?: boolean
+}
+
+export interface ICallingCollect extends IRelayCallingCollect {
+  type?: string
+  digits_max?: number
+  digits_terminators?: string
+  digits_timeout?: number
+  end_silence_timeout?: number
+  speech_timeout?: number
+  speech_language?: string
+  speech_hints?: string[]
+  media?: (IRelayCallingPlay | ICallingPlay)[]
+}
+
+export interface ICallingCollectAudio extends ICallingCollect {
+  url?: string
+}
+
+export interface ICallingCollectTTS extends ICallingCollect {
+  text?: string // optional for backward compatibility
+  language?: string
+  gender?: string
 }
 
 interface ICallingDetectParams {

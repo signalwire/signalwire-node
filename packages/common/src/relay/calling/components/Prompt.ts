@@ -1,5 +1,5 @@
 import { Controllable } from './Controllable'
-import { IRelayCallingPlay, ICallingCollect } from '../../../util/interfaces'
+import { IRelayCallingPlay, IRelayCallingCollect } from '../../../util/interfaces'
 import { CallNotification, CallPromptState } from '../../../util/constants/relay'
 import Call from '../Call'
 import Event from '../Event'
@@ -15,7 +15,7 @@ export class Prompt extends Controllable {
 
   constructor(
     public call: Call,
-    public collect: ICallingCollect,
+    public collect: IRelayCallingCollect,
     public play: IRelayCallingPlay[]
   ) {
     super(call)

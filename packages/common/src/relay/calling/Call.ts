@@ -2,8 +2,8 @@ import { v4 as uuidv4 } from 'uuid'
 import logger from '../../util/logger'
 import { Execute } from '../../messages/Blade'
 import { CallState, DisconnectReason, DEFAULT_CALL_TIMEOUT, CallNotification, CallRecordState, CallPlayState, CallPromptState, CallConnectState, CALL_STATES, CallFaxState, CallDetectState, CallDetectType, CallTapState, SendDigitsState } from '../../util/constants/relay'
-import { ICall, ICallOptions, ICallDevice, IMakeCallParams, ICallingPlay, ICallingCollect, DeepArray, ICallingDetect, ICallingDetectArg, ICallingTapTapArg, ICallingTapDeviceArg } from '../../util/interfaces'
-import { reduceConnectParams } from '../helpers'
+import { ICall, ICallOptions, ICallDevice, IMakeCallParams, ICallingPlay, ICallingCollect, DeepArray, ICallingDetect, ICallingDetectArg, ICallingTapTapArg, ICallingTapDeviceArg, ICallingRecord } from '../../util/interfaces'
+import { reduceConnectParams, prepareRecordParams } from '../helpers'
 import Calling from './Calling'
 import { isFunction } from '../../util/helpers'
 import { Answer, Await, BaseComponent, Connect, Detect, Dial, FaxReceive, FaxSend, Hangup, Play, Prompt, Record, SendDigits, Tap } from './components'
@@ -119,16 +119,16 @@ export default class Call implements ICall {
     return new AnswerResult(component)
   }
 
-  async record(record: any) {
-    const component = new Record(this, record)
+  async record(record: ICallingRecord = {}) {
+    const component = new Record(this, prepareRecordParams(record))
     this._addComponent(component)
     await component._waitFor(CallRecordState.NoInput, CallRecordState.Finished)
 
     return new RecordResult(component)
   }
 
-  async recordAsync(record: any) {
-    const component = new Record(this, record)
+  async recordAsync(record: ICallingRecord = {}) {
+    const component = new Record(this, prepareRecordParams(record))
     this._addComponent(component)
     await component.execute()
 

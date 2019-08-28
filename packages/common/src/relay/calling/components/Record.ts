@@ -2,6 +2,7 @@ import { Controllable } from './Controllable'
 import { CallNotification, CallRecordState } from '../../../util/constants/relay'
 import Call from '../Call'
 import Event from '../Event'
+import { IRelayCallingRecord } from '../../../util/interfaces'
 
 export class Record extends Controllable {
   public eventType: string = CallNotification.Record
@@ -11,7 +12,7 @@ export class Record extends Controllable {
   public duration: number
   public size: number
 
-  constructor(public call: Call, public record: any) {
+  constructor(public call: Call, public record: IRelayCallingRecord) {
     super(call)
   }
 

@@ -1,4 +1,4 @@
-import { reduceConnectParams } from '../../src/relay/helpers'
+import { reduceConnectParams, prepareRecordParams } from '../../src/relay/helpers'
 import { ICallDevice } from '../../src/util/interfaces'
 
 describe('reduceConnectParams()', () => {
@@ -149,4 +149,38 @@ describe('reduceConnectParams()', () => {
       expect(reduceConnectParams(input, DEFAULT_DEVICE)).toEqual(res)
     })
   })
+})
+
+describe('prepareRecordParams()', () => {
+  it('should handle the default empty object', () => {
+    const expected = { audio: {} }
+    expect(prepareRecordParams({})).toEqual(expected)
+  })
+
+  it('should handle audio as nested params', () => {
+    const expected = {
+      audio: { beep: true, format: 'mp3', direction: 'listen' }
+    }
+    const input = {
+      audio: { beep: true, format: 'mp3', direction: 'listen' }
+    }
+    expect(prepareRecordParams(input)).toEqual(expected)
+  })
+
+  it('should handle the flattened params', () => {
+    const expected = {
+      audio: { beep: true, format: 'mp3', direction: 'listen' }
+    }
+    const input = { beep: true, format: 'mp3', direction: 'listen' }
+    expect(prepareRecordParams(input)).toEqual(expected)
+  })
+
+  it('should handle mixed flattened and nested params', () => {
+    const expected = {
+      audio: { beep: false, format: 'mp3', direction: 'listen' }
+    }
+    const input = { audio: { beep: false }, format: 'mp3', direction: 'listen' }
+    expect(prepareRecordParams(input)).toEqual(expected)
+  })
+
 })

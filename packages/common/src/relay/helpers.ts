@@ -1,4 +1,4 @@
-import { ICallDevice, IMakeCallParams, DeepArray } from '../util/interfaces'
+import { ICallDevice, IMakeCallParams, DeepArray, ICallingRecord, IRelayCallingRecord } from '../util/interfaces'
 
 interface DeviceAccumulator {
   devices: DeepArray<ICallDevice>,
@@ -25,4 +25,10 @@ export const reduceConnectParams = (peers: DeepArray<IMakeCallParams>, callDevic
   }
   const { devices } = peers.reduce(_reducer, { devices: [], nested: false })
   return devices
+}
+
+
+export const prepareRecordParams = (params: ICallingRecord): IRelayCallingRecord => {
+  const { audio = {}, type, ...flattenedParams } = params
+  return { audio: { ...audio, ...flattenedParams } }
 }

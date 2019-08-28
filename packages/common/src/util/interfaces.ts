@@ -143,8 +143,8 @@ export interface ICall {
   answered: boolean
   ended: boolean
   busy: boolean
-  // on: Function
-  // off: Function
+  on: Function
+  off: Function
   dial: Function
   hangup: Function
   record: Function
@@ -166,7 +166,31 @@ export interface ICall {
   promptAudioAsync: Function
   promptTTS: Function
   promptTTSAsync: Function
-  // WaitFor: Function
+  waitFor: Function
+  waitForRinging: Function
+  waitForAnswered: Function
+  waitForEnding: Function
+  waitForEnded: Function
+  faxReceive: Function
+  faxReceiveAsync: Function
+  faxSend: Function
+  faxSendAsync: Function
+  detect: Function
+  detectAsync: Function
+  detectAnsweringMachine: Function
+  detectAnsweringMachineAsync: Function
+  detectHuman?: Function
+  detectHumanAsync?: Function
+  detectMachine?: Function
+  detectMachineAsync?: Function
+  detectFax: Function
+  detectFaxAsync: Function
+  detectDigit: Function
+  detectDigitAsync: Function
+  tap: Function
+  tapAsync: Function
+  sendDigits: Function
+  sendDigitsAsync: Function
 }
 
 export interface ICallDevice {
@@ -206,6 +230,25 @@ export interface IMakeCallParams {
 
 export interface StringTMap<T> { [key: string]: T }
 export interface StringStringMap extends StringTMap<string> { }
+
+interface IRelayCallingRecordAudio {
+  beep?: boolean
+  format?: string
+  stereo?: boolean
+  direction?: string
+  initial_timeout?: number
+  end_silence_timeout?: number
+  terminators?: string
+}
+
+export interface IRelayCallingRecord {
+  audio: IRelayCallingRecordAudio
+}
+
+export interface ICallingRecord extends IRelayCallingRecordAudio {
+  audio?: IRelayCallingRecordAudio // backwards compatibility
+  type?: 'audio'
+}
 
 export interface ICallingPlay {
   type: string

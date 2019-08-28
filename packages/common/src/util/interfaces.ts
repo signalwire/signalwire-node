@@ -250,15 +250,27 @@ export interface ICallingRecord extends IRelayCallingRecordAudio {
   type?: 'audio'
 }
 
-export interface ICallingPlay {
+interface IRelayCallingPlayParams {
+  url?: string
+  text?: string
+  language?: string
+  gender?: string
+  duration?: number
+}
+
+export interface IRelayCallingPlay {
   type: string
-  params: {
-    url?: string
-    text?: string
-    language?: string
-    gender?: 'male' | 'female'
-    duration?: number
-  }
+  params: IRelayCallingPlayParams
+}
+
+export interface ICallingPlay extends IRelayCallingPlayParams {
+  type: string
+}
+
+export interface ICallingPlayTTS {
+  text: string
+  language?: string
+  gender?: string
 }
 
 export interface ICallingCollect {

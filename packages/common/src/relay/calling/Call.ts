@@ -1,9 +1,9 @@
 import { v4 as uuidv4 } from 'uuid'
 import logger from '../../util/logger'
 import { Execute } from '../../messages/Blade'
-import { CallState, DisconnectReason, DEFAULT_CALL_TIMEOUT, CallNotification, CallRecordState, CallPlayState, CallPromptState, CallConnectState, CALL_STATES, CallFaxState, CallDetectState, CallDetectType, CallTapState, SendDigitsState } from '../../util/constants/relay'
-import { ICall, ICallOptions, ICallDevice, IMakeCallParams, ICallingPlay, ICallingCollect, DeepArray, ICallingDetect, ICallingDetectArg, ICallingTapTapArg, ICallingTapDeviceArg, ICallingRecord } from '../../util/interfaces'
-import { reduceConnectParams, prepareRecordParams } from '../helpers'
+import { CallState, DisconnectReason, DEFAULT_CALL_TIMEOUT, CallNotification, CallRecordState, CallPlayState, CallPlayType, CallPromptState, CallConnectState, CALL_STATES, CallFaxState, CallDetectState, CallDetectType, CallTapState, SendDigitsState } from '../../util/constants/relay'
+import { ICall, ICallOptions, ICallDevice, IMakeCallParams, ICallingPlay, ICallingCollect, DeepArray, ICallingDetect, ICallingDetectArg, ICallingTapTapArg, ICallingTapDeviceArg, ICallingRecord, IRelayCallingPlay, ICallingPlayTTS } from '../../util/interfaces'
+import { reduceConnectParams, prepareRecordParams, preparePlayParams } from '../helpers'
 import Calling from './Calling'
 import { isFunction } from '../../util/helpers'
 import { Answer, Await, BaseComponent, Connect, Detect, Dial, FaxReceive, FaxSend, Hangup, Play, Prompt, Record, SendDigits, Tap } from './components'
@@ -135,16 +135,16 @@ export default class Call implements ICall {
     return new RecordAction(component)
   }
 
-  async play(...play: ICallingPlay[]): Promise<PlayResult> {
-    const component = new Play(this, play)
+  async play(...play: (IRelayCallingPlay | ICallingPlay)[]): Promise<PlayResult> {
+    const component = new Play(this, preparePlayParams(play))
     this._addComponent(component)
     await component._waitFor(CallPlayState.Error, CallPlayState.Finished)
 
     return new PlayResult(component)
   }
 
-  async playAsync(...play: ICallingPlay[]): Promise<PlayAction> {
-    const component = new Play(this, play)
+  async playAsync(...play: (IRelayCallingPlay | ICallingPlay)[]): Promise<PlayAction> {
+    const component = new Play(this, preparePlayParams(play))
     this._addComponent(component)
     await component.execute()
 
@@ -152,39 +152,39 @@ export default class Call implements ICall {
   }
 
   playAudio(url: string): Promise<PlayResult> {
-    return this.play({ type: 'audio', params: { url } })
+    return this.play({ type: CallPlayType.Audio, params: { url } })
   }
 
   playAudioAsync(url: string): Promise<PlayAction> {
-    return this.playAsync({ type: 'audio', params: { url } })
+    return this.playAsync({ type: CallPlayType.Audio, params: { url } })
   }
 
   playSilence(duration: number): Promise<PlayResult> {
-    return this.play({ type: 'silence', params: { duration } })
+    return this.play({ type: CallPlayType.Silence, params: { duration } })
   }
 
   playSilenceAsync(duration: number): Promise<PlayAction> {
-    return this.playAsync({ type: 'silence', params: { duration } })
+    return this.playAsync({ type: CallPlayType.Silence, params: { duration } })
   }
 
-  playTTS(params: ICallingPlay['params']): Promise<PlayResult> {
-    return this.play({ type: 'tts', params })
+  playTTS(params: ICallingPlayTTS): Promise<PlayResult> {
+    return this.play({ type: CallPlayType.TTS, params })
   }
 
-  playTTSAsync(params: ICallingPlay['params']): Promise<PlayAction> {
-    return this.playAsync({ type: 'tts', params })
+  playTTSAsync(params: ICallingPlayTTS): Promise<PlayAction> {
+    return this.playAsync({ type: CallPlayType.TTS, params })
   }
 
-  async prompt(collect: ICallingCollect, ...play: ICallingPlay[]): Promise<PromptResult> {
-    const component = new Prompt(this, collect, play)
+  async prompt(collect: ICallingCollect, ...play: (IRelayCallingPlay | ICallingPlay)[]): Promise<PromptResult> {
+    const component = new Prompt(this, collect, preparePlayParams(play))
     this._addComponent(component)
     await component._waitFor(CallPromptState.Error, CallPromptState.NoInput, CallPromptState.NoMatch, CallPromptState.Digit, CallPromptState.Speech)
 
     return new PromptResult(component)
   }
 
-  async promptAsync(collect: ICallingCollect, ...play: ICallingPlay[]): Promise<PromptAction> {
-    const component = new Prompt(this, collect, play)
+  async promptAsync(collect: ICallingCollect, ...play: (IRelayCallingPlay | ICallingPlay)[]): Promise<PromptAction> {
+    const component = new Prompt(this, collect, preparePlayParams(play))
     this._addComponent(component)
     await component.execute()
 
@@ -199,11 +199,11 @@ export default class Call implements ICall {
     return this.promptAsync(collect, { type: 'audio', params: { url } })
   }
 
-  promptTTS(collect: ICallingCollect, params: ICallingPlay['params']): Promise<PromptResult> {
+  promptTTS(collect: ICallingCollect, params: any): Promise<PromptResult> {
     return this.prompt(collect, { type: 'tts', params })
   }
 
-  promptTTSAsync(collect: ICallingCollect, params: ICallingPlay['params']): Promise<PromptAction> {
+  promptTTSAsync(collect: ICallingCollect, params: any): Promise<PromptAction> {
     return this.promptAsync(collect, { type: 'tts', params })
   }
 

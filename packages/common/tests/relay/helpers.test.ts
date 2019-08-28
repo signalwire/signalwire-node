@@ -1,4 +1,4 @@
-import { reduceConnectParams, prepareRecordParams } from '../../src/relay/helpers'
+import { reduceConnectParams, prepareRecordParams, preparePlayParams } from '../../src/relay/helpers'
 import { ICallDevice } from '../../src/util/interfaces'
 
 describe('reduceConnectParams()', () => {
@@ -182,5 +182,46 @@ describe('prepareRecordParams()', () => {
     const input = { audio: { beep: false }, format: 'mp3', direction: 'listen' }
     expect(prepareRecordParams(input)).toEqual(expected)
   })
+})
 
+describe('preparePlayParams()', () => {
+  it('should handle no parameters', () => {
+    expect(preparePlayParams([])).toEqual([])
+  })
+
+  it('should handle nested params', () => {
+    const expected = [
+      { type: 'audio', params: { url: 'audio.mp3' } },
+      { type: 'tts', params: { text: 'welcome' } }
+    ]
+    const input = [
+      { type: 'audio', params: { url: 'audio.mp3' } },
+      { type: 'tts', params: { text: 'welcome' } }
+    ]
+    expect(preparePlayParams(input)).toEqual(expected)
+  })
+
+  it('should handle the flattened params', () => {
+    const expected = [
+      { type: 'audio', params: { url: 'audio.mp3' } },
+      { type: 'tts', params: { text: 'welcome', gender: 'male' } }
+    ]
+    const input = [
+      { type: 'audio', url: 'audio.mp3' },
+      { type: 'tts', text: 'welcome', gender: 'male' }
+    ]
+    expect(preparePlayParams(input)).toEqual(expected)
+  })
+
+  it('should handle mixed flattened and nested params', () => {
+    const expected = [
+      { type: 'audio', params: { url: 'audio.mp3' } },
+      { type: 'tts', params: { text: 'welcome', gender: 'male' } }
+    ]
+    const input = [
+      { type: 'audio', params: { url: 'audio.mp3' } },
+      { type: 'tts', text: 'welcome', gender: 'male' }
+    ]
+    expect(preparePlayParams(input)).toEqual(expected)
+  })
 })

@@ -63,6 +63,12 @@ export enum CallPlayState {
   Finished = 'finished',
 }
 
+export enum CallPlayType {
+  Audio = 'audio',
+  Silence = 'silence',
+  TTS = 'tts',
+}
+
 export enum CallTapState {
   Tapping = 'tapping',
   Finished = 'finished',

@@ -1,8 +1,8 @@
-import Controllable from './Controllable'
+import { Controllable } from './Controllable'
 import { CallNotification, CallFaxState } from '../../../util/constants/relay'
 import Event from '../Event'
 
-export default abstract class BaseFax extends Controllable {
+export abstract class BaseFax extends Controllable {
   public eventType: string = CallNotification.Fax
   public controlId: string = this.controlId
 

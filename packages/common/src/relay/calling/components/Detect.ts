@@ -1,4 +1,4 @@
-import Controllable from './Controllable'
+import { Controllable } from './Controllable'
 import { ICallingDetect } from '../../../util/interfaces'
 import { CallNotification, CallDetectState, CallDetectType } from '../../../util/constants/relay'
 import Call from '../Call'
@@ -7,7 +7,7 @@ import Event from '../Event'
 const _finishedEvents: string[] = [CallDetectState.Error, CallDetectState.Finished]
 const _machineStateEvents: string[] = [CallDetectState.Ready, CallDetectState.NotReady]
 
-export default class Detect extends Controllable {
+export class Detect extends Controllable {
   public eventType: string = CallNotification.Detect
   public controlId: string = this.controlId
 

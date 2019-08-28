@@ -1,6 +1,6 @@
-import BaseFax from './BaseFax'
+import { BaseFax } from './BaseFax'
 
-export default class FaxReceive extends BaseFax {
+export class FaxReceive extends BaseFax {
 
   get method(): string {
     return 'calling.receive_fax'

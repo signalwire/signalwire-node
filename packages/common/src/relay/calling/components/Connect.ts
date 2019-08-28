@@ -1,10 +1,10 @@
-import BaseComponent from './BaseComponent'
+import { BaseComponent } from './BaseComponent'
 import { DeepArray, ICallDevice } from '../../../util/interfaces'
 import { CallNotification, CallConnectState } from '../../../util/constants/relay'
 import Call from '../Call'
 import Event from '../Event'
 
-export default class Connect extends BaseComponent {
+export class Connect extends BaseComponent {
   public eventType: string = CallNotification.Connect
   public controlId: string = this.call.tag
 

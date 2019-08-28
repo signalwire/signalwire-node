@@ -1,8 +1,8 @@
-import BaseAction from './BaseAction'
-import Detect from '../components/Detect'
-import DetectResult from '../results/DetectResult'
+import { BaseAction } from './BaseAction'
+import { Detect } from '../components'
+import { DetectResult } from '../results/DetectResult'
 
-export default class DetectAction extends BaseAction {
+export class DetectAction extends BaseAction {
 
   constructor(public component: Detect) {
     super(component)

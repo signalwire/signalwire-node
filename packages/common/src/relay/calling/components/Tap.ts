@@ -1,10 +1,10 @@
-import Controllable from './Controllable'
+import { Controllable } from './Controllable'
 import { ICallingTapTap, ICallingTapDevice } from '../../../util/interfaces'
 import { CallNotification, CallTapState } from '../../../util/constants/relay'
 import Call from '../Call'
 import Event from '../Event'
 
-export default class Tap extends Controllable {
+export class Tap extends Controllable {
   public eventType: string = CallNotification.Tap
   public controlId: string = this.controlId
 

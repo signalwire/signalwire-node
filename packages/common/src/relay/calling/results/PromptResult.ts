@@ -1,7 +1,7 @@
-import BaseResult from './BaseResult'
-import Prompt from '../components/Prompt'
+import { BaseResult } from './BaseResult'
+import { Prompt } from '../components/Prompt'
 
-export default class PromptResult extends BaseResult {
+export class PromptResult extends BaseResult {
   constructor(public component: Prompt) {
     super(component)
   }

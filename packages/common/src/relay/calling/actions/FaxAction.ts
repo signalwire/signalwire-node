@@ -1,8 +1,8 @@
-import BaseAction from './BaseAction'
-import BaseFax from '../components/BaseFax'
-import FaxResult from '../results/FaxResult'
+import { BaseAction } from './BaseAction'
+import { BaseFax } from '../components/BaseFax'
+import { FaxResult } from '../results/FaxResult'
 
-export default class FaxAction extends BaseAction {
+export class FaxAction extends BaseAction {
 
   constructor(public component: BaseFax) {
     super(component)

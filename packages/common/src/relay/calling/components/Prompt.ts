@@ -1,10 +1,10 @@
-import Controllable from './Controllable'
+import { Controllable } from './Controllable'
 import { ICallingPlay, ICallingCollect } from '../../../util/interfaces'
 import { CallNotification, CallPromptState } from '../../../util/constants/relay'
 import Call from '../Call'
 import Event from '../Event'
 
-export default class Prompt extends Controllable {
+export class Prompt extends Controllable {
   public eventType: string = CallNotification.Collect
   public controlId: string = this.controlId
 

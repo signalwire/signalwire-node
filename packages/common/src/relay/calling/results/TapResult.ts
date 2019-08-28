@@ -1,8 +1,8 @@
-import BaseResult from './BaseResult'
-import Tap from '../components/Tap'
+import { BaseResult } from './BaseResult'
+import { Tap } from '../components/Tap'
 import { ICallingTapTap, ICallingTapDevice } from '../../../util/interfaces'
 
-export default class TapResult extends BaseResult {
+export class TapResult extends BaseResult {
   constructor(public component: Tap) {
     super(component)
   }

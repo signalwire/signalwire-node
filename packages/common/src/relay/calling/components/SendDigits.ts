@@ -1,9 +1,9 @@
-import BaseComponent from './BaseComponent'
+import { BaseComponent } from './BaseComponent'
 import { CallNotification, SendDigitsState } from '../../../util/constants/relay'
 import Call from '../Call'
 import Event from '../Event'
 
-export default class SendDigits extends BaseComponent {
+export class SendDigits extends BaseComponent {
   public eventType: string = CallNotification.SendDigits
   public controlId: string = this.controlId
 

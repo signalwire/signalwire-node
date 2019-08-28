@@ -2,7 +2,7 @@ import { SwEvent } from '../../../common/src/util/constants'
 import { isQueued, trigger } from '../../../common/src/services/Handler'
 import Call from '../../../common/src/relay/calling/Call'
 import RelayClient from '../../src/relay'
-import DialResult from '../../../common/src/relay/calling/results/DialResult'
+import { DialResult } from '../../../common/src/relay/calling/results'
 
 const Connection = require('../../../common/src/services/Connection')
 

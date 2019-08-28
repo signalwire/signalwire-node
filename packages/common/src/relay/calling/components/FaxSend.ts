@@ -1,7 +1,7 @@
 import Call from '../Call'
-import BaseFax from './BaseFax'
+import { BaseFax } from './BaseFax'
 
-export default class FaxSend extends BaseFax {
+export class FaxSend extends BaseFax {
 
   constructor(
     public call: Call,

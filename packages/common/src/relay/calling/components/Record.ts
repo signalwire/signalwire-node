@@ -1,9 +1,9 @@
-import Controllable from './Controllable'
+import { Controllable } from './Controllable'
 import { CallNotification, CallRecordState } from '../../../util/constants/relay'
 import Call from '../Call'
 import Event from '../Event'
 
-export default class Record extends Controllable {
+export class Record extends Controllable {
   public eventType: string = CallNotification.Record
   public controlId: string = this.controlId
 

@@ -1,7 +1,7 @@
 import { BaseAction } from './BaseAction'
 import { Tap } from '../components/Tap'
 import { TapResult } from '../results/TapResult'
-import { ICallingTapDevice } from '../../../util/interfaces'
+import { IRelayCallingTapDevice } from '../../../util/interfaces'
 
 export class TapAction extends BaseAction {
 
@@ -13,7 +13,7 @@ export class TapAction extends BaseAction {
     return new TapResult(this.component)
   }
 
-  get sourceDevice(): ICallingTapDevice {
+  get sourceDevice(): IRelayCallingTapDevice {
     return this.component.sourceDevice
   }
 

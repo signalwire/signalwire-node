@@ -331,20 +331,20 @@ export interface ICallingDetect extends IRelayCallingDetectParams {
   wait_for_beep?: boolean
 }
 
-export interface ICallingTapTapParams {
+interface IRelayCallingTapTapParams {
   direction?: string
 }
 
-export interface ICallingTapTap {
+export interface IRelayCallingTapTap {
   type: 'audio'
-  params: ICallingTapTapParams
+  params: IRelayCallingTapTapParams
 }
 
-export interface ICallingTapTapArg extends ICallingTapTapParams {
-  type: ICallingTapTap['type']
+export interface ICallingTapTap extends IRelayCallingTapTapParams {
+  type: IRelayCallingTapTap['type']
 }
 
-interface ICallingTapDeviceParams {
+interface IRelayCallingTapDeviceParams {
   addr?: string
   port?: number
   codec?: string
@@ -353,13 +353,24 @@ interface ICallingTapDeviceParams {
   rate?: number
 }
 
-export interface ICallingTapDevice {
-  type: 'rtp' | 'ws'
-  params: ICallingTapDeviceParams
+export interface IRelayCallingTapDevice {
+  type: string
+  params: IRelayCallingTapDeviceParams
 }
 
-export interface ICallingTapDeviceArg extends ICallingTapDeviceParams {
-  type: ICallingTapDevice['type']
+export interface ICallingTapDevice extends IRelayCallingTapDeviceParams {
+  type?: string
+}
+
+export interface ICallingTapFlat {
+  audio_direction?: string
+  target_type: string
+  target_addr?: string
+  target_port?: number
+  target_ptime?: number
+  target_uri?: string
+  rate?: number
+  codec?: string
 }
 
 export interface DeepArray<T> extends Array<T | DeepArray<T>> { }

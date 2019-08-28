@@ -1,5 +1,5 @@
 import RelayClient from '../../src/relay'
-import { ICallDevice, ICallingPlay, ICallingTapDevice, ICallingTapTapArg, ICallingTapDeviceArg, IRelayCallingPlay } from '../../../common/src/util/interfaces'
+import { ICallDevice, ICallingPlay, IRelayCallingTapDevice, ICallingTapTap, ICallingTapDevice, IRelayCallingPlay, ICallingTapFlat } from '../../../common/src/util/interfaces'
 import Call from '../../../common/src/relay/calling/Call'
 import { CallState } from '../../../common/src/util/constants/relay'
 import { Execute } from '../../../common/src/messages/Blade'
@@ -851,9 +851,9 @@ describe('Call', () => {
         Connection.mockResponse.mockReturnValueOnce(response)
       })
 
-      const sourceService: ICallingTapDevice = { type: 'rtp', params: { addr: '10.10.10.10', port: 3000, codec: 'PCMU', rate: 8000 } }
-      const tap: ICallingTapTapArg = { type: 'audio', direction: 'listen' }
-      const device: ICallingTapDeviceArg = { type: 'rtp', addr: '127.0.0.1', port: 1234 }
+      const sourceService: IRelayCallingTapDevice = { type: 'rtp', params: { addr: '10.10.10.10', port: 3000, codec: 'PCMU', rate: 8000 } }
+      const tap: ICallingTapTap = { type: 'audio', direction: 'listen' }
+      const device: ICallingTapDevice = { type: 'rtp', addr: '127.0.0.1', port: 1234 }
       const getMsg = () => new Execute({
         protocol: 'signalwire_service_random_uuid',
         method: 'calling.tap',
@@ -864,6 +864,24 @@ describe('Call', () => {
 
       it('.tap() should wait until the tapping ends', done => {
         call.tap(tap, device).then(result => {
+          expect(result).toBeInstanceOf(TapResult)
+          expect(result.successful).toBe(true)
+          expect(result.sourceDevice).toEqual(sourceService)
+          expect(result.destinationDevice).toEqual({ type: 'rtp', params: { addr: '127.0.0.1', port: '1234', codec: 'PCMU', ptime: '20' } })
+          expect(Connection.mockSend).nthCalledWith(1, getMsg())
+          done()
+        })
+        session.calling.notificationHandler(_tapNotificationFinished)
+      })
+
+      it('.tap() should work with flattened params', done => {
+        const params: ICallingTapFlat = {
+          audio_direction: 'listen',
+          target_type: 'rtp',
+          target_addr: '127.0.0.1',
+          target_port: 1234
+        }
+        call.tap(params, {}).then(result => {
           expect(result).toBeInstanceOf(TapResult)
           expect(result.successful).toBe(true)
           expect(result.sourceDevice).toEqual(sourceService)
@@ -1272,8 +1290,8 @@ describe('Call', () => {
     })
 
     describe('tap methods', () => {
-      const tap: ICallingTapTapArg = { type: 'audio', direction: 'listen' }
-      const device: ICallingTapDeviceArg = { type: 'rtp', addr: '127.0.0.1', port: 1234 }
+      const tap: ICallingTapTap = { type: 'audio', direction: 'listen' }
+      const device: ICallingTapDevice = { type: 'rtp', addr: '127.0.0.1', port: 1234 }
       const getMsg = () => new Execute({
         protocol: 'signalwire_service_random_uuid',
         method: 'calling.tap',

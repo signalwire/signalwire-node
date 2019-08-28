@@ -1,5 +1,5 @@
-import { reduceConnectParams, prepareRecordParams, preparePlayParams, preparePromptParams, preparePromptAudioParams, preparePromptTTSParams } from '../../src/relay/helpers'
-import { ICallDevice } from '../../src/util/interfaces'
+import { reduceConnectParams, prepareRecordParams, preparePlayParams, preparePromptParams, preparePromptAudioParams, preparePromptTTSParams, prepareTapParams } from '../../src/relay/helpers'
+import { ICallDevice, ICallingTapTap, ICallingTapDevice, ICallingTapFlat } from '../../src/util/interfaces'
 
 describe('reduceConnectParams()', () => {
   const from_number = '+18992222222'
@@ -347,5 +347,42 @@ describe('preparePromptTTSParams()', () => {
     expect(preparePromptTTSParams(params)).toEqual(expected)
 
     expect(preparePromptTTSParams({ initial_timeout: 5 }, { text: 'hello', gender: 'male' })).toEqual(expected)
+  })
+})
+
+describe('prepareTapParams()', () => {
+  it('should handle parameters with "old" tap and device', () => {
+    const tapExpected = { type: 'audio', params: { direction: 'listen' } }
+    const deviceExpected = { type: 'rtp', params: { addr: '127.0.0.1', port: 1234 } }
+
+    const tap: ICallingTapTap = { type: 'audio', direction: 'listen' }
+    const device: ICallingTapDevice = { type: 'rtp', addr: '127.0.0.1', port: 1234 }
+    expect(prepareTapParams(tap, device)).toEqual({ tap: tapExpected, device: deviceExpected })
+  })
+
+  it('should handle all flattened parameters', () => {
+    const tapExpected = { type: 'audio', params: { direction: 'listen' } }
+    const deviceExpected = { type: 'rtp', params: { addr: '127.0.0.1', port: 1234 } }
+
+    const tap: ICallingTapFlat = {
+      audio_direction: 'listen',
+      target_type: 'rtp',
+      target_addr: '127.0.0.1',
+      target_port: 1234
+    }
+    expect(prepareTapParams(tap)).toEqual({ tap: tapExpected, device: deviceExpected })
+  })
+
+  it('should handle all flattened parameters without direction', () => {
+    const tapExpected = { type: 'audio', params: { } }
+    const deviceExpected = { type: 'rtp', params: { addr: '127.0.0.1', port: 1234, codec: 'OPUS' } }
+
+    const tap: ICallingTapFlat = {
+      target_type: 'rtp',
+      target_addr: '127.0.0.1',
+      target_port: 1234,
+      codec: 'OPUS'
+    }
+    expect(prepareTapParams(tap)).toEqual({ tap: tapExpected, device: deviceExpected })
   })
 })

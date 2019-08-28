@@ -1,21 +1,21 @@
 import { BaseResult } from './BaseResult'
 import { Tap } from '../components/Tap'
-import { ICallingTapTap, ICallingTapDevice } from '../../../util/interfaces'
+import { IRelayCallingTapTap, IRelayCallingTapDevice } from '../../../util/interfaces'
 
 export class TapResult extends BaseResult {
   constructor(public component: Tap) {
     super(component)
   }
 
-  get tap(): ICallingTapTap {
+  get tap(): IRelayCallingTapTap {
     return this.component.tap
   }
 
-  get sourceDevice(): ICallingTapDevice {
+  get sourceDevice(): IRelayCallingTapDevice {
     return this.component.sourceDevice
   }
 
-  get destinationDevice(): ICallingTapDevice {
+  get destinationDevice(): IRelayCallingTapDevice {
     return this.component.device
   }
 }

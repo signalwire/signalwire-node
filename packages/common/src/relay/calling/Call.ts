@@ -2,8 +2,8 @@ import { v4 as uuidv4 } from 'uuid'
 import logger from '../../util/logger'
 import { Execute } from '../../messages/Blade'
 import { CallState, DisconnectReason, DEFAULT_CALL_TIMEOUT, CallNotification, CallRecordState, CallPlayState, CallPlayType, CallPromptState, CallConnectState, CALL_STATES, CallFaxState, CallDetectState, CallDetectType, CallTapState, SendDigitsState } from '../../util/constants/relay'
-import { ICall, ICallOptions, ICallDevice, IMakeCallParams, ICallingPlay, ICallingCollect, DeepArray, IRelayCallingDetect, ICallingDetect, ICallingTapTapArg, ICallingTapDeviceArg, ICallingRecord, IRelayCallingPlay, ICallingPlayTTS, ICallingCollectAudio, ICallingCollectTTS } from '../../util/interfaces'
-import { reduceConnectParams, prepareRecordParams, preparePlayParams, preparePromptParams, preparePromptAudioParams, preparePromptTTSParams, prepareDetectFaxParams } from '../helpers'
+import { ICall, ICallOptions, ICallDevice, IMakeCallParams, ICallingPlay, ICallingCollect, DeepArray, IRelayCallingDetect, ICallingDetect, ICallingTapTap, ICallingTapDevice, ICallingRecord, IRelayCallingPlay, ICallingPlayTTS, ICallingCollectAudio, ICallingCollectTTS, ICallingTapFlat } from '../../util/interfaces'
+import { reduceConnectParams, prepareRecordParams, preparePlayParams, preparePromptParams, preparePromptAudioParams, preparePromptTTSParams, prepareDetectFaxParams, prepareTapParams } from '../helpers'
 import Calling from './Calling'
 import { isFunction } from '../../util/helpers'
 import { Answer, Await, BaseComponent, Connect, Detect, Dial, FaxReceive, FaxSend, Hangup, Play, Prompt, Record, SendDigits, Tap } from './components'
@@ -407,20 +407,18 @@ export default class Call implements ICall {
     return this.detectAsync({ type: CallDetectType.Digit, digits, timeout })
   }
 
-  async tap(tap: ICallingTapTapArg, device: ICallingTapDeviceArg): Promise<TapResult> {
-    const { type: tapType, ...tapParams } = tap
-    const { type: deviceType, ...deviceParams } = device
-    const component = new Tap(this, { type: tapType, params: tapParams }, { type: deviceType, params: deviceParams })
+  async tap(params: (ICallingTapTap | ICallingTapFlat), deprecatedDevice: ICallingTapDevice = {}): Promise<TapResult> {
+    const { tap, device } = prepareTapParams(params, deprecatedDevice)
+    const component = new Tap(this, tap, device)
     this._addComponent(component)
     await component._waitFor(CallTapState.Finished)
 
     return new TapResult(component)
   }
 
-  async tapAsync(tap: ICallingTapTapArg, device: ICallingTapDeviceArg): Promise<TapAction> {
-    const { type: tapType, ...tapParams } = tap
-    const { type: deviceType, ...deviceParams } = device
-    const component = new Tap(this, { type: tapType, params: tapParams }, { type: deviceType, params: deviceParams })
+  async tapAsync(params: (ICallingTapTap | ICallingTapFlat), deprecatedDevice: ICallingTapDevice = {}): Promise<TapAction> {
+    const { tap, device } = prepareTapParams(params, deprecatedDevice)
+    const component = new Tap(this, tap, device)
     this._addComponent(component)
     await component.execute()
 

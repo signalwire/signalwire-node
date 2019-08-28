@@ -1,4 +1,4 @@
-import { ICallDevice, IMakeCallParams, DeepArray, ICallingRecord, IRelayCallingRecord, IRelayCallingPlay, ICallingPlay, ICallingCollect, IRelayCallingCollect, ICallingCollectAudio, ICallingPlayTTS, ICallingCollectTTS, ICallingDetect, IRelayCallingDetect } from '../util/interfaces'
+import { ICallDevice, IMakeCallParams, DeepArray, ICallingRecord, IRelayCallingRecord, IRelayCallingPlay, ICallingPlay, ICallingCollect, IRelayCallingCollect, ICallingCollectAudio, ICallingPlayTTS, ICallingCollectTTS, ICallingDetect, IRelayCallingDetect, ICallingTapTap, ICallingTapFlat, IRelayCallingTapTap, IRelayCallingTapDevice, ICallingTapDevice } from '../util/interfaces'
 import { CallPlayType, CallDetectState, CallDetectType } from '../util/constants/relay'
 import { deepCopy, objEmpty } from '../util/helpers'
 
@@ -119,4 +119,40 @@ export const prepareDetectFaxParams = (options: ICallingDetect): { detect: IRela
   }
   const detect: IRelayCallingDetect = { type: CallDetectType.Fax, params }
   return { detect, events, timeout }
+}
+
+export const prepareTapParams = (params: ICallingTapTap | ICallingTapFlat, device: ICallingTapDevice = {}): { tap: IRelayCallingTapTap, device: IRelayCallingTapDevice } => {
+  const tap: IRelayCallingTapTap = { type: 'audio', params: { } }
+  if ('direction' in params) {
+    tap.params.direction = params.direction
+  } else if ('audio_direction' in params) {
+    tap.params.direction = params.audio_direction
+  }
+
+  let { type, ...deviceParams } = device
+  if (!type && 'target_type' in params) {
+    type = params.target_type
+  }
+  const newDevice: IRelayCallingTapDevice = { type, params: {} }
+  if ('target_addr' in params) {
+    deviceParams.addr = params.target_addr
+  }
+  if ('target_port' in params) {
+    deviceParams.port = params.target_port
+  }
+  if ('target_ptime' in params) {
+    deviceParams.ptime = params.target_ptime
+  }
+  if ('target_uri' in params) {
+    deviceParams.uri = params.target_uri
+  }
+  if ('rate' in params) {
+    deviceParams.rate = params.rate
+  }
+  if ('codec' in params) {
+    deviceParams.codec = params.codec
+  }
+  newDevice.params = deviceParams
+
+  return { tap, device: newDevice }
 }

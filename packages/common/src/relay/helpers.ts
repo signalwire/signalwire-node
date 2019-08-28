@@ -1,5 +1,5 @@
-import { ICallDevice, IMakeCallParams, DeepArray, ICallingRecord, IRelayCallingRecord, IRelayCallingPlay, ICallingPlay, ICallingCollect, IRelayCallingCollect, ICallingCollectAudio, ICallingPlayTTS, ICallingCollectTTS } from '../util/interfaces'
-import { CallPlayType } from '../util/constants/relay'
+import { ICallDevice, IMakeCallParams, DeepArray, ICallingRecord, IRelayCallingRecord, IRelayCallingPlay, ICallingPlay, ICallingCollect, IRelayCallingCollect, ICallingCollectAudio, ICallingPlayTTS, ICallingCollectTTS, ICallingDetect, IRelayCallingDetect } from '../util/interfaces'
+import { CallPlayType, CallDetectState, CallDetectType } from '../util/constants/relay'
 import { deepCopy, objEmpty } from '../util/helpers'
 
 interface DeviceAccumulator {
@@ -104,4 +104,19 @@ export const preparePromptTTSParams = (params: ICallingCollectTTS, ttsOptions: I
   ]
 
   return flattenedParams
+}
+
+export const prepareDetectFaxParams = (options: ICallingDetect): { detect: IRelayCallingDetect, events: string[], timeout: number } => {
+  const { tone, timeout } = options
+  const faxEvents: string[] = [CallDetectState.CED, CallDetectState.CNG]
+  let events: string[] = []
+  const params: { tone?: string } = {}
+  if (tone && faxEvents.includes(tone)) {
+    params.tone = tone
+    events.push(tone)
+  } else {
+    events = events.concat(faxEvents)
+  }
+  const detect: IRelayCallingDetect = { type: CallDetectType.Fax, params }
+  return { detect, events, timeout }
 }

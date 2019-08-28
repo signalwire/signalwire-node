@@ -1,5 +1,5 @@
 import { Controllable } from './Controllable'
-import { ICallingDetect } from '../../../util/interfaces'
+import { IRelayCallingDetect } from '../../../util/interfaces'
 import { CallNotification, CallDetectState, CallDetectType } from '../../../util/constants/relay'
 import Call from '../Call'
 import Event from '../Event'
@@ -21,7 +21,7 @@ export class Detect extends Controllable {
 
   constructor(
     public call: Call,
-    private _detect: ICallingDetect,
+    private _detect: IRelayCallingDetect,
     private _timeout: number = null,
     private _waitForBeep: boolean = false
   ) {

@@ -311,7 +311,7 @@ export interface ICallingCollectTTS extends ICallingCollect {
   gender?: string
 }
 
-interface ICallingDetectParams {
+interface IRelayCallingDetectParams {
   initial_timeout?: number
   end_silence_timeout?: number
   machine_voice_threshold?: number
@@ -320,12 +320,12 @@ interface ICallingDetectParams {
   digits?: string
 }
 
-export interface ICallingDetect {
+export interface IRelayCallingDetect {
   type: string
-  params: ICallingDetectParams
+  params: IRelayCallingDetectParams
 }
 
-export interface ICallingDetectArg extends ICallingDetectParams {
+export interface ICallingDetect extends IRelayCallingDetectParams {
   type?: string
   timeout?: number
   wait_for_beep?: boolean

@@ -129,10 +129,11 @@ export const prepareTapParams = (params: ICallingTapTap | ICallingTapFlat, devic
     tap.params.direction = params.audio_direction
   }
 
-  let { type, ...deviceParams } = device
-  if (!type && 'target_type' in params) {
-    type = params.target_type
+  let targetType = ''
+  if ('target_type' in params) {
+    targetType = params.target_type
   }
+  const { type = targetType, ...deviceParams } = device
   const newDevice: IRelayCallingTapDevice = { type, params: {} }
   if ('target_addr' in params) {
     deviceParams.addr = params.target_addr

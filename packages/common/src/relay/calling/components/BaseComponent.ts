@@ -4,7 +4,7 @@ import Call from '../Call'
 import Blocker from '../Blocker'
 import Event from '../Event'
 
-export default abstract class BaseComponent {
+export abstract class BaseComponent {
 
   /** Type of Relay events to handle. state|play|collect|record|connect */
   public abstract eventType: string

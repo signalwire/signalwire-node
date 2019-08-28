@@ -1,8 +1,8 @@
-import BaseAction from './BaseAction'
-import Play from '../components/Play'
-import PlayResult from '../results/PlayResult'
+import { BaseAction } from './BaseAction'
+import { Play } from '../components/Play'
+import { PlayResult } from '../results/PlayResult'
 
-export default class PlayAction extends BaseAction {
+export class PlayAction extends BaseAction {
 
   constructor(public component: Play) {
     super(component)

@@ -1,6 +1,6 @@
-import BaseComponent from '../components/BaseComponent'
+import { BaseComponent } from '../components/BaseComponent'
 
-export default abstract class BaseResult {
+export abstract class BaseResult {
   constructor(public component: BaseComponent) {}
 
   get successful(): boolean {

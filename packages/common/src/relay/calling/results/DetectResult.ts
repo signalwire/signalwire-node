@@ -1,7 +1,7 @@
-import BaseResult from './BaseResult'
-import Detect from '../components/Detect'
+import { BaseResult } from './BaseResult'
+import { Detect } from '../components/Detect'
 
-export default class DetectResult extends BaseResult {
+export class DetectResult extends BaseResult {
   constructor(public component: Detect) {
     super(component)
   }

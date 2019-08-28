@@ -1,8 +1,8 @@
-import BaseAction from './BaseAction'
-import Prompt from '../components/Prompt'
-import PromptResult from '../results/PromptResult'
+import { BaseAction } from './BaseAction'
+import { Prompt } from '../components/Prompt'
+import { PromptResult } from '../results/PromptResult'
 
-export default class PromptAction extends BaseAction {
+export class PromptAction extends BaseAction {
 
   constructor(public component: Prompt) {
     super(component)

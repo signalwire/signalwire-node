@@ -1,7 +1,7 @@
-import BaseComponent from './BaseComponent'
+import { BaseComponent } from './BaseComponent'
 import { Execute } from '../../../messages/Blade'
 
-export default abstract class Controllable extends BaseComponent {
+export abstract class Controllable extends BaseComponent {
 
   stop() {
     const msg = new Execute({

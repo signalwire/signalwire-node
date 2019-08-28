@@ -1,8 +1,8 @@
-import BaseAction from './BaseAction'
-import Connect from '../components/Connect'
-import ConnectResult from '../results/ConnectResult'
+import { BaseAction } from './BaseAction'
+import { Connect } from '../components/Connect'
+import { ConnectResult } from '../results/ConnectResult'
 
-export default class ConnectAction extends BaseAction {
+export class ConnectAction extends BaseAction {
 
   constructor(public component: Connect) {
     super(component)

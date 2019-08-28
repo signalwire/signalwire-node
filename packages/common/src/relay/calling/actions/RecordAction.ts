@@ -1,8 +1,8 @@
-import BaseAction from './BaseAction'
-import Record from '../components/Record'
-import RecordResult from '../results/RecordResult'
+import { BaseAction } from './BaseAction'
+import { Record } from '../components/Record'
+import { RecordResult } from '../results/RecordResult'
 
-export default class RecordAction extends BaseAction {
+export class RecordAction extends BaseAction {
 
   constructor(public component: Record) {
     super(component)

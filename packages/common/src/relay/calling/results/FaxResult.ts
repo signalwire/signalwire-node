@@ -1,7 +1,7 @@
-import BaseResult from './BaseResult'
-import BaseFax from '../components/BaseFax'
+import { BaseResult } from './BaseResult'
+import { BaseFax } from '../components/BaseFax'
 
-export default class FaxResult extends BaseResult {
+export class FaxResult extends BaseResult {
   constructor(public component: BaseFax) {
     super(component)
   }

@@ -1,8 +1,8 @@
-import BaseAction from './BaseAction'
-import SendDigits from '../components/SendDigits'
-import SendDigitsResult from '../results/SendDigitsResult'
+import { BaseAction } from './BaseAction'
+import { SendDigits } from '../components/SendDigits'
+import { SendDigitsResult } from '../results/SendDigitsResult'
 
-export default class SendDigitsAction extends BaseAction {
+export class SendDigitsAction extends BaseAction {
 
   constructor(public component: SendDigits) {
     super(component)

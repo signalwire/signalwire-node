@@ -1,7 +1,7 @@
-import BaseComponent from '../components/BaseComponent'
-import BaseResult from '../results/BaseResult'
+import { BaseComponent } from '../components/BaseComponent'
+import { BaseResult } from '../results/BaseResult'
 
-export default abstract class BaseAction {
+export abstract class BaseAction {
   constructor(public component: BaseComponent) {}
 
   abstract get result(): BaseResult

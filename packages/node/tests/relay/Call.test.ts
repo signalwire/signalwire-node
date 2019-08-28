@@ -1,5 +1,5 @@
 import RelayClient from '../../src/relay'
-import { ICallDevice, ICallingPlay, ICallingTapDevice, ICallingTapTapArg, ICallingTapDeviceArg } from '../../../common/src/util/interfaces'
+import { ICallDevice, ICallingPlay, ICallingTapDevice, ICallingTapTapArg, ICallingTapDeviceArg, IRelayCallingPlay } from '../../../common/src/util/interfaces'
 import Call from '../../../common/src/relay/calling/Call'
 import { CallState } from '../../../common/src/util/constants/relay'
 import { Execute } from '../../../common/src/messages/Blade'
@@ -292,7 +292,7 @@ describe('Call', () => {
         { type: 'tts', params: { text: 'hello jest' } }
       ]
 
-      const getMsg = (...play: ICallingPlay[]) => new Execute({
+      const getMsg = (...play: (IRelayCallingPlay | ICallingPlay)[]) => new Execute({
         protocol: 'signalwire_service_random_uuid',
         method: 'calling.play',
         params: { node_id: call.nodeId, call_id: call.id, control_id: 'mocked-uuid', play }

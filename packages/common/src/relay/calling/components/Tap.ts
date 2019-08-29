@@ -1,5 +1,5 @@
 import { Controllable } from './Controllable'
-import { ICallingTapTap, ICallingTapDevice } from '../../../util/interfaces'
+import { IRelayCallingTapTap, IRelayCallingTapDevice } from '../../../util/interfaces'
 import { CallNotification, CallTapState } from '../../../util/constants/relay'
 import Call from '../Call'
 import Event from '../Event'
@@ -8,7 +8,7 @@ export class Tap extends Controllable {
   public eventType: string = CallNotification.Tap
   public controlId: string = this.controlId
 
-  constructor(public call: Call, public tap: ICallingTapTap, public device: ICallingTapDevice) {
+  constructor(public call: Call, public tap: IRelayCallingTapTap, public device: IRelayCallingTapDevice) {
     super(call)
   }
 
@@ -26,7 +26,7 @@ export class Tap extends Controllable {
     }
   }
 
-  get sourceDevice(): ICallingTapDevice {
+  get sourceDevice(): IRelayCallingTapDevice {
     if (!this._executeResult) {
       return null
     }

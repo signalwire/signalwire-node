@@ -1,9 +1,9 @@
 import { v4 as uuidv4 } from 'uuid'
 import logger from '../../util/logger'
 import { Execute } from '../../messages/Blade'
-import { CallState, DisconnectReason, DEFAULT_CALL_TIMEOUT, CallNotification, CallRecordState, CallPlayState, CallPromptState, CallConnectState, CALL_STATES, CallFaxState, CallDetectState, CallDetectType, CallTapState, SendDigitsState } from '../../util/constants/relay'
-import { ICall, ICallOptions, ICallDevice, IMakeCallParams, ICallingPlay, ICallingCollect, DeepArray, ICallingDetect, ICallingDetectArg, ICallingTapTapArg, ICallingTapDeviceArg } from '../../util/interfaces'
-import { reduceConnectParams } from '../helpers'
+import { CallState, DisconnectReason, DEFAULT_CALL_TIMEOUT, CallNotification, CallRecordState, CallPlayState, CallPlayType, CallPromptState, CallConnectState, CALL_STATES, CallFaxState, CallDetectState, CallDetectType, CallTapState, SendDigitsState } from '../../util/constants/relay'
+import { ICall, ICallOptions, ICallDevice, IMakeCallParams, ICallingPlay, ICallingCollect, DeepArray, IRelayCallingDetect, ICallingDetect, ICallingTapTap, ICallingTapDevice, ICallingRecord, IRelayCallingPlay, ICallingPlayTTS, ICallingCollectAudio, ICallingCollectTTS, ICallingTapFlat } from '../../util/interfaces'
+import { reduceConnectParams, prepareRecordParams, preparePlayParams, preparePromptParams, preparePromptAudioParams, preparePromptTTSParams, prepareDetectFaxParams, prepareTapParams } from '../helpers'
 import Calling from './Calling'
 import { isFunction } from '../../util/helpers'
 import { Answer, Await, BaseComponent, Connect, Detect, Dial, FaxReceive, FaxSend, Hangup, Play, Prompt, Record, SendDigits, Tap } from './components'
@@ -119,32 +119,32 @@ export default class Call implements ICall {
     return new AnswerResult(component)
   }
 
-  async record(record: any) {
-    const component = new Record(this, record)
+  async record(record: ICallingRecord = {}) {
+    const component = new Record(this, prepareRecordParams(record))
     this._addComponent(component)
     await component._waitFor(CallRecordState.NoInput, CallRecordState.Finished)
 
     return new RecordResult(component)
   }
 
-  async recordAsync(record: any) {
-    const component = new Record(this, record)
+  async recordAsync(record: ICallingRecord = {}) {
+    const component = new Record(this, prepareRecordParams(record))
     this._addComponent(component)
     await component.execute()
 
     return new RecordAction(component)
   }
 
-  async play(...play: ICallingPlay[]): Promise<PlayResult> {
-    const component = new Play(this, play)
+  async play(...play: (IRelayCallingPlay | ICallingPlay)[]): Promise<PlayResult> {
+    const component = new Play(this, preparePlayParams(play))
     this._addComponent(component)
     await component._waitFor(CallPlayState.Error, CallPlayState.Finished)
 
     return new PlayResult(component)
   }
 
-  async playAsync(...play: ICallingPlay[]): Promise<PlayAction> {
-    const component = new Play(this, play)
+  async playAsync(...play: (IRelayCallingPlay | ICallingPlay)[]): Promise<PlayAction> {
+    const component = new Play(this, preparePlayParams(play))
     this._addComponent(component)
     await component.execute()
 
@@ -152,30 +152,31 @@ export default class Call implements ICall {
   }
 
   playAudio(url: string): Promise<PlayResult> {
-    return this.play({ type: 'audio', params: { url } })
+    return this.play({ type: CallPlayType.Audio, params: { url } })
   }
 
   playAudioAsync(url: string): Promise<PlayAction> {
-    return this.playAsync({ type: 'audio', params: { url } })
+    return this.playAsync({ type: CallPlayType.Audio, params: { url } })
   }
 
   playSilence(duration: number): Promise<PlayResult> {
-    return this.play({ type: 'silence', params: { duration } })
+    return this.play({ type: CallPlayType.Silence, params: { duration } })
   }
 
   playSilenceAsync(duration: number): Promise<PlayAction> {
-    return this.playAsync({ type: 'silence', params: { duration } })
+    return this.playAsync({ type: CallPlayType.Silence, params: { duration } })
   }
 
-  playTTS(params: ICallingPlay['params']): Promise<PlayResult> {
-    return this.play({ type: 'tts', params })
+  playTTS(params: ICallingPlayTTS): Promise<PlayResult> {
+    return this.play({ type: CallPlayType.TTS, params })
   }
 
-  playTTSAsync(params: ICallingPlay['params']): Promise<PlayAction> {
-    return this.playAsync({ type: 'tts', params })
+  playTTSAsync(params: ICallingPlayTTS): Promise<PlayAction> {
+    return this.playAsync({ type: CallPlayType.TTS, params })
   }
 
-  async prompt(collect: ICallingCollect, ...play: ICallingPlay[]): Promise<PromptResult> {
+  async prompt(params: ICallingCollect, ...mediaList: (IRelayCallingPlay | ICallingPlay)[]): Promise<PromptResult> {
+    const [collect, play] = preparePromptParams(params, mediaList)
     const component = new Prompt(this, collect, play)
     this._addComponent(component)
     await component._waitFor(CallPromptState.Error, CallPromptState.NoInput, CallPromptState.NoMatch, CallPromptState.Digit, CallPromptState.Speech)
@@ -183,7 +184,8 @@ export default class Call implements ICall {
     return new PromptResult(component)
   }
 
-  async promptAsync(collect: ICallingCollect, ...play: ICallingPlay[]): Promise<PromptAction> {
+  async promptAsync(params: ICallingCollect, ...mediaList: (IRelayCallingPlay | ICallingPlay)[]): Promise<PromptAction> {
+    const [collect, play] = preparePromptParams(params, mediaList)
     const component = new Prompt(this, collect, play)
     this._addComponent(component)
     await component.execute()
@@ -191,20 +193,24 @@ export default class Call implements ICall {
     return new PromptAction(component)
   }
 
-  promptAudio(collect: ICallingCollect, url: string): Promise<PromptResult> {
-    return this.prompt(collect, { type: 'audio', params: { url } })
+  promptAudio(params: ICallingCollectAudio, url: string = ''): Promise<PromptResult> {
+    const collect = preparePromptAudioParams(params, url)
+    return this.prompt(collect)
   }
 
-  promptAudioAsync(collect: ICallingCollect, url: string): Promise<PromptAction> {
-    return this.promptAsync(collect, { type: 'audio', params: { url } })
+  promptAudioAsync(params: ICallingCollectAudio, url: string = ''): Promise<PromptAction> {
+    const collect = preparePromptAudioParams(params, url)
+    return this.promptAsync(collect)
   }
 
-  promptTTS(collect: ICallingCollect, params: ICallingPlay['params']): Promise<PromptResult> {
-    return this.prompt(collect, { type: 'tts', params })
+  promptTTS(params: ICallingCollectTTS, ttsOptions: ICallingPlayTTS = { text: '' }): Promise<PromptResult> {
+    const collect = preparePromptTTSParams(params, ttsOptions)
+    return this.prompt(collect)
   }
 
-  promptTTSAsync(collect: ICallingCollect, params: ICallingPlay['params']): Promise<PromptAction> {
-    return this.promptAsync(collect, { type: 'tts', params })
+  promptTTSAsync(params: ICallingCollectTTS, ttsOptions: ICallingPlayTTS = { text: '' }): Promise<PromptAction> {
+    const collect = preparePromptTTSParams(params, ttsOptions)
+    return this.promptAsync(collect)
   }
 
   async connect(...peers: DeepArray<IMakeCallParams>): Promise<ConnectResult> {
@@ -291,7 +297,7 @@ export default class Call implements ICall {
     return new FaxAction(component)
   }
 
-  async detect(options: ICallingDetectArg): Promise<DetectResult> {
+  async detect(options: ICallingDetect): Promise<DetectResult> {
     const { type, timeout, ...params } = options
     const component = new Detect(this, { type, params }, timeout)
     this._addComponent(component)
@@ -300,7 +306,7 @@ export default class Call implements ICall {
     return new DetectResult(component)
   }
 
-  async detectAsync(options: ICallingDetectArg): Promise<DetectAction> {
+  async detectAsync(options: ICallingDetect): Promise<DetectAction> {
     const { type, timeout, ...params } = options
     const component = new Detect(this, { type, params }, timeout)
     this._addComponent(component)
@@ -309,7 +315,7 @@ export default class Call implements ICall {
     return new DetectAction(component)
   }
 
-  async detectAnsweringMachine({ timeout, wait_for_beep = false, ...params }: ICallingDetectArg = {}): Promise<DetectResult> {
+  async detectAnsweringMachine({ timeout, wait_for_beep = false, ...params }: ICallingDetect = {}): Promise<DetectResult> {
     const component = new Detect(this, { type: CallDetectType.Machine, params }, timeout, wait_for_beep)
     this._addComponent(component)
     await component._waitFor(CallDetectState.Machine, CallDetectState.Human, CallDetectState.Unknown)
@@ -317,7 +323,7 @@ export default class Call implements ICall {
     return new DetectResult(component)
   }
 
-  async detectAnsweringMachineAsync({ timeout, wait_for_beep = false, ...params }: ICallingDetectArg = {}): Promise<DetectAction> {
+  async detectAnsweringMachineAsync({ timeout, wait_for_beep = false, ...params }: ICallingDetect = {}): Promise<DetectAction> {
     const component = new Detect(this, { type: CallDetectType.Machine, params }, timeout, wait_for_beep)
     this._addComponent(component)
     await component.execute()
@@ -328,7 +334,7 @@ export default class Call implements ICall {
   /**
    * @deprecated Since version 2.2. Will be deleted in version 3.0. Use detectAnsweringMachine instead.
    */
-  async detectHuman({ type, timeout, ...params }: ICallingDetectArg = {}): Promise<DetectResult> {
+  async detectHuman({ type, timeout, ...params }: ICallingDetect = {}): Promise<DetectResult> {
     logger.warn('detectHuman has been deprecated: use detectAnsweringMachine instead.')
     const component = new Detect(this, { type: CallDetectType.Machine, params }, timeout)
     this._addComponent(component)
@@ -341,7 +347,7 @@ export default class Call implements ICall {
   /**
    * @deprecated Since version 2.2. Will be deleted in version 3.0. Use detectAnsweringMachineAsync instead.
    */
-  async detectHumanAsync({ type, timeout, ...params }: ICallingDetectArg = {}): Promise<DetectAction> {
+  async detectHumanAsync({ type, timeout, ...params }: ICallingDetect = {}): Promise<DetectAction> {
     logger.warn('detectHumanAsync has been deprecated: use detectAnsweringMachineAsync instead.')
     const component = new Detect(this, { type: CallDetectType.Machine, params }, timeout)
     this._addComponent(component)
@@ -353,7 +359,7 @@ export default class Call implements ICall {
   /**
    * @deprecated Since version 2.2. Will be deleted in version 3.0. Use detectAnsweringMachine instead.
    */
-  async detectMachine({ type, timeout, ...params }: ICallingDetectArg = {}): Promise<DetectResult> {
+  async detectMachine({ type, timeout, ...params }: ICallingDetect = {}): Promise<DetectResult> {
     logger.warn('detectMachine has been deprecated: use detectAnsweringMachine instead.')
     const component = new Detect(this, { type: CallDetectType.Machine, params }, timeout)
     this._addComponent(component)
@@ -366,7 +372,7 @@ export default class Call implements ICall {
   /**
    * @deprecated Since version 2.2. Will be deleted in version 3.0. Use detectAnsweringMachineAsync instead.
    */
-  async detectMachineAsync({ type, timeout, ...params }: ICallingDetectArg = {}): Promise<DetectAction> {
+  async detectMachineAsync({ type, timeout, ...params }: ICallingDetect = {}): Promise<DetectAction> {
     logger.warn('detectMachineAsync has been deprecated: use detectAnsweringMachineAsync instead.')
     const component = new Detect(this, { type: CallDetectType.Machine, params }, timeout)
     this._addComponent(component)
@@ -375,8 +381,8 @@ export default class Call implements ICall {
     return new DetectAction(component)
   }
 
-  async detectFax(options: ICallingDetectArg): Promise<DetectResult> {
-    const { detect, events, timeout } = this._prepareDetectFaxParams(options)
+  async detectFax(options: ICallingDetect): Promise<DetectResult> {
+    const { detect, events, timeout } = prepareDetectFaxParams(options)
     const component = new Detect(this, detect, timeout)
     this._addComponent(component)
     await component._waitFor(...events)
@@ -384,8 +390,8 @@ export default class Call implements ICall {
     return new DetectResult(component)
   }
 
-  async detectFaxAsync(options: ICallingDetectArg): Promise<DetectAction> {
-    const { detect, timeout } = this._prepareDetectFaxParams(options)
+  async detectFaxAsync(options: ICallingDetect): Promise<DetectAction> {
+    const { detect, timeout } = prepareDetectFaxParams(options)
     const component = new Detect(this, detect, timeout)
     this._addComponent(component)
     await component.execute()
@@ -393,28 +399,26 @@ export default class Call implements ICall {
     return new DetectAction(component)
   }
 
-  async detectDigit({ digits, timeout }: ICallingDetectArg = {}): Promise<DetectResult> {
+  async detectDigit({ digits, timeout }: ICallingDetect = {}): Promise<DetectResult> {
     return this.detect({ type: CallDetectType.Digit, digits, timeout })
   }
 
-  async detectDigitAsync({ digits, timeout }: ICallingDetectArg = {}): Promise<DetectAction> {
+  async detectDigitAsync({ digits, timeout }: ICallingDetect = {}): Promise<DetectAction> {
     return this.detectAsync({ type: CallDetectType.Digit, digits, timeout })
   }
 
-  async tap(tap: ICallingTapTapArg, device: ICallingTapDeviceArg): Promise<TapResult> {
-    const { type: tapType, ...tapParams } = tap
-    const { type: deviceType, ...deviceParams } = device
-    const component = new Tap(this, { type: tapType, params: tapParams }, { type: deviceType, params: deviceParams })
+  async tap(params: (ICallingTapTap | ICallingTapFlat), deprecatedDevice: ICallingTapDevice = {}): Promise<TapResult> {
+    const { tap, device } = prepareTapParams(params, deprecatedDevice)
+    const component = new Tap(this, tap, device)
     this._addComponent(component)
     await component._waitFor(CallTapState.Finished)
 
     return new TapResult(component)
   }
 
-  async tapAsync(tap: ICallingTapTapArg, device: ICallingTapDeviceArg): Promise<TapAction> {
-    const { type: tapType, ...tapParams } = tap
-    const { type: deviceType, ...deviceParams } = device
-    const component = new Tap(this, { type: tapType, params: tapParams }, { type: deviceType, params: deviceParams })
+  async tapAsync(params: (ICallingTapTap | ICallingTapFlat), deprecatedDevice: ICallingTapDevice = {}): Promise<TapAction> {
+    const { tap, device } = prepareTapParams(params, deprecatedDevice)
+    const component = new Tap(this, tap, device)
     this._addComponent(component)
     await component.execute()
 
@@ -555,20 +559,5 @@ export default class Call implements ICall {
       return true
     }
     return false
-  }
-
-  private _prepareDetectFaxParams(options: ICallingDetectArg): { detect: ICallingDetect, events: string[], timeout: number } {
-    const { tone, timeout } = options
-    const faxEvents: string[] = [CallDetectState.CED, CallDetectState.CNG]
-    let events: string[] = []
-    const params: { tone?: string } = {}
-    if (tone && faxEvents.includes(tone)) {
-      params.tone = tone
-      events.push(tone)
-    } else {
-      events = events.concat(faxEvents)
-    }
-    const detect: ICallingDetect = { type: CallDetectType.Fax, params }
-    return { detect, events, timeout }
   }
 }

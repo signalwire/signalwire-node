@@ -143,8 +143,8 @@ export interface ICall {
   answered: boolean
   ended: boolean
   busy: boolean
-  // on: Function
-  // off: Function
+  on: Function
+  off: Function
   dial: Function
   hangup: Function
   record: Function
@@ -166,7 +166,31 @@ export interface ICall {
   promptAudioAsync: Function
   promptTTS: Function
   promptTTSAsync: Function
-  // WaitFor: Function
+  waitFor: Function
+  waitForRinging: Function
+  waitForAnswered: Function
+  waitForEnding: Function
+  waitForEnded: Function
+  faxReceive: Function
+  faxReceiveAsync: Function
+  faxSend: Function
+  faxSendAsync: Function
+  detect: Function
+  detectAsync: Function
+  detectAnsweringMachine: Function
+  detectAnsweringMachineAsync: Function
+  detectHuman?: Function
+  detectHumanAsync?: Function
+  detectMachine?: Function
+  detectMachineAsync?: Function
+  detectFax: Function
+  detectFaxAsync: Function
+  detectDigit: Function
+  detectDigitAsync: Function
+  tap: Function
+  tapAsync: Function
+  sendDigits: Function
+  sendDigitsAsync: Function
 }
 
 export interface ICallDevice {
@@ -207,32 +231,87 @@ export interface IMakeCallParams {
 export interface StringTMap<T> { [key: string]: T }
 export interface StringStringMap extends StringTMap<string> { }
 
-export interface ICallingPlay {
-  type: string
-  params: {
-    url?: string
-    text?: string
-    language?: string
-    gender?: 'male' | 'female'
-    duration?: number
-  }
+interface IRelayCallingRecordAudio {
+  beep?: boolean
+  format?: string
+  stereo?: boolean
+  direction?: string
+  initial_timeout?: number
+  end_silence_timeout?: number
+  terminators?: string
 }
 
-export interface ICallingCollect {
-  initial_timeout: number
+export interface IRelayCallingRecord {
+  audio: IRelayCallingRecordAudio
+}
+
+export interface ICallingRecord extends IRelayCallingRecordAudio {
+  audio?: IRelayCallingRecordAudio // backwards compatibility
+  type?: 'audio'
+}
+
+interface IRelayCallingPlayParams {
+  url?: string
+  text?: string
+  language?: string
+  gender?: string
+  duration?: number
+}
+
+export interface IRelayCallingPlay {
+  type: string
+  params: IRelayCallingPlayParams
+}
+
+export interface ICallingPlay extends IRelayCallingPlayParams {
+  type: string
+}
+
+export interface ICallingPlayTTS {
+  text: string
+  language?: string
+  gender?: string
+}
+
+export interface IRelayCallingCollect {
+  initial_timeout?: number
   digits?: {
     max: number
     terminators?: string
     digit_timeout: number
   },
   speech?: {
-    end_silence_timeout?: number,
+    end_silence_timeout?: number
+    speech_timeout?: number
     language?: string
     hints?: string[]
   }
+  partial_results?: boolean
 }
 
-interface ICallingDetectParams {
+export interface ICallingCollect extends IRelayCallingCollect {
+  type?: string
+  digits_max?: number
+  digits_terminators?: string
+  digits_timeout?: number
+  end_silence_timeout?: number
+  speech_timeout?: number
+  speech_language?: string
+  speech_hints?: string[]
+  media?: (IRelayCallingPlay | ICallingPlay)[]
+}
+
+export interface ICallingCollectAudio extends ICallingCollect {
+  url?: string
+}
+
+export interface ICallingCollectTTS extends ICallingCollect {
+  text?: string // optional for backward compatibility
+  language?: string
+  gender?: string
+}
+
+interface IRelayCallingDetectParams {
   initial_timeout?: number
   end_silence_timeout?: number
   machine_voice_threshold?: number
@@ -241,31 +320,31 @@ interface ICallingDetectParams {
   digits?: string
 }
 
-export interface ICallingDetect {
+export interface IRelayCallingDetect {
   type: string
-  params: ICallingDetectParams
+  params: IRelayCallingDetectParams
 }
 
-export interface ICallingDetectArg extends ICallingDetectParams {
+export interface ICallingDetect extends IRelayCallingDetectParams {
   type?: string
   timeout?: number
   wait_for_beep?: boolean
 }
 
-export interface ICallingTapTapParams {
+interface IRelayCallingTapTapParams {
   direction?: string
 }
 
-export interface ICallingTapTap {
+export interface IRelayCallingTapTap {
   type: 'audio'
-  params: ICallingTapTapParams
+  params: IRelayCallingTapTapParams
 }
 
-export interface ICallingTapTapArg extends ICallingTapTapParams {
-  type: ICallingTapTap['type']
+export interface ICallingTapTap extends IRelayCallingTapTapParams {
+  type: IRelayCallingTapTap['type']
 }
 
-interface ICallingTapDeviceParams {
+interface IRelayCallingTapDeviceParams {
   addr?: string
   port?: number
   codec?: string
@@ -274,13 +353,24 @@ interface ICallingTapDeviceParams {
   rate?: number
 }
 
-export interface ICallingTapDevice {
-  type: 'rtp' | 'ws'
-  params: ICallingTapDeviceParams
+export interface IRelayCallingTapDevice {
+  type: string
+  params: IRelayCallingTapDeviceParams
 }
 
-export interface ICallingTapDeviceArg extends ICallingTapDeviceParams {
-  type: ICallingTapDevice['type']
+export interface ICallingTapDevice extends IRelayCallingTapDeviceParams {
+  type?: string
+}
+
+export interface ICallingTapFlat {
+  audio_direction?: string
+  target_type: string
+  target_addr?: string
+  target_port?: number
+  target_ptime?: number
+  target_uri?: string
+  rate?: number
+  codec?: string
 }
 
 export interface DeepArray<T> extends Array<T | DeepArray<T>> { }

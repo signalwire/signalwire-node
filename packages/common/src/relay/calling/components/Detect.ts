@@ -14,8 +14,6 @@ export class Detect extends Controllable {
   public type: string
   public result: string
 
-  protected _eventsToWait: string[] = _finishedEvents
-
   private _events: string[] = []
   private _waitingForReady: boolean = false
 

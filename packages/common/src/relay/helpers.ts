@@ -106,21 +106,6 @@ export const preparePromptTTSParams = (params: ICallingCollectTTS, ttsOptions: I
   return flattenedParams
 }
 
-export const prepareDetectFaxParams = (options: ICallingDetect): { detect: IRelayCallingDetect, events: string[], timeout: number } => {
-  const { tone, timeout } = options
-  const faxEvents: string[] = [CallDetectState.CED, CallDetectState.CNG]
-  let events: string[] = []
-  const params: { tone?: string } = {}
-  if (tone && faxEvents.includes(tone)) {
-    params.tone = tone
-    events.push(tone)
-  } else {
-    events = events.concat(faxEvents)
-  }
-  const detect: IRelayCallingDetect = { type: CallDetectType.Fax, params }
-  return { detect, events, timeout }
-}
-
 export const prepareTapParams = (params: ICallingTapTap | ICallingTapFlat, device: ICallingTapDevice = {}): { tap: IRelayCallingTapTap, device: IRelayCallingTapDevice } => {
   const tap: IRelayCallingTapTap = { type: 'audio', params: { } }
   if ('direction' in params) {

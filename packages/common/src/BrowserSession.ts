@@ -1,8 +1,7 @@
 import logger from './util/logger'
 import BaseSession from './BaseSession'
 import BaseCall from './webrtc/BaseCall'
-import Call from './webrtc/Call'
-import { ICacheDevices, IAudioSettings, IVideoSettings, BroadcastParams, SubscribeParams, CallOptions } from './util/interfaces'
+import { ICacheDevices, IAudioSettings, IVideoSettings, BroadcastParams, SubscribeParams } from './util/interfaces'
 import { registerOnce, trigger } from './services/Handler'
 import { SwEvent, SESSION_ID, DeviceType } from './util/constants'
 import { State } from './util/constants/call'
@@ -318,15 +317,5 @@ export default abstract class BrowserSession extends BaseSession {
     unsubscribed.forEach(channel => this._removeSubscription(this.relayProtocol, channel))
     notSubscribed.forEach(channel => this._removeSubscription(this.relayProtocol, channel))
     return response
-  }
-
-  async newCall(options: CallOptions) {
-    const { destinationNumber = null } = options
-    if (!destinationNumber) {
-      throw new TypeError('destinationNumber is required')
-    }
-    const call = new Call(this, options)
-    call.invite()
-    return call
   }
 }

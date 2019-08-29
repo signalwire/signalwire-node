@@ -7,7 +7,7 @@ export enum CallState {
   Ended = 'ended'
 }
 
-export const CALL_STATES = Object.values(CallState)
+export const CALL_STATES: string[] = Object.values(CallState)
 
 export const DEFAULT_CALL_TIMEOUT = 30
 

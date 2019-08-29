@@ -19,7 +19,6 @@ describe('Call', () => {
   beforeEach(async done => {
     session = new Verto({ host: 'example.fs.edo', login: 'login', passwd: 'passwd' })
     await session.connect().catch(console.error)
-    // @ts-ignore
     call = new Call(session, defaultParams)
     done()
   })
@@ -34,7 +33,6 @@ describe('Call', () => {
 
   describe('specifying an ID', () => {
     it('should use the ID as callId', () => {
-      // @ts-ignore
       call = new Call(session, { ...defaultParams, id: 'test-id-example' })
       expect(call.id).toEqual('test-id-example')
       expect(session.calls).toHaveProperty('test-id-example')
@@ -43,7 +41,6 @@ describe('Call', () => {
 
   describe('specifying onNotification callback', () => {
     it('should set a listener for the notifications', () => {
-      // @ts-ignore
       call = new Call(session, { ...defaultParams, onNotification: noop })
       expect(isQueued('signalwire.notification', call.id)).toEqual(true)
     })
@@ -51,7 +48,6 @@ describe('Call', () => {
 
   describe('.setState()', () => {
     beforeEach(() => {
-      // @ts-ignore
       call = new Call(session, { ...defaultParams, onNotification: noop })
       expect(call.prevState).toEqual(call.state)
     })
@@ -139,7 +135,6 @@ describe('Call', () => {
     let pvtData = JSON.parse('{"action":"conference-liveArray-join","laChannel":"conference-liveArray-channel","laName":"3599","role":"participant","chatID":"conf+3599@188.166.44.156","conferenceMemberID":"67","canvasCount":1,"chatChannel":"conference-chat-channel","infoChannel":"conference-info-channel"}')
 
     beforeEach(() => {
-      // @ts-ignore
       call = new Call(session, { ...defaultParams, onNotification })
     })
 

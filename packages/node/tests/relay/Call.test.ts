@@ -105,6 +105,7 @@ describe('Call', () => {
   describe('with success response code 200', () => {
 
     const _stateNotificationAnswered = JSON.parse(`{"event_type":"calling.call.state","params":{"call_state":"answered","direction":"inbound","device":{"type":"phone","params":{"from_number":"+1234","to_number":"15678"}},"call_id":"call-id","node_id":"node-id"}}`)
+    const _stateNotificationEnding = JSON.parse(`{"event_type":"calling.call.state","params":{"call_state":"ending","end_reason":"busy","direction":"inbound","device":{"type":"phone","params":{"from_number":"+1234","to_number":"15678"}},"call_id":"call-id","node_id":"node-id"}}`)
     const _stateNotificationEnded = JSON.parse(`{"event_type":"calling.call.state","params":{"call_state":"ended","end_reason":"busy","direction":"inbound","device":{"type":"phone","params":{"from_number":"+1234","to_number":"15678"}},"call_id":"call-id","node_id":"node-id"}}`)
     const _recordNotification = JSON.parse(`{"event_type":"calling.call.record","params":{"state":"finished","record":{"audio":{"format":"mp3","direction":"speak","stereo":false}},"url":"record.mp3","control_id":"mocked-uuid","size":4096,"duration":4,"call_id":"call-id","node_id":"node-id"}}`)
     const _connectNotification = JSON.parse(`{"event_type":"calling.call.connect","params":{"connect_state":"connected","peer":{"call_id":"peer-call-id","node_id":"peer-node-id","device":{"type":"phone","params":{"from_number":"+1234","to_number":"+15678"}}},"call_id":"call-id","node_id":"node-id"}}`)
@@ -170,6 +171,17 @@ describe('Call', () => {
         done()
       })
       session.calling.notificationHandler(_stateNotificationEnded)
+    })
+
+    it('.hangup() on an ended call should fail', done => {
+      session.calling.notificationHandler(_stateNotificationEnding)
+      call.hangup().then(result => {
+        expect(result).toBeInstanceOf(HangupResult)
+        expect(result.successful).toBe(false)
+        expect(Connection.mockSend).not.toHaveBeenCalled()
+        Connection.mockResponse() // Force-consume mock request
+        done()
+      })
     })
 
     describe('recording methods', () => {

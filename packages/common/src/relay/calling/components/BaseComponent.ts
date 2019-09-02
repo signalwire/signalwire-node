@@ -44,6 +44,9 @@ export abstract class BaseComponent {
 
   /** Execute message and return the Relay response */
   async execute(): Promise<any> {
+    if (this.call.ended) {
+      return this.terminate()
+    }
     if (!this.method) {
       return null
     }

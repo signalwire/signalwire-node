@@ -100,12 +100,13 @@ wss.on('connection', function connection(ws, req) {
   })
 })
 
-function makeCall(cmd) {
+async function makeCall(cmd) {
   console.log("relay call", cmd)
 
-  const leg = myClient.calling.dial({ type: 'phone', from: '+1xxx', to: '+1yyy' }).catch(error => {
-    console.error('createCall error:', error)
-  })
+  // const { successful: dialed, call } = await myClient.calling.dial({ type: 'agora', from: '+1xxx', to: '+1yyy' })
+  const { successful: dialed, call } = await myClient.calling.dial({ type: 'phone', from: '+1xxx', to: '+1yyy' })
+
+  const leg = call;
 
   leg.on('created', call => {
     console.log(`\t ${call.id} state from ${call.prevState} to ${call.state}`, '\n')

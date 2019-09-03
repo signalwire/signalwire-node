@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Agora Relay Demo</title>
+</head>
+<body>
+<h1>Agora Relay Demo</h1>
+
+<input type="text" id="dest" value="1234">
+<button onclick="makeCall()">Call</button>
+
+<script type="text/javascript">
+	// start from here
+	// fetch port from backend via http ...
+
+	var socket;
+	var isConnected = false;
+
+	fetch('/getWebsocketPort').then(function(response) {
+		var port = 3001;
+		return response.json();
+	}).then(function(data) {
+		console.log('received websocket port:', data.port)
+
+		if (data.port) port = data.port;
+
+		var protocol = window.location.protocol === 'http:' ? 'ws://' : 'wss://';
+		var address = protocol + window.location.hostname + ":" + port + '/ws';
+
+		socket = new WebSocket(address);
+
+		socket.onopen = function(msg) {
+			console.log("connected", address);
+			isConnected = true;
+		}
+
+		socket.onclose = function(msg) {
+			console.log("socket closed");
+			isConnected = false;
+		}
+
+		socket.onmessage = function(msg) {
+			console.log("I just got reply from server!: " + msg.data);
+		}
+	})
+
+
+	function makeCall() {
+		var dest = document.getElementById('dest').value;
+		console.log("calling", dest);
+
+		var cmd = {
+			method: "call",
+			destNubmer: dest
+		}
+
+		socket.send(JSON.stringify(cmd));
+	}
+</script>
+</body>
+</html>

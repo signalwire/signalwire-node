@@ -278,7 +278,7 @@ export interface IRelayCallingCollect {
   digits?: {
     max: number
     terminators?: string
-    digit_timeout: number
+    digit_timeout?: number
   },
   speech?: {
     end_silence_timeout?: number

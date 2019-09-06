@@ -9,20 +9,12 @@ const consumer = new RelayConsumer({
   },
   onIncomingCall: async (call) => {
     console.log('Inbound call', call.id, call.from, call.to)
-    await call.answer()
-
-    call.on('detect.update', (call, params) => {
-      console.log('detect.update', params)
-    })
-
-    const { successful, result, event } = await call.detect({ type: 'digit' })
-
-    if (successful) {
-      console.log('Detection result:', result, 'Last event:', event)
-    } else {
-      console.error('Error during detection', event)
+    const answerResult = await call.answer()
+    if (!answerResult.successful) {
+      console.error('Error during call answer')
+      return
     }
-
+    await call.playAudio('https://cdn.signalwire.com/default-music/welcome.mp3')
     await call.hangup()
   }
 })

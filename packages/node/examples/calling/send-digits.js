@@ -8,9 +8,10 @@ const consumer = new RelayConsumer({
     console.log('teardown now and close.')
   },
   ready: async ({ client }) => {
-    const { successful: dialed, call } = await client.calling.dial({ type: 'phone', from: '+1xxx', to: '+1yyy' })
+    const params = { type: 'phone', from: '+1xxx', to: '+1yyy' }
+    const { successful: dialed, call } = await client.calling.dial(params)
     if (!dialed) {
-      console.error('Dial error!')
+      console.error('Outbound call failed or not answered.')
       return
     }
 

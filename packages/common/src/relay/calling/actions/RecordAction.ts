@@ -12,6 +12,10 @@ export class RecordAction extends BaseAction {
     return new RecordResult(this.component)
   }
 
+  get url(): string {
+    return this.component.url
+  }
+
   stop() {
     return this.component.stop()
   }

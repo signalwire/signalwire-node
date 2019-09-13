@@ -130,7 +130,8 @@ export default class Call implements ICall {
   async recordAsync(record: ICallingRecord = {}) {
     const component = new Record(this, prepareRecordParams(record))
     this._addComponent(component)
-    await component.execute()
+    const { url } = await component.execute()
+    component.url = url
 
     return new RecordAction(component)
   }

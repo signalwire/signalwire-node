@@ -120,7 +120,7 @@ describe('Call', () => {
       call.id = 'call-id'
       call.nodeId = 'node-id'
       call.state = CallState.Created
-      Connection.mockResponse.mockReturnValueOnce(JSON.parse('{"id":"uuid","jsonrpc":"2.0","result":{"result":{"code":"200","message":"message","control_id":"control-id"}}}'))
+      Connection.mockResponse.mockReturnValueOnce(JSON.parse('{"id":"uuid","jsonrpc":"2.0","result":{"result":{"code":"200","message":"message","control_id":"control-id","url":"record.mp3"}}}'))
     })
 
     it('.dial() should wait for "answered" event', done => {
@@ -207,6 +207,7 @@ describe('Call', () => {
         const action = await call.recordAsync(record)
         expect(action).toBeInstanceOf(RecordAction)
         expect(action.completed).toBe(false)
+        expect(action.url).toEqual('record.mp3')
         expect(action.result).toBeInstanceOf(RecordResult)
         expect(Connection.mockSend).nthCalledWith(1, getMsg())
         session.calling.notificationHandler(_recordNotification)
@@ -1023,6 +1024,7 @@ describe('Call', () => {
       it('.recordAsync() should return a RecordAction for async control', async done => {
         const action = await call.recordAsync(record)
         expect(action).toBeInstanceOf(RecordAction)
+        expect(action.url).toBeUndefined()
         expect(action.completed).toBe(true)
         expect(action.result).toBeInstanceOf(RecordResult)
         expect(Connection.mockSend).nthCalledWith(1, getMsg())

@@ -1,6 +1,6 @@
 import { BaseAction } from './BaseAction'
 import { Play } from '../components/Play'
-import { PlayResult } from '../results/PlayResult'
+import { PlayResult, PlayPauseResult, PlayResumeResult } from '../results'
 
 export class PlayAction extends BaseAction {
 
@@ -14,5 +14,13 @@ export class PlayAction extends BaseAction {
 
   stop() {
     return this.component.stop()
+  }
+
+  pause() {
+    return this.component.pause(PlayPauseResult)
+  }
+
+  resume() {
+    return this.component.resume(PlayResumeResult)
   }
 }

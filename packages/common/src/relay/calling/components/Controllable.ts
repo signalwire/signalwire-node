@@ -15,7 +15,9 @@ export abstract class Controllable extends BaseComponent {
           control_id: this.controlId
         }
       })
-      return await this.call._execute(msg)
+      const result = await this.call._execute(msg)
+      this.successful = true
+      return result
     } catch (error) {
       this.terminate()
       return error
@@ -27,14 +29,12 @@ export abstract class Controllable extends BaseComponent {
   }
 
   async pause<T extends BaseResult>(ResultObject: new (c: BaseComponent) => T): Promise<T> {
-    const response = await this._execute(`${this.method}.pause`)
-    // TODO: fill "this.event" with new Event('', payload)
+    await this._execute(`${this.method}.pause`)
     return new ResultObject(this)
    }
 
   async resume<T>(ResultObject: new (c: BaseComponent) => T): Promise<T> {
-    const response = await this._execute(`${this.method}.resume`)
-    // TODO: fill "this.event" with new Event('', payload)
+    await this._execute(`${this.method}.resume`)
     return new ResultObject(this)
   }
 }

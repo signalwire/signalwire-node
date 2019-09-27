@@ -40,34 +40,40 @@ class VertoHandler {
         return
       }
     }
+    const _buildCall = () => {
+      const call = new Call(session, {
+        id: callID,
+        remoteSdp: params.sdp,
+        destinationNumber: params.callee_id_number,
+        remoteCallerName: params.caller_id_name,
+        remoteCallerNumber: params.caller_id_number,
+        callerName: params.callee_id_name,
+        callerNumber: params.callee_id_number,
+        attach
+      })
+      call.nodeId = this.nodeId
+      return call
+    }
     switch (method) {
       case VertoMethod.Punt:
         session.disconnect()
         break
-      case VertoMethod.Invite:
-      case VertoMethod.Attach:
-        const call = new Call(session, {
-          id: callID,
-          remoteSdp: params.sdp,
-          destinationNumber: params.callee_id_number,
-          remoteCallerName: params.caller_id_name,
-          remoteCallerNumber: params.caller_id_number,
-          callerName: params.callee_id_name,
-          callerNumber: params.callee_id_number,
-          audio: params.sdp.indexOf('m=audio') > 0,
-          video: params.sdp.indexOf('m=video') > 0,
-          attach
-        })
-        call.nodeId = this.nodeId
-        if (attach) {
-          call.setState(State.Recovering)
-          call.answer()
-          call.handleMessage(msg)
-        } else {
-          call.setState(State.Ringing)
-          this._ack(id, method)
-        }
+      case VertoMethod.Invite: {
+        const call = _buildCall()
+        call.setState(State.Ringing)
+        this._ack(id, method)
         break
+      }
+      case VertoMethod.Attach: {
+        const call = _buildCall()
+        if (this.session.autoRecoverCalls) {
+          call.answer()
+        } else {
+          call.setState(State.Recovering)
+        }
+        call.handleMessage(msg)
+        break
+      }
       case VertoMethod.Event:
       case 'webrtc.event':
         if (!eventChannel) {

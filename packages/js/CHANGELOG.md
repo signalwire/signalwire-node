@@ -3,6 +3,12 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.2] - 2019-09-27
+### Added
+- Ability to configure whether the SDK should automatically recover the call after page refresh. `autoRecoverCalls` default to true.
+### Changed
+- Stop caching device's resolution in localStorage because, sometimes, a resolution is supported but not returned because the webcam is already using it on another tab/application.
+
 ## [1.2.1] - 2019-08-26
 ### Fixed
 - Bugfix on SDP hack to force stereo audio if browser does not support it.

@@ -1,8 +1,6 @@
-import * as log from 'loglevel'
+import log from 'loglevel'
 const datetime = () => new Date().toISOString().replace('T', ' ').replace('Z', '')
 const logger = log.getLogger('signalwire')
-// logger.setLevel(log.levels.WARN, true)
-// logger.enableAll()
 
 const originalFactory = logger.methodFactory
 logger.methodFactory = (methodName, logLevel, loggerName) => {

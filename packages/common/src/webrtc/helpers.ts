@@ -1,5 +1,4 @@
 import logger from '../util/logger'
-import { localStorage } from '../util/storage'
 import * as WebRTC from '../util/webrtc'
 import { isDefined } from '../util/helpers'
 import { CallOptions } from '../util/interfaces'
@@ -61,11 +60,7 @@ const getDevices = async (kind: string = null): Promise<MediaDeviceInfo[]> => {
 
 const resolutionList = [[320, 240], [640, 360], [640, 480], [1280, 720], [1920, 1080]]
 const scanResolutions = async (deviceId: string) => {
-  const storageKey = `${deviceId}-resolutions`
-  const supported = (await localStorage.getItem(storageKey)) || []
-  if (supported && supported.length) {
-    return supported
-  }
+  const supported = []
   const stream = await getUserMedia({ video: { deviceId: { exact: deviceId } } })
   const videoTrack = stream.getVideoTracks()[0]
   for (let i = 0; i < resolutionList.length; i++) {
@@ -78,8 +73,6 @@ const scanResolutions = async (deviceId: string) => {
     }
   }
   stopStream(stream)
-
-  localStorage.setItem(storageKey, supported)
 
   return supported
 }

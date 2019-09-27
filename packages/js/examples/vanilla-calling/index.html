@@ -204,7 +204,7 @@
         case 'trying': // You are trying to call someone and he's ringing now
           break;
         case 'recovering': // Call is recovering from a previous session
-          if (confirm('Recovering the previous call?')) {
+          if (confirm('Recover the previous call?')) {
             currentCall.answer();
           } else {
             currentCall.hangup();

@@ -131,8 +131,20 @@
         token: document.getElementById('token').value
       });
 
+      // client.autoRecoverCalls = false;
       client.remoteElement = 'remoteVideo';
       client.localElement = 'localVideo';
+
+      if (document.getElementById('audio').checked) {
+        client.enableMicrophone()
+      } else {
+        client.disableMicrophone()
+      }
+      if (document.getElementById('video').checked) {
+        client.enableWebcam()
+      } else {
+        client.disableWebcam()
+      }
 
       client.on('signalwire.ready', function() {
         btnConnect.classList.add('d-none');
@@ -190,6 +202,13 @@
         case 'new': // Setup the UI
           break;
         case 'trying': // You are trying to call someone and he's ringing now
+          break;
+        case 'recovering': // Call is recovering from a previous session
+          if (confirm('Recover the previous call?')) {
+            currentCall.answer();
+          } else {
+            currentCall.hangup();
+          }
           break;
         case 'ringing': // Someone is calling you
           if (confirm('Pick up the call?')) {

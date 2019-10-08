@@ -1,6 +1,5 @@
 import { BaseComponent } from './BaseComponent'
 import { Execute } from '../../../messages/Blade'
-import { BaseResult } from '../results/BaseResult'
 
 export abstract class Controllable extends BaseComponent {
 
@@ -15,12 +14,10 @@ export abstract class Controllable extends BaseComponent {
           control_id: this.controlId
         }
       })
-      const result = await this.call._execute(msg)
-      this.successful = true
-      return result
+      await this.call._execute(msg)
+      return true
     } catch (error) {
-      this.terminate()
-      return error
+      return false
     }
   }
 
@@ -28,13 +25,13 @@ export abstract class Controllable extends BaseComponent {
     return this._execute(`${this.method}.stop`)
   }
 
-  async pause<T extends BaseResult>(ResultObject: new (c: BaseComponent) => T): Promise<T> {
-    await this._execute(`${this.method}.pause`)
-    return new ResultObject(this)
+  async pause<T>(ResultObject: new (b: boolean) => T): Promise<T> {
+    const success = await this._execute(`${this.method}.pause`)
+    return new ResultObject(success)
    }
 
-  async resume<T>(ResultObject: new (c: BaseComponent) => T): Promise<T> {
-    await this._execute(`${this.method}.resume`)
-    return new ResultObject(this)
+  async resume<T>(ResultObject: new (b: boolean) => T): Promise<T> {
+    const success = await this._execute(`${this.method}.resume`)
+    return new ResultObject(success)
   }
 }

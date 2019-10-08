@@ -14,10 +14,9 @@ export abstract class Controllable extends BaseComponent {
           control_id: this.controlId
         }
       })
-      await this.call._execute(msg)
-      return true
+      return await this.call._execute(msg)
     } catch (error) {
-      return false
+      return error
     }
   }
 
@@ -26,12 +25,12 @@ export abstract class Controllable extends BaseComponent {
   }
 
   async pause<T>(ResultObject: new (b: boolean) => T): Promise<T> {
-    const success = await this._execute(`${this.method}.pause`)
-    return new ResultObject(success)
+    const { code } = await this._execute(`${this.method}.pause`)
+    return new ResultObject(code === '200')
    }
 
   async resume<T>(ResultObject: new (b: boolean) => T): Promise<T> {
-    const success = await this._execute(`${this.method}.resume`)
-    return new ResultObject(success)
+    const { code } = await this._execute(`${this.method}.resume`)
+    return new ResultObject(code === '200')
   }
 }

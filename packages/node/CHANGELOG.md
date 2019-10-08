@@ -6,6 +6,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ## [Unreleased]
 ### Added
 - Add `url` property to `RecordAction`.
+- Add methods to `pause` and `resume` a PlayAction.
 
 ## [2.2.0] - 2019-09-09
 ### Fixed

@@ -4,7 +4,7 @@ import Call from '../../../common/src/relay/calling/Call'
 import { Execute } from '../../../common/src/messages/Blade'
 import { Play } from '../../../common/src/relay/calling/components'
 import { PlayAction } from '../../../common/src/relay/calling/actions'
-import { PlayPauseResult, PlayResumeResult } from '../../../common/src/relay/calling/results'
+import { PlayPauseResult, PlayResumeResult, StopResult } from '../../../common/src/relay/calling/results'
 const Connection = require('../../../common/src/services/Connection')
 jest.mock('../../../common/src/services/Connection')
 
@@ -42,7 +42,20 @@ describe('PlayAction', () => {
 
       const result = await action.stop()
       expect(Connection.mockSend).nthCalledWith(1, stopMessage)
-      expect(result).toEqual(JSON.parse('{"code":"200","message":"message","control_id":"control-id"}'))
+      expect(result).toBeInstanceOf(StopResult)
+      expect(result.successful).toBe(true)
+      expect(result.code).toEqual('200')
+      done()
+    })
+
+    it('should execute the proper method and return the result with a failure response', async done => {
+      _mockReturnFail()
+
+      const result = await action.stop()
+      expect(Connection.mockSend).nthCalledWith(1, stopMessage)
+      expect(result).toBeInstanceOf(StopResult)
+      expect(result.successful).toBe(false)
+      expect(result.code).toEqual('400')
       done()
     })
   })

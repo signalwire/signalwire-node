@@ -1,5 +1,6 @@
 import { BaseComponent } from './BaseComponent'
 import { Execute } from '../../../messages/Blade'
+import { StopResult } from '../results'
 
 export abstract class Controllable extends BaseComponent {
 
@@ -20,14 +21,15 @@ export abstract class Controllable extends BaseComponent {
     }
   }
 
-  stop() {
-    return this._execute(`${this.method}.stop`)
+  async stop(): Promise<StopResult> {
+    const result = await this._execute(`${this.method}.stop`)
+    return new StopResult(result)
   }
 
   async pause<T>(ResultObject: new (b: boolean) => T): Promise<T> {
     const { code } = await this._execute(`${this.method}.pause`)
     return new ResultObject(code === '200')
-   }
+  }
 
   async resume<T>(ResultObject: new (b: boolean) => T): Promise<T> {
     const { code } = await this._execute(`${this.method}.resume`)

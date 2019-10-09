@@ -44,6 +44,18 @@ describe('PlayAction', () => {
       expect(Connection.mockSend).nthCalledWith(1, stopMessage)
       expect(result).toBeInstanceOf(StopResult)
       expect(result.successful).toBe(true)
+      expect(result.code).toEqual('200')
+      done()
+    })
+
+    it('should execute the proper method and return the result with a failure response', async done => {
+      _mockReturnFail()
+
+      const result = await action.stop()
+      expect(Connection.mockSend).nthCalledWith(1, stopMessage)
+      expect(result).toBeInstanceOf(StopResult)
+      expect(result.successful).toBe(false)
+      expect(result.code).toEqual('400')
       done()
     })
   })

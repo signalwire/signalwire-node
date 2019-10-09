@@ -10,6 +10,10 @@ export * from './DetectResult'
 export * from './TapResult'
 export * from './SendDigitsResult'
 
+export class StopResult {
+  constructor(public successful: boolean) { }
+}
+
 export class PlayPauseResult {
   constructor(public successful: boolean) { }
 }

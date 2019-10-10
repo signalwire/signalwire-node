@@ -256,7 +256,7 @@ describe('preparePromptParams()', () => {
         { type: 'tts', text: 'hello', gender: 'male' }
       ]
     }
-    expect(preparePromptParams(params)).toEqual([collectExpected, playExpected])
+    expect(preparePromptParams(params)).toEqual([collectExpected, playExpected, 0])
   })
 
   it('should handle nested params', () => {
@@ -270,7 +270,7 @@ describe('preparePromptParams()', () => {
       { type: 'audio', params: { url: 'audio.mp3' } },
       { type: 'tts', params: { text: 'hello', gender: 'male' } }
     ]
-    expect(preparePromptParams(collectExpected, playExpected)).toEqual([collectExpected, playExpected])
+    expect(preparePromptParams(collectExpected, playExpected)).toEqual([collectExpected, playExpected, 0])
   })
 
   it('should handle nested params and flattened media', () => {
@@ -288,7 +288,7 @@ describe('preparePromptParams()', () => {
       { type: 'audio', url: 'audio.mp3' },
       { type: 'tts', text: 'hello', gender: 'male' }
     ]
-    expect(preparePromptParams(collectExpected, playFlat)).toEqual([collectExpected, playExpected])
+    expect(preparePromptParams(collectExpected, playFlat)).toEqual([collectExpected, playExpected, 0])
   })
 
   it('should handle flattened params', () => {
@@ -319,7 +319,7 @@ describe('preparePromptParams()', () => {
         { type: 'tts', text: 'hello', gender: 'male' }
       ]
     }
-    expect(preparePromptParams(params)).toEqual([collectExpected, playExpected])
+    expect(preparePromptParams(params)).toEqual([collectExpected, playExpected, 0])
   })
 
   it('should handle flattened params without media', () => {
@@ -331,7 +331,28 @@ describe('preparePromptParams()', () => {
     }
     const playExpected = []
     const params = { initial_timeout: 5, end_silence_timeout: 3 }
-    expect(preparePromptParams(params)).toEqual([collectExpected, playExpected])
+    expect(preparePromptParams(params)).toEqual([collectExpected, playExpected, 0])
+  })
+
+  it('should handle flattened params with volume property', () => {
+    const collectExpected = {
+      initial_timeout: 5,
+      speech: {
+        end_silence_timeout: 3
+      }
+    }
+    const playExpected = [
+      { type: 'audio', params: { url: 'audio.mp3' } }
+    ]
+    const params = {
+      volume: -6,
+      initial_timeout: 5,
+      end_silence_timeout: 3,
+      media: [
+        { type: 'audio', url: 'audio.mp3' }
+      ]
+    }
+    expect(preparePromptParams(params)).toEqual([collectExpected, playExpected, -6])
   })
 })
 

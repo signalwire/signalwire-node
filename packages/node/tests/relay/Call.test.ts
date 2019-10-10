@@ -460,11 +460,17 @@ describe('Call', () => {
       const audio = { type: 'audio', params: { url: 'audio.mp3' } }
       const tts = { type: 'tts', params: { text: 'hello jest' } }
 
-      const getMsg = (...play: ICallingPlay[]) => new Execute({
-        protocol: 'signalwire_service_random_uuid',
-        method: 'calling.play_and_collect',
-        params: { node_id: call.nodeId, call_id: call.id, control_id: 'mocked-uuid', collect, play }
-      })
+      const getMsg = (media: ICallingPlay, volume: number = 0) => {
+        const params: any = { node_id: call.nodeId, call_id: call.id, control_id: 'mocked-uuid', collect, play: [media] }
+        if (volume != 0) {
+          params.volume = volume
+        }
+        return new Execute({
+          protocol: 'signalwire_service_random_uuid',
+          method: 'calling.play_and_collect',
+          params
+        })
+      }
 
       it('.prompt() should wait until the playing ends', done => {
         call.prompt(collect, audio).then(result => {
@@ -473,6 +479,19 @@ describe('Call', () => {
           expect(result.terminator).toEqual('#')
           expect(result.result).toEqual('12345')
           expect(Connection.mockSend).nthCalledWith(1, getMsg(audio))
+          done()
+        })
+        session.calling.notificationHandler(_collectNotification)
+      })
+
+      it('.prompt() with volume property should wait until the playing ends', done => {
+        let collect = { volume: -4, initial_timeout: 10, digits_max: 5, digits_terminators: '#', digits_timeout: 10 }
+        call.prompt(collect, audio).then(result => {
+          expect(result).toBeInstanceOf(PromptResult)
+          expect(result.successful).toBe(true)
+          expect(result.terminator).toEqual('#')
+          expect(result.result).toEqual('12345')
+          expect(Connection.mockSend).nthCalledWith(1, getMsg(audio, -4))
           done()
         })
         session.calling.notificationHandler(_collectNotification)
@@ -510,6 +529,17 @@ describe('Call', () => {
         done()
       })
 
+      it('.promptAudioAsync() with volume  should return a PromptAction for async control', async done => {
+        let collect = { volume: 6.7, initial_timeout: 10, digits_max: 5, digits_terminators: '#', digits_timeout: 10 }
+        const action = await call.promptAudioAsync(collect, 'audio.mp3')
+        expect(action).toBeInstanceOf(PromptAction)
+        expect(action.completed).toBe(false)
+        expect(Connection.mockSend).nthCalledWith(1, getMsg(audio, 6.7))
+        session.calling.notificationHandler(_collectNotification)
+        expect(action.completed).toBe(true)
+        done()
+      })
+
       it('.promptTTS() should wait until the collect finished', done => {
         call.promptTTS(collect, { text: 'hello jest' }).then(result => {
           expect(result).toBeInstanceOf(PromptResult)
@@ -517,6 +547,19 @@ describe('Call', () => {
           expect(result.terminator).toEqual('#')
           expect(result.result).toEqual('12345')
           expect(Connection.mockSend).nthCalledWith(1, getMsg(tts))
+          done()
+        })
+        session.calling.notificationHandler(_collectNotification)
+      })
+
+      it('.promptTTS() with volume should wait until the collect finished', done => {
+        let collect = { volume: 6.7, initial_timeout: 10, digits_max: 5, digits_terminators: '#', digits_timeout: 10 }
+        call.promptTTS(collect, { text: 'hello jest' }).then(result => {
+          expect(result).toBeInstanceOf(PromptResult)
+          expect(result.successful).toBe(true)
+          expect(result.terminator).toEqual('#')
+          expect(result.result).toEqual('12345')
+          expect(Connection.mockSend).nthCalledWith(1, getMsg(tts, 6.7))
           done()
         })
         session.calling.notificationHandler(_collectNotification)

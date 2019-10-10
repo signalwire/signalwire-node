@@ -26,13 +26,13 @@ export abstract class Controllable extends BaseComponent {
     return new StopResult(result)
   }
 
-  async pause<T>(ResultObject: new (b: boolean) => T): Promise<T> {
+  async pause(): Promise<boolean> {
     const { code } = await this._execute(`${this.method}.pause`)
-    return new ResultObject(code === '200')
+    return code === '200'
   }
 
-  async resume<T>(ResultObject: new (b: boolean) => T): Promise<T> {
+  async resume(): Promise<boolean> {
     const { code } = await this._execute(`${this.method}.resume`)
-    return new ResultObject(code === '200')
+    return code === '200'
   }
 }

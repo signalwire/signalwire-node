@@ -16,11 +16,13 @@ export class PlayAction extends BaseAction {
     return this.component.stop()
   }
 
-  pause() {
-    return this.component.pause(PlayPauseResult)
+  async pause() {
+    const res = await this.component.pause()
+    return new PlayPauseResult(res)
   }
 
-  resume() {
-    return this.component.resume(PlayResumeResult)
+  async resume() {
+    const res = await this.component.resume()
+    return new PlayResumeResult(res)
   }
 }

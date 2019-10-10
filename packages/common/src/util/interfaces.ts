@@ -304,6 +304,7 @@ export interface ICallingCollect extends IRelayCallingCollect {
   speech_timeout?: number
   speech_language?: string
   speech_hints?: string[]
+  volume?: number
   media?: (IRelayCallingPlay | ICallingPlay)[]
 }
 

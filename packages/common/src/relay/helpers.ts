@@ -60,9 +60,9 @@ export const preparePlayParams = (params: [ICallingPlayParams] | (ICallingPlay |
   return [play, volume]
 }
 
-export const preparePromptParams = (params: ICallingCollect, mediaList: (ICallingPlay | IRelayCallingPlay)[] = []): [IRelayCallingCollect, IRelayCallingPlay[]] => {
+export const preparePromptParams = (params: ICallingCollect, mediaList: (ICallingPlay | IRelayCallingPlay)[] = []): [IRelayCallingCollect, IRelayCallingPlay[], number] => {
   const collect: IRelayCallingCollect = {}
-  const { initial_timeout, partial_results, type, media = mediaList } = params
+  const { initial_timeout, partial_results, type, media = mediaList, volume = 0 } = params
 
   let { digits, speech } = params
   if (!digits) {
@@ -87,8 +87,8 @@ export const preparePromptParams = (params: ICallingCollect, mediaList: (ICallin
   if (!objEmpty(speech) || (type === 'speech' || type === 'both')) {
     collect.speech = speech
   }
-  const [play, volume] = preparePlayParams(media)
-  return [collect, play]
+  const [play, __volume] = preparePlayParams(media)
+  return [collect, play, volume]
 }
 
 export const preparePromptAudioParams = (params: ICallingCollectAudio, urlDeprecated: string = ''): IRelayCallingCollect => {

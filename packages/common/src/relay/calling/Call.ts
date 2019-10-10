@@ -187,8 +187,8 @@ export default class Call implements ICall {
   }
 
   async prompt(params: ICallingCollect, ...mediaList: (IRelayCallingPlay | ICallingPlay)[]): Promise<PromptResult> {
-    const [collect, play] = preparePromptParams(params, mediaList)
-    const component = new Prompt(this, collect, play)
+    const [collect, play, volume] = preparePromptParams(params, mediaList)
+    const component = new Prompt(this, collect, play, volume)
     this._addComponent(component)
     await component._waitFor(CallPromptState.Error, CallPromptState.NoInput, CallPromptState.NoMatch, CallPromptState.Digit, CallPromptState.Speech)
 
@@ -196,8 +196,8 @@ export default class Call implements ICall {
   }
 
   async promptAsync(params: ICallingCollect, ...mediaList: (IRelayCallingPlay | ICallingPlay)[]): Promise<PromptAction> {
-    const [collect, play] = preparePromptParams(params, mediaList)
-    const component = new Prompt(this, collect, play)
+    const [collect, play, volume] = preparePromptParams(params, mediaList)
+    const component = new Prompt(this, collect, play, volume)
     this._addComponent(component)
     await component.execute()
 

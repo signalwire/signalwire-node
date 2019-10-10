@@ -33,3 +33,7 @@ export class PlayResumeResult {
 export class PlayVolumeResult {
   constructor(public successful: boolean) { }
 }
+
+export class PromptVolumeResult {
+  constructor(public successful: boolean) { }
+}

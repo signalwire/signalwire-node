@@ -16,7 +16,8 @@ export class Prompt extends Controllable {
   constructor(
     public call: Call,
     public collect: IRelayCallingCollect,
-    public play: IRelayCallingPlay[]
+    public play: IRelayCallingPlay[],
+    public volumeValue: number = 0
   ) {
     super(call)
   }
@@ -26,13 +27,17 @@ export class Prompt extends Controllable {
   }
 
   get payload(): any {
-    return {
+    const tmp: any = {
       node_id: this.call.nodeId,
       call_id: this.call.id,
       control_id: this.controlId,
       play: this.play,
       collect: this.collect
     }
+    if (this.volumeValue != 0) {
+      tmp.volume = +this.volumeValue
+    }
+    return tmp
   }
 
   notificationHandler(params: any): void {

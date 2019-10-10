@@ -1,6 +1,6 @@
 import { BaseAction } from './BaseAction'
 import { Play } from '../components/Play'
-import { PlayResult, PlayPauseResult, PlayResumeResult } from '../results'
+import { PlayResult, PlayPauseResult, PlayResumeResult, PlayVolumeResult } from '../results'
 
 export class PlayAction extends BaseAction {
 
@@ -24,5 +24,10 @@ export class PlayAction extends BaseAction {
   async resume() {
     const res = await this.component.resume()
     return new PlayResumeResult(res)
+  }
+
+  async volume(value: number) {
+    const res = await this.component.volume(value)
+    return new PlayVolumeResult(res)
   }
 }

@@ -4,7 +4,7 @@ import Call from '../../../common/src/relay/calling/Call'
 import { Execute } from '../../../common/src/messages/Blade'
 import { Play } from '../../../common/src/relay/calling/components'
 import { PlayAction } from '../../../common/src/relay/calling/actions'
-import { PlayPauseResult, PlayResumeResult, StopResult } from '../../../common/src/relay/calling/results'
+import { PlayPauseResult, PlayResumeResult, PlayVolumeResult, StopResult } from '../../../common/src/relay/calling/results'
 const Connection = require('../../../common/src/services/Connection')
 jest.mock('../../../common/src/services/Connection')
 
@@ -111,6 +111,34 @@ describe('PlayAction', () => {
       const result = await action.resume()
       expect(Connection.mockSend).nthCalledWith(1, resumeMessage)
       expect(result).toBeInstanceOf(PlayResumeResult)
+      expect(result.successful).toBe(false)
+      done()
+    })
+  })
+
+  describe('volume', () => {
+    const volumeMessage = new Execute({
+      protocol: 'signalwire_service_random_uuid',
+      method: 'calling.play.volume',
+      params: { node_id: 'node-id', call_id: 'call-id', control_id: 'mocked-uuid', volume: -4.3 }
+    })
+
+    it('with success response should return a PlayVolumeResult object with successful true', async done => {
+      _mockReturnSuccess()
+
+      const result = await action.volume(-4.3)
+      expect(Connection.mockSend).nthCalledWith(1, volumeMessage)
+      expect(result).toBeInstanceOf(PlayVolumeResult)
+      expect(result.successful).toBe(true)
+      done()
+    })
+
+    it('with success response should return a PlayVolumeResult object with successful false', async done => {
+      _mockReturnFail()
+
+      const result = await action.volume(-4.3)
+      expect(Connection.mockSend).nthCalledWith(1, volumeMessage)
+      expect(result).toBeInstanceOf(PlayVolumeResult)
       expect(result.successful).toBe(false)
       done()
     })

@@ -35,4 +35,23 @@ export abstract class Controllable extends BaseComponent {
     const { code } = await this._execute(`${this.method}.resume`)
     return code === '200'
   }
+
+  async volume(value: number): Promise<boolean> {
+    try {
+      const msg = new Execute({
+        protocol: this.call.relayInstance.session.relayProtocol,
+        method: `${this.method}.volume`,
+        params: {
+          node_id: this.call.nodeId,
+          call_id: this.call.id,
+          control_id: this.controlId,
+          volume: value
+        }
+      })
+      await this.call._execute(msg)
+      return true
+    } catch (error) {
+      return false
+    }
+  }
 }

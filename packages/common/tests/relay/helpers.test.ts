@@ -186,7 +186,7 @@ describe('prepareRecordParams()', () => {
 
 describe('preparePlayParams()', () => {
   it('should handle no parameters', () => {
-    expect(preparePlayParams([])).toEqual([])
+    expect(preparePlayParams([])).toEqual([[], 0])
   })
 
   it('should handle nested params', () => {
@@ -198,7 +198,7 @@ describe('preparePlayParams()', () => {
       { type: 'audio', params: { url: 'audio.mp3' } },
       { type: 'tts', params: { text: 'welcome' } }
     ]
-    expect(preparePlayParams(input)).toEqual(expected)
+    expect(preparePlayParams(input)).toEqual([expected, 0])
   })
 
   it('should handle the flattened params', () => {
@@ -210,7 +210,7 @@ describe('preparePlayParams()', () => {
       { type: 'audio', url: 'audio.mp3' },
       { type: 'tts', text: 'welcome', gender: 'male' }
     ]
-    expect(preparePlayParams(input)).toEqual(expected)
+    expect(preparePlayParams(input)).toEqual([expected, 0])
   })
 
   it('should handle mixed flattened and nested params', () => {
@@ -222,7 +222,22 @@ describe('preparePlayParams()', () => {
       { type: 'audio', params: { url: 'audio.mp3' } },
       { type: 'tts', text: 'welcome', gender: 'male' }
     ]
-    expect(preparePlayParams(input)).toEqual(expected)
+    expect(preparePlayParams(input)).toEqual([expected, 0])
+  })
+
+  it('should handle ICallingPlayParams with media and volume properties', () => {
+    const expected = [
+      { type: 'audio', params: { url: 'audio.mp3' } },
+      { type: 'tts', params: { text: 'welcome', gender: 'male' } }
+    ]
+    const input = [{
+      media: [
+        { type: 'audio', params: { url: 'audio.mp3' } },
+        { type: 'tts', text: 'welcome', gender: 'male' }
+      ],
+      volume: 4
+    }]
+    expect(preparePlayParams(input)).toEqual([expected, 4])
   })
 })
 

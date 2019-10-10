@@ -305,17 +305,17 @@ describe('Call', () => {
         { type: 'tts', params: { text: 'hello jest' } }
       ]
 
-      const getMsg = (...play: (IRelayCallingPlay | ICallingPlay)[]) => new Execute({
-        protocol: 'signalwire_service_random_uuid',
-        method: 'calling.play',
-        params: { node_id: call.nodeId, call_id: call.id, control_id: 'mocked-uuid', play }
-      })
+      const getMsg = (play: (ICallingPlay | IRelayCallingPlay)[], volume = 0) => {
+        const params: any = { node_id: call.nodeId, call_id: call.id, control_id: 'mocked-uuid', play }
+        if (volume !== 0) params.volume = volume
+        return new Execute({ protocol: 'signalwire_service_random_uuid', method: 'calling.play', params })
+      }
 
       it('.play() should wait until the playing ends', done => {
         call.play(...media).then(result => {
           expect(result).toBeInstanceOf(PlayResult)
           expect(result.successful).toBe(true)
-          expect(Connection.mockSend).nthCalledWith(1, getMsg(...media))
+          expect(Connection.mockSend).nthCalledWith(1, getMsg(media))
           done()
         })
         session.calling.notificationHandler(_playNotification)
@@ -325,7 +325,29 @@ describe('Call', () => {
         const action = await call.playAsync(...media)
         expect(action).toBeInstanceOf(PlayAction)
         expect(action.completed).toBe(false)
-        expect(Connection.mockSend).nthCalledWith(1, getMsg(...media))
+        expect(Connection.mockSend).nthCalledWith(1, getMsg(media))
+        session.calling.notificationHandler(_playNotification)
+        expect(action.completed).toBe(true)
+        done()
+      })
+
+      it('.play() with the new signature should wait until the playing ends', done => {
+        const params = { media, volume: 6.3 }
+        call.play(params).then(result => {
+          expect(result).toBeInstanceOf(PlayResult)
+          expect(result.successful).toBe(true)
+          expect(Connection.mockSend).nthCalledWith(1, getMsg(media, 6.3))
+          done()
+        })
+        session.calling.notificationHandler(_playNotification)
+      })
+
+      it('.playAsync() with the new signature should return a PlayAction for async control', async done => {
+        const params = { media, volume: 6.3 }
+        const action = await call.playAsync(params)
+        expect(action).toBeInstanceOf(PlayAction)
+        expect(action.completed).toBe(false)
+        expect(Connection.mockSend).nthCalledWith(1, getMsg(media, 6.3))
         session.calling.notificationHandler(_playNotification)
         expect(action.completed).toBe(true)
         done()
@@ -335,7 +357,7 @@ describe('Call', () => {
         call.playAudio('audio.mp3').then(result => {
           expect(result).toBeInstanceOf(PlayResult)
           expect(result.successful).toBe(true)
-          expect(Connection.mockSend).nthCalledWith(1, getMsg(media[0]))
+          expect(Connection.mockSend).nthCalledWith(1, getMsg([media[0]]))
           done()
         })
         session.calling.notificationHandler(_playNotification)
@@ -345,7 +367,27 @@ describe('Call', () => {
         const action = await call.playAudioAsync('audio.mp3')
         expect(action).toBeInstanceOf(PlayAction)
         expect(action.completed).toBe(false)
-        expect(Connection.mockSend).nthCalledWith(1, getMsg(media[0]))
+        expect(Connection.mockSend).nthCalledWith(1, getMsg([media[0]]))
+        session.calling.notificationHandler(_playNotification)
+        expect(action.completed).toBe(true)
+        done()
+      })
+
+      it('.playAudio() with volume should wait until the playing ends', done => {
+        call.playAudio('audio.mp3', 5).then(result => {
+          expect(result).toBeInstanceOf(PlayResult)
+          expect(result.successful).toBe(true)
+          expect(Connection.mockSend).nthCalledWith(1, getMsg([media[0]], 5))
+          done()
+        })
+        session.calling.notificationHandler(_playNotification)
+      })
+
+      it('.playAudioAsync() with volume should return a PlayAction for async control', async done => {
+        const action = await call.playAudioAsync('audio.mp3', 5)
+        expect(action).toBeInstanceOf(PlayAction)
+        expect(action.completed).toBe(false)
+        expect(Connection.mockSend).nthCalledWith(1, getMsg([media[0]], 5))
         session.calling.notificationHandler(_playNotification)
         expect(action.completed).toBe(true)
         done()
@@ -355,7 +397,7 @@ describe('Call', () => {
         call.playTTS({ text: 'hello jest' }).then(result => {
           expect(result).toBeInstanceOf(PlayResult)
           expect(result.successful).toBe(true)
-          expect(Connection.mockSend).nthCalledWith(1, getMsg(media[1]))
+          expect(Connection.mockSend).nthCalledWith(1, getMsg([media[1]]))
           done()
         })
         session.calling.notificationHandler(_playNotification)
@@ -365,7 +407,27 @@ describe('Call', () => {
         const action = await call.playTTSAsync({ text: 'hello jest' })
         expect(action).toBeInstanceOf(PlayAction)
         expect(action.completed).toBe(false)
-        expect(Connection.mockSend).nthCalledWith(1, getMsg(media[1]))
+        expect(Connection.mockSend).nthCalledWith(1, getMsg([media[1]]))
+        session.calling.notificationHandler(_playNotification)
+        expect(action.completed).toBe(true)
+        done()
+      })
+
+      it('.playTTS() with volume should wait until the playing ends', done => {
+        call.playTTS({ text: 'hello jest', volume: 4 }).then(result => {
+          expect(result).toBeInstanceOf(PlayResult)
+          expect(result.successful).toBe(true)
+          expect(Connection.mockSend).nthCalledWith(1, getMsg([media[1]], 4))
+          done()
+        })
+        session.calling.notificationHandler(_playNotification)
+      })
+
+      it('.playTTSAsync() with volume should return a PlayAction for async control', async done => {
+        const action = await call.playTTSAsync({ text: 'hello jest', volume: 4 })
+        expect(action).toBeInstanceOf(PlayAction)
+        expect(action.completed).toBe(false)
+        expect(Connection.mockSend).nthCalledWith(1, getMsg([media[1]], 4))
         session.calling.notificationHandler(_playNotification)
         expect(action.completed).toBe(true)
         done()
@@ -375,7 +437,7 @@ describe('Call', () => {
         call.playSilence(5).then(result => {
           expect(result).toBeInstanceOf(PlayResult)
           expect(result.successful).toBe(true)
-          expect(Connection.mockSend).nthCalledWith(1, getMsg({ type: 'silence', params: { duration: 5 } }))
+          expect(Connection.mockSend).nthCalledWith(1, getMsg([{ type: 'silence', params: { duration: 5 } }]))
           done()
         })
         session.calling.notificationHandler(_playNotification)
@@ -385,7 +447,7 @@ describe('Call', () => {
         const action = await call.playSilenceAsync(5)
         expect(action).toBeInstanceOf(PlayAction)
         expect(action.completed).toBe(false)
-        expect(Connection.mockSend).nthCalledWith(1, getMsg({ type: 'silence', params: { duration: 5 } }))
+        expect(Connection.mockSend).nthCalledWith(1, getMsg([{ type: 'silence', params: { duration: 5 } }]))
         session.calling.notificationHandler(_playNotification)
         expect(action.completed).toBe(true)
         done()

@@ -1,4 +1,4 @@
-import { ICallDevice, IMakeCallParams, DeepArray, ICallingRecord, IRelayCallingRecord, IRelayCallingPlay, ICallingPlay, ICallingCollect, IRelayCallingCollect, ICallingCollectAudio, ICallingPlayTTS, ICallingCollectTTS, ICallingDetect, IRelayCallingDetect, ICallingTapTap, ICallingTapFlat, IRelayCallingTapTap, IRelayCallingTapDevice, ICallingTapDevice } from '../util/interfaces'
+import { ICallDevice, IMakeCallParams, DeepArray, ICallingRecord, IRelayCallingRecord, IRelayCallingPlay, ICallingPlay, ICallingPlayParams, ICallingCollect, IRelayCallingCollect, ICallingCollectAudio, ICallingPlayTTS, ICallingCollectTTS, ICallingDetect, IRelayCallingDetect, ICallingTapTap, ICallingTapFlat, IRelayCallingTapTap, IRelayCallingTapDevice, ICallingTapDevice } from '../util/interfaces'
 import { CallPlayType, CallDetectState, CallDetectType } from '../util/constants/relay'
 import { deepCopy, objEmpty } from '../util/helpers'
 
@@ -34,7 +34,19 @@ export const prepareRecordParams = (params: ICallingRecord): IRelayCallingRecord
   return { audio: { ...audio, ...flattenedParams } }
 }
 
-export const preparePlayParams = (mediaList: (ICallingPlay | IRelayCallingPlay)[]): IRelayCallingPlay[] => {
+export const preparePlayParams = (params: [ICallingPlayParams] | (ICallingPlay | IRelayCallingPlay)[]): [IRelayCallingPlay[], number] => {
+  let mediaList: (IRelayCallingPlay | ICallingPlay)[] = []
+  let volume = 0
+  if (params.length === 1 && _isICallingPlayParams(params[0])) {
+    mediaList = params[0].media
+    volume = params[0].volume || 0
+  } else {
+    params.forEach(p => {
+      if (!_isICallingPlayParams(p)) {
+        mediaList.push(p)
+      }
+    })
+  }
   const play = []
   mediaList.forEach(media => {
     if ('params' in media) {
@@ -45,7 +57,7 @@ export const preparePlayParams = (mediaList: (ICallingPlay | IRelayCallingPlay)[
       play.push({ type, params })
     }
   })
-  return play
+  return [play, volume]
 }
 
 export const preparePromptParams = (params: ICallingCollect, mediaList: (ICallingPlay | IRelayCallingPlay)[] = []): [IRelayCallingCollect, IRelayCallingPlay[]] => {
@@ -75,8 +87,8 @@ export const preparePromptParams = (params: ICallingCollect, mediaList: (ICallin
   if (!objEmpty(speech) || (type === 'speech' || type === 'both')) {
     collect.speech = speech
   }
-
-  return [collect, preparePlayParams(media)]
+  const [play, volume] = preparePlayParams(media)
+  return [collect, play]
 }
 
 export const preparePromptAudioParams = (params: ICallingCollectAudio, urlDeprecated: string = ''): IRelayCallingCollect => {
@@ -141,4 +153,8 @@ export const prepareTapParams = (params: ICallingTapTap | ICallingTapFlat, devic
   newDevice.params = deviceParams
 
   return { tap, device: newDevice }
+}
+
+const _isICallingPlayParams = (params: ICallingPlayParams | IRelayCallingPlay | ICallingPlay): params is ICallingPlayParams => {
+  return (params as ICallingPlayParams).media !== undefined
 }

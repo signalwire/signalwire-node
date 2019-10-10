@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from 'uuid'
 import logger from '../../util/logger'
 import { Execute } from '../../messages/Blade'
 import { CallState, DisconnectReason, DEFAULT_CALL_TIMEOUT, CallNotification, CallRecordState, CallPlayState, CallPlayType, CallPromptState, CallConnectState, CALL_STATES, CallFaxState, CallDetectState, CallDetectType, CallTapState, SendDigitsState } from '../../util/constants/relay'
-import { ICall, ICallOptions, ICallDevice, IMakeCallParams, ICallingPlay, ICallingCollect, DeepArray, ICallingDetect, ICallingTapTap, ICallingTapDevice, ICallingRecord, IRelayCallingPlay, ICallingPlayTTS, ICallingCollectAudio, ICallingCollectTTS, ICallingTapFlat } from '../../util/interfaces'
+import { ICall, ICallOptions, ICallDevice, IMakeCallParams, ICallingPlay, ICallingPlayParams, ICallingCollect, DeepArray, ICallingDetect, ICallingTapTap, ICallingTapDevice, ICallingRecord, IRelayCallingPlay, ICallingPlayTTS, ICallingCollectAudio, ICallingCollectTTS, ICallingTapFlat } from '../../util/interfaces'
 import { reduceConnectParams, prepareRecordParams, preparePlayParams, preparePromptParams, preparePromptAudioParams, preparePromptTTSParams, prepareTapParams } from '../helpers'
 import Calling from './Calling'
 import { isFunction } from '../../util/helpers'
@@ -136,28 +136,34 @@ export default class Call implements ICall {
     return new RecordAction(component)
   }
 
-  async play(...play: (IRelayCallingPlay | ICallingPlay)[]): Promise<PlayResult> {
-    const component = new Play(this, preparePlayParams(play))
+  async play(params: ICallingPlayParams | any): Promise<PlayResult>
+  async play(...params: (IRelayCallingPlay | ICallingPlay)[]): Promise<PlayResult> {
+    const [play, volume] = preparePlayParams(params)
+    const component = new Play(this, play, volume)
     this._addComponent(component)
     await component._waitFor(CallPlayState.Error, CallPlayState.Finished)
 
     return new PlayResult(component)
   }
 
-  async playAsync(...play: (IRelayCallingPlay | ICallingPlay)[]): Promise<PlayAction> {
-    const component = new Play(this, preparePlayParams(play))
+  async playAsync(params: ICallingPlayParams | any): Promise<PlayAction>
+  async playAsync(...params: (IRelayCallingPlay | ICallingPlay)[]): Promise<PlayAction> {
+    const [play, volume] = preparePlayParams(params)
+    const component = new Play(this, play, volume)
     this._addComponent(component)
     await component.execute()
 
     return new PlayAction(component)
   }
 
-  playAudio(url: string): Promise<PlayResult> {
-    return this.play({ type: CallPlayType.Audio, params: { url } })
+  playAudio(url: string, volume: number = 0): Promise<PlayResult> {
+    const media = [{ type: CallPlayType.Audio, params: { url } }]
+    return this.play({ media, volume })
   }
 
-  playAudioAsync(url: string): Promise<PlayAction> {
-    return this.playAsync({ type: CallPlayType.Audio, params: { url } })
+  playAudioAsync(url: string, volume: number = 0): Promise<PlayAction> {
+    const media = [{ type: CallPlayType.Audio, params: { url } }]
+    return this.playAsync({ media, volume })
   }
 
   playSilence(duration: number): Promise<PlayResult> {
@@ -169,11 +175,17 @@ export default class Call implements ICall {
   }
 
   playTTS(params: ICallingPlayTTS): Promise<PlayResult> {
-    return this.play({ type: CallPlayType.TTS, params })
+    const { volume = 0 } = params
+    delete params.volume
+    const media = [{ type: CallPlayType.TTS, params }]
+    return this.play({ media, volume })
   }
 
   playTTSAsync(params: ICallingPlayTTS): Promise<PlayAction> {
-    return this.playAsync({ type: CallPlayType.TTS, params })
+    const { volume = 0 } = params
+    delete params.volume
+    const media = [{ type: CallPlayType.TTS, params }]
+    return this.playAsync({ media, volume })
   }
 
   async prompt(params: ICallingCollect, ...mediaList: (IRelayCallingPlay | ICallingPlay)[]): Promise<PromptResult> {

@@ -136,8 +136,7 @@ export default class Call implements ICall {
     return new RecordAction(component)
   }
 
-  async play(params: ICallingPlayParams | any): Promise<PlayResult>
-  async play(...params: (IRelayCallingPlay | ICallingPlay)[]): Promise<PlayResult> {
+  async play(...params: [ICallingPlayParams] | (IRelayCallingPlay | ICallingPlay)[]): Promise<PlayResult> {
     const [play, volume] = preparePlayParams(params)
     const component = new Play(this, play, volume)
     this._addComponent(component)
@@ -146,8 +145,7 @@ export default class Call implements ICall {
     return new PlayResult(component)
   }
 
-  async playAsync(params: ICallingPlayParams | any): Promise<PlayAction>
-  async playAsync(...params: (IRelayCallingPlay | ICallingPlay)[]): Promise<PlayAction> {
+  async playAsync(...params: [ICallingPlayParams] | (IRelayCallingPlay | ICallingPlay)[]): Promise<PlayAction> {
     const [play, volume] = preparePlayParams(params)
     const component = new Play(this, play, volume)
     this._addComponent(component)

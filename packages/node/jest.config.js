@@ -1,11 +1,6 @@
 module.exports = {
   moduleFileExtensions: [ 'ts', 'js' ],
   rootDir: '../',
-  globals: {
-    'ts-jest': {
-      diagnostics: false
-    }
-  },
   coverageDirectory: '<rootDir>/node/coverage',
   testPathIgnorePatterns: [
     '/node_modules/',

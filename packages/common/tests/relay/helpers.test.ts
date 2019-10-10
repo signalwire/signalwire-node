@@ -1,5 +1,5 @@
 import { reduceConnectParams, prepareRecordParams, preparePlayParams, preparePromptParams, preparePromptAudioParams, preparePromptTTSParams, prepareTapParams } from '../../src/relay/helpers'
-import { ICallDevice, ICallingTapTap, ICallingTapDevice, ICallingTapFlat } from '../../src/util/interfaces'
+import { ICallDevice, ICallingTapTap, ICallingTapDevice, ICallingTapFlat, ICallingPlayParams } from '../../src/util/interfaces'
 
 describe('reduceConnectParams()', () => {
   const from_number = '+18992222222'
@@ -230,7 +230,7 @@ describe('preparePlayParams()', () => {
       { type: 'audio', params: { url: 'audio.mp3' } },
       { type: 'tts', params: { text: 'welcome', gender: 'male' } }
     ]
-    const input = [{
+    const input: [ICallingPlayParams] = [{
       media: [
         { type: 'audio', params: { url: 'audio.mp3' } },
         { type: 'tts', text: 'welcome', gender: 'male' }

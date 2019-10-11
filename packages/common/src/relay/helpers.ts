@@ -61,8 +61,10 @@ export const preparePlayParams = (params: [ICallingPlayParams] | (ICallingPlay |
 }
 
 export const preparePlayAudioParams = (params: string | { url: string, volume?: number }): [string, number] => {
-  const url = params instanceof Object ? params.url : params
-  const volume = params instanceof Object ? (params.volume || 0) : 0
+  if (typeof(params) === 'string') {
+    return [params, 0]
+  }
+  const { url, volume = 0 } = params
   return [url, volume]
 }
 

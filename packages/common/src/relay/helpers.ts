@@ -60,6 +60,12 @@ export const preparePlayParams = (params: [ICallingPlayParams] | (ICallingPlay |
   return [play, volume]
 }
 
+export const preparePlayAudioParams = (params: string | { url: string, volume?: number }): [string, number] => {
+  const url = params instanceof Object ? params.url : params
+  const volume = params instanceof Object ? (params.volume || 0) : 0
+  return [url, volume]
+}
+
 export const preparePromptParams = (params: ICallingCollect, mediaList: (ICallingPlay | IRelayCallingPlay)[] = []): [IRelayCallingCollect, IRelayCallingPlay[], number] => {
   const collect: IRelayCallingCollect = {}
   const { initial_timeout, partial_results, type, media = mediaList, volume = 0 } = params

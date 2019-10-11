@@ -374,7 +374,7 @@ describe('Call', () => {
       })
 
       it('.playAudio() with volume should wait until the playing ends', done => {
-        call.playAudio('audio.mp3', 5).then(result => {
+        call.playAudio({ url: 'audio.mp3', volume: 5 }).then(result => {
           expect(result).toBeInstanceOf(PlayResult)
           expect(result.successful).toBe(true)
           expect(Connection.mockSend).nthCalledWith(1, getMsg([media[0]], 5))
@@ -384,7 +384,7 @@ describe('Call', () => {
       })
 
       it('.playAudioAsync() with volume should return a PlayAction for async control', async done => {
-        const action = await call.playAudioAsync('audio.mp3', 5)
+        const action = await call.playAudioAsync({ url: 'audio.mp3', volume: 5 })
         expect(action).toBeInstanceOf(PlayAction)
         expect(action.completed).toBe(false)
         expect(Connection.mockSend).nthCalledWith(1, getMsg([media[0]], 5))

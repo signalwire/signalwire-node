@@ -3,7 +3,7 @@ import logger from '../../util/logger'
 import { Execute } from '../../messages/Blade'
 import { CallState, DisconnectReason, DEFAULT_CALL_TIMEOUT, CallNotification, CallRecordState, CallPlayState, CallPlayType, CallPromptState, CallConnectState, CALL_STATES, CallFaxState, CallDetectState, CallDetectType, CallTapState, SendDigitsState } from '../../util/constants/relay'
 import { ICall, ICallOptions, ICallDevice, IMakeCallParams, ICallingPlay, ICallingPlayParams, ICallingCollect, DeepArray, ICallingDetect, ICallingTapTap, ICallingTapDevice, ICallingRecord, IRelayCallingPlay, ICallingPlayTTS, ICallingCollectAudio, ICallingCollectTTS, ICallingTapFlat } from '../../util/interfaces'
-import { reduceConnectParams, prepareRecordParams, preparePlayParams, preparePromptParams, preparePromptAudioParams, preparePromptTTSParams, prepareTapParams } from '../helpers'
+import { reduceConnectParams, prepareRecordParams, preparePlayParams, preparePlayAudioParams, preparePromptParams, preparePromptAudioParams, preparePromptTTSParams, prepareTapParams } from '../helpers'
 import Calling from './Calling'
 import { isFunction } from '../../util/helpers'
 import { Answer, Await, BaseComponent, Connect, Detect, Dial, FaxReceive, FaxSend, Hangup, Play, Prompt, Record, SendDigits, Tap } from './components'
@@ -154,12 +154,14 @@ export default class Call implements ICall {
     return new PlayAction(component)
   }
 
-  playAudio(url: string, volume: number = 0): Promise<PlayResult> {
+  playAudio(params: string | { url: string, volume?: number }): Promise<PlayResult> {
+    const [url, volume] = preparePlayAudioParams(params)
     const media = [{ type: CallPlayType.Audio, params: { url } }]
     return this.play({ media, volume })
   }
 
-  playAudioAsync(url: string, volume: number = 0): Promise<PlayAction> {
+  playAudioAsync(params: string | { url: string, volume?: number }): Promise<PlayAction> {
+    const [url, volume] = preparePlayAudioParams(params)
     const media = [{ type: CallPlayType.Audio, params: { url } }]
     return this.playAsync({ media, volume })
   }

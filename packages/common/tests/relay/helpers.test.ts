@@ -1,4 +1,4 @@
-import { reduceConnectParams, prepareRecordParams, preparePlayParams, preparePromptParams, preparePromptAudioParams, preparePromptTTSParams, prepareTapParams } from '../../src/relay/helpers'
+import { reduceConnectParams, prepareRecordParams, preparePlayParams, preparePlayAudioParams, preparePromptParams, preparePromptAudioParams, preparePromptTTSParams, prepareTapParams } from '../../src/relay/helpers'
 import { ICallDevice, ICallingTapTap, ICallingTapDevice, ICallingTapFlat, ICallingPlayParams } from '../../src/util/interfaces'
 
 describe('reduceConnectParams()', () => {
@@ -238,6 +238,13 @@ describe('preparePlayParams()', () => {
       volume: 4
     }]
     expect(preparePlayParams(input)).toEqual([expected, 4])
+  })
+})
+
+describe('preparePlayAudioParams()', () => {
+  it('should handle string or object', () => {
+    expect(preparePlayAudioParams('audio.mp3')).toEqual(['audio.mp3', 0])
+    expect(preparePlayAudioParams({ url: 'audio.mp3', volume: 6.5 })).toEqual(['audio.mp3', 6.5])
   })
 })
 

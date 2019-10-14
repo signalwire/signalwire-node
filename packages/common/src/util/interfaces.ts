@@ -267,10 +267,16 @@ export interface ICallingPlay extends IRelayCallingPlayParams {
   type: string
 }
 
+export interface ICallingPlayParams {
+  media: (IRelayCallingPlay | ICallingPlay)[]
+  volume?: number
+}
+
 export interface ICallingPlayTTS {
   text: string
   language?: string
   gender?: string
+  volume?: number
 }
 
 export interface IRelayCallingCollect {
@@ -298,6 +304,7 @@ export interface ICallingCollect extends IRelayCallingCollect {
   speech_timeout?: number
   speech_language?: string
   speech_hints?: string[]
+  volume?: number
   media?: (IRelayCallingPlay | ICallingPlay)[]
 }
 

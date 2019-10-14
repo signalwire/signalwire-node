@@ -29,3 +29,11 @@ export class PlayPauseResult {
 export class PlayResumeResult {
   constructor(public successful: boolean) { }
 }
+
+export class PlayVolumeResult {
+  constructor(public successful: boolean) { }
+}
+
+export class PromptVolumeResult {
+  constructor(public successful: boolean) { }
+}

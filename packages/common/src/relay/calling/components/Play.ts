@@ -8,7 +8,7 @@ export class Play extends Controllable {
   public eventType: string = CallNotification.Play
   public controlId: string = this.controlId
 
-  constructor(public call: Call, public play: IRelayCallingPlay[]) {
+  constructor(public call: Call, public play: IRelayCallingPlay[], public volumeValue: number = 0) {
     super(call)
   }
 
@@ -17,12 +17,16 @@ export class Play extends Controllable {
   }
 
   get payload(): any {
-    return {
+    const tmp: any = {
       node_id: this.call.nodeId,
       call_id: this.call.id,
       control_id: this.controlId,
       play: this.play
     }
+    if (this.volumeValue != 0) {
+      tmp.volume = +this.volumeValue
+    }
+    return tmp
   }
 
   notificationHandler(params: any): void {

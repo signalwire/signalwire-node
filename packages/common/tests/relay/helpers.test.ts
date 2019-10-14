@@ -1,5 +1,5 @@
-import { reduceConnectParams, prepareRecordParams, preparePlayParams, preparePromptParams, preparePromptAudioParams, preparePromptTTSParams, prepareTapParams } from '../../src/relay/helpers'
-import { ICallDevice, ICallingTapTap, ICallingTapDevice, ICallingTapFlat } from '../../src/util/interfaces'
+import { reduceConnectParams, prepareRecordParams, preparePlayParams, preparePlayAudioParams, preparePromptParams, preparePromptAudioParams, preparePromptTTSParams, prepareTapParams } from '../../src/relay/helpers'
+import { ICallDevice, ICallingTapTap, ICallingTapDevice, ICallingTapFlat, ICallingPlayParams } from '../../src/util/interfaces'
 
 describe('reduceConnectParams()', () => {
   const from_number = '+18992222222'
@@ -186,7 +186,7 @@ describe('prepareRecordParams()', () => {
 
 describe('preparePlayParams()', () => {
   it('should handle no parameters', () => {
-    expect(preparePlayParams([])).toEqual([])
+    expect(preparePlayParams([])).toEqual([[], 0])
   })
 
   it('should handle nested params', () => {
@@ -198,7 +198,7 @@ describe('preparePlayParams()', () => {
       { type: 'audio', params: { url: 'audio.mp3' } },
       { type: 'tts', params: { text: 'welcome' } }
     ]
-    expect(preparePlayParams(input)).toEqual(expected)
+    expect(preparePlayParams(input)).toEqual([expected, 0])
   })
 
   it('should handle the flattened params', () => {
@@ -210,7 +210,7 @@ describe('preparePlayParams()', () => {
       { type: 'audio', url: 'audio.mp3' },
       { type: 'tts', text: 'welcome', gender: 'male' }
     ]
-    expect(preparePlayParams(input)).toEqual(expected)
+    expect(preparePlayParams(input)).toEqual([expected, 0])
   })
 
   it('should handle mixed flattened and nested params', () => {
@@ -222,7 +222,29 @@ describe('preparePlayParams()', () => {
       { type: 'audio', params: { url: 'audio.mp3' } },
       { type: 'tts', text: 'welcome', gender: 'male' }
     ]
-    expect(preparePlayParams(input)).toEqual(expected)
+    expect(preparePlayParams(input)).toEqual([expected, 0])
+  })
+
+  it('should handle ICallingPlayParams with media and volume properties', () => {
+    const expected = [
+      { type: 'audio', params: { url: 'audio.mp3' } },
+      { type: 'tts', params: { text: 'welcome', gender: 'male' } }
+    ]
+    const input: [ICallingPlayParams] = [{
+      media: [
+        { type: 'audio', params: { url: 'audio.mp3' } },
+        { type: 'tts', text: 'welcome', gender: 'male' }
+      ],
+      volume: 4
+    }]
+    expect(preparePlayParams(input)).toEqual([expected, 4])
+  })
+})
+
+describe('preparePlayAudioParams()', () => {
+  it('should handle string or object', () => {
+    expect(preparePlayAudioParams('audio.mp3')).toEqual(['audio.mp3', 0])
+    expect(preparePlayAudioParams({ url: 'audio.mp3', volume: 6.5 })).toEqual(['audio.mp3', 6.5])
   })
 })
 
@@ -241,7 +263,7 @@ describe('preparePromptParams()', () => {
         { type: 'tts', text: 'hello', gender: 'male' }
       ]
     }
-    expect(preparePromptParams(params)).toEqual([collectExpected, playExpected])
+    expect(preparePromptParams(params)).toEqual([collectExpected, playExpected, 0])
   })
 
   it('should handle nested params', () => {
@@ -255,7 +277,7 @@ describe('preparePromptParams()', () => {
       { type: 'audio', params: { url: 'audio.mp3' } },
       { type: 'tts', params: { text: 'hello', gender: 'male' } }
     ]
-    expect(preparePromptParams(collectExpected, playExpected)).toEqual([collectExpected, playExpected])
+    expect(preparePromptParams(collectExpected, playExpected)).toEqual([collectExpected, playExpected, 0])
   })
 
   it('should handle nested params and flattened media', () => {
@@ -273,7 +295,7 @@ describe('preparePromptParams()', () => {
       { type: 'audio', url: 'audio.mp3' },
       { type: 'tts', text: 'hello', gender: 'male' }
     ]
-    expect(preparePromptParams(collectExpected, playFlat)).toEqual([collectExpected, playExpected])
+    expect(preparePromptParams(collectExpected, playFlat)).toEqual([collectExpected, playExpected, 0])
   })
 
   it('should handle flattened params', () => {
@@ -304,7 +326,7 @@ describe('preparePromptParams()', () => {
         { type: 'tts', text: 'hello', gender: 'male' }
       ]
     }
-    expect(preparePromptParams(params)).toEqual([collectExpected, playExpected])
+    expect(preparePromptParams(params)).toEqual([collectExpected, playExpected, 0])
   })
 
   it('should handle flattened params without media', () => {
@@ -316,7 +338,28 @@ describe('preparePromptParams()', () => {
     }
     const playExpected = []
     const params = { initial_timeout: 5, end_silence_timeout: 3 }
-    expect(preparePromptParams(params)).toEqual([collectExpected, playExpected])
+    expect(preparePromptParams(params)).toEqual([collectExpected, playExpected, 0])
+  })
+
+  it('should handle flattened params with volume property', () => {
+    const collectExpected = {
+      initial_timeout: 5,
+      speech: {
+        end_silence_timeout: 3
+      }
+    }
+    const playExpected = [
+      { type: 'audio', params: { url: 'audio.mp3' } }
+    ]
+    const params = {
+      volume: -6,
+      initial_timeout: 5,
+      end_silence_timeout: 3,
+      media: [
+        { type: 'audio', url: 'audio.mp3' }
+      ]
+    }
+    expect(preparePromptParams(params)).toEqual([collectExpected, playExpected, -6])
   })
 })
 

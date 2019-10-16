@@ -1,6 +1,6 @@
 {
   "name": "@signalwire/react-native",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "React-Native library for connecting to SignalWire.",
   "author": "SignalWire Team <open.source@signalwire.com>",
   "main": "dist/react-native/index.js",

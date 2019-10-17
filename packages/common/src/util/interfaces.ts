@@ -256,6 +256,7 @@ interface IRelayCallingPlayParams {
   language?: string
   gender?: string
   duration?: number
+  name?: string
 }
 
 export interface IRelayCallingPlay {
@@ -269,6 +270,12 @@ export interface ICallingPlay extends IRelayCallingPlayParams {
 
 export interface ICallingPlayParams {
   media: (IRelayCallingPlay | ICallingPlay)[]
+  volume?: number
+}
+
+export interface ICallingPlayRingtone {
+  name: string
+  duration: number
   volume?: number
 }
 

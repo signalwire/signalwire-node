@@ -433,6 +433,46 @@ describe('Call', () => {
         done()
       })
 
+      it('.playRingtone() should wait until the playing ends', done => {
+        call.playRingtone({ name: 'us', duration: 3.4 }).then(result => {
+          expect(result).toBeInstanceOf(PlayResult)
+          expect(result.successful).toBe(true)
+          expect(Connection.mockSend).nthCalledWith(1, getMsg([{ type: 'ringtone', params: { name: 'us', duration: 3.4 } }]))
+          done()
+        })
+        session.calling.notificationHandler(_playNotification)
+      })
+
+      it('.playRingtoneAsync() should return a PlayAction for async control', async done => {
+        const action = await call.playRingtoneAsync({ name: 'us', duration: 3.4 })
+        expect(action).toBeInstanceOf(PlayAction)
+        expect(action.completed).toBe(false)
+        expect(Connection.mockSend).nthCalledWith(1, getMsg([{ type: 'ringtone', params: { name: 'us', duration: 3.4 } }]))
+        session.calling.notificationHandler(_playNotification)
+        expect(action.completed).toBe(true)
+        done()
+      })
+
+      it('.playRingtone() with volume should wait until the playing ends', done => {
+        call.playRingtone({ name: 'us', duration: 3.4, volume: 4 }).then(result => {
+          expect(result).toBeInstanceOf(PlayResult)
+          expect(result.successful).toBe(true)
+          expect(Connection.mockSend).nthCalledWith(1, getMsg([{ type: 'ringtone', params: { name: 'us', duration: 3.4 } }], 4))
+          done()
+        })
+        session.calling.notificationHandler(_playNotification)
+      })
+
+      it('.playRingtoneAsync() with volume should return a PlayAction for async control', async done => {
+        const action = await call.playRingtoneAsync({ name: 'us', duration: 3.4, volume: 4 })
+        expect(action).toBeInstanceOf(PlayAction)
+        expect(action.completed).toBe(false)
+        expect(Connection.mockSend).nthCalledWith(1, getMsg([{ type: 'ringtone', params: { name: 'us', duration: 3.4 } }], 4))
+        session.calling.notificationHandler(_playNotification)
+        expect(action.completed).toBe(true)
+        done()
+      })
+
       it('.playSilence() should wait until the playing ends', done => {
         call.playSilence(5).then(result => {
           expect(result).toBeInstanceOf(PlayResult)

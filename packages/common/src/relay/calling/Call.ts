@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from 'uuid'
 import logger from '../../util/logger'
 import { Execute } from '../../messages/Blade'
 import { CallState, DisconnectReason, DEFAULT_CALL_TIMEOUT, CallNotification, CallRecordState, CallPlayState, CallPlayType, CallPromptState, CallConnectState, CALL_STATES, CallFaxState, CallDetectState, CallDetectType, CallTapState, SendDigitsState } from '../../util/constants/relay'
-import { ICall, ICallOptions, ICallDevice, IMakeCallParams, ICallingPlay, ICallingPlayParams, ICallingCollect, DeepArray, ICallingDetect, ICallingTapTap, ICallingTapDevice, ICallingRecord, IRelayCallingPlay, ICallingPlayTTS, ICallingCollectAudio, ICallingCollectTTS, ICallingTapFlat } from '../../util/interfaces'
+import { ICall, ICallOptions, ICallDevice, IMakeCallParams, ICallingPlay, ICallingPlayParams, ICallingCollect, DeepArray, ICallingDetect, ICallingTapTap, ICallingTapDevice, ICallingRecord, IRelayCallingPlay, ICallingPlayRingtone, ICallingPlayTTS, ICallingCollectAudio, ICallingCollectTTS, ICallingTapFlat } from '../../util/interfaces'
 import { reduceConnectParams, prepareRecordParams, preparePlayParams, preparePlayAudioParams, preparePromptParams, preparePromptAudioParams, preparePromptTTSParams, prepareTapParams } from '../helpers'
 import Calling from './Calling'
 import { isFunction } from '../../util/helpers'
@@ -172,6 +172,20 @@ export default class Call implements ICall {
 
   playSilenceAsync(duration: number): Promise<PlayAction> {
     return this.playAsync({ type: CallPlayType.Silence, params: { duration } })
+  }
+
+  playRingtone(params: ICallingPlayRingtone): Promise<PlayResult> {
+    const { volume = 0 } = params
+    delete params.volume
+    const media = [{ type: CallPlayType.Ringtone, params }]
+    return this.play({ media, volume })
+  }
+
+  playRingtoneAsync(params: ICallingPlayRingtone): Promise<PlayAction> {
+    const { volume = 0 } = params
+    delete params.volume
+    const media = [{ type: CallPlayType.Ringtone, params }]
+    return this.playAsync({ media, volume })
   }
 
   playTTS(params: ICallingPlayTTS): Promise<PlayResult> {

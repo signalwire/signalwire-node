@@ -78,11 +78,10 @@ export const preparePlayParams = (params: [ICallingPlayParams] | (ICallingPlay |
       }
     })
   }
-  const play = []
-  mediaList.forEach(media => {
-    play.push(_destructCallingPlay(media))
-  })
-  return [play, volume]
+  return [
+    mediaList.map(_destructCallingPlay),
+    volume
+  ]
 }
 
 export const preparePlayAudioParams = (params: string | { url: string, volume?: number }): [string, number] => {

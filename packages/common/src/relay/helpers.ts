@@ -1,10 +1,31 @@
-import { ICallDevice, IMakeCallParams, DeepArray, ICallingRecord, IRelayCallingRecord, IRelayCallingPlay, ICallingPlay, ICallingPlayParams, ICallingCollect, IRelayCallingCollect, ICallingCollectAudio, ICallingPlayTTS, ICallingCollectTTS, ICallingDetect, IRelayCallingDetect, ICallingTapTap, ICallingTapFlat, IRelayCallingTapTap, IRelayCallingTapDevice, ICallingTapDevice, ICallingCollectRingtone, ICallingPlayRingtone } from '../util/interfaces'
+import { ICallDevice, IMakeCallParams, DeepArray, ICallingRecord, IRelayCallingRecord, IRelayCallingPlay, ICallingPlay, ICallingPlayParams, ICallingCollect, IRelayCallingCollect, ICallingCollectAudio, ICallingPlayTTS, ICallingCollectTTS, ICallingDetect, IRelayCallingDetect, ICallingTapTap, ICallingTapFlat, IRelayCallingTapTap, IRelayCallingTapDevice, ICallingTapDevice, ICallingCollectRingtone, ICallingPlayRingtone, ICallingConnectParams } from '../util/interfaces'
 import { CallPlayType, CallDetectState, CallDetectType } from '../util/constants/relay'
 import { deepCopy, objEmpty } from '../util/helpers'
 
 interface DeviceAccumulator {
   devices: DeepArray<ICallDevice>,
   nested: boolean
+}
+
+export const prepareConnectParams = (params: [ICallingConnectParams] | DeepArray<IMakeCallParams>, callDevice: ICallDevice): [DeepArray<ICallDevice>, IRelayCallingPlay] => {
+  let devices: DeepArray<IMakeCallParams> = []
+  let ringback: IRelayCallingPlay = null
+  if (params.length === 1 && _isICallingConnectParams(params[0])) {
+    devices = params[0].devices
+    if (params[0].ringback) {
+      ringback = _destructCallingPlay(params[0].ringback)
+    }
+  } else {
+    params.forEach(p => {
+      if (!_isICallingConnectParams(p)) {
+        devices.push(p)
+      }
+    })
+  }
+  return [
+    reduceConnectParams(devices, callDevice),
+    ringback
+  ]
 }
 
 export const reduceConnectParams = (peers: DeepArray<IMakeCallParams>, callDevice: ICallDevice): DeepArray<ICallDevice> => {
@@ -34,6 +55,16 @@ export const prepareRecordParams = (params: ICallingRecord): IRelayCallingRecord
   return { audio: { ...audio, ...flattenedParams } }
 }
 
+const _destructCallingPlay = (media: ICallingPlay | IRelayCallingPlay): IRelayCallingPlay => {
+  if ('params' in media) {
+    const { type, params = {}, ...flattenedParams } = media
+    return { type, params: { ...params, ...flattenedParams } }
+  } else {
+    const { type, ...params } = media
+    return { type, params }
+  }
+}
+
 export const preparePlayParams = (params: [ICallingPlayParams] | (ICallingPlay | IRelayCallingPlay)[]): [IRelayCallingPlay[], number] => {
   let mediaList: (IRelayCallingPlay | ICallingPlay)[] = []
   let volume = 0
@@ -49,13 +80,7 @@ export const preparePlayParams = (params: [ICallingPlayParams] | (ICallingPlay |
   }
   const play = []
   mediaList.forEach(media => {
-    if ('params' in media) {
-      const { type, params = {}, ...flattenedParams } = media
-      play.push({ type, params: { ...params, ...flattenedParams } })
-    } else {
-      const { type, ...params } = media
-      play.push({ type, params })
-    }
+    play.push(_destructCallingPlay(media))
   })
   return [play, volume]
 }
@@ -178,4 +203,8 @@ export const prepareTapParams = (params: ICallingTapTap | ICallingTapFlat, devic
 
 const _isICallingPlayParams = (params: ICallingPlayParams | IRelayCallingPlay | ICallingPlay): params is ICallingPlayParams => {
   return (params as ICallingPlayParams).media !== undefined
+}
+
+const _isICallingConnectParams = (params: ICallingConnectParams | DeepArray<IMakeCallParams> | IMakeCallParams): params is ICallingConnectParams => {
+  return (params as ICallingConnectParams).devices !== undefined
 }

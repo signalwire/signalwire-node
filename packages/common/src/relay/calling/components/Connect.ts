@@ -1,5 +1,5 @@
 import { BaseComponent } from './BaseComponent'
-import { DeepArray, ICallDevice } from '../../../util/interfaces'
+import { DeepArray, ICallDevice, IRelayCallingPlay } from '../../../util/interfaces'
 import { CallNotification, CallConnectState } from '../../../util/constants/relay'
 import Call from '../Call'
 import Event from '../Event'
@@ -8,7 +8,11 @@ export class Connect extends BaseComponent {
   public eventType: string = CallNotification.Connect
   public controlId: string = this.call.tag
 
-  constructor(public call: Call, public devices: DeepArray<ICallDevice>) {
+  constructor(
+    public call: Call,
+    public devices: DeepArray<ICallDevice>,
+    public ringback?: IRelayCallingPlay
+  ) {
     super(call)
   }
 
@@ -17,11 +21,15 @@ export class Connect extends BaseComponent {
   }
 
   get payload(): any {
-    return {
+    const tmp: any = {
       node_id: this.call.nodeId,
       call_id: this.call.id,
       devices: this.devices
     }
+    if (this.ringback) {
+      tmp.ringback = this.ringback
+    }
+    return tmp
   }
 
   notificationHandler(params: any): void {

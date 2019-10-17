@@ -222,7 +222,7 @@ describe('Call', () => {
         { type: 'phone', to: '999', from: '231', timeout: 10 },
         { type: 'phone', to: '888', from: '234', timeout: 20 }
       ]
-      const getMsg = (serial: boolean) => {
+      const getMsg = (serial: boolean, ringback: any = null) => {
         let devices = []
         if (serial) {
           devices = [
@@ -237,11 +237,11 @@ describe('Call', () => {
             ]
           ]
         }
-        return new Execute({
-          protocol: 'signalwire_service_random_uuid',
-          method: 'calling.connect',
-          params: { node_id: call.nodeId, call_id: call.id, devices }
-        })
+        const params: any = { node_id: call.nodeId, call_id: call.id, devices }
+        if (ringback) {
+          params.ringback = ringback
+        }
+        return new Execute({ protocol: 'signalwire_service_random_uuid', method: 'calling.connect', params })
       }
 
       it('.connect() in serial should wait until the call is connected', done => {
@@ -257,6 +257,21 @@ describe('Call', () => {
         session.calling.notificationHandler(_connectNotification)
       })
 
+      it('.connect() in serial - with ringback - should wait until the call is connected', done => {
+        const ringback = { type: 'ringtone', name: 'at', duration: 20 }
+        const relayMedia = { type: 'ringtone', params: { name: 'at', duration: 20 } }
+        call.connect({ devices: _tmpDevices, ringback }).then(result => {
+          expect(result).toBeInstanceOf(ConnectResult)
+          expect(result.successful).toBe(true)
+          expect(result.call).toBe(call.peer)
+          expect(result.call.id).toEqual('peer-call-id')
+          expect(Connection.mockSend).nthCalledWith(1, getMsg(true, relayMedia))
+          done()
+        })
+        session.calling.notificationHandler(_connectNotificationPeerCreated)
+        session.calling.notificationHandler(_connectNotification)
+      })
+
       it('.connect() in parallel should wait until the call is connected', done => {
         call.connect(_tmpDevices).then(result => {
           expect(result).toBeInstanceOf(ConnectResult)
@@ -264,6 +279,21 @@ describe('Call', () => {
           expect(result.call).toBe(call.peer)
           expect(result.call.id).toEqual('peer-call-id')
           expect(Connection.mockSend).nthCalledWith(1, getMsg(false))
+          done()
+        })
+        session.calling.notificationHandler(_connectNotificationPeerCreated)
+        session.calling.notificationHandler(_connectNotification)
+      })
+
+      it('.connect() in parallel - with ringback - should wait until the call is connected', done => {
+        const ringback = { type: 'ringtone', name: 'at', duration: 20 }
+        const relayMedia = { type: 'ringtone', params: { name: 'at', duration: 20 } }
+        call.connect({ devices: [_tmpDevices], ringback }).then(result => {
+          expect(result).toBeInstanceOf(ConnectResult)
+          expect(result.successful).toBe(true)
+          expect(result.call).toBe(call.peer)
+          expect(result.call.id).toEqual('peer-call-id')
+          expect(Connection.mockSend).nthCalledWith(1, getMsg(false, relayMedia))
           done()
         })
         session.calling.notificationHandler(_connectNotificationPeerCreated)
@@ -289,6 +319,21 @@ describe('Call', () => {
         expect(action).toBeInstanceOf(ConnectAction)
         expect(action.completed).toBe(false)
         expect(Connection.mockSend).nthCalledWith(1, getMsg(false))
+
+        session.calling.notificationHandler(_connectNotificationPeerCreated)
+        session.calling.notificationHandler(_connectNotification)
+        expect(action.result.call.id).toEqual('peer-call-id')
+        expect(action.completed).toBe(true)
+        done()
+      })
+
+      it('.connectAsync() in parallel - with ringback - should return a ConnectAction for async control', async done => {
+        const ringback = { type: 'ringtone', name: 'at', duration: 20 }
+        const relayMedia = { type: 'ringtone', params: { name: 'at', duration: 20 } }
+        const action = await call.connectAsync({ devices: [_tmpDevices], ringback })
+        expect(action).toBeInstanceOf(ConnectAction)
+        expect(action.completed).toBe(false)
+        expect(Connection.mockSend).nthCalledWith(1, getMsg(false, relayMedia))
 
         session.calling.notificationHandler(_connectNotificationPeerCreated)
         session.calling.notificationHandler(_connectNotification)

@@ -250,6 +250,11 @@ export interface ICallingRecord extends IRelayCallingRecordAudio {
   type?: 'audio'
 }
 
+export interface ICallingConnectParams {
+  devices: DeepArray<IMakeCallParams>
+  ringback?: ICallingPlay
+}
+
 interface IRelayCallingPlayParams {
   url?: string
   text?: string

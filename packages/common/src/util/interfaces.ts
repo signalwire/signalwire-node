@@ -275,7 +275,7 @@ export interface ICallingPlayParams {
 
 export interface ICallingPlayRingtone {
   name: string
-  duration: number
+  duration?: number
   volume?: number
 }
 
@@ -323,6 +323,11 @@ export interface ICallingCollectTTS extends ICallingCollect {
   text?: string // optional for backward compatibility
   language?: string
   gender?: string
+}
+
+export interface ICallingCollectRingtone extends ICallingCollect {
+  name: string
+  duration?: number
 }
 
 interface IRelayCallingDetectParams {

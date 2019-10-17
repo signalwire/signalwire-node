@@ -1,4 +1,4 @@
-import { ICallDevice, IMakeCallParams, DeepArray, ICallingRecord, IRelayCallingRecord, IRelayCallingPlay, ICallingPlay, ICallingPlayParams, ICallingCollect, IRelayCallingCollect, ICallingCollectAudio, ICallingPlayTTS, ICallingCollectTTS, ICallingDetect, IRelayCallingDetect, ICallingTapTap, ICallingTapFlat, IRelayCallingTapTap, IRelayCallingTapDevice, ICallingTapDevice } from '../util/interfaces'
+import { ICallDevice, IMakeCallParams, DeepArray, ICallingRecord, IRelayCallingRecord, IRelayCallingPlay, ICallingPlay, ICallingPlayParams, ICallingCollect, IRelayCallingCollect, ICallingCollectAudio, ICallingPlayTTS, ICallingCollectTTS, ICallingDetect, IRelayCallingDetect, ICallingTapTap, ICallingTapFlat, IRelayCallingTapTap, IRelayCallingTapDevice, ICallingTapDevice, ICallingCollectRingtone, ICallingPlayRingtone } from '../util/interfaces'
 import { CallPlayType, CallDetectState, CallDetectType } from '../util/constants/relay'
 import { deepCopy, objEmpty } from '../util/helpers'
 
@@ -121,6 +121,19 @@ export const preparePromptTTSParams = (params: ICallingCollectTTS, ttsOptions: I
   }
   flattenedParams.media = [
     { type: CallPlayType.TTS, params: ttsOptions }
+  ]
+
+  return flattenedParams
+}
+
+export const preparePromptRingtoneParams = (params: ICallingCollectRingtone): IRelayCallingCollect => {
+  const { name, duration, ...flattenedParams } = params
+  const mediaParams: ICallingPlayRingtone = { name }
+  if (duration) {
+    mediaParams.duration = duration
+  }
+  flattenedParams.media = [
+    { type: CallPlayType.Ringtone, params: mediaParams }
   ]
 
   return flattenedParams

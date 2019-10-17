@@ -8,6 +8,9 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - Add `url` property to `RecordAction`.
 - Add methods to `pause` and `resume` a PlayAction.
 - Ability to set volume playback on `play` and `prompt` methods, or through the asynchronous `PlayAction` and `PromptAction` objects.
+- Add `playRingtone` and `playRingtoneAsync` methods to simplify play a ringtone.
+- Add `promptRingtone` and `promptRingtoneAsync` methods to simplify play a ringtone.
+- Support `ringback` option on `connect` and `connectAsync` methods.
 
 ## [2.2.0] - 2019-09-09
 ### Fixed

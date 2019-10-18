@@ -250,12 +250,18 @@ export interface ICallingRecord extends IRelayCallingRecordAudio {
   type?: 'audio'
 }
 
+export interface ICallingConnectParams {
+  devices: DeepArray<IMakeCallParams>
+  ringback?: ICallingPlay
+}
+
 interface IRelayCallingPlayParams {
   url?: string
   text?: string
   language?: string
   gender?: string
   duration?: number
+  name?: string
 }
 
 export interface IRelayCallingPlay {
@@ -269,6 +275,12 @@ export interface ICallingPlay extends IRelayCallingPlayParams {
 
 export interface ICallingPlayParams {
   media: (IRelayCallingPlay | ICallingPlay)[]
+  volume?: number
+}
+
+export interface ICallingPlayRingtone {
+  name: string
+  duration?: number
   volume?: number
 }
 
@@ -316,6 +328,11 @@ export interface ICallingCollectTTS extends ICallingCollect {
   text?: string // optional for backward compatibility
   language?: string
   gender?: string
+}
+
+export interface ICallingCollectRingtone extends ICallingCollect {
+  name: string
+  duration?: number
 }
 
 interface IRelayCallingDetectParams {

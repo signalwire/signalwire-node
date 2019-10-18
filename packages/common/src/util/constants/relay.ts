@@ -67,6 +67,7 @@ export enum CallPlayType {
   Audio = 'audio',
   Silence = 'silence',
   TTS = 'tts',
+  Ringtone = 'ringtone',
 }
 
 export enum CallTapState {

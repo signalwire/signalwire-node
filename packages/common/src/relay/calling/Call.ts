@@ -2,8 +2,8 @@ import { v4 as uuidv4 } from 'uuid'
 import logger from '../../util/logger'
 import { Execute } from '../../messages/Blade'
 import { CallState, DisconnectReason, DEFAULT_CALL_TIMEOUT, CallNotification, CallRecordState, CallPlayState, CallPlayType, CallPromptState, CallConnectState, CALL_STATES, CallFaxState, CallDetectState, CallDetectType, CallTapState, SendDigitsState } from '../../util/constants/relay'
-import { ICall, ICallOptions, ICallDevice, IMakeCallParams, ICallingPlay, ICallingPlayParams, ICallingCollect, DeepArray, ICallingDetect, ICallingTapTap, ICallingTapDevice, ICallingRecord, IRelayCallingPlay, ICallingPlayTTS, ICallingCollectAudio, ICallingCollectTTS, ICallingTapFlat } from '../../util/interfaces'
-import { reduceConnectParams, prepareRecordParams, preparePlayParams, preparePlayAudioParams, preparePromptParams, preparePromptAudioParams, preparePromptTTSParams, prepareTapParams } from '../helpers'
+import { ICall, ICallOptions, ICallDevice, IMakeCallParams, ICallingPlay, ICallingPlayParams, ICallingCollect, DeepArray, ICallingDetect, ICallingTapTap, ICallingTapDevice, ICallingRecord, IRelayCallingPlay, ICallingPlayRingtone, ICallingPlayTTS, ICallingCollectAudio, ICallingCollectTTS, ICallingTapFlat, ICallingCollectRingtone, ICallingConnectParams } from '../../util/interfaces'
+import { reduceConnectParams, prepareRecordParams, preparePlayParams, preparePlayAudioParams, preparePromptParams, preparePromptAudioParams, preparePromptTTSParams, prepareTapParams, preparePromptRingtoneParams, prepareConnectParams } from '../helpers'
 import Calling from './Calling'
 import { isFunction } from '../../util/helpers'
 import { Answer, Await, BaseComponent, Connect, Detect, Dial, FaxReceive, FaxSend, Hangup, Play, Prompt, Record, SendDigits, Tap } from './components'
@@ -174,6 +174,20 @@ export default class Call implements ICall {
     return this.playAsync({ type: CallPlayType.Silence, params: { duration } })
   }
 
+  playRingtone(params: ICallingPlayRingtone): Promise<PlayResult> {
+    const { volume = 0 } = params
+    delete params.volume
+    const media = [{ type: CallPlayType.Ringtone, params }]
+    return this.play({ media, volume })
+  }
+
+  playRingtoneAsync(params: ICallingPlayRingtone): Promise<PlayAction> {
+    const { volume = 0 } = params
+    delete params.volume
+    const media = [{ type: CallPlayType.Ringtone, params }]
+    return this.playAsync({ media, volume })
+  }
+
   playTTS(params: ICallingPlayTTS): Promise<PlayResult> {
     const { volume = 0 } = params
     delete params.volume
@@ -216,6 +230,16 @@ export default class Call implements ICall {
     return this.promptAsync(collect)
   }
 
+  promptRingtone(params: ICallingCollectRingtone): Promise<PromptResult> {
+    const collect = preparePromptRingtoneParams(params)
+    return this.prompt(collect)
+  }
+
+  promptRingtoneAsync(params: ICallingCollectRingtone): Promise<PromptAction> {
+    const collect = preparePromptRingtoneParams(params)
+    return this.promptAsync(collect)
+  }
+
   promptTTS(params: ICallingCollectTTS, ttsOptions: ICallingPlayTTS = { text: '' }): Promise<PromptResult> {
     const collect = preparePromptTTSParams(params, ttsOptions)
     return this.prompt(collect)
@@ -226,18 +250,18 @@ export default class Call implements ICall {
     return this.promptAsync(collect)
   }
 
-  async connect(...peers: DeepArray<IMakeCallParams>): Promise<ConnectResult> {
-    const devices = reduceConnectParams(peers, this.device)
-    const component = new Connect(this, devices)
+  async connect(...params: [ICallingConnectParams] | DeepArray<IMakeCallParams>): Promise<ConnectResult> {
+    const [devices, ringback] = prepareConnectParams(params, this.device)
+    const component = new Connect(this, devices, ringback)
     this._addComponent(component)
     await component._waitFor(CallConnectState.Failed, CallConnectState.Connected)
 
     return new ConnectResult(component)
   }
 
-  async connectAsync(...peers: DeepArray<IMakeCallParams>): Promise<ConnectAction> {
-    const devices = reduceConnectParams(peers, this.device)
-    const component = new Connect(this, devices)
+  async connectAsync(...params: [ICallingConnectParams] | DeepArray<IMakeCallParams>): Promise<ConnectAction> {
+    const [devices, ringback] = prepareConnectParams(params, this.device)
+    const component = new Connect(this, devices, ringback)
     this._addComponent(component)
     await component.execute()
 

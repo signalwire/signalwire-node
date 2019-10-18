@@ -222,7 +222,7 @@ describe('Call', () => {
         { type: 'phone', to: '999', from: '231', timeout: 10 },
         { type: 'phone', to: '888', from: '234', timeout: 20 }
       ]
-      const getMsg = (serial: boolean) => {
+      const getMsg = (serial: boolean, ringback: any = null) => {
         let devices = []
         if (serial) {
           devices = [
@@ -237,11 +237,11 @@ describe('Call', () => {
             ]
           ]
         }
-        return new Execute({
-          protocol: 'signalwire_service_random_uuid',
-          method: 'calling.connect',
-          params: { node_id: call.nodeId, call_id: call.id, devices }
-        })
+        const params: any = { node_id: call.nodeId, call_id: call.id, devices }
+        if (ringback) {
+          params.ringback = ringback
+        }
+        return new Execute({ protocol: 'signalwire_service_random_uuid', method: 'calling.connect', params })
       }
 
       it('.connect() in serial should wait until the call is connected', done => {
@@ -257,6 +257,21 @@ describe('Call', () => {
         session.calling.notificationHandler(_connectNotification)
       })
 
+      it('.connect() in serial - with ringback - should wait until the call is connected', done => {
+        const ringback = { type: 'ringtone', name: 'at', duration: 20 }
+        const relayMedia = { type: 'ringtone', params: { name: 'at', duration: 20 } }
+        call.connect({ devices: _tmpDevices, ringback }).then(result => {
+          expect(result).toBeInstanceOf(ConnectResult)
+          expect(result.successful).toBe(true)
+          expect(result.call).toBe(call.peer)
+          expect(result.call.id).toEqual('peer-call-id')
+          expect(Connection.mockSend).nthCalledWith(1, getMsg(true, relayMedia))
+          done()
+        })
+        session.calling.notificationHandler(_connectNotificationPeerCreated)
+        session.calling.notificationHandler(_connectNotification)
+      })
+
       it('.connect() in parallel should wait until the call is connected', done => {
         call.connect(_tmpDevices).then(result => {
           expect(result).toBeInstanceOf(ConnectResult)
@@ -264,6 +279,21 @@ describe('Call', () => {
           expect(result.call).toBe(call.peer)
           expect(result.call.id).toEqual('peer-call-id')
           expect(Connection.mockSend).nthCalledWith(1, getMsg(false))
+          done()
+        })
+        session.calling.notificationHandler(_connectNotificationPeerCreated)
+        session.calling.notificationHandler(_connectNotification)
+      })
+
+      it('.connect() in parallel - with ringback - should wait until the call is connected', done => {
+        const ringback = { type: 'ringtone', name: 'at', duration: 20 }
+        const relayMedia = { type: 'ringtone', params: { name: 'at', duration: 20 } }
+        call.connect({ devices: [_tmpDevices], ringback }).then(result => {
+          expect(result).toBeInstanceOf(ConnectResult)
+          expect(result.successful).toBe(true)
+          expect(result.call).toBe(call.peer)
+          expect(result.call.id).toEqual('peer-call-id')
+          expect(Connection.mockSend).nthCalledWith(1, getMsg(false, relayMedia))
           done()
         })
         session.calling.notificationHandler(_connectNotificationPeerCreated)
@@ -289,6 +319,21 @@ describe('Call', () => {
         expect(action).toBeInstanceOf(ConnectAction)
         expect(action.completed).toBe(false)
         expect(Connection.mockSend).nthCalledWith(1, getMsg(false))
+
+        session.calling.notificationHandler(_connectNotificationPeerCreated)
+        session.calling.notificationHandler(_connectNotification)
+        expect(action.result.call.id).toEqual('peer-call-id')
+        expect(action.completed).toBe(true)
+        done()
+      })
+
+      it('.connectAsync() in parallel - with ringback - should return a ConnectAction for async control', async done => {
+        const ringback = { type: 'ringtone', name: 'at', duration: 20 }
+        const relayMedia = { type: 'ringtone', params: { name: 'at', duration: 20 } }
+        const action = await call.connectAsync({ devices: [_tmpDevices], ringback })
+        expect(action).toBeInstanceOf(ConnectAction)
+        expect(action.completed).toBe(false)
+        expect(Connection.mockSend).nthCalledWith(1, getMsg(false, relayMedia))
 
         session.calling.notificationHandler(_connectNotificationPeerCreated)
         session.calling.notificationHandler(_connectNotification)
@@ -433,6 +478,46 @@ describe('Call', () => {
         done()
       })
 
+      it('.playRingtone() should wait until the playing ends', done => {
+        call.playRingtone({ name: 'us', duration: 3.4 }).then(result => {
+          expect(result).toBeInstanceOf(PlayResult)
+          expect(result.successful).toBe(true)
+          expect(Connection.mockSend).nthCalledWith(1, getMsg([{ type: 'ringtone', params: { name: 'us', duration: 3.4 } }]))
+          done()
+        })
+        session.calling.notificationHandler(_playNotification)
+      })
+
+      it('.playRingtoneAsync() should return a PlayAction for async control', async done => {
+        const action = await call.playRingtoneAsync({ name: 'us', duration: 3.4 })
+        expect(action).toBeInstanceOf(PlayAction)
+        expect(action.completed).toBe(false)
+        expect(Connection.mockSend).nthCalledWith(1, getMsg([{ type: 'ringtone', params: { name: 'us', duration: 3.4 } }]))
+        session.calling.notificationHandler(_playNotification)
+        expect(action.completed).toBe(true)
+        done()
+      })
+
+      it('.playRingtone() with volume should wait until the playing ends', done => {
+        call.playRingtone({ name: 'us', duration: 3.4, volume: 4 }).then(result => {
+          expect(result).toBeInstanceOf(PlayResult)
+          expect(result.successful).toBe(true)
+          expect(Connection.mockSend).nthCalledWith(1, getMsg([{ type: 'ringtone', params: { name: 'us', duration: 3.4 } }], 4))
+          done()
+        })
+        session.calling.notificationHandler(_playNotification)
+      })
+
+      it('.playRingtoneAsync() with volume should return a PlayAction for async control', async done => {
+        const action = await call.playRingtoneAsync({ name: 'us', duration: 3.4, volume: 4 })
+        expect(action).toBeInstanceOf(PlayAction)
+        expect(action.completed).toBe(false)
+        expect(Connection.mockSend).nthCalledWith(1, getMsg([{ type: 'ringtone', params: { name: 'us', duration: 3.4 } }], 4))
+        session.calling.notificationHandler(_playNotification)
+        expect(action.completed).toBe(true)
+        done()
+      })
+
       it('.playSilence() should wait until the playing ends', done => {
         call.playSilence(5).then(result => {
           expect(result).toBeInstanceOf(PlayResult)
@@ -459,6 +544,7 @@ describe('Call', () => {
       const collect = { initial_timeout: 10, digits: { max: 5, terminators: '#', digit_timeout: 10 } }
       const audio = { type: 'audio', params: { url: 'audio.mp3' } }
       const tts = { type: 'tts', params: { text: 'hello jest' } }
+      const ringtone = { type: 'ringtone', params: { name: 'at' } }
 
       const getMsg = (media: ICallingPlay, volume: number = 0) => {
         const params: any = { node_id: call.nodeId, call_id: call.id, control_id: 'mocked-uuid', collect, play: [media] }
@@ -570,6 +656,44 @@ describe('Call', () => {
         expect(action).toBeInstanceOf(PromptAction)
         expect(action.completed).toBe(false)
         expect(Connection.mockSend).nthCalledWith(1, getMsg(tts))
+        session.calling.notificationHandler(_collectNotification)
+        expect(action.completed).toBe(true)
+        done()
+      })
+
+      it('.promptRingtone() should wait until the collect finished', done => {
+        const params = { name: 'at', initial_timeout: 10, digits_max: 5, digits_terminators: '#', digits_timeout: 10 }
+        call.promptRingtone(params).then(result => {
+          expect(result).toBeInstanceOf(PromptResult)
+          expect(result.successful).toBe(true)
+          expect(result.terminator).toEqual('#')
+          expect(result.result).toEqual('12345')
+          expect(Connection.mockSend).nthCalledWith(1, getMsg(ringtone))
+          done()
+        })
+        session.calling.notificationHandler(_collectNotification)
+      })
+
+      it('.promptRingtone() with volume should wait until the collect finished', done => {
+        const params = { name: 'at', duration: 4, volume: 6.7, initial_timeout: 10, digits_max: 5, digits_terminators: '#', digits_timeout: 10 }
+        call.promptRingtone(params).then(result => {
+          expect(result).toBeInstanceOf(PromptResult)
+          expect(result.successful).toBe(true)
+          expect(result.terminator).toEqual('#')
+          expect(result.result).toEqual('12345')
+          const ringtone = { type: 'ringtone', params: { name: 'at', duration: 4 } }
+          expect(Connection.mockSend).nthCalledWith(1, getMsg(ringtone, 6.7))
+          done()
+        })
+        session.calling.notificationHandler(_collectNotification)
+      })
+
+      it('.promptRingtoneAsync() should return a PromptAction for async control', async done => {
+        const params = { name: 'at', initial_timeout: 10, digits_max: 5, digits_terminators: '#', digits_timeout: 10 }
+        const action = await call.promptRingtoneAsync(params)
+        expect(action).toBeInstanceOf(PromptAction)
+        expect(action.completed).toBe(false)
+        expect(Connection.mockSend).nthCalledWith(1, getMsg(ringtone))
         session.calling.notificationHandler(_collectNotification)
         expect(action.completed).toBe(true)
         done()

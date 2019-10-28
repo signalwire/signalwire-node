@@ -24,6 +24,7 @@ export default abstract class BaseCall {
   public causeCode: number
   public channels: string[] = []
   public role: string = Role.Participant
+  public extension: string = null
 
   private _state: State = State.New
   private _prevState: State = State.New
@@ -260,6 +261,7 @@ export default abstract class BaseCall {
       case VertoMethod.Attach: {
         // TODO: manage caller_id_name, caller_id_number, callee_id_name, callee_id_number
         const { display_name: displayName, display_number: displayNumber, display_direction } = params
+        this.extension = displayNumber
         const displayDirection = display_direction === Direction.Inbound ? Direction.Outbound : Direction.Inbound
         const notification = { type: NOTIFICATION_TYPE[method], call: this, displayName, displayNumber, displayDirection }
         if (!trigger(SwEvent.Notification, notification, this.id)) {

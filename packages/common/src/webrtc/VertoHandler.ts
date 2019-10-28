@@ -136,6 +136,7 @@ class VertoHandler {
             if (id && session.calls.hasOwnProperty(id)) {
               const call = session.calls[id]
               call._addChannel(laChannel)
+              call.extension = laName
               call.handleConferenceUpdate(packet, pvtData)
                 .then(error => {
                   if (error === 'INVALID_PACKET') {

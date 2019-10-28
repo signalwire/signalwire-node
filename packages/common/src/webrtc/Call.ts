@@ -25,11 +25,11 @@ export default class Call extends BaseCall {
         }
       })
     })
-    const { destinationNumber, remoteCallerName, remoteCallerNumber, callerName, callerNumber } = this.options
+    const { remoteCallerName, remoteCallerNumber, callerName, callerNumber } = this.options
     const options: CallOptions = {
       screenShare: true,
       localStream: displayStream,
-      destinationNumber: `${destinationNumber}-screen`,
+      destinationNumber: `${this.extension}-screen`,
       remoteCallerName,
       remoteCallerNumber: `${remoteCallerNumber}-screen`,
       callerName: `${callerName} (Screen)`,

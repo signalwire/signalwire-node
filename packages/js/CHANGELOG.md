@@ -3,6 +3,10 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+### Fixed
+- Update and use the proper extension to open the screenshare. Even after a transfer.
+
 ## [1.2.2] - 2019-09-27
 ### Added
 - Ability to configure whether the SDK should automatically recover the call after page refresh. `autoRecoverCalls` default to true.

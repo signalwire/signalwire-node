@@ -3,7 +3,8 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+<!-- ## [Unreleased] -->
+## [1.2.3] - 2019-10-29
 ### Fixed
 - Update and use the proper extension to open the screenshare. Even after a transfer.
 - Remove deprecated warnings and minor bug fixes.

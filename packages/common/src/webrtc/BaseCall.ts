@@ -672,19 +672,17 @@ export default abstract class BaseCall {
       }
     }
 
-    instance.ontrack = event => {
+    instance.addEventListener('track', (event: RTCTrackEvent) => {
       this.options.remoteStream = event.streams[0]
-
-      if (this.options.screenShare === true) {
-        return
+      const { remoteElement, remoteStream, screenShare } = this.options
+      if (screenShare === false) {
+        attachMediaStream(remoteElement, remoteStream)
       }
-      const { remoteElement, remoteStream } = this.options
-      attachMediaStream(remoteElement, remoteStream)
-    }
-    // @ts-ignore
-    instance.onaddstream = (event: MediaStreamEvent) => {
+    })
+
+    instance.addEventListener('addstream', (event: MediaStreamEvent) => {
       this.options.remoteStream = event.stream
-    }
+    })
   }
 
   private _checkConferenceSerno = (serno: number) => {

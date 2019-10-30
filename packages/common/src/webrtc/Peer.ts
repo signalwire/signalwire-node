@@ -63,7 +63,7 @@ export default class Peer {
       })
     const { localElement, localStream = null, screenShare = false } = this.options
     if (streamIsValid(localStream)) {
-      if (this.instance.hasOwnProperty('addTrack')) {
+      if (typeof this.instance.addTrack === 'function') {
         localStream.getTracks().forEach(t => this.instance.addTrack(t, localStream))
       } else {
         // @ts-ignore

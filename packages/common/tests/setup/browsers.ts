@@ -11,6 +11,7 @@ if (typeof window !== 'undefined') {
           createAnswer: () => { },
           setLocalDescription: () => { },
           setRemoteDescription: () => { },
+          addEventListener: (event: string, cb: Function) => { },
         }
       }
     }

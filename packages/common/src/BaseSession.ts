@@ -197,6 +197,7 @@ export default abstract class BaseSession {
       return
     }
 
+    this.contexts = []
     this._attachListeners()
     this.connection.connect()
   }

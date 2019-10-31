@@ -1,9 +1,9 @@
 import { v4 as uuidv4 } from 'uuid'
 import logger from '../../util/logger'
 import { Execute } from '../../messages/Blade'
-import { CallState, DisconnectReason, DEFAULT_CALL_TIMEOUT, CallNotification, CallRecordState, CallPlayState, CallPlayType, CallPromptState, CallConnectState, CALL_STATES, CallFaxState, CallDetectState, CallDetectType, CallTapState, SendDigitsState } from '../../util/constants/relay'
+import { CallType, CallState, DisconnectReason, CallNotification, CallRecordState, CallPlayState, CallPlayType, CallPromptState, CallConnectState, CALL_STATES, CallFaxState, CallDetectState, CallDetectType, CallTapState, SendDigitsState } from '../../util/constants/relay'
 import { ICall, ICallOptions, ICallDevice, IMakeCallParams, ICallingPlay, ICallingPlayParams, ICallingCollect, DeepArray, ICallingDetect, ICallingTapTap, ICallingTapDevice, ICallingRecord, IRelayCallingPlay, ICallingPlayRingtone, ICallingPlayTTS, ICallingCollectAudio, ICallingCollectTTS, ICallingTapFlat, ICallingCollectRingtone, ICallingConnectParams } from '../../util/interfaces'
-import { reduceConnectParams, prepareRecordParams, preparePlayParams, preparePlayAudioParams, preparePromptParams, preparePromptAudioParams, preparePromptTTSParams, prepareTapParams, preparePromptRingtoneParams, prepareConnectParams } from '../helpers'
+import { prepareRecordParams, preparePlayParams, preparePlayAudioParams, preparePromptParams, preparePromptAudioParams, preparePromptTTSParams, prepareTapParams, preparePromptRingtoneParams, prepareConnectParams } from '../helpers'
 import Calling from './Calling'
 import { isFunction } from '../../util/helpers'
 import { Answer, Await, BaseComponent, Connect, Detect, Dial, FaxReceive, FaxSend, Hangup, Play, Prompt, Record, SendDigits, Tap } from './components'
@@ -68,17 +68,27 @@ export default class Call implements ICall {
   }
 
   get from(): string {
-    const { params: { from_number = '' } = {} } = this.options.device
-    return from_number
+    const { type, params = {} } = this.options.device
+    switch (type) {
+      case CallType.Agora:
+        return params.from
+      case CallType.Phone:
+        return params.from_number
+    }
   }
 
   get to(): string {
-    const { params: { to_number = '' } = {} } = this.options.device
-    return to_number
+    const { type, params = {} } = this.options.device
+    switch (type) {
+      case CallType.Agora:
+        return params.to
+      case CallType.Phone:
+        return params.to_number
+    }
   }
 
   get timeout(): number {
-    const { params: { timeout = DEFAULT_CALL_TIMEOUT } = {} } = this.options.device
+    const { params: { timeout = null } = {} } = this.options.device
     return timeout
   }
 

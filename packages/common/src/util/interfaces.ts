@@ -197,9 +197,13 @@ export interface ICall {
 export interface ICallDevice {
   type: string
   params: {
-    from_number: string
-    to_number: string
-    timeout: number
+    from_number?: string
+    to_number?: string
+    from?: string
+    to?: string
+    timeout?: number
+    appid?: string
+    channel?: string
   }
 }
 
@@ -223,6 +227,8 @@ export interface IMakeCallParams {
   from?: string
   to: string
   timeout?: number
+  agoraAppId?: string
+  agoraChannel?: string
 }
 
 // export interface Constructable<T> {

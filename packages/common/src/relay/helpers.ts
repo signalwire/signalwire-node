@@ -1,5 +1,5 @@
 import { ICallDevice, IMakeCallParams, DeepArray, ICallingRecord, IRelayCallingRecord, IRelayCallingPlay, ICallingPlay, ICallingPlayParams, ICallingCollect, IRelayCallingCollect, ICallingCollectAudio, ICallingPlayTTS, ICallingCollectTTS, ICallingDetect, IRelayCallingDetect, ICallingTapTap, ICallingTapFlat, IRelayCallingTapTap, IRelayCallingTapDevice, ICallingTapDevice, ICallingCollectRingtone, ICallingPlayRingtone, ICallingConnectParams } from '../util/interfaces'
-import { CallPlayType, CallDetectState, CallDetectType } from '../util/constants/relay'
+import { CallType, CallPlayType } from '../util/constants/relay'
 import { deepCopy, objEmpty } from '../util/helpers'
 
 interface DeviceAccumulator {
@@ -198,6 +198,29 @@ export const prepareTapParams = (params: ICallingTapTap | ICallingTapFlat, devic
   newDevice.params = deviceParams
 
   return { tap, device: newDevice }
+}
+
+export const buildNewCallDevice = (params: IMakeCallParams): ICallDevice => {
+  const { type, from, to, agoraAppId, agoraChannel, timeout } = params
+  const device: ICallDevice = { type, params: {} }
+  switch (type) {
+    case CallType.Phone:
+      device.params.from_number = from
+      device.params.to_number = to
+      break
+    case CallType.Agora:
+      device.params.from = from
+      device.params.to = to
+      device.params.appid = agoraAppId
+      device.params.channel = agoraChannel
+      break
+    default:
+      throw new TypeError(`Unknown type to create a new Call: ${type}`)
+  }
+  if (timeout) {
+    device.params.timeout = timeout
+  }
+  return device
 }
 
 const _isICallingPlayParams = (params: ICallingPlayParams | IRelayCallingPlay | ICallingPlay): params is ICallingPlayParams => {

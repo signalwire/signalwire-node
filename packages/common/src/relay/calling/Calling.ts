@@ -1,9 +1,10 @@
 import { trigger } from '../../services/Handler'
-import { ICallDevice, IMakeCallParams } from '../../util/interfaces'
+import { IMakeCallParams } from '../../util/interfaces'
 import logger from '../../util/logger'
 import Relay from '../Relay'
 import Call from './Call'
-import { DEFAULT_CALL_TIMEOUT, CallNotification } from '../../util/constants/relay'
+import { CallNotification } from '../../util/constants/relay'
+import { buildNewCallDevice } from '../helpers'
 
 export default class Calling extends Relay {
   protected service: string = 'calling'
@@ -37,22 +38,13 @@ export default class Calling extends Relay {
   }
 
   newCall(params: IMakeCallParams) {
-    const { type, from: from_number, to: to_number, timeout = DEFAULT_CALL_TIMEOUT } = params
-    if (!type || !from_number || !to_number || !timeout) {
-      throw new TypeError(`Invalid parameters to create a new Call.`)
-    }
-    const device: ICallDevice = { type, params: { from_number, to_number, timeout } }
-    return new Call(this, { device })
+    const options = { device: buildNewCallDevice(params) }
+    return new Call(this, options)
   }
 
   async dial(params: IMakeCallParams) {
-    const { type, from: from_number, to: to_number, timeout = DEFAULT_CALL_TIMEOUT } = params
-    if (!type || !from_number || !to_number || !timeout) {
-      throw new TypeError(`Invalid parameters to create a new Call.`)
-    }
-    const device: ICallDevice = { type, params: { from_number, to_number, timeout } }
-    const call = new Call(this, { device })
-
+    const options = { device: buildNewCallDevice(params) }
+    const call = new Call(this, options)
     const result = await call.dial()
     return result
   }

@@ -3,11 +3,12 @@ import { isQueued, trigger } from '../../../common/src/services/Handler'
 import Call from '../../../common/src/relay/calling/Call'
 import RelayClient from '../../src/relay'
 import { DialResult } from '../../../common/src/relay/calling/results'
+import { IMakeCallParams } from '../../../common/src/util/interfaces'
 
 const Connection = require('../../../common/src/services/Connection')
 
 describe('Calling', () => {
-  const session: RelayClient = new RelayClient({ host: 'example.signalwire.com', project: 'project', token: 'token' })
+  const session: RelayClient = new RelayClient({ project: 'project', token: 'token' })
   // @ts-ignore
   session.connection = Connection.default()
   session.relayProtocol = 'signalwire_service_random_uuid'
@@ -18,91 +19,29 @@ describe('Calling', () => {
   })
 
   describe('.newCall()', () => {
-    const callOpts = { type: 'phone', from: '8992222222', to: '8991111111' }
-
-    it('should return a new Call object', () => {
-      const call = session.calling.newCall(callOpts)
-      expect(call).toBeInstanceOf(Call)
+    it('should throw an error with an unknown type', () => {
+      expect(() => {
+        session.calling.newCall({ type: 'wrong', from: '+18992222222', to: '+18991111111' })
+      }).toThrow('Unknown type to create a new Call: wrong')
     })
 
-    describe('calling.call.state notification', () => {
-      const fnMock = jest.fn()
-      const CALL_TAG = '1ed7b040-812a-44b2-8dde-9f8adf6773af'
-      const CALL_ID = '0462e84a-2415-4599-bbf7-982d3c9bb310'
+    describe('with type phone', () => {
+      const callOpts: IMakeCallParams = { type: 'phone', from: '+18992222222', to: '+18991111111' }
 
-      const _commonExpect = (call, state) => {
-        expect(fnMock).toHaveBeenCalledTimes(2) // 2 times: stateChange and current state
-        expect(fnMock).toBeCalledWith(call)
-        expect(call.state).toEqual(state)
-      }
-
-      afterEach(() => {
-        // session.calling.removeCall(session.calling.getCallByTag(CALL_TAG))
-        // session.calling.removeCall(session.calling.getCallById(CALL_ID))
-
-        fnMock.mockClear()
-      })
-
-      it('should handle the "created" state setting up callId and nodeId', async done => {
+      it('should return a new Call object', () => {
         const call = session.calling.newCall(callOpts)
-        call.tag = CALL_TAG
-        call.on('stateChange', fnMock)
-        call.on('created', fnMock)
-        const msg = JSON.parse('{"jsonrpc":"2.0","id":"fc2c53bb-0a58-495a-acae-8067d17c003b","method":"blade.broadcast","params":{"broadcaster_nodeid":"c8dc8b19-ef08-4569-XXXX-36978e36c9bd","protocol":"signalwire_service_random_uuid","channel":"notifications","event":"queuing.relay.events","params":{"event_type":"calling.call.state","event_channel":"signalwire_service_random_uuid","timestamp":1556036283.9593921,"project_id":"project","params":{"call_state":"created","direction":"outbound","device":{"type":"phone","params":{"from_number":"+12222222222","to_number":"+12222222223"}},"call_id":"0462e84a-2415-4599-bbf7-982d3c9bb310","node_id":"86e3fe27-955f-4bbf-XXXX-38d744578818","tag":"1ed7b040-812a-44b2-8dde-9f8adf6773af"}}}}')
-        trigger(SwEvent.SocketMessage, msg, session.uuid)
-
-        _commonExpect(call, 'created')
-        expect(call.id).toEqual(CALL_ID)
-        expect(call.nodeId).toEqual('86e3fe27-955f-4bbf-XXXX-38d744578818')
-        done()
+        expect(call).toBeInstanceOf(Call)
+        expect(call.type).toEqual('phone')
       })
+    })
 
-      it('should handle the "ringing" state', async done => {
+    describe('with type agora', () => {
+      const callOpts: IMakeCallParams = { type: 'agora', from: '+18992222222', to: '+18991111111', agoraAppId: 'agora-app-id', agoraChannel: 'agora-channel' }
+
+      it('should return a new Call object', () => {
         const call = session.calling.newCall(callOpts)
-        call.id = CALL_ID
-        call.on('stateChange', fnMock)
-        call.on('ringing', fnMock)
-        const msg = JSON.parse('{"jsonrpc":"2.0","id":"fc2c53bb-0a58-495a-acae-8067d17c003b","method":"blade.broadcast","params":{"broadcaster_nodeid":"c8dc8b19-ef08-4569-XXXX-36978e36c9bd","protocol":"signalwire_service_random_uuid","channel":"notifications","event":"queuing.relay.events","params":{"event_type":"calling.call.state","event_channel":"signalwire_service_random_uuid","timestamp":1556036283.9593921,"project_id":"project","params":{"call_state":"ringing","direction":"outbound","device":{"type":"phone","params":{"from_number":"+12222222222","to_number":"+12222222223"}},"call_id":"0462e84a-2415-4599-bbf7-982d3c9bb310","node_id":"86e3fe27-955f-4bbf-XXXX-38d744578818","tag":"1ed7b040-812a-44b2-8dde-9f8adf6773af"}}}}')
-        trigger(SwEvent.SocketMessage, msg, session.uuid)
-
-        _commonExpect(call, 'ringing')
-        done()
-      })
-
-      it('should handle the "answered" state', async done => {
-        const call = session.calling.newCall(callOpts)
-        call.id = CALL_ID
-        call.on('stateChange', fnMock)
-        call.on('answered', fnMock)
-        const msg = JSON.parse('{"jsonrpc":"2.0","id":"fc2c53bb-0a58-495a-acae-8067d17c003b","method":"blade.broadcast","params":{"broadcaster_nodeid":"c8dc8b19-ef08-4569-XXXX-36978e36c9bd","protocol":"signalwire_service_random_uuid","channel":"notifications","event":"queuing.relay.events","params":{"event_type":"calling.call.state","event_channel":"signalwire_service_random_uuid","timestamp":1556036283.9593921,"project_id":"project","params":{"call_state":"answered","direction":"outbound","device":{"type":"phone","params":{"from_number":"+12222222222","to_number":"+12222222223"}},"call_id":"0462e84a-2415-4599-bbf7-982d3c9bb310","node_id":"86e3fe27-955f-4bbf-XXXX-38d744578818","tag":"1ed7b040-812a-44b2-8dde-9f8adf6773af"}}}}')
-        trigger(SwEvent.SocketMessage, msg, session.uuid)
-
-        _commonExpect(call, 'answered')
-        done()
-      })
-
-      it('should handle the "ending" state', async done => {
-        const call = session.calling.newCall(callOpts)
-        call.id = CALL_ID
-        call.on('stateChange', fnMock)
-        call.on('ending', fnMock)
-        const msg = JSON.parse('{"jsonrpc":"2.0","id":"fc2c53bb-0a58-495a-acae-8067d17c003b","method":"blade.broadcast","params":{"broadcaster_nodeid":"c8dc8b19-ef08-4569-XXXX-36978e36c9bd","protocol":"signalwire_service_random_uuid","channel":"notifications","event":"queuing.relay.events","params":{"event_type":"calling.call.state","event_channel":"signalwire_service_random_uuid","timestamp":1556036283.9593921,"project_id":"project","params":{"call_state":"ending","direction":"outbound","device":{"type":"phone","params":{"from_number":"+12222222222","to_number":"+12222222223"}},"call_id":"0462e84a-2415-4599-bbf7-982d3c9bb310","node_id":"86e3fe27-955f-4bbf-XXXX-38d744578818","tag":"1ed7b040-812a-44b2-8dde-9f8adf6773af"}}}}')
-        trigger(SwEvent.SocketMessage, msg, session.uuid)
-
-        _commonExpect(call, 'ending')
-        done()
-      })
-
-      it('should handle the "ended" state', async done => {
-        const call = session.calling.newCall(callOpts)
-        call.id = CALL_ID
-        call.on('stateChange', fnMock)
-        call.on('ended', fnMock)
-        const msg = JSON.parse('{"jsonrpc":"2.0","id":"fc2c53bb-0a58-495a-acae-8067d17c003b","method":"blade.broadcast","params":{"broadcaster_nodeid":"c8dc8b19-ef08-4569-XXXX-36978e36c9bd","protocol":"signalwire_service_random_uuid","channel":"notifications","event":"queuing.relay.events","params":{"event_type":"calling.call.state","event_channel":"signalwire_service_random_uuid","timestamp":1556036283.9593921,"project_id":"project","params":{"call_state":"ended","direction":"outbound","device":{"type":"phone","params":{"from_number":"+12222222222","to_number":"+12222222223"}},"call_id":"0462e84a-2415-4599-bbf7-982d3c9bb310","node_id":"86e3fe27-955f-4bbf-XXXX-38d744578818","tag":"1ed7b040-812a-44b2-8dde-9f8adf6773af"}}}}')
-        trigger(SwEvent.SocketMessage, msg, session.uuid)
-
-        _commonExpect(call, 'ended')
-        done()
+        expect(call).toBeInstanceOf(Call)
+        expect(call.type).toEqual('agora')
       })
     })
   })
@@ -121,8 +60,8 @@ describe('Calling', () => {
         expect(result.successful).toBe(true)
         done()
       })
-      setTimeout(() => session.calling.notificationHandler(_stateNotificationCreated))
-      setTimeout(() => session.calling.notificationHandler(_stateNotificationAnswered))
+      session.calling.notificationHandler(_stateNotificationCreated)
+      session.calling.notificationHandler(_stateNotificationAnswered)
     })
 
     it('should create a Call object, dial and wait the call to be ended', done => {
@@ -132,8 +71,8 @@ describe('Calling', () => {
         expect(result.successful).toBe(false)
         done()
       })
-      setTimeout(() => session.calling.notificationHandler(_stateNotificationCreated))
-      setTimeout(() => session.calling.notificationHandler(_stateNotificationEnded))
+      session.calling.notificationHandler(_stateNotificationCreated)
+      session.calling.notificationHandler(_stateNotificationEnded)
     })
   })
 
@@ -158,6 +97,75 @@ describe('Calling', () => {
       trigger(SwEvent.SocketMessage, msg, session.uuid)
       expect(fnMock).toHaveBeenCalledTimes(1)
       expect(fnMock).toBeCalledWith(expect.any(Call))
+      done()
+    })
+  })
+
+  describe('on inbound calling.call.state notification', () => {
+    const CALL_ID = '0462e84a-2415-4599-bbf7-982d3c9bb310'
+    const fnMock = jest.fn()
+    let call = null
+    beforeEach(() => {
+      fnMock.mockClear()
+      call = session.calling.newCall({ type: 'phone', from: '+18992222222', to: '+18991111111' })
+      call.tag = '1ed7b040-812a-44b2-8dde-9f8adf6773af'
+      call.on('stateChange', fnMock)
+    })
+
+    const _commonExpect = (call: Call, state: string) => {
+      expect(fnMock).toHaveBeenCalledTimes(2) // 2 times: stateChange and current state
+      expect(fnMock).toBeCalledWith(call)
+      expect(call.state).toEqual(state)
+    }
+
+    it('should handle the "created" state setting up callId and nodeId', done => {
+      call.on('created', fnMock)
+      const msg = JSON.parse('{"jsonrpc":"2.0","id":"uuid","method":"blade.broadcast","params":{"protocol":"signalwire_service_random_uuid","channel":"notifications","event":"queuing.relay.events","params":{"event_type":"calling.call.state","event_channel":"signalwire_service_random_uuid","timestamp":1556036283.9593921,"params":{"call_state":"created","direction":"outbound","device":{"type":"phone","params":{"from_number":"+12222222222","to_number":"+12222222223"}},"call_id":"0462e84a-2415-4599-bbf7-982d3c9bb310","node_id":"86e3fe27-955f-4bbf-XXXX-38d744578818","tag":"1ed7b040-812a-44b2-8dde-9f8adf6773af"}}}}')
+      trigger(SwEvent.SocketMessage, msg, session.uuid)
+
+      _commonExpect(call, 'created')
+      expect(call.id).toEqual(CALL_ID)
+      expect(call.nodeId).toEqual('86e3fe27-955f-4bbf-XXXX-38d744578818')
+      done()
+    })
+
+    it('should handle the "ringing" state', done => {
+      call.id = CALL_ID
+      call.on('ringing', fnMock)
+      const msg = JSON.parse('{"jsonrpc":"2.0","id":"uuid","method":"blade.broadcast","params":{"protocol":"signalwire_service_random_uuid","channel":"notifications","event":"queuing.relay.events","params":{"event_type":"calling.call.state","event_channel":"signalwire_service_random_uuid","timestamp":1556036283.9593921,"params":{"call_state":"ringing","direction":"outbound","device":{"type":"phone","params":{"from_number":"+12222222222","to_number":"+12222222223"}},"call_id":"0462e84a-2415-4599-bbf7-982d3c9bb310","node_id":"86e3fe27-955f-4bbf-XXXX-38d744578818","tag":"1ed7b040-812a-44b2-8dde-9f8adf6773af"}}}}')
+      trigger(SwEvent.SocketMessage, msg, session.uuid)
+
+      _commonExpect(call, 'ringing')
+      done()
+    })
+
+    it('should handle the "answered" state', done => {
+      call.id = CALL_ID
+      call.on('answered', fnMock)
+      const msg = JSON.parse('{"jsonrpc":"2.0","id":"uuid","method":"blade.broadcast","params":{"protocol":"signalwire_service_random_uuid","channel":"notifications","event":"queuing.relay.events","params":{"event_type":"calling.call.state","event_channel":"signalwire_service_random_uuid","timestamp":1556036283.9593921,"params":{"call_state":"answered","direction":"outbound","device":{"type":"phone","params":{"from_number":"+12222222222","to_number":"+12222222223"}},"call_id":"0462e84a-2415-4599-bbf7-982d3c9bb310","node_id":"86e3fe27-955f-4bbf-XXXX-38d744578818","tag":"1ed7b040-812a-44b2-8dde-9f8adf6773af"}}}}')
+      trigger(SwEvent.SocketMessage, msg, session.uuid)
+
+      _commonExpect(call, 'answered')
+      done()
+    })
+
+    it('should handle the "ending" state', done => {
+      call.id = CALL_ID
+      call.on('ending', fnMock)
+      const msg = JSON.parse('{"jsonrpc":"2.0","id":"uuid","method":"blade.broadcast","params":{"protocol":"signalwire_service_random_uuid","channel":"notifications","event":"queuing.relay.events","params":{"event_type":"calling.call.state","event_channel":"signalwire_service_random_uuid","timestamp":1556036283.9593921,"params":{"call_state":"ending","direction":"outbound","device":{"type":"phone","params":{"from_number":"+12222222222","to_number":"+12222222223"}},"call_id":"0462e84a-2415-4599-bbf7-982d3c9bb310","node_id":"86e3fe27-955f-4bbf-XXXX-38d744578818","tag":"1ed7b040-812a-44b2-8dde-9f8adf6773af"}}}}')
+      trigger(SwEvent.SocketMessage, msg, session.uuid)
+
+      _commonExpect(call, 'ending')
+      done()
+    })
+
+    it('should handle the "ended" state', done => {
+      call.id = CALL_ID
+      call.on('ended', fnMock)
+      const msg = JSON.parse('{"jsonrpc":"2.0","id":"uuid","method":"blade.broadcast","params":{"protocol":"signalwire_service_random_uuid","channel":"notifications","event":"queuing.relay.events","params":{"event_type":"calling.call.state","event_channel":"signalwire_service_random_uuid","timestamp":1556036283.9593921,"params":{"call_state":"ended","direction":"outbound","device":{"type":"phone","params":{"from_number":"+12222222222","to_number":"+12222222223"}},"call_id":"0462e84a-2415-4599-bbf7-982d3c9bb310","node_id":"86e3fe27-955f-4bbf-XXXX-38d744578818","tag":"1ed7b040-812a-44b2-8dde-9f8adf6773af"}}}}')
+      trigger(SwEvent.SocketMessage, msg, session.uuid)
+
+      _commonExpect(call, 'ended')
       done()
     })
   })

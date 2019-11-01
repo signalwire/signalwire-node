@@ -138,6 +138,7 @@ export default abstract class BaseSession {
   async disconnect() {
     this.subscriptions = {}
     this._autoReconnect = false
+    this.relayProtocol = null
     this._removeConnection()
     await sessionStorage.removeItem(this.signature)
     this._executeQueue = []
@@ -242,7 +243,6 @@ export default abstract class BaseSession {
   protected _onSocketClose() {
     if (this.relayProtocol) {
       deRegisterAll(this.relayProtocol)
-      this.relayProtocol = null
     }
     for (const sub in this.subscriptions) {
       deRegisterAll(sub)

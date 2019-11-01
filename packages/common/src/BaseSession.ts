@@ -136,7 +136,6 @@ export default abstract class BaseSession {
    * @return void
    */
   async disconnect() {
-    await this._unsubscribeAll()
     this.subscriptions = {}
     this._autoReconnect = false
     this._removeConnection()
@@ -197,7 +196,6 @@ export default abstract class BaseSession {
       return
     }
 
-    this.contexts = []
     this._attachListeners()
     this.connection.connect()
   }
@@ -242,6 +240,11 @@ export default abstract class BaseSession {
    * @return void
    */
   protected _onSocketClose() {
+    if (this.relayProtocol) {
+      deRegisterAll(this.relayProtocol)
+      this.relayProtocol = null
+    }
+    this.contexts = []
     if (this.expired) {
       this._idle = true
       this._autoReconnect = false
@@ -388,18 +391,6 @@ export default abstract class BaseSession {
     if (!this.expired) {
       setTimeout(this._checkTokenExpiration, 30 * 1000)
     }
-  }
-
-  /**
-   * Unsubscribe from all protocols and channels
-   * @return void
-   */
-  private _unsubscribeAll() {
-    const promises = Object.keys(this.subscriptions).map(protocol => {
-      const channels = Object.keys(this.subscriptions[protocol])
-      return this.unsubscribe({ protocol, channels }).catch(console.error)
-    })
-    return Promise.all(promises)
   }
 
   static on(eventName: string, callback: any) {

@@ -5,6 +5,11 @@ const major = 2
 const minor = 1
 const revision = 0
 
+let agent: string = null
+const setAgentName = (name: string) => {
+  agent = name
+}
+
 class Connect extends BaseMessage {
   method: string = 'blade.connect'
 
@@ -18,8 +23,11 @@ class Connect extends BaseMessage {
     if (sessionid) {
       params.sessionid = sessionid
     }
+    if (agent) {
+      params.agent = agent
+    }
     this.buildRequest({ method: this.method, params })
   }
 }
 
-export { Connect }
+export { Connect, setAgentName }

@@ -6,20 +6,28 @@ import Verto, { VERTO_PROTOCOL } from '../src/Verto'
 const Connection = require('../../common/src/services/Connection')
 
 describe('Verto', () => {
-  const instance: Verto = new Verto({ host: 'example.signalwire.com', login: 'login', password: 'password' })
-  // @ts-ignore
-  instance.connection = Connection.default()
-  behaveLikeBaseSession.call(this, instance)
-  VertoHandler.call(this, Verto)
-  LayoutHandler.call(this, Verto)
+  const _buildInstance = (): Verto => {
+    const instance: Verto = new Verto({ host: 'example.signalwire.com', login: 'login', password: 'password' })
+    // @ts-ignore
+    instance.connection = Connection.default()
+    return instance
+  }
+  let instance: Verto = null
 
   const noop = (): void => { }
 
+  beforeAll(() => {
+    behaveLikeBaseSession.call(this, _buildInstance())
+    VertoHandler.call(this, Verto)
+    LayoutHandler.call(this, Verto)
+  })
+
   beforeEach(() => {
+    instance = _buildInstance()
+    instance.subscriptions = {}
     Connection.mockSend.mockClear()
     Connection.default.mockClear()
     Connection.mockClose.mockClear()
-    instance.subscriptions = {}
   })
 
   it('should instantiate Verto with default methods', () => {
@@ -132,7 +140,7 @@ describe('Verto', () => {
       const response = instance.broadcast({ channel: cName, data: { text: 'msg' } })
       expect(response).toBeUndefined()
       const { request } = Connection.mockSend.mock.calls[0][0]
-      expect(request.params).toMatchObject({ sessid: null, eventChannel: cName, data: { text: 'msg' } })
+      expect(request.params).toMatchObject({ sessid: '', eventChannel: cName, data: { text: 'msg' } })
     })
 
     it('should thrown an error with invalid params', () => {

@@ -244,6 +244,10 @@ export default abstract class BaseSession {
       deRegisterAll(this.relayProtocol)
       this.relayProtocol = null
     }
+    for (const sub in this.subscriptions) {
+      deRegisterAll(sub)
+    }
+    this.subscriptions = {}
     this.contexts = []
     if (this.expired) {
       this._idle = true

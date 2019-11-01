@@ -84,6 +84,7 @@ export default (instance: any) => {
           expect(Connection.mockClose).toHaveBeenCalled()
           expect(instance.calls || {}).toMatchObject({})
           expect(instance.subscriptions).toMatchObject({})
+          expect(instance.contexts).toMatchObject([])
           done()
         })
       })

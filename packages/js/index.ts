@@ -2,7 +2,8 @@ import Relay from './src/SignalWire'
 import Verto from './src/Verto'
 import { setAgentName } from '../common/src/messages/blade/Connect'
 
-setAgentName(`JavaScript SDK/${require('./package.json').version}`)
+export const VERSION = '1.2.3'
+setAgentName(`JavaScript SDK/${VERSION}`)
 
 export {
   Relay,

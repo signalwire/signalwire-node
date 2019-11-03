@@ -1,13 +1,14 @@
 require('dotenv').config()
-
+import { Client } from 'faye-websocket'
 import RestClient from './src/rest'
 import RelayClient from './src/relay'
 import RelayConsumer from './src/relay/RelayConsumer'
 import { setWebSocket } from '../common/src/services/Connection'
 import Task from '../common/src/relay/tasking/Task'
+import { setAgentName } from '../common/src/messages/blade/Connect'
 
-import { Client } from 'faye-websocket'
-
+export const VERSION = '2.3.1'
+setAgentName(`Node.js SDK/${VERSION}`)
 setWebSocket(Client)
 
 export {

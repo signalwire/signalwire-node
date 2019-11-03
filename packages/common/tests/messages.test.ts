@@ -1,4 +1,5 @@
-import { Execute, Connect, Subscription } from '../src/messages/Blade'
+import { setAgentName, Connect } from '../src/messages/Blade/Connect'
+import { Execute, Subscription } from '../src/messages/Blade'
 import { Login, Invite, Answer, Bye, Modify, Info, Result } from '../src/messages/Verto'
 
 describe('Messages', function () {
@@ -19,6 +20,12 @@ describe('Messages', function () {
       const jwtAuth = { project: 'project', jwt_token: 'token' }
       const message = new Connect(jwtAuth).request
       const res = JSON.parse(`{"jsonrpc":"2.0","id":"${message.id}","method":"blade.connect","params":{"authentication":{"project":"project","jwt_token":"token"},"version":{"major":2,"minor":1,"revision":0}}}`)
+      expect(message).toEqual(res)
+    })
+    it('should match struct with agent', function () {
+      setAgentName('Jest SDK/1.0.0')
+      const message = new Connect(auth).request
+      const res = JSON.parse(`{"jsonrpc":"2.0","id":"${message.id}","method":"blade.connect","params":{"authentication":{"project":"project","token":"token"},"version":{"major":2,"minor":1,"revision":0},"agent":"Jest SDK/1.0.0"}}`)
       expect(message).toEqual(res)
     })
   })

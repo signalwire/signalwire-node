@@ -14,6 +14,7 @@ export interface IBladeConnectRequest extends IMessageBase {
     version: TBladeVersion
     authentication: { project: string, token?: string, jwt_token?: string }
     sessionid?: string
+    agent?: string
   }
 }
 

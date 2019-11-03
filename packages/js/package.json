@@ -11,7 +11,7 @@
   ],
   "scripts": {
     "clean-build": "rm -rf dist/* && npm run build",
-    "build": "npm run build-es5 && npm run build-esm",
+    "build": "npm run check_versions && npm run build-es5 && npm run build-esm",
     "build-es5": "webpack -p",
     "watch-es5": "webpack-dev-server --host 0.0.0.0 --mode development",
     "build-esm": "tsc",
@@ -19,7 +19,8 @@
     "tslint": "tslint -p tsconfig.json",
     "test": "jest --forceExit --detectOpenHandles",
     "test:watch": "npm run test -- --watchAll",
-    "validate": "npm i && npm run tslint && npm run test && npm run clean-build"
+    "validate": "npm i && npm run tslint && npm run test && npm run clean-build",
+    "check_versions": "node ../../.scripts/check_package_version.js"
   },
   "keywords": [
     "signalwire",

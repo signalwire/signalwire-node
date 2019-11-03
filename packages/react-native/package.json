@@ -40,15 +40,15 @@
     "execa": "^1.0.0",
     "fs-extra": "^7.0.1",
     "listr": "^0.14.3",
-    "loglevel": "^1.6.1",
+    "loglevel": "^1.6.4",
     "uuid": "^3.3.2"
   },
   "devDependencies": {
-    "@types/jest": "^24.0.6",
-    "@types/uuid": "^3.4.4",
+    "@types/jest": "^24.0.21",
+    "@types/uuid": "^3.4.6",
     "jest": "^24.8.0",
-    "ts-jest": "^24.0.0",
-    "tslint": "^5.12.1",
-    "typescript": "^3.3.3"
+    "ts-jest": "^24.1.0",
+    "tslint": "^5.20.0",
+    "typescript": "^3.6.4"
   }
 }

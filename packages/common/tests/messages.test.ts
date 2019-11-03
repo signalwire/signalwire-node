@@ -1,4 +1,4 @@
-import { setAgentName, Connect } from '../src/messages/Blade/Connect'
+import { setAgentName, Connect } from '../src/messages/blade/Connect'
 import { Execute, Subscription } from '../src/messages/Blade'
 import { Login, Invite, Answer, Bye, Modify, Info, Result } from '../src/messages/Verto'
 

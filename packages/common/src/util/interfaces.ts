@@ -204,6 +204,9 @@ export interface ICallDevice {
     timeout?: number
     appid?: string
     channel?: string
+    codecs?: string[]
+    headers?: { [header: string]: string }
+    webrtc_media?: boolean
   }
 }
 
@@ -229,6 +232,9 @@ export interface IMakeCallParams {
   timeout?: number
   agoraAppId?: string
   agoraChannel?: string
+  codecs?: string[]
+  headers?: { [header: string]: string }
+  webrtcMedia?: boolean
 }
 
 // export interface Constructable<T> {

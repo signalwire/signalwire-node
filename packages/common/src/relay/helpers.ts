@@ -200,8 +200,8 @@ export const prepareTapParams = (params: ICallingTapTap | ICallingTapFlat, devic
   return { tap, device: newDevice }
 }
 
-export const buildNewCallDevice = (params: IMakeCallParams): ICallDevice => {
-  const { type, from, to, agoraAppId, agoraChannel, timeout } = params
+export const buildNewDevice = (params: IMakeCallParams): ICallDevice => {
+  const { type, from, to, timeout } = params
   const device: ICallDevice = { type, params: {} }
   switch (type) {
     case CallType.Phone:
@@ -211,8 +211,28 @@ export const buildNewCallDevice = (params: IMakeCallParams): ICallDevice => {
     case CallType.Agora:
       device.params.from = from
       device.params.to = to
-      device.params.appid = agoraAppId
-      device.params.channel = agoraChannel
+      device.params.appid = params.agoraAppId
+      device.params.channel = params.agoraChannel
+      break
+    case CallType.Sip:
+      device.params.from = from
+      device.params.to = to
+      if (params.headers) {
+        device.params.headers = params.headers
+      }
+      if (params.codecs) {
+        device.params.codecs = params.codecs
+      }
+      if (params.webrtcMedia) {
+        device.params.webrtc_media = params.webrtcMedia
+      }
+      break
+    case CallType.WebRTC:
+      device.params.from = from
+      device.params.to = to
+      if (params.codecs) {
+        device.params.codecs = params.codecs
+      }
       break
     default:
       throw new TypeError(`Unknown type to create a new Call: ${type}`)

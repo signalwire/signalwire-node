@@ -71,6 +71,8 @@ export default class Call implements ICall {
     const { type, params = {} } = this.options.device
     switch (type) {
       case CallType.Agora:
+      case CallType.Sip:
+      case CallType.WebRTC:
         return params.from
       case CallType.Phone:
         return params.from_number
@@ -81,6 +83,8 @@ export default class Call implements ICall {
     const { type, params = {} } = this.options.device
     switch (type) {
       case CallType.Agora:
+      case CallType.Sip:
+      case CallType.WebRTC:
         return params.to
       case CallType.Phone:
         return params.to_number

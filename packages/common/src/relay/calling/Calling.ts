@@ -4,7 +4,7 @@ import logger from '../../util/logger'
 import Relay from '../Relay'
 import Call from './Call'
 import { CallNotification } from '../../util/constants/relay'
-import { buildNewCallDevice } from '../helpers'
+import { buildNewDevice } from '../helpers'
 
 export default class Calling extends Relay {
   protected service: string = 'calling'
@@ -38,12 +38,12 @@ export default class Calling extends Relay {
   }
 
   newCall(params: IMakeCallParams) {
-    const options = { device: buildNewCallDevice(params) }
+    const options = { device: buildNewDevice(params) }
     return new Call(this, options)
   }
 
   async dial(params: IMakeCallParams) {
-    const options = { device: buildNewCallDevice(params) }
+    const options = { device: buildNewDevice(params) }
     const call = new Call(this, options)
     const result = await call.dial()
     return result

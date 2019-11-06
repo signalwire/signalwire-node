@@ -1,14 +1,11 @@
 import { BaseComponent } from './BaseComponent'
-import { CallNotification, CallConnectState } from '../../../util/constants/relay'
+import { CallNotification, CallConnectState, CallMethod } from '../../../util/constants/relay'
 import Event from '../Event'
 
 export class Disconnect extends BaseComponent {
   public eventType: string = CallNotification.Connect
+  public method: string = CallMethod.Disconnect
   public controlId: string = this.call.tag
-
-  get method(): string {
-    return 'calling.disconnect'
-  }
 
   get payload(): any {
     return {

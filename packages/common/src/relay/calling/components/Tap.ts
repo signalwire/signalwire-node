@@ -1,19 +1,16 @@
 import { Controllable } from './Controllable'
 import { IRelayCallingTapTap, IRelayCallingTapDevice } from '../../../util/interfaces'
-import { CallNotification, CallTapState } from '../../../util/constants/relay'
+import { CallNotification, CallTapState, CallMethod } from '../../../util/constants/relay'
 import Call from '../Call'
 import Event from '../Event'
 
 export class Tap extends Controllable {
   public eventType: string = CallNotification.Tap
+  public method: string = CallMethod.Tap
   public controlId: string = this.controlId
 
   constructor(public call: Call, public tap: IRelayCallingTapTap, public device: IRelayCallingTapDevice) {
     super(call)
-  }
-
-  get method(): string {
-    return 'calling.tap'
   }
 
   get payload(): any {

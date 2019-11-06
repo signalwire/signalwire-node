@@ -1,6 +1,6 @@
 import { Controllable } from './Controllable'
 import { IRelayCallingDetect } from '../../../util/interfaces'
-import { CallNotification, CallDetectState, CallDetectType } from '../../../util/constants/relay'
+import { CallNotification, CallDetectState, CallDetectType, CallMethod } from '../../../util/constants/relay'
 import Call from '../Call'
 import Event from '../Event'
 
@@ -9,6 +9,7 @@ const _machineStateEvents: string[] = [CallDetectState.Ready, CallDetectState.No
 
 export class Detect extends Controllable {
   public eventType: string = CallNotification.Detect
+  public method: string = CallMethod.Detect
   public controlId: string = this.controlId
 
   public type: string
@@ -24,10 +25,6 @@ export class Detect extends Controllable {
     private _waitForBeep: boolean = false
   ) {
     super(call)
-  }
-
-  get method(): string {
-    return 'calling.detect'
   }
 
   get payload(): any {

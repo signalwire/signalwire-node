@@ -1,11 +1,12 @@
 import { Controllable } from './Controllable'
-import { CallNotification, CallRecordState } from '../../../util/constants/relay'
+import { CallNotification, CallRecordState, CallMethod } from '../../../util/constants/relay'
 import Call from '../Call'
 import Event from '../Event'
 import { IRelayCallingRecord } from '../../../util/interfaces'
 
 export class Record extends Controllable {
   public eventType: string = CallNotification.Record
+  public method: string = CallMethod.Record
   public controlId: string = this.controlId
 
   public url: string
@@ -14,10 +15,6 @@ export class Record extends Controllable {
 
   constructor(public call: Call, public record: IRelayCallingRecord) {
     super(call)
-  }
-
-  get method(): string {
-    return 'calling.record'
   }
 
   get payload(): any {

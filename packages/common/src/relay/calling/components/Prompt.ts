@@ -1,11 +1,12 @@
 import { Controllable } from './Controllable'
 import { IRelayCallingPlay, IRelayCallingCollect } from '../../../util/interfaces'
-import { CallNotification, CallPromptState } from '../../../util/constants/relay'
+import { CallNotification, CallPromptState, CallMethod } from '../../../util/constants/relay'
 import Call from '../Call'
 import Event from '../Event'
 
 export class Prompt extends Controllable {
   public eventType: string = CallNotification.Collect
+  public method: string = CallMethod.PlayAndCollect
   public controlId: string = this.controlId
 
   public type: string
@@ -20,10 +21,6 @@ export class Prompt extends Controllable {
     public volumeValue: number = 0
   ) {
     super(call)
-  }
-
-  get method(): string {
-    return 'calling.play_and_collect'
   }
 
   get payload(): any {

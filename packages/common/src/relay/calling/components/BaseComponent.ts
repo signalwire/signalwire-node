@@ -37,7 +37,7 @@ export abstract class BaseComponent {
   }
 
   /** Relay method to execute */
-  abstract get method(): string
+  abstract method: string = null
 
   /** Payload sent to Relay in requests */
   abstract get payload(): any

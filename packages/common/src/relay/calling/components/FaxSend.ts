@@ -1,7 +1,9 @@
 import Call from '../Call'
 import { BaseFax } from './BaseFax'
+import { CallMethod } from '../../../util/constants/relay'
 
 export class FaxSend extends BaseFax {
+  public method: string = CallMethod.SendFax
 
   constructor(
     public call: Call,
@@ -10,10 +12,6 @@ export class FaxSend extends BaseFax {
     private _header: string = null
   ) {
     super(call)
-  }
-
-  get method(): string {
-    return 'calling.send_fax'
   }
 
   get payload(): any {

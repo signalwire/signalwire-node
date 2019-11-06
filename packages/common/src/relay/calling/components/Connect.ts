@@ -1,11 +1,12 @@
 import { BaseComponent } from './BaseComponent'
 import { DeepArray, ICallDevice, IRelayCallingPlay } from '../../../util/interfaces'
-import { CallNotification, CallConnectState } from '../../../util/constants/relay'
+import { CallNotification, CallConnectState, CallMethod } from '../../../util/constants/relay'
 import Call from '../Call'
 import Event from '../Event'
 
 export class Connect extends BaseComponent {
   public eventType: string = CallNotification.Connect
+  public method: string = CallMethod.Connect
   public controlId: string = this.call.tag
 
   constructor(
@@ -14,10 +15,6 @@ export class Connect extends BaseComponent {
     public ringback?: IRelayCallingPlay
   ) {
     super(call)
-  }
-
-  get method(): string {
-    return 'calling.connect'
   }
 
   get payload(): any {

@@ -1,19 +1,16 @@
 import { Controllable } from './Controllable'
 import { IRelayCallingPlay } from '../../../util/interfaces'
-import { CallNotification, CallPlayState } from '../../../util/constants/relay'
+import { CallNotification, CallPlayState, CallMethod } from '../../../util/constants/relay'
 import Call from '../Call'
 import Event from '../Event'
 
 export class Play extends Controllable {
   public eventType: string = CallNotification.Play
+  public method: string = CallMethod.Play
   public controlId: string = this.controlId
 
   constructor(public call: Call, public play: IRelayCallingPlay[], public volumeValue: number = 0) {
     super(call)
-  }
-
-  get method(): string {
-    return 'calling.play'
   }
 
   get payload(): any {

@@ -53,6 +53,21 @@ export enum CallNotification {
   SendDigits = 'calling.call.send_digits',
 }
 
+export enum CallMethod {
+  Answer = 'calling.answer',
+  Begin = 'calling.begin',
+  Connect = 'calling.connect',
+  End = 'calling.end',
+  Record = 'calling.record',
+  Play = 'calling.play',
+  PlayAndCollect = 'calling.play_and_collect',
+  ReceiveFax = 'calling.receive_fax',
+  SendFax = 'calling.send_fax',
+  Detect = 'calling.detect',
+  Tap = 'calling.tap',
+  SendDigits = 'calling.send_digits',
+}
+
 export enum SendDigitsState {
   Finished = 'finished',
 }

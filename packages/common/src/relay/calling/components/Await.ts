@@ -4,11 +4,8 @@ import Event from '../Event'
 
 export class Await extends BaseComponent {
   public eventType: string = CallNotification.State
+  public method = null
   public controlId: string = this.call.tag
-
-  get method(): string {
-    return null
-  }
 
   get payload(): any {
     return null

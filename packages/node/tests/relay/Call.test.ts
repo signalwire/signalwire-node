@@ -5,7 +5,7 @@ import { CallState } from '../../../common/src/util/constants/relay'
 import { Execute } from '../../../common/src/messages/Blade'
 const Connection = require('../../../common/src/services/Connection')
 import { RecordAction, PlayAction, PromptAction, ConnectAction, FaxAction, DetectAction, TapAction, SendDigitsAction } from '../../../common/src/relay/calling/actions'
-import { HangupResult, RecordResult, AnswerResult, PlayResult, PromptResult, ConnectResult, DialResult, FaxResult, DetectResult, TapResult, SendDigitsResult } from '../../../common/src/relay/calling/results'
+import { HangupResult, RecordResult, AnswerResult, PlayResult, PromptResult, ConnectResult, DialResult, FaxResult, DetectResult, TapResult, SendDigitsResult, DisconnectResult } from '../../../common/src/relay/calling/results'
 jest.mock('../../../common/src/services/Connection')
 
 describe('Call', () => {
@@ -110,6 +110,7 @@ describe('Call', () => {
     const _recordNotification = JSON.parse(`{"event_type":"calling.call.record","params":{"state":"finished","record":{"audio":{"format":"mp3","direction":"speak","stereo":false}},"url":"record.mp3","control_id":"mocked-uuid","size":4096,"duration":4,"call_id":"call-id","node_id":"node-id"}}`)
     const _connectNotification = JSON.parse(`{"event_type":"calling.call.connect","params":{"connect_state":"connected","peer":{"call_id":"peer-call-id","node_id":"peer-node-id","device":{"type":"phone","params":{"from_number":"+1234","to_number":"+15678"}}},"call_id":"call-id","node_id":"node-id"}}`)
     const _connectNotificationPeerCreated = JSON.parse('{"event_type":"calling.call.state","params":{"call_state":"created","direction":"outbound","device":{"type":"phone","params":{"from_number":"+1234","to_number":"15678"}},"peer":{"call_id":"call-id","node_id":"node-id"},"call_id":"peer-call-id","node_id":"peer-node-id"}}')
+    const _connectNotificationDisconnected = JSON.parse(`{"event_type":"calling.call.connect","params":{"connect_state":"disconnected","peer":{"call_id":"peer-call-id","node_id":"peer-node-id","device":{"type":"phone","params":{"from_number":"+1234","to_number":"+15678"}}},"call_id":"call-id","node_id":"node-id"}}`)
     const _playNotification = JSON.parse(`{"event_type":"calling.call.play","params":{"control_id":"mocked-uuid","call_id":"call-id","node_id":"node-id","state":"finished"}}`)
     const _collectNotification = JSON.parse(`{"event_type":"calling.call.collect","params":{"control_id":"mocked-uuid","call_id":"call-id","node_id":"node-id","result":{"type":"digit","params":{"digits":"12345","terminator":"#"}}}}`)
     const _faxNotificationFinished = JSON.parse('{"event_type":"calling.call.fax","params":{"control_id":"mocked-uuid","call_id":"call-id","node_id":"node-id","fax":{"type":"finished","params":{"direction":"send","identity":"+1xxx","remote_identity":"+1yyy","document":"file.pdf","success":true,"result":"1231","result_text":"","pages":"1"}}}}')
@@ -1177,6 +1178,32 @@ describe('Call', () => {
 
     })
 
+    describe('disconnect method', () => {
+      const getMsg = () => new Execute({
+        protocol: 'signalwire_service_random_uuid',
+        method: 'calling.disconnect',
+        params: { node_id: call.nodeId, call_id: call.id }
+      })
+
+      beforeEach(() => {
+        session.calling.notificationHandler(_connectNotificationPeerCreated)
+        session.calling.notificationHandler(_connectNotification)
+      })
+
+      it('.disconnect() should wait until call has been disconnected', done => {
+        expect(call.peer.id).toEqual('peer-call-id')
+        call.disconnect().then(result => {
+          expect(result).toBeInstanceOf(DisconnectResult)
+          expect(result.successful).toBe(true)
+          expect(call.peer).toBeUndefined()
+          expect(Connection.mockSend).nthCalledWith(1, getMsg())
+          done()
+        })
+        session.calling.notificationHandler(_connectNotificationDisconnected)
+      })
+
+    })
+
   })
 
   describe('with fail response code not 200', () => {
@@ -1592,5 +1619,31 @@ describe('Call', () => {
 
     })
 
+    describe('disconnect method', () => {
+      const getMsg = () => new Execute({
+        protocol: 'signalwire_service_random_uuid',
+        method: 'calling.disconnect',
+        params: { node_id: call.nodeId, call_id: call.id }
+      })
+
+      beforeEach(() => {
+        const _connectNotification = JSON.parse(`{"event_type":"calling.call.connect","params":{"connect_state":"connected","peer":{"call_id":"peer-call-id","node_id":"peer-node-id","device":{"type":"phone","params":{"from_number":"+1234","to_number":"+15678"}}},"call_id":"call-id","node_id":"node-id"}}`)
+        const _connectNotificationPeerCreated = JSON.parse('{"event_type":"calling.call.state","params":{"call_state":"created","direction":"outbound","device":{"type":"phone","params":{"from_number":"+1234","to_number":"15678"}},"peer":{"call_id":"call-id","node_id":"node-id"},"call_id":"peer-call-id","node_id":"peer-node-id"}}')
+        session.calling.notificationHandler(_connectNotificationPeerCreated)
+        session.calling.notificationHandler(_connectNotification)
+      })
+
+      it('.disconnect() should wait until call has been disconnected', done => {
+        expect(call.peer.id).toEqual('peer-call-id')
+        call.disconnect().then(result => {
+          expect(result).toBeInstanceOf(DisconnectResult)
+          expect(result.successful).toBe(false)
+          expect(call.peer).toBeInstanceOf(Call)
+          expect(Connection.mockSend).nthCalledWith(1, getMsg())
+          done()
+        })
+      })
+
+    })
   })
 })

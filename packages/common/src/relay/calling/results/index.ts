@@ -9,6 +9,7 @@ export * from './FaxResult'
 export * from './DetectResult'
 export * from './TapResult'
 export * from './SendDigitsResult'
+export * from './DisconnectResult'
 
 export class StopResult {
   public code: string

@@ -57,6 +57,7 @@ export enum CallMethod {
   Answer = 'calling.answer',
   Begin = 'calling.begin',
   Connect = 'calling.connect',
+  Disconnect = 'calling.disconnect',
   End = 'calling.end',
   Record = 'calling.record',
   Play = 'calling.play',

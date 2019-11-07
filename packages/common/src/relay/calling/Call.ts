@@ -2,13 +2,13 @@ import { v4 as uuidv4 } from 'uuid'
 import logger from '../../util/logger'
 import { Execute } from '../../messages/Blade'
 import { CallState, DisconnectReason, DEFAULT_CALL_TIMEOUT, CallNotification, CallRecordState, CallPlayState, CallPlayType, CallPromptState, CallConnectState, CALL_STATES, CallFaxState, CallDetectState, CallDetectType, CallTapState, SendDigitsState } from '../../util/constants/relay'
-import { ICall, ICallOptions, ICallDevice, IMakeCallParams, ICallingPlay, ICallingPlayParams, ICallingCollect, DeepArray, ICallingDetect, ICallingTapTap, ICallingTapDevice, ICallingRecord, IRelayCallingPlay, ICallingPlayRingtone, ICallingPlayTTS, ICallingCollectAudio, ICallingCollectTTS, ICallingTapFlat, ICallingCollectRingtone, ICallingConnectParams } from '../../util/interfaces'
-import { reduceConnectParams, prepareRecordParams, preparePlayParams, preparePlayAudioParams, preparePromptParams, preparePromptAudioParams, preparePromptTTSParams, prepareTapParams, preparePromptRingtoneParams, prepareConnectParams } from '../helpers'
+import { ICall, ICallOptions, ICallDevice, IMakeCallParams, ICallingPlay, ICallingPlayParams, ICallingCollect, DeepArray, ICallingDetect, ICallingTapTap, ICallingTapDevice, ICallingRecord, IRelayCallingPlay, ICallingPlayRingtone, ICallingPlayTTS, ICallingCollectAudio, ICallingCollectTTS, ICallingTapFlat, ICallingCollectRingtone, ICallingConnectParams, ICallPeer } from '../../util/interfaces'
+import { prepareRecordParams, preparePlayParams, preparePlayAudioParams, preparePromptParams, preparePromptAudioParams, preparePromptTTSParams, prepareTapParams, preparePromptRingtoneParams, prepareConnectParams } from '../helpers'
 import Calling from './Calling'
 import { isFunction } from '../../util/helpers'
-import { Answer, Await, BaseComponent, Connect, Detect, Dial, FaxReceive, FaxSend, Hangup, Play, Prompt, Record, SendDigits, Tap } from './components'
+import { Answer, Await, BaseComponent, Connect, Detect, Dial, FaxReceive, FaxSend, Hangup, Play, Prompt, Record, SendDigits, Tap, Disconnect } from './components'
 import { RecordAction, PlayAction, PromptAction, ConnectAction, FaxAction, DetectAction, TapAction, SendDigitsAction } from './actions'
-import { HangupResult, RecordResult, AnswerResult, PlayResult, PromptResult, ConnectResult, DialResult, FaxResult, DetectResult, TapResult, SendDigitsResult } from './results'
+import { HangupResult, RecordResult, AnswerResult, PlayResult, PromptResult, ConnectResult, DialResult, FaxResult, DetectResult, TapResult, SendDigitsResult, DisconnectResult } from './results'
 
 export default class Call implements ICall {
   public id: string
@@ -101,6 +101,14 @@ export default class Call implements ICall {
     await component._waitFor(CallState.Answered, CallState.Ending, CallState.Ended)
 
     return new DialResult(component)
+  }
+
+  async disconnect() {
+    const component = new Disconnect(this)
+    this._addComponent(component)
+    await component._waitFor(CallConnectState.Failed, CallConnectState.Disconnected)
+
+    return new DisconnectResult(component)
   }
 
   async hangup(reason: string = DisconnectReason.Hangup) {
@@ -489,8 +497,18 @@ export default class Call implements ICall {
     }
   }
 
-  _connectChange(params: { connect_state: string }) {
-    const { connect_state } = params
+  _connectChange(params: { connect_state: string, peer?: ICallPeer }) {
+    const { connect_state, peer } = params
+    switch (connect_state) {
+      case CallConnectState.Connected:
+        if (peer) {
+          this.setOptions({ peer })
+        }
+        break
+      case CallConnectState.Disconnected:
+        this.setOptions({ peer: undefined })
+        break
+    }
     this._notifyComponents(CallNotification.Connect, this.tag, params)
     this._dispatchCallback('connect.stateChange')
     this._dispatchCallback(`connect.${connect_state}`)

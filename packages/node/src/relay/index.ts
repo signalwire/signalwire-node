@@ -6,6 +6,7 @@ import { ISignalWireOptions } from '../../../common/src/util/interfaces'
 import logger from '../../../common/src/util/logger'
 
 export default class RelayClient extends BaseSession {
+  protected _doKeepAlive: boolean = true
 
   private _calling: Calling = null
   private _tasking: Tasking = null

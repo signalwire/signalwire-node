@@ -8,7 +8,7 @@ import { deRegister, register, trigger, deRegisterAll } from './services/Handler
 import BroadcastHandler from './services/BroadcastHandler'
 import { ADD, REMOVE, SwEvent, BladeMethod, NOTIFICATION_TYPE } from './util/constants'
 import { BroadcastParams, ISignalWireOptions, SubscribeParams, IBladeConnectResult } from './util/interfaces'
-import { Subscription, Connect, Reauthenticate } from './messages/Blade'
+import { Subscription, Connect, Reauthenticate, Ping } from './messages/Blade'
 import { isFunction } from './util/helpers'
 import { sessionStorage } from './util/storage/'
 
@@ -25,11 +25,14 @@ export default abstract class BaseSession {
 
   protected connection: Connection = null
   protected _jwtAuth: boolean = false
+  protected _doKeepAlive: boolean = false
+  protected _keepAliveTimeout: NodeJS.Timeout | number
   protected _reconnectDelay: number = 5000
   protected _autoReconnect: boolean = false
 
   private _idle: boolean = false
   private _executeQueue: { resolve?: Function, msg: any}[] = []
+  private _pong: boolean
 
   constructor(public options: ISignalWireOptions) {
     if (!this.validateOptions()) {
@@ -231,6 +234,7 @@ export default abstract class BaseSession {
       this.nodeid = nodeid
       this.master_nodeid = master_nodeid
       this._emptyExecuteQueues()
+      this._keepAlive()
       trigger(SwEvent.Ready, this, this.uuid)
       logger.info('Session Ready!')
     }
@@ -395,6 +399,21 @@ export default abstract class BaseSession {
     if (!this.expired) {
       setTimeout(this._checkTokenExpiration, 30 * 1000)
     }
+  }
+
+  private _keepAlive() {
+    if (this._doKeepAlive !== true) {
+      return
+    }
+    if (this._pong === false) {
+      // close
+      return
+    }
+    this._pong = false
+    this.execute(new Ping())
+      .then(() => this._pong = true)
+      .catch(() => this._pong = false)
+    this._keepAliveTimeout = setTimeout(() => this._keepAlive(), 3000)
   }
 
   static on(eventName: string, callback: any) {

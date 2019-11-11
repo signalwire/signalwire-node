@@ -1,3 +1,5 @@
+import { CallType } from './constants/relay'
+
 interface IMessageBase { jsonrpc: string, id: string }
 
 type TBladeVersion = { major: number, minor: number, revision: number }
@@ -195,46 +197,52 @@ export interface ICall {
   sendDigitsAsync: Function
 }
 
-interface IRelayDevicePhone {
-  type: 'phone'
-  params: {
-    from_number: string
-    to_number: string
-    timeout?: number
-  }
-}
-interface IRelayDeviceAgora {
-  type: 'agora'
-  params: {
-    from: string
-    to: string
-    appid: string
-    channel: string
-    timeout?: number
-  }
-}
-interface IRelayDeviceWebRTC {
-  type: 'webrtc'
-  params: {
-    from: string
-    to: string
-    timeout?: number
-    codecs?: string[]
-  }
-}
-interface IRelayDeviceSip {
-  type: 'sip'
-  params: {
-    from: string
-    to: string
-    timeout?: number
-    headers?: StringStringMap
-    codecs?: string[]
-    webrtc_media?: boolean
-  }
+export interface IRelayDevicePhoneParams {
+  from_number: string
+  to_number: string
+  timeout?: number
 }
 
-export type IRelayDevice = IRelayDevicePhone | IRelayDeviceAgora | IRelayDeviceWebRTC | IRelayDeviceSip
+export interface IRelayDeviceAgoraParams {
+  from: string
+  to: string
+  appid: string
+  channel: string
+  timeout?: number
+}
+
+export interface IRelayDeviceWebRTCParams {
+  from: string
+  to: string
+  timeout?: number
+  codecs?: string[]
+}
+
+export interface IRelayDeviceSipParams {
+  from: string
+  to: string
+  timeout?: number
+  headers?: StringStringMap
+  codecs?: string[]
+  webrtc_media?: boolean
+}
+
+export interface IRelayDevice {
+  type: CallType
+  params: IRelayDevicePhoneParams | IRelayDeviceAgoraParams | IRelayDeviceWebRTCParams | IRelayDeviceSipParams
+}
+
+export interface IDevice {
+  type: 'phone' | 'agora' | 'webrtc' | 'sip'
+  from?: string
+  to: string
+  timeout?: number
+  appId?: string
+  channel?: string
+  headers?: StringStringMap
+  webrtcMedia?: boolean
+  codecs?: string[]
+}
 
 export interface ICallDevice {
   type: string

@@ -26,7 +26,7 @@ export default abstract class BaseSession {
   protected connection: Connection = null
   protected _jwtAuth: boolean = false
   protected _doKeepAlive: boolean = false
-  protected _keepAliveTimeout: NodeJS.Timeout | number
+  protected _keepAliveTimeout: any
   protected _reconnectDelay: number = 5000
   protected _autoReconnect: boolean = false
 
@@ -142,7 +142,7 @@ export default abstract class BaseSession {
     this.subscriptions = {}
     this._autoReconnect = false
     this.relayProtocol = null
-    this._removeConnection()
+    this._closeConnection()
     await sessionStorage.removeItem(this.signature)
     this._executeQueue = []
     this._detachListeners()
@@ -375,12 +375,12 @@ export default abstract class BaseSession {
    * Close and remove the current connection.
    * @return void
    */
-  private _removeConnection() {
+  private _closeConnection() {
     this._idle = true
+    clearTimeout(this._keepAliveTimeout)
     if (this.connection) {
       this.connection.close()
     }
-    this.connection = null
   }
 
   /**
@@ -406,8 +406,7 @@ export default abstract class BaseSession {
       return
     }
     if (this._pong === false) {
-      // close
-      return
+      return this._closeConnection()
     }
     this._pong = false
     this.execute(new Ping())

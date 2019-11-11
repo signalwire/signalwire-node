@@ -196,12 +196,12 @@ export default abstract class BaseSession {
   async connect(): Promise<void> {
     if (!this.connection) {
       this.connection = new Connection(this)
-    } else if (this.connection.isAlive) {
-      return
     }
 
     this._attachListeners()
-    this.connection.connect()
+    if (!this.connection.isAlive) {
+      this.connection.connect()
+    }
   }
 
   /**

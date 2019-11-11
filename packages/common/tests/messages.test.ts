@@ -1,5 +1,5 @@
 import { setAgentName, Connect } from '../src/messages/blade/Connect'
-import { Execute, Subscription } from '../src/messages/Blade'
+import { Execute, Subscription, Ping } from '../src/messages/Blade'
 import { Login, Invite, Answer, Bye, Modify, Info, Result } from '../src/messages/Verto'
 
 describe('Messages', function () {
@@ -125,5 +125,13 @@ describe('Messages', function () {
       })
     })
 
+  })
+
+  describe('BladePing', () => {
+    it('should match the struct', () => {
+      const message = new Ping().request
+      const res = JSON.parse(`{"jsonrpc":"2.0","id":"${message.id}","method":"blade.ping","params":{}}`)
+      expect(message).toEqual(res)
+    })
   })
 })

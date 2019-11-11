@@ -8,9 +8,11 @@ import { deRegister, register, trigger, deRegisterAll } from './services/Handler
 import BroadcastHandler from './services/BroadcastHandler'
 import { ADD, REMOVE, SwEvent, BladeMethod, NOTIFICATION_TYPE } from './util/constants'
 import { BroadcastParams, ISignalWireOptions, SubscribeParams, IBladeConnectResult } from './util/interfaces'
-import { Subscription, Connect, Reauthenticate } from './messages/Blade'
+import { Subscription, Connect, Reauthenticate, Ping } from './messages/Blade'
 import { isFunction } from './util/helpers'
 import { sessionStorage } from './util/storage/'
+
+const KEEPALIVE_INTERVAL = 10 * 1000
 
 export default abstract class BaseSession {
   public uuid: string = uuidv4()
@@ -25,11 +27,14 @@ export default abstract class BaseSession {
 
   protected connection: Connection = null
   protected _jwtAuth: boolean = false
+  protected _doKeepAlive: boolean = false
+  protected _keepAliveTimeout: any
   protected _reconnectDelay: number = 5000
   protected _autoReconnect: boolean = false
 
   private _idle: boolean = false
   private _executeQueue: { resolve?: Function, msg: any}[] = []
+  private _pong: boolean
 
   constructor(public options: ISignalWireOptions) {
     if (!this.validateOptions()) {
@@ -139,7 +144,7 @@ export default abstract class BaseSession {
     this.subscriptions = {}
     this._autoReconnect = false
     this.relayProtocol = null
-    this._removeConnection()
+    this._closeConnection()
     await sessionStorage.removeItem(this.signature)
     this._executeQueue = []
     this._detachListeners()
@@ -193,12 +198,12 @@ export default abstract class BaseSession {
   async connect(): Promise<void> {
     if (!this.connection) {
       this.connection = new Connection(this)
-    } else if (this.connection.isAlive) {
-      return
     }
 
     this._attachListeners()
-    this.connection.connect()
+    if (!this.connection.isAlive) {
+      this.connection.connect()
+    }
   }
 
   /**
@@ -231,6 +236,8 @@ export default abstract class BaseSession {
       this.nodeid = nodeid
       this.master_nodeid = master_nodeid
       this._emptyExecuteQueues()
+      this._pong = null
+      this._keepAlive()
       trigger(SwEvent.Ready, this, this.uuid)
       logger.info('Session Ready!')
     }
@@ -371,12 +378,12 @@ export default abstract class BaseSession {
    * Close and remove the current connection.
    * @return void
    */
-  private _removeConnection() {
+  private _closeConnection() {
     this._idle = true
+    clearTimeout(this._keepAliveTimeout)
     if (this.connection) {
       this.connection.close()
     }
-    this.connection = null
   }
 
   /**
@@ -395,6 +402,20 @@ export default abstract class BaseSession {
     if (!this.expired) {
       setTimeout(this._checkTokenExpiration, 30 * 1000)
     }
+  }
+
+  private _keepAlive() {
+    if (this._doKeepAlive !== true) {
+      return
+    }
+    if (this._pong === false) {
+      return this._closeConnection()
+    }
+    this._pong = false
+    this.execute(new Ping())
+      .then(() => this._pong = true)
+      .catch(() => this._pong = false)
+    this._keepAliveTimeout = setTimeout(() => this._keepAlive(), KEEPALIVE_INTERVAL)
   }
 
   static on(eventName: string, callback: any) {

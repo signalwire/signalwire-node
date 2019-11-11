@@ -16,14 +16,12 @@ const WS_STATE = {
   CLOSING: 2,
   CLOSED: 3
 }
-const PING_INTERVAL = 5 * 1000
 const REQUEST_TIMEOUT = 10 * 1000
 
 export default class Connection {
   private _wsClient: any = null
   private _host: string = 'wss://relay.signalwire.com'
   private _timers: { [id: string]: any } = {}
-  private _connected: boolean = false
 
   public upDur: number = null
   public downDur: number = null
@@ -61,15 +59,8 @@ export default class Connection {
 
   connect() {
     this._wsClient = new WebSocketClass(this._host)
-    this._wsClient.onopen = (event): boolean => {
-      this._connected = true
-      this._ping()
-      return trigger(SwEvent.SocketOpen, event, this.session.uuid)
-    }
-    this._wsClient.onclose = (event): boolean => {
-      this._connected = false
-      return trigger(SwEvent.SocketClose, event, this.session.uuid)
-    }
+    this._wsClient.onopen = (event): boolean => trigger(SwEvent.SocketOpen, event, this.session.uuid)
+    this._wsClient.onclose = (event): boolean => trigger(SwEvent.SocketClose, event, this.session.uuid)
     this._wsClient.onerror = (event): boolean => trigger(SwEvent.SocketError, event, this.session.uuid)
     this._wsClient.onmessage = (event): void => {
       const msg: any = safeParseJson(event.data)
@@ -109,8 +100,9 @@ export default class Connection {
   }
 
   close() {
-    // FIXME: wait all req/res before close!
-    this._wsClient.close()
+    if (this._wsClient) {
+      isFunction(this._wsClient._beginClose) ? this._wsClient._beginClose() : this._wsClient.close()
+    }
     this._wsClient = null
   }
 
@@ -139,20 +131,6 @@ export default class Connection {
       }
     } else {
       logger.warn('Unknown message from socket', response)
-    }
-  }
-
-  private _ping() {
-    if (typeof WebSocket !== 'undefined' && this._wsClient instanceof WebSocket) {
-      return
-    }
-    if (this._connected) {
-      this._connected = false
-      this._wsClient.ping('', () => this._connected = true)
-      return setTimeout(() => this._ping(), PING_INTERVAL)
-    }
-    if (this._wsClient) {
-      isFunction(this._wsClient._beginClose) ? this._wsClient._beginClose() : this._wsClient.close()
     }
   }
 }

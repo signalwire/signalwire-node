@@ -12,6 +12,8 @@ import { Subscription, Connect, Reauthenticate, Ping } from './messages/Blade'
 import { isFunction } from './util/helpers'
 import { sessionStorage } from './util/storage/'
 
+const KEEPALIVE_INTERVAL = 10 * 1000
+
 export default abstract class BaseSession {
   public uuid: string = uuidv4()
   public sessionid: string = ''
@@ -234,6 +236,7 @@ export default abstract class BaseSession {
       this.nodeid = nodeid
       this.master_nodeid = master_nodeid
       this._emptyExecuteQueues()
+      this._pong = null
       this._keepAlive()
       trigger(SwEvent.Ready, this, this.uuid)
       logger.info('Session Ready!')
@@ -412,7 +415,7 @@ export default abstract class BaseSession {
     this.execute(new Ping())
       .then(() => this._pong = true)
       .catch(() => this._pong = false)
-    this._keepAliveTimeout = setTimeout(() => this._keepAlive(), 3000)
+    this._keepAliveTimeout = setTimeout(() => this._keepAlive(), KEEPALIVE_INTERVAL)
   }
 
   static on(eventName: string, callback: any) {

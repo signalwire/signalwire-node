@@ -29,6 +29,7 @@ export enum DisconnectSource {
 
 export enum CallType {
   Phone = 'phone',
+  Agora = 'agora',
   Sip = 'sip',
   WebRTC = 'webrtc'
 }

@@ -195,6 +195,47 @@ export interface ICall {
   sendDigitsAsync: Function
 }
 
+interface IRelayDevicePhone {
+  type: 'phone'
+  params: {
+    from_number: string
+    to_number: string
+    timeout?: number
+  }
+}
+interface IRelayDeviceAgora {
+  type: 'agora'
+  params: {
+    from: string
+    to: string
+    appid: string
+    channel: string
+    timeout?: number
+  }
+}
+interface IRelayDeviceWebRTC {
+  type: 'webrtc'
+  params: {
+    from: string
+    to: string
+    timeout?: number
+    codecs?: string[]
+  }
+}
+interface IRelayDeviceSip {
+  type: 'sip'
+  params: {
+    from: string
+    to: string
+    timeout?: number
+    headers?: StringStringMap
+    codecs?: string[]
+    webrtc_media?: boolean
+  }
+}
+
+export type IRelayDevice = IRelayDevicePhone | IRelayDeviceAgora | IRelayDeviceWebRTC | IRelayDeviceSip
+
 export interface ICallDevice {
   type: string
   params: {

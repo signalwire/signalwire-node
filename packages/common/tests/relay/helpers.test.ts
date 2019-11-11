@@ -1,4 +1,4 @@
-import { reduceConnectParams, prepareRecordParams, preparePlayParams, preparePlayAudioParams, preparePromptParams, preparePromptAudioParams, preparePromptTTSParams, prepareTapParams } from '../../src/relay/helpers'
+import { reduceConnectParams, prepareRecordParams, preparePlayParams, preparePlayAudioParams, preparePromptParams, preparePromptAudioParams, preparePromptTTSParams, prepareTapParams, prepareDevices } from '../../src/relay/helpers'
 import { ICallDevice, ICallingTapTap, ICallingTapDevice, ICallingTapFlat, ICallingPlayParams } from '../../src/util/interfaces'
 
 describe('reduceConnectParams()', () => {
@@ -427,5 +427,113 @@ describe('prepareTapParams()', () => {
       codec: 'OPUS'
     }
     expect(prepareTapParams(tap)).toEqual({ tap: tapExpected, device: deviceExpected })
+  })
+})
+
+describe('prepareDevices()', () => {
+  const from = 'from'
+  const to = 'to'
+  const appid = 'appid'
+  const channel = 'channel'
+  const codecs = ['PCMU', 'OPUS']
+  const timeout = 30
+
+  it('should handle single device to dial', () => {
+    const final = [
+      [{ type: 'agora', params: { to, from, appid, channel, timeout } }]
+    ]
+
+    const devices = [
+      { type: 'agora' as 'agora', to, from, appId: appid, channel, timeout }
+    ]
+    expect(prepareDevices(devices, 'def-from', undefined)).toEqual(final)
+  })
+
+  it('should handle multiple devices in series', () => {
+    const final = [
+      [{ type: 'phone', params: { to_number: to, from_number: from } }],
+      [{ type: 'agora', params: { to, from, appid, channel } }],
+      [{ type: 'sip', params: { to, from, codecs, headers: {}, webrtc_media: false } }]
+    ]
+
+    const devices = [
+      { type: 'phone' as 'phone', to, from },
+      { type: 'agora' as 'agora', to, from, appId: appid, channel },
+      { type: 'sip' as 'sip', to, from, webrtcMedia: false, headers: {}, codecs }
+    ]
+    expect(prepareDevices(devices, 'def-from', undefined)).toEqual(final)
+  })
+
+  it('should handle multiple devices in parallel', () => {
+    const final = [
+      [
+        { type: 'phone', params: { to_number: to, from_number: from } },
+        { type: 'agora', params: { to, from, appid, channel } },
+        { type: 'sip', params: { to, from } }
+      ]
+    ]
+
+    const devices = [
+      [
+        { type: 'phone' as 'phone', to, from },
+        { type: 'agora' as 'agora', to, from, appId: appid, channel },
+        { type: 'sip' as 'sip', to, from }
+      ]
+    ]
+    expect(prepareDevices(devices, 'def-from', undefined)).toEqual(final)
+  })
+
+  it('should handle multiple devices in series and parallel', () => {
+    const final = [
+      [
+        { type: 'phone', params: { to_number: to, from_number: 'def-from' } },
+      ],
+      [
+        { type: 'phone', params: { to_number: to, from_number: 'def-from' } },
+        { type: 'agora', params: { to, from: 'def-from', appid, channel } },
+        { type: 'sip', params: { to, from: 'def-from' } }
+      ],
+      [
+        { type: 'webrtc', params: { to, from: 'def-from', codecs } },
+      ]
+    ]
+
+    const devices = [
+      { type: 'phone' as 'phone', to },
+      [
+        { type: 'phone' as 'phone', to },
+        { type: 'agora' as 'agora', to, appId: appid, channel },
+        { type: 'sip' as 'sip', to }
+      ],
+      { type: 'webrtc' as 'webrtc', to, codecs }
+    ]
+    expect(prepareDevices(devices, 'def-from', undefined)).toEqual(final)
+  })
+
+  it('should handle multiple devices - in series and parallel - with default values', () => {
+    const final = [
+      [
+        { type: 'phone', params: { to_number: to, from_number: from, timeout: 20 } },
+      ],
+      [
+        { type: 'phone', params: { to_number: to, from_number: from, timeout: 20 } },
+        { type: 'agora', params: { to, from: 'def-from', appid, channel, timeout: 60 } },
+        { type: 'sip', params: { to, from: 'def-from', timeout: 60 } }
+      ],
+      [
+        { type: 'webrtc', params: { to, from: 'def-from', codecs, timeout: 20 } },
+      ]
+    ]
+
+    const devices = [
+      { type: 'phone' as 'phone', to, from },
+      [
+        { type: 'phone' as 'phone', to, from },
+        { type: 'agora' as 'agora', to, appId: appid, channel, timeout: 60 },
+        { type: 'sip' as 'sip', to, timeout: 60 }
+      ],
+      { type: 'webrtc' as 'webrtc', to, codecs }
+    ]
+    expect(prepareDevices(devices, 'def-from', 20)).toEqual(final)
   })
 })

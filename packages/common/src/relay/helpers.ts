@@ -1,10 +1,77 @@
-import { ICallDevice, IMakeCallParams, DeepArray, ICallingRecord, IRelayCallingRecord, IRelayCallingPlay, ICallingPlay, ICallingPlayParams, ICallingCollect, IRelayCallingCollect, ICallingCollectAudio, ICallingPlayTTS, ICallingCollectTTS, ICallingDetect, IRelayCallingDetect, ICallingTapTap, ICallingTapFlat, IRelayCallingTapTap, IRelayCallingTapDevice, ICallingTapDevice, ICallingCollectRingtone, ICallingPlayRingtone, ICallingConnectParams } from '../util/interfaces'
-import { CallPlayType, CallDetectState, CallDetectType } from '../util/constants/relay'
+import { IRelayDevice, StringStringMap, ICallDevice, IMakeCallParams, DeepArray, ICallingRecord, IRelayCallingRecord, IRelayCallingPlay, ICallingPlay, ICallingPlayParams, ICallingCollect, IRelayCallingCollect, ICallingCollectAudio, ICallingPlayTTS, ICallingCollectTTS, ICallingDetect, IRelayCallingDetect, ICallingTapTap, ICallingTapFlat, IRelayCallingTapTap, IRelayCallingTapDevice, ICallingTapDevice, ICallingCollectRingtone, ICallingPlayRingtone, ICallingConnectParams } from '../util/interfaces'
+import { CallPlayType, CallType } from '../util/constants/relay'
 import { deepCopy, objEmpty } from '../util/helpers'
+import logger from '../util/logger'
 
 interface DeviceAccumulator {
   devices: DeepArray<ICallDevice>,
   nested: boolean
+}
+
+interface IDevice {
+  type: 'phone' | 'agora' | 'webrtc' | 'sip'
+  from?: string
+  to: string
+  timeout?: number
+  appId?: string
+  channel?: string
+  headers?: StringStringMap
+  webrtcMedia?: boolean
+  codecs?: string[]
+}
+
+export const prepareDevices = (devices: DeepArray<IDevice>, defaultFrom: string, defaultTimeout: number, nested: boolean = false): DeepArray<IRelayDevice> => {
+  const relayDevices: DeepArray<IRelayDevice> = []
+  for (const device of devices) {
+    if (device instanceof Array) {
+      const tmp: DeepArray<IRelayDevice> = prepareDevices(device, defaultFrom, defaultTimeout, true)
+      relayDevices.push(tmp)
+    } else if (typeof device === 'object') {
+      let tmp: IRelayDevice = null
+      const { type, timeout = defaultTimeout } = device
+      switch (type) {
+        case CallType.Phone:
+          const { from: from_number = defaultFrom, to: to_number } = device
+          tmp = { type, params: { from_number, to_number } }
+          break
+        case CallType.Agora: {
+          const { from = defaultFrom, to, appId: appid, channel } = device
+          tmp = { type, params: { from, to, appid, channel } }
+          break
+        }
+        case CallType.WebRTC: {
+          const { from = defaultFrom, to, codecs } = device
+          tmp = { type, params: { from, to } }
+          if (codecs) {
+            tmp.params.codecs = codecs
+          }
+          break
+        }
+        case CallType.Sip: {
+          const { from = defaultFrom, to, codecs, headers, webrtcMedia = null } = device
+          tmp = { type, params: { from, to } }
+          if (headers) {
+            tmp.params.headers = headers
+          }
+          if (codecs) {
+            tmp.params.codecs = codecs
+          }
+          if (webrtcMedia !== null) {
+            tmp.params.webrtc_media = webrtcMedia
+          }
+          break
+        }
+        default:
+          logger.error(`Unknown device type: ${device.type}`)
+          break
+      }
+      if (timeout) {
+        tmp.params.timeout = timeout
+      }
+      nested ? relayDevices.push(tmp) : relayDevices.push([tmp])
+    }
+  }
+  return relayDevices
 }
 
 export const prepareConnectParams = (params: [ICallingConnectParams] | DeepArray<IMakeCallParams>, callDevice: ICallDevice): [DeepArray<ICallDevice>, IRelayCallingPlay] => {

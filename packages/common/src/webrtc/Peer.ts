@@ -1,5 +1,5 @@
 import logger from '../util/logger'
-import { getUserMedia, getMediaConstraints, sdpStereoHack } from './helpers'
+import { getUserMedia, getMediaConstraints, sdpStereoHack, sdpBitrateHack } from './helpers'
 import { PeerType, SwEvent } from '../util/constants'
 import { attachMediaStream, muteMediaElement, sdpToJsonHack, RTCPeerConnection, streamIsValid } from '../util/webrtc'
 import { isFunction } from '../util/helpers'
@@ -107,6 +107,7 @@ export default class Peer {
     if (this.options.useStereo) {
       sessionDescription.sdp = sdpStereoHack(sessionDescription.sdp)
     }
+    sessionDescription.sdp = sdpBitrateHack(sessionDescription.sdp)
     return this.instance.setLocalDescription(sessionDescription)
   }
 

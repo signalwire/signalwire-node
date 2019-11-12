@@ -1,8 +1,8 @@
 import { v4 as uuidv4 } from 'uuid'
 import logger from '../../util/logger'
 import { Execute } from '../../messages/Blade'
-import { CallState, DisconnectReason, DEFAULT_CALL_TIMEOUT, CallNotification, CallRecordState, CallPlayState, CallPlayType, CallPromptState, CallConnectState, CALL_STATES, CallFaxState, CallDetectState, CallDetectType, CallTapState, SendDigitsState } from '../../util/constants/relay'
-import { ICall, ICallOptions, ICallDevice, IMakeCallParams, ICallingPlay, ICallingPlayParams, ICallingCollect, DeepArray, ICallingDetect, ICallingTapTap, ICallingTapDevice, ICallingRecord, IRelayCallingPlay, ICallingPlayRingtone, ICallingPlayTTS, ICallingCollectAudio, ICallingCollectTTS, ICallingTapFlat, ICallingCollectRingtone, ICallingConnectParams, ICallPeer } from '../../util/interfaces'
+import { CallState, DisconnectReason, CallNotification, CallRecordState, CallPlayState, CallPlayType, CallPromptState, CallConnectState, CALL_STATES, CallFaxState, CallDetectState, CallDetectType, CallTapState, SendDigitsState, CallType } from '../../util/constants/relay'
+import { ICall, IDevice, ICallOptions, IMakeCallParams, ICallingPlay, ICallingPlayParams, ICallingCollect, DeepArray, ICallingDetect, ICallingTapTap, ICallingTapDevice, ICallingRecord, IRelayCallingPlay, ICallingPlayRingtone, ICallingPlayTTS, ICallingCollectAudio, ICallingCollectTTS, ICallingTapFlat, ICallingCollectRingtone, ICallingConnectParams, ICallPeer } from '../../util/interfaces'
 import { prepareRecordParams, preparePlayParams, preparePlayAudioParams, preparePromptParams, preparePromptAudioParams, preparePromptTTSParams, prepareTapParams, preparePromptRingtoneParams, prepareConnectParams } from '../helpers'
 import Calling from './Calling'
 import { isFunction } from '../../util/helpers'
@@ -16,6 +16,8 @@ export default class Call implements ICall {
   public nodeId: string
   public state: string = CallState.None
   public prevState: string = CallState.None
+  public targets: DeepArray<IDevice> = []
+  public device: IDevice = null
   public failed: boolean = false
   public busy: boolean = false
   public amd: Function
@@ -25,9 +27,10 @@ export default class Call implements ICall {
   private _components: BaseComponent[] = []
 
   constructor(public relayInstance: Calling, protected options: ICallOptions) {
-    const { call_id, node_id } = options
+    const { call_id, node_id, targets = [] } = options
     this.id = call_id
     this.nodeId = node_id
+    this.targets = targets
     this.amd = this.detectAnsweringMachine.bind(this)
     this.amdAsync = this.detectAnsweringMachineAsync.bind(this)
     this.relayInstance.addCall(this)
@@ -54,32 +57,24 @@ export default class Call implements ICall {
     return this.relayInstance.getCallById(call_id)
   }
 
-  get device(): ICallDevice {
-    return this.options.device
-  }
-
   get ready(): boolean {
     return Boolean(this.id)
   }
 
-  get type(): string {
-    const { type } = this.options.device
-    return type
+  get type(): CallType {
+    return this.device ? this.device.type : null
   }
 
   get from(): string {
-    const { params: { from_number = '' } = {} } = this.options.device
-    return from_number
+    return this.device ? this.device.from : null
   }
 
   get to(): string {
-    const { params: { to_number = '' } = {} } = this.options.device
-    return to_number
+    return this.device ? this.device.to : null
   }
 
   get timeout(): number {
-    const { params: { timeout = DEFAULT_CALL_TIMEOUT } = {} } = this.options.device
-    return timeout
+    return this.device ? this.device.params.timeout : null
   }
 
   setOptions(opts: ICallOptions) {

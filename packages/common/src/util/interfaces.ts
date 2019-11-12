@@ -1,3 +1,4 @@
+import * as Devices from '../relay/calling/devices'
 import { CallType } from './constants/relay'
 
 interface IMessageBase { jsonrpc: string, id: string }
@@ -130,6 +131,8 @@ export interface IVideoSettings extends MediaTrackConstraints {
   camLabel?: string
 }
 
+export type IDevice = Devices.Phone | Devices.Agora | Devices.WebRTC | Devices.Sip
+
 export interface ICall {
   id: string
   tag?: string
@@ -137,8 +140,10 @@ export interface ICall {
   state: string
   prevState: string
   context: string
+  device: IDevice
+  targets: DeepArray<IDevice>
   // peer: Call
-  type: string
+  type: CallType
   to: string
   from: string
   timeout: number
@@ -156,10 +161,13 @@ export interface ICall {
   answer: Function
   connect: Function
   connectAsync: Function
+  disconnect: Function
   play: Function
   playAsync: Function
   playAudio: Function
   playAudioAsync: Function
+  playRingtone: Function
+  playRingtoneAsync: Function
   playSilence: Function
   playSilenceAsync: Function
   playTTS: Function
@@ -168,6 +176,8 @@ export interface ICall {
   promptAsync: Function
   promptAudio: Function
   promptAudioAsync: Function
+  promptRingtone: Function
+  promptRingtoneAsync: Function
   promptTTS: Function
   promptTTSAsync: Function
   waitFor: Function
@@ -232,7 +242,7 @@ export interface IRelayDevice {
   params: IRelayDevicePhoneParams | IRelayDeviceAgoraParams | IRelayDeviceWebRTCParams | IRelayDeviceSipParams
 }
 
-export interface IDevice {
+export interface IDeviceFlatParams {
   type: 'phone' | 'agora' | 'webrtc' | 'sip'
   from?: string
   to: string
@@ -244,23 +254,15 @@ export interface IDevice {
   codecs?: string[]
 }
 
-export interface ICallDevice {
-  type: string
-  params: {
-    from_number: string
-    to_number: string
-    timeout: number
-  }
-}
-
 export interface ICallPeer {
   call_id: string
   node_id: string
-  device?: ICallDevice
+  device?: IDevice
 }
 
 export interface ICallOptions {
-  device?: ICallDevice
+  device?: IRelayDevice
+  targets?: DeepArray<IDevice>
   peer?: ICallPeer
   node_id?: string
   call_id?: string
@@ -274,10 +276,6 @@ export interface IMakeCallParams {
   to: string
   timeout?: number
 }
-
-// export interface Constructable<T> {
-//   new(any: any): T
-// }
 
 export interface StringTMap<T> { [key: string]: T }
 export interface StringStringMap extends StringTMap<string> { }

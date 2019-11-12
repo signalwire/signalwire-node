@@ -1,5 +1,5 @@
 import RelayClient from '../../src/relay'
-import { ICallDevice, IRelayCallingPlay } from '../../../common/src/util/interfaces'
+import { IRelayCallingPlay } from '../../../common/src/util/interfaces'
 import Call from '../../../common/src/relay/calling/Call'
 import { Execute } from '../../../common/src/messages/Blade'
 import { Play, Prompt } from '../../../common/src/relay/calling/components'
@@ -16,7 +16,7 @@ describe('Calling Actions', () => {
   // @ts-ignore
   session.connection = Connection.default()
   session.relayProtocol = 'signalwire_service_random_uuid'
-  const device: ICallDevice = { type: 'phone', params: { from_number: '2345', to_number: '6789', timeout: 30 } }
+  const device = { type: 'phone', params: { from_number: '2345', to_number: '6789', timeout: 30 } }
   const call = new Call(session.calling, { device })
   call.id = 'call-id'
   call.nodeId = 'node-id'

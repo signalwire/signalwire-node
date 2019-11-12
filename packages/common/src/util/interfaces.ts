@@ -1,5 +1,4 @@
 import * as Devices from '../relay/calling/devices'
-import { CallType } from './constants/relay'
 
 interface IMessageBase { jsonrpc: string, id: string }
 
@@ -238,7 +237,7 @@ export interface IRelayDeviceSipParams {
 }
 
 export interface IRelayDevice {
-  type: CallType
+  type: string
   params: IRelayDevicePhoneParams | IRelayDeviceAgoraParams | IRelayDeviceWebRTCParams | IRelayDeviceSipParams
 }
 

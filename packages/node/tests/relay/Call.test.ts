@@ -10,7 +10,6 @@ import { prepareDevices } from '../../../common/src/relay/helpers'
 jest.mock('../../../common/src/services/Connection')
 
 describe('Call', () => {
-  // const device: ICallDevice = { type: 'phone', params: { from_number: '2345', to_number: '6789', timeout: 30 } }
   const targets = prepareDevices([
     { type: CallType.Phone, to: '6789' },
     [

@@ -1,4 +1,4 @@
-import { IDeviceFlatParams, IRelayDevice, IRelayDevicePhoneParams, IRelayDeviceAgoraParams, IRelayDeviceWebRTCParams, IRelayDeviceSipParams } from '../../../util/interfaces'
+import { IMakeCallParams, IRelayDevice, IRelayDevicePhoneParams, IRelayDeviceAgoraParams, IRelayDeviceWebRTCParams, IRelayDeviceSipParams } from '../../../util/interfaces'
 import { CallType } from '../../../util/constants/relay'
 
 abstract class BaseDevice implements IRelayDevice {
@@ -18,7 +18,7 @@ export class Phone extends BaseDevice {
   public type = CallType.Phone
   public params: IRelayDevicePhoneParams = null
 
-  constructor(options: IDeviceFlatParams) {
+  constructor(options: IMakeCallParams) {
     super()
     const { from: from_number, to: to_number, timeout } = options
     this.params = { from_number, to_number }
@@ -38,7 +38,7 @@ export class Agora extends BaseDevice {
   public type = CallType.Agora
   public params: IRelayDeviceAgoraParams = null
 
-  constructor(options: IDeviceFlatParams) {
+  constructor(options: IMakeCallParams) {
     super()
     const { from, to, appId: appid, channel, timeout } = options
     this.params = { from, to, appid, channel }
@@ -58,7 +58,7 @@ export class Sip extends BaseDevice {
   public type = CallType.Sip
   public params: IRelayDeviceSipParams = null
 
-  constructor(options: IDeviceFlatParams) {
+  constructor(options: IMakeCallParams) {
     super()
     const { from, to, codecs, headers, webrtcMedia = null, timeout } = options
     this.params = { from, to }
@@ -87,7 +87,7 @@ export class WebRTC extends BaseDevice {
   public type = CallType.WebRTC
   public params: IRelayDeviceWebRTCParams = null
 
-  constructor(options: IDeviceFlatParams) {
+  constructor(options: IMakeCallParams) {
     super()
     const { from, to, codecs, timeout } = options
     this.params = { from, to }

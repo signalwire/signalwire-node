@@ -242,7 +242,7 @@ export interface IRelayDevice {
   params: IRelayDevicePhoneParams | IRelayDeviceAgoraParams | IRelayDeviceWebRTCParams | IRelayDeviceSipParams
 }
 
-export interface IDeviceFlatParams {
+export interface IMakeCallParams {
   type: 'phone' | 'agora' | 'webrtc' | 'sip'
   from?: string
   to: string
@@ -268,13 +268,6 @@ export interface ICallOptions {
   call_id?: string
   call_state?: string
   context?: string
-}
-
-export interface IMakeCallParams {
-  type: string
-  from?: string
-  to: string
-  timeout?: number
 }
 
 export interface StringTMap<T> { [key: string]: T }

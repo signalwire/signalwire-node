@@ -1,22 +1,22 @@
-import { IRelayDevice, IDevice, ICallDevice, IMakeCallParams, DeepArray, ICallingRecord, IRelayCallingRecord, IRelayCallingPlay, ICallingPlay, ICallingPlayParams, ICallingCollect, IRelayCallingCollect, ICallingCollectAudio, ICallingPlayTTS, ICallingCollectTTS, ICallingDetect, IRelayCallingDetect, ICallingTapTap, ICallingTapFlat, IRelayCallingTapTap, IRelayCallingTapDevice, ICallingTapDevice, ICallingCollectRingtone, ICallingPlayRingtone, ICallingConnectParams } from '../util/interfaces'
+import { IRelayDevice, IMakeCallParams, IDevice, DeepArray, ICallingRecord, IRelayCallingRecord, IRelayCallingPlay, ICallingPlay, ICallingPlayParams, ICallingCollect, IRelayCallingCollect, ICallingCollectAudio, ICallingPlayTTS, ICallingCollectTTS, ICallingDetect, IRelayCallingDetect, ICallingTapTap, ICallingTapFlat, IRelayCallingTapTap, IRelayCallingTapDevice, ICallingTapDevice, ICallingCollectRingtone, ICallingPlayRingtone, ICallingConnectParams } from '../util/interfaces'
 import { CallPlayType, CallType } from '../util/constants/relay'
 import { deepCopy, objEmpty } from '../util/helpers'
 import * as Devices from '../relay/calling/devices'
 import logger from '../util/logger'
 
-interface DeviceAccumulator {
-  devices: DeepArray<ICallDevice>,
-  nested: boolean
-}
+// interface DeviceAccumulator {
+//   devices: DeepArray<ICallDevice>,
+//   nested: boolean
+// }
 
-export const prepareDevices = (devices: DeepArray<IDevice>, defaultFrom: string, defaultTimeout: number, nested: boolean = false): DeepArray<IRelayDevice> => {
-  const relayDevices: DeepArray<IRelayDevice> = []
+export const prepareDevices = (devices: DeepArray<IMakeCallParams>, defaultFrom: string = null, defaultTimeout: number = null, nested: boolean = false): DeepArray<IDevice> => {
+  const relayDevices: DeepArray<IDevice> = []
   for (const device of devices) {
     if (device instanceof Array) {
-      const tmp: DeepArray<IRelayDevice> = prepareDevices(device, defaultFrom, defaultTimeout, true)
+      const tmp: DeepArray<IDevice> = prepareDevices(device, defaultFrom, defaultTimeout, true)
       relayDevices.push(tmp)
     } else if (typeof device === 'object') {
-      let tmp: IRelayDevice = null
+      let tmp: IDevice = null
       if (defaultFrom && !device.hasOwnProperty('from')) {
         device.from = defaultFrom
       }
@@ -46,7 +46,7 @@ export const prepareDevices = (devices: DeepArray<IDevice>, defaultFrom: string,
   return relayDevices
 }
 
-export const prepareConnectParams = (params: [ICallingConnectParams] | DeepArray<IMakeCallParams>, callDevice: ICallDevice): [DeepArray<ICallDevice>, IRelayCallingPlay] => {
+export const prepareConnectParams = (params: [ICallingConnectParams] | DeepArray<IMakeCallParams>, defaultFrom: string, defaultTimeout: number): [DeepArray<IDevice>, IRelayCallingPlay] => {
   let devices: DeepArray<IMakeCallParams> = []
   let ringback: IRelayCallingPlay = null
   if (params.length === 1 && _isICallingConnectParams(params[0])) {
@@ -62,32 +62,32 @@ export const prepareConnectParams = (params: [ICallingConnectParams] | DeepArray
     })
   }
   return [
-    reduceConnectParams(devices, callDevice),
+    prepareDevices(devices, defaultFrom, defaultTimeout),
     ringback
   ]
 }
 
-export const reduceConnectParams = (peers: DeepArray<IMakeCallParams>, callDevice: ICallDevice): DeepArray<ICallDevice> => {
-  const { params: { from_number: defaultFromNumber, timeout: defaultTimeout } } = callDevice
-  const _reducer = (accumulator: DeviceAccumulator, peer: IMakeCallParams) => {
-    let tmp: ICallDevice = null
-    if (peer instanceof Array) {
-      tmp = peer.reduce(_reducer, { devices: [], nested: true }).devices
-    } else if (typeof peer === 'object') {
-      const { type, from: from_number = defaultFromNumber, to: to_number, timeout = defaultTimeout } = peer
-      if (type) {
-        tmp = { type, params: { to_number, from_number, timeout } }
-      }
-    }
-    if (tmp) {
-      const castArray = accumulator.nested || peer instanceof Array
-      castArray ? accumulator.devices.push(tmp) : accumulator.devices.push([tmp])
-    }
-    return accumulator
-  }
-  const { devices } = peers.reduce(_reducer, { devices: [], nested: false })
-  return devices
-}
+// export const reduceConnectParams = (peers: DeepArray<IMakeCallParams>, callDevice: ICallDevice): DeepArray<IRelayDevice> => {
+//   const { params: { from_number: defaultFromNumber, timeout: defaultTimeout } } = callDevice
+//   const _reducer = (accumulator: DeviceAccumulator, peer: IMakeCallParams) => {
+//     let tmp: IRelayDevice = null
+//     if (peer instanceof Array) {
+//       tmp = peer.reduce(_reducer, { devices: [], nested: true }).devices
+//     } else if (typeof peer === 'object') {
+//       const { type, from: from_number = defaultFromNumber, to: to_number, timeout = defaultTimeout } = peer
+//       if (type) {
+//         tmp = { type, params: { to_number, from_number, timeout } }
+//       }
+//     }
+//     if (tmp) {
+//       const castArray = accumulator.nested || peer instanceof Array
+//       castArray ? accumulator.devices.push(tmp) : accumulator.devices.push([tmp])
+//     }
+//     return accumulator
+//   }
+//   const { devices } = peers.reduce(_reducer, { devices: [], nested: false })
+//   return devices
+// }
 
 export const prepareRecordParams = (params: ICallingRecord): IRelayCallingRecord => {
   const { audio = {}, type, ...flattenedParams } = params

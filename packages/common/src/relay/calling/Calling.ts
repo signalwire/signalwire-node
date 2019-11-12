@@ -1,9 +1,16 @@
 import { trigger } from '../../services/Handler'
-import { ICallDevice, IMakeCallParams } from '../../util/interfaces'
+import { IMakeCallParams, DeepArray, IDevice } from '../../util/interfaces'
 import logger from '../../util/logger'
 import Relay from '../Relay'
 import Call from './Call'
-import { DEFAULT_CALL_TIMEOUT, CallNotification } from '../../util/constants/relay'
+import { CallNotification } from '../../util/constants/relay'
+import { prepareDevices } from '../helpers'
+
+type NewCallParams = { targets: DeepArray<IMakeCallParams> }
+
+const _isIMakeCallParams = (params: IMakeCallParams | NewCallParams): params is IMakeCallParams => {
+  return (params as NewCallParams).targets === undefined
+}
 
 export default class Calling extends Relay {
   protected service: string = 'calling'
@@ -36,22 +43,18 @@ export default class Calling extends Relay {
     }
   }
 
-  newCall(params: IMakeCallParams) {
-    const { type, from: from_number, to: to_number, timeout = DEFAULT_CALL_TIMEOUT } = params
-    if (!type || !from_number || !to_number || !timeout) {
-      throw new TypeError(`Invalid parameters to create a new Call.`)
-    }
-    const device: ICallDevice = { type, params: { from_number, to_number, timeout } }
-    return new Call(this, { device })
+  newCall(params: IMakeCallParams | NewCallParams) {
+    // backwards compatibility
+    const tmp = _isIMakeCallParams(params) ? [params] : params.targets
+    const targets: DeepArray<IDevice> = prepareDevices(tmp)
+    return new Call(this, { targets })
   }
 
-  async dial(params: IMakeCallParams) {
-    const { type, from: from_number, to: to_number, timeout = DEFAULT_CALL_TIMEOUT } = params
-    if (!type || !from_number || !to_number || !timeout) {
-      throw new TypeError(`Invalid parameters to create a new Call.`)
-    }
-    const device: ICallDevice = { type, params: { from_number, to_number, timeout } }
-    const call = new Call(this, { device })
+  async dial(params: IMakeCallParams | NewCallParams) {
+    // backwards compatibility
+    const tmp = _isIMakeCallParams(params) ? [params] : params.targets
+    const targets: DeepArray<IDevice> = prepareDevices(tmp)
+    const call = new Call(this, { targets })
 
     const result = await call.dial()
     return result

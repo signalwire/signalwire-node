@@ -254,7 +254,7 @@ export default class Call implements ICall {
   }
 
   async connect(...params: [ICallingConnectParams] | DeepArray<IMakeCallParams>): Promise<ConnectResult> {
-    const [devices, ringback] = prepareConnectParams(params, this.device)
+    const [devices, ringback] = prepareConnectParams(params, this.from, this.timeout)
     const component = new Connect(this, devices, ringback)
     this._addComponent(component)
     await component._waitFor(CallConnectState.Failed, CallConnectState.Connected)
@@ -263,7 +263,7 @@ export default class Call implements ICall {
   }
 
   async connectAsync(...params: [ICallingConnectParams] | DeepArray<IMakeCallParams>): Promise<ConnectAction> {
-    const [devices, ringback] = prepareConnectParams(params, this.device)
+    const [devices, ringback] = prepareConnectParams(params, this.from, this.timeout)
     const component = new Connect(this, devices, ringback)
     this._addComponent(component)
     await component.execute()

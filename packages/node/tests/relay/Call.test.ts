@@ -1,15 +1,25 @@
 import RelayClient from '../../src/relay'
-import { ICallDevice, ICallingPlay, IRelayCallingTapDevice, ICallingTapTap, ICallingTapDevice, IRelayCallingPlay, ICallingTapFlat } from '../../../common/src/util/interfaces'
+import { ICallingPlay, IRelayCallingTapDevice, ICallingTapTap, ICallingTapDevice, IRelayCallingPlay, ICallingTapFlat } from '../../../common/src/util/interfaces'
 import Call from '../../../common/src/relay/calling/Call'
-import { CallState } from '../../../common/src/util/constants/relay'
+import { CallState, CallType } from '../../../common/src/util/constants/relay'
 import { Execute } from '../../../common/src/messages/Blade'
 const Connection = require('../../../common/src/services/Connection')
 import { RecordAction, PlayAction, PromptAction, ConnectAction, FaxAction, DetectAction, TapAction, SendDigitsAction } from '../../../common/src/relay/calling/actions'
 import { HangupResult, RecordResult, AnswerResult, PlayResult, PromptResult, ConnectResult, DialResult, FaxResult, DetectResult, TapResult, SendDigitsResult, DisconnectResult } from '../../../common/src/relay/calling/results'
+import { prepareDevices } from '../../../common/src/relay/helpers'
 jest.mock('../../../common/src/services/Connection')
 
 describe('Call', () => {
-  const device: ICallDevice = { type: 'phone', params: { from_number: '2345', to_number: '6789', timeout: 30 } }
+  // const device: ICallDevice = { type: 'phone', params: { from_number: '2345', to_number: '6789', timeout: 30 } }
+  const targets = prepareDevices([
+    { type: CallType.Phone, to: '6789' },
+    [
+      { type: CallType.Phone, to: '6789' },
+      { type: CallType.Agora, to: '6789', appId: 'appid', channel: 'channel' },
+      { type: CallType.Sip, to: '6789' }
+    ],
+    { type: CallType.WebRTC, to: '6789', codecs: ['OPUS'] }
+  ])
   const session: RelayClient = new RelayClient({ host: 'example.signalwire.com', project: 'project', token: 'token' })
   session.__logger.setLevel(session.__logger.levels.SILENT)
   // @ts-ignore
@@ -22,7 +32,7 @@ describe('Call', () => {
     Connection.mockSend.mockClear()
     // @ts-ignore
     session.calling._calls = []
-    call = new Call(session.calling, { device })
+    call = new Call(session.calling, { targets })
     // @ts-ignore
     call._components = []
   })
@@ -127,8 +137,8 @@ describe('Call', () => {
     it('.dial() should wait for "answered" event', done => {
       const msg = new Execute({
         protocol: 'signalwire_service_random_uuid',
-        method: 'calling.begin',
-        params: { tag: 'mocked-uuid', device: call.device }
+        method: 'calling.dial',
+        params: { tag: 'mocked-uuid', devices: targets }
       })
       call.dial().then(result => {
         expect(result).toBeInstanceOf(DialResult)
@@ -220,21 +230,21 @@ describe('Call', () => {
 
     describe('connect methods', () => {
       const _tmpDevices = [
-        { type: 'phone', to: '999', from: '231', timeout: 10 },
-        { type: 'phone', to: '888', from: '234', timeout: 20 }
+        { type: CallType.Phone, to: '999', from: '231', timeout: 10 },
+        { type: CallType.Phone, to: '888', from: '234', timeout: 20 }
       ]
       const getMsg = (serial: boolean, ringback: any = null) => {
         let devices = []
         if (serial) {
           devices = [
-            [ { type: 'phone', params: { to_number: '999', from_number: '231', timeout: 10 } } ],
-            [ { type: 'phone', params: { to_number: '888', from_number: '234', timeout: 20 } } ]
+            [ { type: CallType.Phone, params: { to_number: '999', from_number: '231', timeout: 10 } } ],
+            [ { type: CallType.Phone, params: { to_number: '888', from_number: '234', timeout: 20 } } ]
           ]
         } else {
           devices = [
             [
-              { type: 'phone', params: { to_number: '999', from_number: '231', timeout: 10 } },
-              { type: 'phone', params: { to_number: '888', from_number: '234', timeout: 20 } }
+              { type: CallType.Phone, params: { to_number: '999', from_number: '231', timeout: 10 } },
+              { type: CallType.Phone, params: { to_number: '888', from_number: '234', timeout: 20 } }
             ]
           ]
         }
@@ -1218,8 +1228,8 @@ describe('Call', () => {
     it('.dial() should wait for "answered" event', done => {
       const msg = new Execute({
         protocol: 'signalwire_service_random_uuid',
-        method: 'calling.begin',
-        params: { tag: 'mocked-uuid', device: call.device }
+        method: 'calling.dial',
+        params: { tag: 'mocked-uuid', devices: targets }
       })
       call.dial().then(result => {
         expect(result).toBeInstanceOf(DialResult)
@@ -1291,21 +1301,21 @@ describe('Call', () => {
 
     describe('connect methods', () => {
       const _tmpDevices = [
-        { type: 'phone', to: '999', from: '231', timeout: 10 },
-        { type: 'phone', to: '888', from: '234', timeout: 20 }
+        { type: CallType.Phone, to: '999', from: '231', timeout: 10 },
+        { type: CallType.Phone, to: '888', from: '234', timeout: 20 }
       ]
       const getMsg = (serial: boolean) => {
         let devices = []
         if (serial) {
           devices = [
-            [{ type: 'phone', params: { to_number: '999', from_number: '231', timeout: 10 } }],
-            [{ type: 'phone', params: { to_number: '888', from_number: '234', timeout: 20 } }]
+            [{ type: CallType.Phone, params: { to_number: '999', from_number: '231', timeout: 10 } }],
+            [{ type: CallType.Phone, params: { to_number: '888', from_number: '234', timeout: 20 } }]
           ]
         } else {
           devices = [
             [
-              { type: 'phone', params: { to_number: '999', from_number: '231', timeout: 10 } },
-              { type: 'phone', params: { to_number: '888', from_number: '234', timeout: 20 } }
+              { type: CallType.Phone, params: { to_number: '999', from_number: '231', timeout: 10 } },
+              { type: CallType.Phone, params: { to_number: '888', from_number: '234', timeout: 20 } }
             ]
           ]
         }

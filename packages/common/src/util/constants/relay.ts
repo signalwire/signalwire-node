@@ -54,7 +54,8 @@ export enum CallNotification {
 
 export enum CallMethod {
   Answer = 'calling.answer',
-  Begin = 'calling.begin',
+  // Begin = 'calling.begin',
+  Dial = 'calling.dial',
   Connect = 'calling.connect',
   Disconnect = 'calling.disconnect',
   End = 'calling.end',

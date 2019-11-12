@@ -4,13 +4,13 @@ import Event from '../Event'
 
 export class Dial extends BaseComponent {
   public eventType: string = CallNotification.State
-  public method: string = CallMethod.Begin
+  public method: string = CallMethod.Dial
   public controlId: string = this.call.tag
 
   get payload(): any {
     return {
       tag: this.call.tag,
-      device: this.call.device
+      devices: this.call.targets
     }
   }
 

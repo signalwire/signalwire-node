@@ -279,6 +279,23 @@ const _updateMediaStreamTracks = (stream: MediaStream, kind: string = null, enab
   })
 }
 
+/**
+ * Modify the SDP to increase video bitrate
+ * @return the SDP modified
+ */
+const sdpBitrateHack = (sdp: string) => {
+  const endOfLine = '\r\n'
+  const lines = sdp.split(endOfLine)
+  lines.forEach((line, i) => {
+    if (/^a=fmtp:\d*/.test(line)) {
+      lines[i] += ';x-google-max-bitrate=2048;x-google-min-bitrate=0;x-google-start-bitrate=1024'
+    } else if (/^a=mid:(1|video)/.test(line)) {
+      lines[i] += '\r\nb=AS:2048'
+    }
+  })
+  return lines.join(endOfLine)
+}
+
 export {
   getUserMedia,
   getDevices,
@@ -289,6 +306,7 @@ export {
   checkDeviceIdConstraints,
   sdpStereoHack,
   sdpMediaOrderHack,
+  sdpBitrateHack,
   checkSubscribeResponse,
   destructSubscribeResponse,
   enableAudioTracks,

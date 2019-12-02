@@ -7,6 +7,9 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Added
 - Call `disconnect()` method.
 
+### Security
+- Update devDependencies
+
 ## [2.3.1] - 2019-11-01
 ### Fixed
 - Relay client reconnection issue after network failure/reset.

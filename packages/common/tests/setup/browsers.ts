@@ -1,21 +1,8 @@
 import * as webrtcMocks from './webrtcMocks'
 
-if (typeof window !== 'undefined') {
-  Object.defineProperties(window, {
-    RTCPeerConnection: {
-      value: () => {
-        return {
-          close: () => { },
-          addTrack: () => { },
-          createOffer: () => { },
-          createAnswer: () => { },
-          setLocalDescription: () => { },
-          setRemoteDescription: () => { },
-          addEventListener: (event: string, cb: Function) => { },
-        }
-      }
-    }
-  })
+if (typeof RTCPeerConnection === 'undefined') {
+  // @ts-ignore
+  global.RTCPeerConnection = webrtcMocks.RTCPeerConnectionMock
 }
 
 if (typeof MediaStream === 'undefined') {

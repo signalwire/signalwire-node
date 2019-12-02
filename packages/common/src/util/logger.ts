@@ -1,4 +1,4 @@
-const log = require('loglevel')
+import log from 'loglevel'
 const datetime = () => new Date().toISOString().replace('T', ' ').replace('Z', '')
 const logger = log.getLogger('signalwire')
 

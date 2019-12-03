@@ -7,6 +7,9 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Added
 - Call `disconnect()` method.
 
+### Fixed
+- Keep trying to reconnect WS in case of network failure - even if it never has been connected.
+
 ### Security
 - Update devDependencies
 

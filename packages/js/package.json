@@ -1,11 +1,12 @@
 {
   "name": "@signalwire/js",
-  "version": "1.2.4-beta.2",
+  "version": "1.2.4",
   "description": "Relay SDK for JavaScript to connect to SignalWire.",
   "author": "SignalWire Team <open.source@signalwire.com>",
   "main": "dist/index.min.js",
   "unpkg": "dist/index.min.js",
   "module": "dist/esm/js/index.js",
+  "types": "dist/esm/js/index.d.ts",
   "files": [
     "dist"
   ],

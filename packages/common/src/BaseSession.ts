@@ -29,10 +29,11 @@ export default abstract class BaseSession {
   protected _jwtAuth: boolean = false
   protected _doKeepAlive: boolean = false
   protected _keepAliveTimeout: any
+  protected _reconnectTimeout: any
   protected _reconnectDelay: number = 5000
-  protected _autoReconnect: boolean = false
+  protected _autoReconnect: boolean = true
+  protected _idle: boolean = false
 
-  private _idle: boolean = false
   private _executeQueue: { resolve?: Function, msg: any}[] = []
   private _pong: boolean
 
@@ -41,8 +42,7 @@ export default abstract class BaseSession {
       throw new Error('Invalid init options')
     }
     this._onSocketOpen = this._onSocketOpen.bind(this)
-    this._onSocketClose = this._onSocketClose.bind(this)
-    this._onSocketError = this._onSocketError.bind(this)
+    this._onSocketCloseOrError = this._onSocketCloseOrError.bind(this)
     this._onSocketMessage = this._onSocketMessage.bind(this)
     this._handleLoginError = this._handleLoginError.bind(this)
     this._checkTokenExpiration = this._checkTokenExpiration.bind(this)
@@ -141,6 +141,7 @@ export default abstract class BaseSession {
    * @return void
    */
   async disconnect() {
+    clearTimeout(this._reconnectTimeout)
     this.subscriptions = {}
     this._autoReconnect = false
     this.relayProtocol = null
@@ -244,10 +245,11 @@ export default abstract class BaseSession {
   }
 
   /**
-   * Callback when the ws connection is going to close
+   * Callback when the ws connection is going to close or get an error
    * @return void
    */
-  protected _onSocketClose() {
+  protected _onSocketCloseOrError(event: any): void {
+    logger.error(`Socket ${event.type} ${event.message}`)
     if (this.relayProtocol) {
       deRegisterAll(this.relayProtocol)
     }
@@ -262,16 +264,8 @@ export default abstract class BaseSession {
       this.expiresAt = 0
     }
     if (this._autoReconnect) {
-      setTimeout(() => this.connect(), this._reconnectDelay)
+      this._reconnectTimeout = setTimeout(() => this.connect(), this._reconnectDelay)
     }
-  }
-
-  /**
-   * Callback when the ws connection give an error
-   * @return void
-   */
-  protected _onSocketError(error: Error) {
-    logger.error(error.message)
   }
 
   /**
@@ -344,8 +338,8 @@ export default abstract class BaseSession {
   private _attachListeners() {
     this._detachListeners()
     this.on(SwEvent.SocketOpen, this._onSocketOpen)
-    this.on(SwEvent.SocketClose, this._onSocketClose)
-    this.on(SwEvent.SocketError, this._onSocketError)
+    this.on(SwEvent.SocketClose, this._onSocketCloseOrError)
+    this.on(SwEvent.SocketError, this._onSocketCloseOrError)
     this.on(SwEvent.SocketMessage, this._onSocketMessage)
   }
 
@@ -355,8 +349,8 @@ export default abstract class BaseSession {
    */
   private _detachListeners() {
     this.off(SwEvent.SocketOpen, this._onSocketOpen)
-    this.off(SwEvent.SocketClose, this._onSocketClose)
-    this.off(SwEvent.SocketError, this._onSocketError)
+    this.off(SwEvent.SocketClose, this._onSocketCloseOrError)
+    this.off(SwEvent.SocketError, this._onSocketCloseOrError)
     this.off(SwEvent.SocketMessage, this._onSocketMessage)
   }
 

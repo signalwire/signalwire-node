@@ -6,6 +6,7 @@
   "main": "dist/index.min.js",
   "unpkg": "dist/index.min.js",
   "module": "dist/esm/js/index.js",
+  "types": "dist/esm/js/index.d.ts",
   "files": [
     "dist"
   ],

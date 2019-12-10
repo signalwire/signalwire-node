@@ -6,7 +6,7 @@
     "@signalwire/js": "^1.1.1",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
-    "react-scripts": "3.1.0"
+    "react-scripts": "3.3.0"
   },
   "scripts": {
     "start": "SKIP_PREFLIGHT_CHECK=true react-scripts start",

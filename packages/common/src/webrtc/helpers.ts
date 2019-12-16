@@ -33,14 +33,14 @@ const _constraintsByKind = (kind: string = null): { audio: boolean, video: boole
  */
 const getDevices = async (kind: string = null): Promise<MediaDeviceInfo[]> => {
   let devices = await WebRTC.enumerateDevices().catch(error => [])
+  if (kind) {
+    devices = devices.filter((d: MediaDeviceInfo) => d.kind === kind)
+  }
   const invalid: boolean = devices.length && devices.every((d: MediaDeviceInfo) => (!d.deviceId || !d.label))
   if (invalid) {
     const stream = await WebRTC.getUserMedia(_constraintsByKind(kind))
     WebRTC.stopStream(stream)
     return getDevices(kind)
-  }
-  if (kind) {
-    devices = devices.filter((d: MediaDeviceInfo) => d.kind === kind)
   }
   const found = []
   devices = devices.filter(({ kind, groupId }: MediaDeviceInfo) => {

@@ -283,14 +283,14 @@ const _updateMediaStreamTracks = (stream: MediaStream, kind: string = null, enab
  * Modify the SDP to increase video bitrate
  * @return the SDP modified
  */
-const sdpBitrateHack = (sdp: string) => {
+const sdpBitrateHack = (sdp: string, max: number, min: number, start: number) => {
   const endOfLine = '\r\n'
   const lines = sdp.split(endOfLine)
   lines.forEach((line, i) => {
     if (/^a=fmtp:\d*/.test(line)) {
-      lines[i] += ';x-google-max-bitrate=2048;x-google-min-bitrate=0;x-google-start-bitrate=1024'
+      lines[i] += `;x-google-max-bitrate=${max};x-google-min-bitrate=${min};x-google-start-bitrate=${start}`
     } else if (/^a=mid:(1|video)/.test(line)) {
-      lines[i] += '\r\nb=AS:2048'
+      lines[i] += `\r\nb=AS:${max}`
     }
   })
   return lines.join(endOfLine)

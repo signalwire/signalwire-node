@@ -1,5 +1,3 @@
-import Call from '../relay/calling/Call'
-
 interface IMessageBase { jsonrpc: string, id: string }
 
 type TBladeVersion = { major: number, minor: number, revision: number }
@@ -137,7 +135,7 @@ export interface ICall {
   state: string
   prevState: string
   context: string
-  peer: Call
+  // peer: Call
   type: string
   to: string
   from: string

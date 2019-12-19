@@ -108,8 +108,9 @@ export default class Peer {
     if (useStereo) {
       sessionDescription.sdp = sdpStereoHack(sessionDescription.sdp)
     }
-
-    sessionDescription.sdp = sdpBitrateHack(sessionDescription.sdp, googleMaxBitrate, googleMinBitrate, googleStartBitrate)
+    if (googleMaxBitrate && googleMinBitrate && googleStartBitrate) {
+      sessionDescription.sdp = sdpBitrateHack(sessionDescription.sdp, googleMaxBitrate, googleMinBitrate, googleStartBitrate)
+    }
     return this.instance.setLocalDescription(sessionDescription)
   }
 

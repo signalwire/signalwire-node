@@ -104,10 +104,12 @@ export default class Peer {
   }
 
   private _setLocalDescription(sessionDescription: RTCSessionDescriptionInit) {
-    if (this.options.useStereo) {
+    const { useStereo, googleMaxBitrate, googleMinBitrate, googleStartBitrate } = this.options
+    if (useStereo) {
       sessionDescription.sdp = sdpStereoHack(sessionDescription.sdp)
     }
-    sessionDescription.sdp = sdpBitrateHack(sessionDescription.sdp)
+
+    sessionDescription.sdp = sdpBitrateHack(sessionDescription.sdp, googleMaxBitrate, googleMinBitrate, googleStartBitrate)
     return this.instance.setLocalDescription(sessionDescription)
   }
 

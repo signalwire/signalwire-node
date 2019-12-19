@@ -95,6 +95,9 @@ export interface CallOptions {
   userVariables?: Object
   screenShare?: boolean
   onNotification?: Function
+  googleMaxBitrate?: number
+  googleMinBitrate?: number
+  googleStartBitrate?: number
 }
 
 export interface SubscribeParams {

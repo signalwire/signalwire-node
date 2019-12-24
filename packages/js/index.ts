@@ -9,3 +9,5 @@ export {
   Relay,
   Verto
 }
+
+export * from '../common/src/util/interfaces'

@@ -119,13 +119,13 @@ export interface ICacheDevices {
 }
 
 export interface IAudioSettings extends MediaTrackConstraints {
-  micId: string
-  micLabel: string
+  micId?: string
+  micLabel?: string
 }
 
 export interface IVideoSettings extends MediaTrackConstraints {
-  camId: string
-  camLabel: string
+  camId?: string
+  camLabel?: string
 }
 
 export interface ICall {

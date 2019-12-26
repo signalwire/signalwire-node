@@ -1,4 +1,5 @@
 import * as Devices from '../relay/calling/devices'
+import { CallType } from './constants/relay'
 
 interface IMessageBase { jsonrpc: string, id: string }
 

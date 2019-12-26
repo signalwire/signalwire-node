@@ -486,10 +486,11 @@ export default class Call implements ICall {
     this._dispatchCallback('stateChange')
     this._dispatchCallback(call_state)
     switch (this.state) {
-      case CallState.Answered:
-        const { params } = device
+      case CallState.Answered: {
+        // const { params } = device
         // this.device = buildDevice({ type: device.type, ...params }) // TODO: transform IRelayDevice to IDevice ?!
         break
+      }
       case CallState.Ended:
         this.busy = end_reason === DisconnectReason.Busy
         this.failed = end_reason === DisconnectReason.Error

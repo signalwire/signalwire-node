@@ -55,7 +55,6 @@ export default class Calling extends Relay {
     const tmp = _isIMakeCallParams(params) ? [params] : params.targets
     const targets: DeepArray<IDevice> = prepareDevices(tmp)
     const call = new Call(this, { targets })
-
     const result = await call.dial()
     return result
   }

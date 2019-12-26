@@ -1,5 +1,23 @@
+import logger from '../../../util/logger'
 import { IMakeCallParams, IRelayDevice, IRelayDevicePhoneParams, IRelayDeviceAgoraParams, IRelayDeviceWebRTCParams, IRelayDeviceSipParams } from '../../../util/interfaces'
 import { CallType } from '../../../util/constants/relay'
+
+export const buildDevice = (options: IMakeCallParams) => {
+  const { type } = options
+  switch (type) {
+    case CallType.Phone:
+      return new Phone(options)
+    case CallType.Agora:
+      return new Agora(options)
+    case CallType.WebRTC:
+      return new WebRTC(options)
+    case CallType.Sip:
+      return new Sip(options)
+    default:
+      logger.warn(`Unknown device type: ${type}`)
+      return null
+  }
+}
 
 abstract class BaseDevice implements IRelayDevice {
   public type: CallType

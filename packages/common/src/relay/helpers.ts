@@ -1,8 +1,8 @@
 import { IMakeCallParams, IDevice, DeepArray, ICallingRecord, IRelayCallingRecord, IRelayCallingPlay, ICallingPlay, ICallingPlayParams, ICallingCollect, IRelayCallingCollect, ICallingCollectAudio, ICallingPlayTTS, ICallingCollectTTS, ICallingDetect, IRelayCallingDetect, ICallingTapTap, ICallingTapFlat, IRelayCallingTapTap, IRelayCallingTapDevice, ICallingTapDevice, ICallingCollectRingtone, ICallingPlayRingtone, ICallingConnectParams } from '../util/interfaces'
-import { CallPlayType, CallType } from '../util/constants/relay'
+import { CallPlayType } from '../util/constants/relay'
 import { deepCopy, objEmpty } from '../util/helpers'
 import * as Devices from '../relay/calling/devices'
-import logger from '../util/logger'
+// import logger from '../util/logger'
 
 export const prepareDevices = (devices: DeepArray<IMakeCallParams>, defaultFrom: string = null, defaultTimeout: number = null, nested: boolean = false): DeepArray<IDevice> => {
   const relayDevices: DeepArray<IDevice> = []
@@ -11,31 +11,16 @@ export const prepareDevices = (devices: DeepArray<IMakeCallParams>, defaultFrom:
       const tmp: DeepArray<IDevice> = prepareDevices(device, defaultFrom, defaultTimeout, true)
       relayDevices.push(tmp)
     } else if (typeof device === 'object') {
-      let tmp: IDevice = null
       if (defaultFrom && !device.hasOwnProperty('from')) {
         device.from = defaultFrom
       }
       if (defaultTimeout && !device.hasOwnProperty('timeout')) {
         device.timeout = defaultTimeout
       }
-      switch (device.type) {
-        case CallType.Phone:
-          tmp = new Devices.Phone(device)
-          break
-        case CallType.Agora:
-          tmp = new Devices.Agora(device)
-          break
-        case CallType.WebRTC:
-          tmp = new Devices.WebRTC(device)
-          break
-        case CallType.Sip:
-          tmp = new Devices.Sip(device)
-          break
-        default:
-          logger.warn(`Unknown device type: ${device.type}`)
-          break
+      const tmp: IDevice = Devices.buildDevice(device)
+      if (tmp) {
+        nested ? relayDevices.push(tmp) : relayDevices.push([tmp])
       }
-      nested ? relayDevices.push(tmp) : relayDevices.push([tmp])
     }
   }
   return relayDevices

@@ -238,7 +238,7 @@ export interface IRelayDeviceSipParams {
 }
 
 export interface IRelayDevice {
-  type: string
+  type: 'phone' | 'agora' | 'webrtc' | 'sip'
   params: IRelayDevicePhoneParams | IRelayDeviceAgoraParams | IRelayDeviceWebRTCParams | IRelayDeviceSipParams
 }
 

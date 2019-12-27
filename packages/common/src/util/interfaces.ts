@@ -131,7 +131,7 @@ export interface IVideoSettings extends MediaTrackConstraints {
   camLabel?: string
 }
 
-export type IDevice = Devices.Phone | Devices.Agora | Devices.WebRTC | Devices.Sip
+export type IDevice = Devices.PhoneDevice | Devices.AgoraDevice | Devices.WebRTCDevice | Devices.SipDevice
 
 export interface ICall {
   id: string
@@ -142,6 +142,7 @@ export interface ICall {
   context: string
   device: IDevice
   targets: DeepArray<IDevice>
+  attemptedDevices: IDevice[]
   // peer: Call
   type: CallType
   to: string

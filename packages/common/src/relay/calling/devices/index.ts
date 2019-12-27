@@ -2,17 +2,23 @@ import logger from '../../../util/logger'
 import { IMakeCallParams, IRelayDevice, IRelayDevicePhoneParams, IRelayDeviceAgoraParams, IRelayDeviceWebRTCParams, IRelayDeviceSipParams } from '../../../util/interfaces'
 import { CallType } from '../../../util/constants/relay'
 
-export const buildDevice = (options: IMakeCallParams) => {
+// TODO: move to helpers
+const _isIRelayDevice = (input: IMakeCallParams | IRelayDevice): input is IRelayDevice => {
+  const { type, params } = input as IRelayDevice
+  return typeof type !== 'undefined' && typeof params !== 'undefined'
+}
+
+export const buildDevice = (options: (IMakeCallParams | IRelayDevice)) => {
   const { type } = options
   switch (type) {
     case CallType.Phone:
-      return new Phone(options)
+      return new PhoneDevice(options)
     case CallType.Agora:
-      return new Agora(options)
+      return new AgoraDevice(options)
     case CallType.WebRTC:
-      return new WebRTC(options)
+      return new WebRTCDevice(options)
     case CallType.Sip:
-      return new Sip(options)
+      return new SipDevice(options)
     default:
       logger.warn(`Unknown device type: ${type}`)
       return null
@@ -22,8 +28,17 @@ export const buildDevice = (options: IMakeCallParams) => {
 abstract class BaseDevice implements IRelayDevice {
   public type: CallType
   public params: IRelayDevice['params'] = null
+  protected abstract _buildParams(options: IMakeCallParams): void
   abstract get from(): string
   abstract get to(): string
+
+  constructor(options: (IMakeCallParams | IRelayDevice)) {
+    if (_isIRelayDevice(options)) {
+      this.params = options.params
+    } else {
+      this._buildParams(options)
+    }
+  }
 
   protected _addTimeout(timeout: number) {
     if (timeout) {
@@ -32,16 +47,9 @@ abstract class BaseDevice implements IRelayDevice {
   }
 }
 
-export class Phone extends BaseDevice {
+export class PhoneDevice extends BaseDevice {
   public type = CallType.Phone
   public params: IRelayDevicePhoneParams = null
-
-  constructor(options: IMakeCallParams) {
-    super()
-    const { from: from_number, to: to_number, timeout } = options
-    this.params = { from_number, to_number }
-    this._addTimeout(timeout)
-  }
 
   get from(): string {
     return this.params.from_number
@@ -50,18 +58,17 @@ export class Phone extends BaseDevice {
   get to(): string {
     return this.params.to_number
   }
-}
 
-export class Agora extends BaseDevice {
-  public type = CallType.Agora
-  public params: IRelayDeviceAgoraParams = null
-
-  constructor(options: IMakeCallParams) {
-    super()
-    const { from, to, appId: appid, channel, timeout } = options
-    this.params = { from, to, appid, channel }
+  protected _buildParams(options: IMakeCallParams) {
+    const { from: from_number, to: to_number, timeout } = options
+    this.params = { from_number, to_number }
     this._addTimeout(timeout)
   }
+}
+
+export class AgoraDevice extends BaseDevice {
+  public type = CallType.Agora
+  public params: IRelayDeviceAgoraParams = null
 
   get from(): string {
     return this.params.from
@@ -70,14 +77,27 @@ export class Agora extends BaseDevice {
   get to(): string {
     return this.params.to
   }
+
+  protected _buildParams(options: IMakeCallParams) {
+    const { from, to, appId: appid, channel, timeout } = options
+    this.params = { from, to, appid, channel }
+    this._addTimeout(timeout)
+  }
 }
 
-export class Sip extends BaseDevice {
+export class SipDevice extends BaseDevice {
   public type = CallType.Sip
   public params: IRelayDeviceSipParams = null
 
-  constructor(options: IMakeCallParams) {
-    super()
+  get from(): string {
+    return this.params.from
+  }
+
+  get to(): string {
+    return this.params.to
+  }
+
+  protected _buildParams(options: IMakeCallParams) {
     const { from, to, codecs, headers, webrtcMedia = null, timeout } = options
     this.params = { from, to }
     this._addTimeout(timeout)
@@ -91,6 +111,11 @@ export class Sip extends BaseDevice {
       this.params.webrtc_media = webrtcMedia
     }
   }
+}
+
+export class WebRTCDevice extends BaseDevice {
+  public type = CallType.WebRTC
+  public params: IRelayDeviceWebRTCParams = null
 
   get from(): string {
     return this.params.from
@@ -99,27 +124,13 @@ export class Sip extends BaseDevice {
   get to(): string {
     return this.params.to
   }
-}
 
-export class WebRTC extends BaseDevice {
-  public type = CallType.WebRTC
-  public params: IRelayDeviceWebRTCParams = null
-
-  constructor(options: IMakeCallParams) {
-    super()
+  _buildParams(options: IMakeCallParams) {
     const { from, to, codecs, timeout } = options
     this.params = { from, to }
     this._addTimeout(timeout)
     if (codecs) {
       this.params.codecs = codecs
     }
-  }
-
-  get from(): string {
-    return this.params.from
-  }
-
-  get to(): string {
-    return this.params.to
   }
 }

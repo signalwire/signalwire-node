@@ -18,6 +18,7 @@ export default class Call implements ICall {
   public state: string = CallState.None
   public prevState: string = CallState.None
   public targets: DeepArray<IDevice> = []
+  public attemptedDevices: IDevice[] = []
   public device: IDevice = null
   public failed: boolean = false
   public busy: boolean = false
@@ -486,6 +487,10 @@ export default class Call implements ICall {
     this._dispatchCallback('stateChange')
     this._dispatchCallback(call_state)
     switch (this.state) {
+      case CallState.Created: {
+        this.attemptedDevices.push(buildDevice(device))
+        break
+      }
       case CallState.Answered: {
         this.device = buildDevice(device)
         break

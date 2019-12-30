@@ -7,6 +7,7 @@ const Connection = require('../../../common/src/services/Connection')
 import { RecordAction, PlayAction, PromptAction, ConnectAction, FaxAction, DetectAction, TapAction, SendDigitsAction } from '../../../common/src/relay/calling/actions'
 import { HangupResult, RecordResult, AnswerResult, PlayResult, PromptResult, ConnectResult, DialResult, FaxResult, DetectResult, TapResult, SendDigitsResult, DisconnectResult } from '../../../common/src/relay/calling/results'
 import { prepareDevices } from '../../../common/src/relay/helpers'
+import { buildDevice } from '../../../common/src/relay/calling/devices'
 jest.mock('../../../common/src/services/Connection')
 
 describe('Call', () => {
@@ -19,7 +20,8 @@ describe('Call', () => {
     ],
     { type: CallType.WebRTC, to: '6789', codecs: ['OPUS'] }
   ])
-  const session: RelayClient = new RelayClient({ host: 'example.signalwire.com', project: 'project', token: 'token' })
+  const device = buildDevice({ type: CallType.Phone, to: '6789' })
+  const session = new RelayClient({ project: 'project', token: 'token' })
   session.__logger.setLevel(session.__logger.levels.SILENT)
   // @ts-ignore
   session.connection = Connection.default()
@@ -91,8 +93,8 @@ describe('Call', () => {
       const mockFn = jest.fn()
       call.on('created', mockFn)
       call.on('answered', mockFn)
-      call._stateChange({ call_state: 'created', device: call.device })
-      call._stateChange({ call_state: 'answered', device: call.device })
+      call._stateChange({ call_state: 'created', device })
+      call._stateChange({ call_state: 'answered', device })
       expect(mockFn).toHaveBeenCalledTimes(2)
     })
   })
@@ -106,7 +108,7 @@ describe('Call', () => {
       const mockFn = jest.fn()
       call.on('created', mockFn)
       call.off('created', mockFn)
-      call._stateChange({ call_state: 'created', device: call.device })
+      call._stateChange({ call_state: 'created', device })
       expect(mockFn).not.toHaveBeenCalled()
     })
   })

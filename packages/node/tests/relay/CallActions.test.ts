@@ -11,12 +11,12 @@ jest.mock('../../../common/src/services/Connection')
 describe('Calling Actions', () => {
   const _mockReturnSuccess = () => Connection.mockResponse.mockReturnValueOnce(JSON.parse('{"id":"uuid","jsonrpc":"2.0","result":{"result":{"code":"200","message":"message","control_id":"control-id"}}}'))
   const _mockReturnFail = () => Connection.mockResponse.mockReturnValueOnce(JSON.parse('{"id":"uuid","jsonrpc":"2.0","result":{"result":{"code":"400","message":"error message","control_id":"control-id"}}}'))
-  const session: RelayClient = new RelayClient({ host: 'example.signalwire.com', project: 'project', token: 'token' })
+  const session = new RelayClient({ project: 'project', token: 'token' })
   session.__logger.setLevel(session.__logger.levels.SILENT)
   // @ts-ignore
   session.connection = Connection.default()
   session.relayProtocol = 'signalwire_service_random_uuid'
-  const device = { type: 'phone', params: { from_number: '2345', to_number: '6789', timeout: 30 } }
+  const device = { type: 'phone' as 'phone', params: { from_number: '2345', to_number: '6789', timeout: 30 } }
   const call = new Call(session.calling, { device })
   call.id = 'call-id'
   call.nodeId = 'node-id'

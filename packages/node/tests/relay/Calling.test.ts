@@ -1,4 +1,5 @@
 import { SwEvent } from '../../../common/src/util/constants'
+import { IMakeCallParams } from '../../../common/src/util/interfaces'
 import { isQueued, trigger } from '../../../common/src/services/Handler'
 import Call from '../../../common/src/relay/calling/Call'
 import RelayClient from '../../src/relay'
@@ -7,7 +8,7 @@ import { DialResult } from '../../../common/src/relay/calling/results'
 const Connection = require('../../../common/src/services/Connection')
 
 describe('Calling', () => {
-  const session: RelayClient = new RelayClient({ host: 'example.signalwire.com', project: 'project', token: 'token' })
+  const session = new RelayClient({ project: 'project', token: 'token' })
   // @ts-ignore
   session.connection = Connection.default()
   session.relayProtocol = 'signalwire_service_random_uuid'
@@ -18,7 +19,7 @@ describe('Calling', () => {
   })
 
   describe('.newCall()', () => {
-    const callOpts = { type: 'phone' as 'phone', from: '8992222222', to: '8991111111' }
+    const callOpts: IMakeCallParams = { type: 'phone', from: '8992222222', to: '8991111111' }
 
     it('should return a new Call object', () => {
       const call = session.calling.newCall(callOpts)
@@ -106,7 +107,7 @@ describe('Calling', () => {
 
   describe('.dial()', () => {
 
-    const callOpts = { type: 'phone' as 'phone', from: '8992222222', to: '8991111111' }
+    const callOpts: IMakeCallParams = { type: 'phone', from: '8992222222', to: '8991111111' }
     const _stateNotificationCreated = JSON.parse(`{"event_type":"calling.call.state","params":{"call_state":"created","direction":"inbound","device":{"type":"phone","params":{"from_number":"+1234","to_number":"15678"}},"tag":"mocked-uuid","call_id":"call-id","node_id":"node-id"}}`)
     const _stateNotificationAnswered = JSON.parse(`{"event_type":"calling.call.state","params":{"call_state":"answered","direction":"inbound","device":{"type":"phone","params":{"from_number":"+1234","to_number":"15678"}},"tag":"mocked-uuid","call_id":"call-id","node_id":"node-id"}}`)
     const _stateNotificationEnded = JSON.parse(`{"event_type":"calling.call.state","params":{"call_state":"ended","end_reason":"busy","direction":"inbound","device":{"type":"phone","params":{"from_number":"+1234","to_number":"15678"}},"tag":"mocked-uuid","call_id":"call-id","node_id":"node-id"}}`)

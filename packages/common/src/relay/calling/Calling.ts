@@ -6,12 +6,6 @@ import Call from './Call'
 import { CallNotification } from '../../util/constants/relay'
 import { prepareDevices } from '../helpers'
 
-type NewCallParams = { targets: DeepArray<IMakeCallParams> }
-
-const _isIMakeCallParams = (params: IMakeCallParams | NewCallParams): params is IMakeCallParams => {
-  return (params as NewCallParams).targets === undefined
-}
-
 export default class Calling extends Relay {
   protected service: string = 'calling'
   private _calls: Call[] = []
@@ -43,20 +37,19 @@ export default class Calling extends Relay {
     }
   }
 
-  newCall(params: IMakeCallParams | NewCallParams) {
+  newCall(params: (IMakeCallParams | DeepArray<IMakeCallParams>)) {
     // backwards compatibility
-    const tmp = _isIMakeCallParams(params) ? [params] : params.targets
+    const tmp = params instanceof Array ? params : [params]
     const targets: DeepArray<IDevice> = prepareDevices(tmp)
     return new Call(this, { targets })
   }
 
-  async dial(params: IMakeCallParams | NewCallParams) {
+  dial(params: (IMakeCallParams | DeepArray<IMakeCallParams>)) {
     // backwards compatibility
-    const tmp = _isIMakeCallParams(params) ? [params] : params.targets
+    const tmp = params instanceof Array ? params : [params]
     const targets: DeepArray<IDevice> = prepareDevices(tmp)
     const call = new Call(this, { targets })
-    const result = await call.dial()
-    return result
+    return call.dial()
   }
 
   addCall(call: Call): void {

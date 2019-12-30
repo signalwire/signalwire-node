@@ -1,5 +1,4 @@
 import * as Devices from '../relay/calling/devices'
-import { CallType } from './constants/relay'
 
 interface IMessageBase { jsonrpc: string, id: string }
 
@@ -133,6 +132,8 @@ export interface IVideoSettings extends MediaTrackConstraints {
 
 export type IDevice = Devices.PhoneDevice | Devices.AgoraDevice | Devices.WebRTCDevice | Devices.SipDevice
 
+type ICallType = 'phone' | 'agora' | 'webrtc' | 'sip'
+
 export interface ICall {
   id: string
   tag?: string
@@ -144,7 +145,7 @@ export interface ICall {
   targets: DeepArray<IDevice>
   attemptedDevices: IDevice[]
   // peer: Call
-  type: CallType
+  type: ICallType
   to: string
   from: string
   timeout: number
@@ -239,12 +240,12 @@ export interface IRelayDeviceSipParams {
 }
 
 export interface IRelayDevice {
-  type: 'phone' | 'agora' | 'webrtc' | 'sip'
+  type: ICallType
   params: IRelayDevicePhoneParams | IRelayDeviceAgoraParams | IRelayDeviceWebRTCParams | IRelayDeviceSipParams
 }
 
 export interface IMakeCallParams {
-  type: 'phone' | 'agora' | 'webrtc' | 'sip'
+  type: ICallType
   from?: string
   to: string
   timeout?: number

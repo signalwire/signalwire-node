@@ -1,5 +1,5 @@
 import { prepareRecordParams, preparePlayParams, preparePlayAudioParams, preparePromptParams, preparePromptAudioParams, preparePromptTTSParams, prepareTapParams, prepareDevices } from '../../src/relay/helpers'
-import { ICallingTapTap, ICallingTapDevice, ICallingTapFlat, ICallingPlayParams } from '../../src/util/interfaces'
+import { ICallingTapTap, ICallingTapDevice, ICallingTapFlat, ICallingPlayParams, IMakeCallParams, DeepArray } from '../../src/util/interfaces'
 
 describe('prepareRecordParams()', () => {
   it('should handle the default empty object', () => {
@@ -293,8 +293,8 @@ describe('prepareDevices()', () => {
       [{ type: 'agora', params: { to, from, appid, channel, timeout } }]
     ]
 
-    const devices = [
-      { type: 'agora' as 'agora', to, from, appId: appid, channel, timeout }
+    const devices: DeepArray<IMakeCallParams> = [
+      { type: 'agora', to, from, appId: appid, channel, timeout }
     ]
     expect(prepareDevices(devices, 'def-from', undefined)).toEqual(final)
   })
@@ -306,10 +306,10 @@ describe('prepareDevices()', () => {
       [{ type: 'sip', params: { to, from, codecs, headers: {}, webrtc_media: false } }]
     ]
 
-    const devices = [
-      { type: 'phone' as 'phone', to, from },
-      { type: 'agora' as 'agora', to, from, appId: appid, channel },
-      { type: 'sip' as 'sip', to, from, webrtcMedia: false, headers: {}, codecs }
+    const devices: DeepArray<IMakeCallParams> = [
+      { type: 'phone', to, from },
+      { type: 'agora', to, from, appId: appid, channel },
+      { type: 'sip', to, from, webrtcMedia: false, headers: {}, codecs }
     ]
     expect(prepareDevices(devices, 'def-from', undefined)).toEqual(final)
   })
@@ -323,11 +323,11 @@ describe('prepareDevices()', () => {
       ]
     ]
 
-    const devices = [
+    const devices: DeepArray<IMakeCallParams> = [
       [
-        { type: 'phone' as 'phone', to, from },
-        { type: 'agora' as 'agora', to, from, appId: appid, channel },
-        { type: 'sip' as 'sip', to, from }
+        { type: 'phone', to, from },
+        { type: 'agora', to, from, appId: appid, channel },
+        { type: 'sip', to, from }
       ]
     ]
     expect(prepareDevices(devices, 'def-from', undefined)).toEqual(final)
@@ -348,14 +348,14 @@ describe('prepareDevices()', () => {
       ]
     ]
 
-    const devices = [
-      { type: 'phone' as 'phone', to },
+    const devices: DeepArray<IMakeCallParams> = [
+      { type: 'phone', to },
       [
-        { type: 'phone' as 'phone', to },
-        { type: 'agora' as 'agora', to, appId: appid, channel },
-        { type: 'sip' as 'sip', to }
+        { type: 'phone', to },
+        { type: 'agora', to, appId: appid, channel },
+        { type: 'sip', to }
       ],
-      { type: 'webrtc' as 'webrtc', to, codecs }
+      { type: 'webrtc', to, codecs }
     ]
     expect(prepareDevices(devices, 'def-from', undefined)).toEqual(final)
   })
@@ -375,14 +375,14 @@ describe('prepareDevices()', () => {
       ]
     ]
 
-    const devices = [
-      { type: 'phone' as 'phone', to, from },
+    const devices: DeepArray<IMakeCallParams> = [
+      { type: 'phone', to, from },
       [
-        { type: 'phone' as 'phone', to, from },
-        { type: 'agora' as 'agora', to, appId: appid, channel, timeout: 60 },
-        { type: 'sip' as 'sip', to, timeout: 60 }
+        { type: 'phone', to, from },
+        { type: 'agora', to, appId: appid, channel, timeout: 60 },
+        { type: 'sip', to, timeout: 60 }
       ],
-      { type: 'webrtc' as 'webrtc', to, codecs }
+      { type: 'webrtc', to, codecs }
     ]
     expect(prepareDevices(devices, 'def-from', 20)).toEqual(final)
   })

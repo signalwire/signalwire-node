@@ -24,6 +24,8 @@ describe('Calling', () => {
     it('should return a new Call object', () => {
       const call = session.calling.newCall(callOpts)
       expect(call).toBeInstanceOf(Call)
+      expect(call.targets).toHaveLength(1)
+      expect(call.targets[0]).toEqual([{ type: 'phone', params: { from_number: '8992222222', to_number: '8991111111' } }])
     })
 
     describe('calling.call.state notification', () => {

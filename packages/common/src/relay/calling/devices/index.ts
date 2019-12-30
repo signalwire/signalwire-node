@@ -49,7 +49,7 @@ abstract class BaseDevice implements IRelayDevice {
 
 export class PhoneDevice extends BaseDevice {
   public type = CallType.Phone
-  public params: IRelayDevicePhoneParams = null
+  public params: IRelayDevicePhoneParams
 
   get from(): string {
     return this.params.from_number
@@ -68,7 +68,7 @@ export class PhoneDevice extends BaseDevice {
 
 export class AgoraDevice extends BaseDevice {
   public type = CallType.Agora
-  public params: IRelayDeviceAgoraParams = null
+  public params: IRelayDeviceAgoraParams
 
   get from(): string {
     return this.params.from
@@ -87,7 +87,7 @@ export class AgoraDevice extends BaseDevice {
 
 export class SipDevice extends BaseDevice {
   public type = CallType.Sip
-  public params: IRelayDeviceSipParams = null
+  public params: IRelayDeviceSipParams
 
   get from(): string {
     return this.params.from
@@ -115,7 +115,7 @@ export class SipDevice extends BaseDevice {
 
 export class WebRTCDevice extends BaseDevice {
   public type = CallType.WebRTC
-  public params: IRelayDeviceWebRTCParams = null
+  public params: IRelayDeviceWebRTCParams
 
   get from(): string {
     return this.params.from

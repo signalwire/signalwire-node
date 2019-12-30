@@ -1,155 +1,5 @@
-import { reduceConnectParams, prepareRecordParams, preparePlayParams, preparePlayAudioParams, preparePromptParams, preparePromptAudioParams, preparePromptTTSParams, prepareTapParams } from '../../src/relay/helpers'
-import { ICallDevice, ICallingTapTap, ICallingTapDevice, ICallingTapFlat, ICallingPlayParams } from '../../src/util/interfaces'
-
-describe('reduceConnectParams()', () => {
-  const from_number = '+18992222222'
-  const to_number = '+18991111111'
-  const timeout = 30
-  const type = 'phone'
-  const DEFAULT_DEVICE: ICallDevice = { type, params: { from_number, timeout, to_number: '' } }
-
-  it('should return a single device to call', () => {
-    const res = [
-      [{ type, params: { to_number, from_number, timeout } }]
-    ]
-    const input = [{ type, to: to_number }]
-    expect(reduceConnectParams(input, DEFAULT_DEVICE)).toEqual(res)
-  })
-
-  it('should return a single device to call specifying from and timeout', () => {
-    const res = [
-      [{ type, params: { to_number, from_number, timeout: 50 } }]
-    ]
-    const input = [{ type, to: to_number, from: from_number, timeout: 50 }]
-    expect(reduceConnectParams(input, DEFAULT_DEVICE)).toEqual(res)
-  })
-
-  it('should return multiple devices to call in serial', () => {
-    const res = [
-      [{ type, params: { to_number, from_number, timeout } }],
-      [{ type, params: { to_number: '8991111112', from_number, timeout } }]
-    ]
-    const input = [{ type, to: to_number }, { type, to: '8991111112' }]
-    expect(reduceConnectParams(input, DEFAULT_DEVICE)).toEqual(res)
-  })
-
-  it('should return multiple devices to call in serial specifying from and timeout', () => {
-    const res = [
-      [{ type, params: { to_number, from_number, timeout: 10 } }],
-      [{ type, params: { to_number: '8991111112', from_number: '8992222223', timeout: 20 } }]
-    ]
-    const input = [
-      { type, to: to_number, from: from_number, timeout: 10 },
-      { type, to: '8991111112', from: '8992222223', timeout: 20 }
-    ]
-    expect(reduceConnectParams(input, DEFAULT_DEVICE)).toEqual(res)
-  })
-
-  it('should return multiple devices to call in parallel', () => {
-    const res = [[
-      { type, params: { to_number, from_number, timeout } },
-      { type, params: { to_number: '8991111112', from_number, timeout } }
-    ]]
-    const input = [
-      [{ type, to: to_number }, { type, to: '8991111112' }]
-    ]
-    // @ts-ignore
-    expect(reduceConnectParams(input, DEFAULT_DEVICE)).toEqual(res)
-  })
-
-  it('should return multiple devices to call in parallel specifying from and timeout', () => {
-    const res = [[
-      { type, params: { to_number, from_number, timeout } },
-      { type, params: { to_number: '8991111119', from_number: '8992222229', timeout: 20 } }
-    ]]
-    const input = [
-      [
-        { type, to: to_number, from: from_number, timeout },
-        { type, to: '8991111119', from: '8992222229', timeout: 20 }
-      ]
-    ]
-    // @ts-ignore
-    expect(reduceConnectParams(input, DEFAULT_DEVICE)).toEqual(res)
-  })
-
-  it('should return multiple devices to call in both serial & parallel', () => {
-    const res = [
-      [{ type, params: { to_number, from_number, timeout } }],
-      [
-        { type, params: { to_number, from_number, timeout } },
-        { type, params: { to_number: '8991111112', from_number, timeout } }
-      ],
-      [{ type, params: { to_number: '8991111113', from_number, timeout } }]
-    ]
-    const input = [
-      { type, to: to_number },
-      [{ type, to: to_number }, { type, to: '8991111112' }],
-      { type, to: '8991111113' }
-    ]
-    // @ts-ignore
-    expect(reduceConnectParams(input, DEFAULT_DEVICE)).toEqual(res)
-  })
-
-  it('should return multiple devices to call in both serial & parallel specifying from and timeout', () => {
-    const res = [
-      [{ type, params: { to_number, from_number, timeout } }],
-      [
-        { type, params: { to_number, from_number: '8992222223', timeout: 25 } },
-        { type, params: { to_number: '8991111112', from_number: '8992222224', timeout: 25 } }
-      ],
-      [{ type, params: { to_number: '8991111113', from_number: '8992222225', timeout } }]
-    ]
-    const input = [
-      { type, to: to_number, from: from_number, timeout },
-      [
-        { type, to: to_number, from: '8992222223', timeout: 25 },
-        { type, to: '8991111112', from: '8992222224', timeout: 25 }
-      ],
-      { type, to: '8991111113', from: '8992222225', timeout }
-    ]
-    // @ts-ignore
-    expect(reduceConnectParams(input, DEFAULT_DEVICE)).toEqual(res)
-  })
-
-  describe('with invalid parameters', () => {
-    it('should not reduce invalid strings', () => {
-      // @ts-ignore
-      expect(reduceConnectParams([''], DEFAULT_DEVICE)).toEqual([])
-      expect(reduceConnectParams([], DEFAULT_DEVICE)).toEqual([])
-    })
-
-    it('should ignore invalid string to call in serial', () => {
-      const res = [
-        [{ type, params: { to_number: '8991111112', from_number, timeout } }]
-      ]
-      const input = ['', { type, to: '8991111112' }]
-      // @ts-ignore
-      expect(reduceConnectParams(input, DEFAULT_DEVICE)).toEqual(res)
-    })
-
-    it('should ignore invalid input in both serial & parallel specifying from and timeout', () => {
-      const res = [
-        [
-          { type, params: { to_number, from_number, timeout } }
-        ],
-        [
-          { type, params: { to_number: '8991111112', from_number: '8992222226', timeout: 25 } }
-        ]
-      ]
-      const input = [
-        { type, to: to_number, from: from_number, timeout },
-        [
-          { from: '7778', timeout: 25 },
-          { to: '', from: '7772', timeout: 25 },
-          { type, to: '8991111112', from: '8992222226', timeout: 25 }
-        ],
-        { to: '', from: '7780', timeout }
-      ]
-      // @ts-ignore
-      expect(reduceConnectParams(input, DEFAULT_DEVICE)).toEqual(res)
-    })
-  })
-})
+import { prepareRecordParams, preparePlayParams, preparePlayAudioParams, preparePromptParams, preparePromptAudioParams, preparePromptTTSParams, prepareTapParams, prepareDevices } from '../../src/relay/helpers'
+import { ICallingTapTap, ICallingTapDevice, ICallingTapFlat, ICallingPlayParams, IMakeCallParams, DeepArray } from '../../src/util/interfaces'
 
 describe('prepareRecordParams()', () => {
   it('should handle the default empty object', () => {
@@ -427,5 +277,113 @@ describe('prepareTapParams()', () => {
       codec: 'OPUS'
     }
     expect(prepareTapParams(tap)).toEqual({ tap: tapExpected, device: deviceExpected })
+  })
+})
+
+describe('prepareDevices()', () => {
+  const from = 'from'
+  const to = 'to'
+  const appid = 'appid'
+  const channel = 'channel'
+  const codecs = ['PCMU', 'OPUS']
+  const timeout = 30
+
+  it('should handle single device to dial', () => {
+    const final = [
+      [{ type: 'agora', params: { to, from, appid, channel, timeout } }]
+    ]
+
+    const devices: DeepArray<IMakeCallParams> = [
+      { type: 'agora', to, from, appId: appid, channel, timeout }
+    ]
+    expect(prepareDevices(devices, 'def-from', undefined)).toEqual(final)
+  })
+
+  it('should handle multiple devices in series', () => {
+    const final = [
+      [{ type: 'phone', params: { to_number: to, from_number: from } }],
+      [{ type: 'agora', params: { to, from, appid, channel } }],
+      [{ type: 'sip', params: { to, from, codecs, headers: {}, webrtc_media: false } }]
+    ]
+
+    const devices: DeepArray<IMakeCallParams> = [
+      { type: 'phone', to, from },
+      { type: 'agora', to, from, appId: appid, channel },
+      { type: 'sip', to, from, webrtcMedia: false, headers: {}, codecs }
+    ]
+    expect(prepareDevices(devices, 'def-from', undefined)).toEqual(final)
+  })
+
+  it('should handle multiple devices in parallel', () => {
+    const final = [
+      [
+        { type: 'phone', params: { to_number: to, from_number: from } },
+        { type: 'agora', params: { to, from, appid, channel } },
+        { type: 'sip', params: { to, from } }
+      ]
+    ]
+
+    const devices: DeepArray<IMakeCallParams> = [
+      [
+        { type: 'phone', to, from },
+        { type: 'agora', to, from, appId: appid, channel },
+        { type: 'sip', to, from }
+      ]
+    ]
+    expect(prepareDevices(devices, 'def-from', undefined)).toEqual(final)
+  })
+
+  it('should handle multiple devices in series and parallel', () => {
+    const final = [
+      [
+        { type: 'phone', params: { to_number: to, from_number: 'def-from' } },
+      ],
+      [
+        { type: 'phone', params: { to_number: to, from_number: 'def-from' } },
+        { type: 'agora', params: { to, from: 'def-from', appid, channel } },
+        { type: 'sip', params: { to, from: 'def-from' } }
+      ],
+      [
+        { type: 'webrtc', params: { to, from: 'def-from', codecs } },
+      ]
+    ]
+
+    const devices: DeepArray<IMakeCallParams> = [
+      { type: 'phone', to },
+      [
+        { type: 'phone', to },
+        { type: 'agora', to, appId: appid, channel },
+        { type: 'sip', to }
+      ],
+      { type: 'webrtc', to, codecs }
+    ]
+    expect(prepareDevices(devices, 'def-from', undefined)).toEqual(final)
+  })
+
+  it('should handle multiple devices - in series and parallel - with default values', () => {
+    const final = [
+      [
+        { type: 'phone', params: { to_number: to, from_number: from, timeout: 20 } },
+      ],
+      [
+        { type: 'phone', params: { to_number: to, from_number: from, timeout: 20 } },
+        { type: 'agora', params: { to, from: 'def-from', appid, channel, timeout: 60 } },
+        { type: 'sip', params: { to, from: 'def-from', timeout: 60 } }
+      ],
+      [
+        { type: 'webrtc', params: { to, from: 'def-from', codecs, timeout: 20 } },
+      ]
+    ]
+
+    const devices: DeepArray<IMakeCallParams> = [
+      { type: 'phone', to, from },
+      [
+        { type: 'phone', to, from },
+        { type: 'agora', to, appId: appid, channel, timeout: 60 },
+        { type: 'sip', to, timeout: 60 }
+      ],
+      { type: 'webrtc', to, codecs }
+    ]
+    expect(prepareDevices(devices, 'def-from', 20)).toEqual(final)
   })
 })

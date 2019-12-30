@@ -1,9 +1,10 @@
 import { trigger } from '../../services/Handler'
-import { ICallDevice, IMakeCallParams } from '../../util/interfaces'
+import { IMakeCallParams, DeepArray, IDevice } from '../../util/interfaces'
 import logger from '../../util/logger'
 import Relay from '../Relay'
 import Call from './Call'
-import { DEFAULT_CALL_TIMEOUT, CallNotification } from '../../util/constants/relay'
+import { CallNotification } from '../../util/constants/relay'
+import { prepareDevices } from '../helpers'
 
 export default class Calling extends Relay {
   protected service: string = 'calling'
@@ -36,25 +37,19 @@ export default class Calling extends Relay {
     }
   }
 
-  newCall(params: IMakeCallParams) {
-    const { type, from: from_number, to: to_number, timeout = DEFAULT_CALL_TIMEOUT } = params
-    if (!type || !from_number || !to_number || !timeout) {
-      throw new TypeError(`Invalid parameters to create a new Call.`)
-    }
-    const device: ICallDevice = { type, params: { from_number, to_number, timeout } }
-    return new Call(this, { device })
+  newCall(params: (IMakeCallParams | DeepArray<IMakeCallParams>)) {
+    // backwards compatibility
+    const tmp = params instanceof Array ? params : [params]
+    const targets: DeepArray<IDevice> = prepareDevices(tmp)
+    return new Call(this, { targets })
   }
 
-  async dial(params: IMakeCallParams) {
-    const { type, from: from_number, to: to_number, timeout = DEFAULT_CALL_TIMEOUT } = params
-    if (!type || !from_number || !to_number || !timeout) {
-      throw new TypeError(`Invalid parameters to create a new Call.`)
-    }
-    const device: ICallDevice = { type, params: { from_number, to_number, timeout } }
-    const call = new Call(this, { device })
-
-    const result = await call.dial()
-    return result
+  dial(params: (IMakeCallParams | DeepArray<IMakeCallParams>)) {
+    // backwards compatibility
+    const tmp = params instanceof Array ? params : [params]
+    const targets: DeepArray<IDevice> = prepareDevices(tmp)
+    const call = new Call(this, { targets })
+    return call.dial()
   }
 
   addCall(call: Call): void {

@@ -1,5 +1,5 @@
 import { BaseComponent } from './BaseComponent'
-import { DeepArray, ICallDevice, IRelayCallingPlay } from '../../../util/interfaces'
+import { DeepArray, IDevice, IRelayCallingPlay } from '../../../util/interfaces'
 import { CallNotification, CallConnectState, CallMethod } from '../../../util/constants/relay'
 import Call from '../Call'
 import Event from '../Event'
@@ -11,7 +11,7 @@ export class Connect extends BaseComponent {
 
   constructor(
     public call: Call,
-    public devices: DeepArray<ICallDevice>,
+    public devices: DeepArray<IDevice>,
     public ringback?: IRelayCallingPlay
   ) {
     super(call)

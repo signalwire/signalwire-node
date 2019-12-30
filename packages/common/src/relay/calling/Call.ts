@@ -1,14 +1,15 @@
 import { v4 as uuidv4 } from 'uuid'
 import logger from '../../util/logger'
 import { Execute } from '../../messages/Blade'
-import { CallState, DisconnectReason, DEFAULT_CALL_TIMEOUT, CallNotification, CallRecordState, CallPlayState, CallPlayType, CallPromptState, CallConnectState, CALL_STATES, CallFaxState, CallDetectState, CallDetectType, CallTapState, SendDigitsState } from '../../util/constants/relay'
-import { ICall, ICallOptions, ICallDevice, IMakeCallParams, ICallingPlay, ICallingPlayParams, ICallingCollect, DeepArray, ICallingDetect, ICallingTapTap, ICallingTapDevice, ICallingRecord, IRelayCallingPlay, ICallingPlayRingtone, ICallingPlayTTS, ICallingCollectAudio, ICallingCollectTTS, ICallingTapFlat, ICallingCollectRingtone, ICallingConnectParams, ICallPeer } from '../../util/interfaces'
-import { prepareRecordParams, preparePlayParams, preparePlayAudioParams, preparePromptParams, preparePromptAudioParams, preparePromptTTSParams, prepareTapParams, preparePromptRingtoneParams, prepareConnectParams } from '../helpers'
+import { CallState, DisconnectReason, CallNotification, CallRecordState, CallPlayState, CallPlayType, CallPromptState, CallConnectState, CALL_STATES, CallFaxState, CallDetectState, CallDetectType, CallTapState, SendDigitsState, CallType } from '../../util/constants/relay'
+import { ICall, IDevice, ICallOptions, IMakeCallParams, ICallingPlay, ICallingPlayParams, ICallingCollect, DeepArray, ICallingDetect, ICallingTapTap, ICallingTapDevice, ICallingRecord, IRelayCallingPlay, ICallingPlayRingtone, ICallingPlayTTS, ICallingCollectAudio, ICallingCollectTTS, ICallingTapFlat, ICallingCollectRingtone, ICallingConnectParams, ICallPeer, IRelayDevice } from '../../util/interfaces'
+import { prepareRecordParams, preparePlayParams, preparePlayAudioParams, preparePromptParams, preparePromptAudioParams, preparePromptTTSParams, prepareTapParams, preparePromptRingtoneParams, prepareConnectParams, prepareDevices } from '../helpers'
 import Calling from './Calling'
 import { isFunction } from '../../util/helpers'
 import { Answer, Await, BaseComponent, Connect, Detect, Dial, FaxReceive, FaxSend, Hangup, Play, Prompt, Record, SendDigits, Tap, Disconnect } from './components'
 import { RecordAction, PlayAction, PromptAction, ConnectAction, FaxAction, DetectAction, TapAction, SendDigitsAction } from './actions'
 import { HangupResult, RecordResult, AnswerResult, PlayResult, PromptResult, ConnectResult, DialResult, FaxResult, DetectResult, TapResult, SendDigitsResult, DisconnectResult } from './results'
+import { buildDevice } from './devices'
 
 export default class Call implements ICall {
   public id: string
@@ -16,6 +17,9 @@ export default class Call implements ICall {
   public nodeId: string
   public state: string = CallState.None
   public prevState: string = CallState.None
+  public targets: DeepArray<IDevice> = []
+  public attemptedDevices: IDevice[] = []
+  public device: IDevice = null
   public failed: boolean = false
   public busy: boolean = false
   public amd: Function
@@ -25,9 +29,10 @@ export default class Call implements ICall {
   private _components: BaseComponent[] = []
 
   constructor(public relayInstance: Calling, protected options: ICallOptions) {
-    const { call_id, node_id } = options
+    const { call_id, node_id, targets = [] } = options
     this.id = call_id
     this.nodeId = node_id
+    this.targets = targets
     this.amd = this.detectAnsweringMachine.bind(this)
     this.amdAsync = this.detectAnsweringMachineAsync.bind(this)
     this.relayInstance.addCall(this)
@@ -54,32 +59,24 @@ export default class Call implements ICall {
     return this.relayInstance.getCallById(call_id)
   }
 
-  get device(): ICallDevice {
-    return this.options.device
-  }
-
   get ready(): boolean {
     return Boolean(this.id)
   }
 
-  get type(): string {
-    const { type } = this.options.device
-    return type
+  get type(): CallType {
+    return this.device ? this.device.type : null
   }
 
   get from(): string {
-    const { params: { from_number = '' } = {} } = this.options.device
-    return from_number
+    return this.device ? this.device.from : null
   }
 
   get to(): string {
-    const { params: { to_number = '' } = {} } = this.options.device
-    return to_number
+    return this.device ? this.device.to : null
   }
 
   get timeout(): number {
-    const { params: { timeout = DEFAULT_CALL_TIMEOUT } = {} } = this.options.device
-    return timeout
+    return this.device ? this.device.params.timeout : null
   }
 
   setOptions(opts: ICallOptions) {
@@ -259,7 +256,7 @@ export default class Call implements ICall {
   }
 
   async connect(...params: [ICallingConnectParams] | DeepArray<IMakeCallParams>): Promise<ConnectResult> {
-    const [devices, ringback] = prepareConnectParams(params, this.device)
+    const [devices, ringback] = prepareConnectParams(params, this.from, this.timeout)
     const component = new Connect(this, devices, ringback)
     this._addComponent(component)
     await component._waitFor(CallConnectState.Failed, CallConnectState.Connected)
@@ -268,7 +265,7 @@ export default class Call implements ICall {
   }
 
   async connectAsync(...params: [ICallingConnectParams] | DeepArray<IMakeCallParams>): Promise<ConnectAction> {
-    const [devices, ringback] = prepareConnectParams(params, this.device)
+    const [devices, ringback] = prepareConnectParams(params, this.from, this.timeout)
     const component = new Connect(this, devices, ringback)
     this._addComponent(component)
     await component.execute()
@@ -482,18 +479,28 @@ export default class Call implements ICall {
     return this
   }
 
-  _stateChange(params: { call_state: string, end_reason?: string }) {
-    const { call_state, end_reason } = params
+  _stateChange(params: { call_state: string, end_reason?: string, device: IRelayDevice }) {
+    const { call_state, end_reason, device } = params
     this.prevState = this.state
     this.state = call_state
     this._notifyComponents(CallNotification.State, this.tag, params)
     this._dispatchCallback('stateChange')
     this._dispatchCallback(call_state)
-    if (this.state === CallState.Ended) {
-      this.busy = end_reason === DisconnectReason.Busy
-      this.failed = end_reason === DisconnectReason.Error
-      this._terminateComponents(params)
-      this.relayInstance.removeCall(this)
+    switch (this.state) {
+      case CallState.Created: {
+        this.attemptedDevices.push(buildDevice(device))
+        break
+      }
+      case CallState.Answered: {
+        this.device = buildDevice(device)
+        break
+      }
+      case CallState.Ended:
+        this.busy = end_reason === DisconnectReason.Busy
+        this.failed = end_reason === DisconnectReason.Error
+        this._terminateComponents(params)
+        this.relayInstance.removeCall(this)
+        break
     }
   }
 

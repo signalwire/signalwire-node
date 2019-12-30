@@ -1,3 +1,5 @@
+import * as Devices from '../relay/calling/devices'
+
 interface IMessageBase { jsonrpc: string, id: string }
 
 type TBladeVersion = { major: number, minor: number, revision: number }
@@ -128,6 +130,10 @@ export interface IVideoSettings extends MediaTrackConstraints {
   camLabel?: string
 }
 
+export type IDevice = Devices.PhoneDevice | Devices.AgoraDevice | Devices.WebRTCDevice | Devices.SipDevice
+
+type ICallType = 'phone' | 'agora' | 'webrtc' | 'sip'
+
 export interface ICall {
   id: string
   tag?: string
@@ -135,8 +141,11 @@ export interface ICall {
   state: string
   prevState: string
   context: string
+  device: IDevice
+  targets: DeepArray<IDevice>
+  attemptedDevices: IDevice[]
   // peer: Call
-  type: string
+  type: ICallType
   to: string
   from: string
   timeout: number
@@ -154,10 +163,13 @@ export interface ICall {
   answer: Function
   connect: Function
   connectAsync: Function
+  disconnect: Function
   play: Function
   playAsync: Function
   playAudio: Function
   playAudioAsync: Function
+  playRingtone: Function
+  playRingtoneAsync: Function
   playSilence: Function
   playSilenceAsync: Function
   playTTS: Function
@@ -166,6 +178,8 @@ export interface ICall {
   promptAsync: Function
   promptAudio: Function
   promptAudioAsync: Function
+  promptRingtone: Function
+  promptRingtoneAsync: Function
   promptTTS: Function
   promptTTSAsync: Function
   waitFor: Function
@@ -195,40 +209,68 @@ export interface ICall {
   sendDigitsAsync: Function
 }
 
-export interface ICallDevice {
-  type: string
-  params: {
-    from_number: string
-    to_number: string
-    timeout: number
-  }
+export interface IRelayDevicePhoneParams {
+  from_number: string
+  to_number: string
+  timeout?: number
+}
+
+export interface IRelayDeviceAgoraParams {
+  from: string
+  to: string
+  appid: string
+  channel: string
+  timeout?: number
+}
+
+export interface IRelayDeviceWebRTCParams {
+  from: string
+  to: string
+  timeout?: number
+  codecs?: string[]
+}
+
+export interface IRelayDeviceSipParams {
+  from: string
+  to: string
+  timeout?: number
+  headers?: StringStringMap
+  codecs?: string[]
+  webrtc_media?: boolean
+}
+
+export interface IRelayDevice {
+  type: ICallType
+  params: IRelayDevicePhoneParams | IRelayDeviceAgoraParams | IRelayDeviceWebRTCParams | IRelayDeviceSipParams
+}
+
+export interface IMakeCallParams {
+  type: ICallType
+  from?: string
+  to: string
+  timeout?: number
+  appId?: string
+  channel?: string
+  headers?: StringStringMap
+  webrtcMedia?: boolean
+  codecs?: string[]
 }
 
 export interface ICallPeer {
   call_id: string
   node_id: string
-  device?: ICallDevice
+  device?: IDevice
 }
 
 export interface ICallOptions {
-  device?: ICallDevice
+  device?: IRelayDevice
+  targets?: DeepArray<IDevice>
   peer?: ICallPeer
   node_id?: string
   call_id?: string
   call_state?: string
   context?: string
 }
-
-export interface IMakeCallParams {
-  type: string
-  from?: string
-  to: string
-  timeout?: number
-}
-
-// export interface Constructable<T> {
-//   new(any: any): T
-// }
 
 export interface StringTMap<T> { [key: string]: T }
 export interface StringStringMap extends StringTMap<string> { }

@@ -9,8 +9,6 @@ export enum CallState {
 
 export const CALL_STATES: string[] = Object.values(CallState)
 
-export const DEFAULT_CALL_TIMEOUT = 30
-
 export enum DisconnectReason {
   Hangup = 'hangup',
   Cancel = 'cancel',
@@ -29,6 +27,7 @@ export enum DisconnectSource {
 
 export enum CallType {
   Phone = 'phone',
+  Agora = 'agora',
   Sip = 'sip',
   WebRTC = 'webrtc'
 }
@@ -55,7 +54,8 @@ export enum CallNotification {
 
 export enum CallMethod {
   Answer = 'calling.answer',
-  Begin = 'calling.begin',
+  // Begin = 'calling.begin', DEPRECATED
+  Dial = 'calling.dial',
   Connect = 'calling.connect',
   Disconnect = 'calling.disconnect',
   End = 'calling.end',

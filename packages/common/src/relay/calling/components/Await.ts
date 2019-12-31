@@ -1,9 +1,9 @@
 import { BaseComponent } from './BaseComponent'
-import { CallNotification } from '../../../util/constants/relay'
+import { Notification } from '../constants'
 import Event from '../Event'
 
 export class Await extends BaseComponent {
-  public eventType: string = CallNotification.State
+  public eventType: string = Notification.State
   public method = null
   public controlId: string = this.call.tag
 

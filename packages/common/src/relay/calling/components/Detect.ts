@@ -1,15 +1,15 @@
 import { Controllable } from './Controllable'
 import { IRelayCallingDetect } from '../../../util/interfaces'
-import { CallNotification, CallDetectState, CallDetectType, CallMethod } from '../../../util/constants/relay'
+import { Notification, DetectState, DetectType, Method } from '../constants'
 import Call from '../Call'
 import Event from '../Event'
 
-const _finishedEvents: string[] = [CallDetectState.Error, CallDetectState.Finished]
-const _machineStateEvents: string[] = [CallDetectState.Ready, CallDetectState.NotReady]
+const _finishedEvents: string[] = [DetectState.Error, DetectState.Finished]
+const _machineStateEvents: string[] = [DetectState.Ready, DetectState.NotReady]
 
 export class Detect extends Controllable {
-  public eventType: string = CallNotification.Detect
-  public method: string = CallMethod.Detect
+  public eventType: string = Notification.Detect
+  public method: string = Method.Detect
   public controlId: string = this.controlId
 
   public type: string
@@ -58,18 +58,18 @@ export class Detect extends Controllable {
       return
     }
 
-    if (this.type === CallDetectType.Digit) {
+    if (this.type === DetectType.Digit) {
       return this._complete(detect)
     }
 
     if (this._waitingForReady) {
-      if (event === CallDetectState.Ready) {
+      if (event === DetectState.Ready) {
         return this._complete(detect)
       }
       return
     }
 
-    if (this._waitForBeep && event === CallDetectState.Machine) {
+    if (this._waitForBeep && event === DetectState.Machine) {
       this._waitingForReady = true
       return
     }
@@ -85,14 +85,14 @@ export class Detect extends Controllable {
     if (this._hasBlocker()) {
       this.successful = !_finishedEvents.includes(this.state)
       if (_machineStateEvents.includes(this.state)) {
-        this.result = CallDetectState.Machine
+        this.result = DetectState.Machine
       } else if (this.successful) {
         this.result = this.state
       }
       this.blocker.resolve()
     } else {
       this.result = this._events.join(',')
-      this.successful = this.state !== CallDetectState.Error
+      this.successful = this.state !== DetectState.Error
     }
   }
 }

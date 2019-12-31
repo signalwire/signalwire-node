@@ -3,7 +3,7 @@ import { IMakeCallParams, DeepArray, IDevice } from '../../util/interfaces'
 import logger from '../../util/logger'
 import Relay from '../Relay'
 import Call from './Call'
-import { CallNotification } from '../../util/constants/relay'
+import { Notification } from './constants'
 import { prepareDevices } from '../helpers'
 
 export default class Calling extends Relay {
@@ -14,25 +14,25 @@ export default class Calling extends Relay {
     const { event_type, params } = notification
     params.event_type = event_type
     switch (event_type) {
-      case CallNotification.State:
+      case Notification.State:
         return this._onState(params)
-      case CallNotification.Receive:
+      case Notification.Receive:
         return this._onReceive(params)
-      case CallNotification.Connect:
+      case Notification.Connect:
         return this._onConnect(params)
-      case CallNotification.Record:
+      case Notification.Record:
         return this._onRecord(params)
-      case CallNotification.Play:
+      case Notification.Play:
         return this._onPlay(params)
-      case CallNotification.Collect:
+      case Notification.Collect:
         return this._onCollect(params)
-      case CallNotification.Fax:
+      case Notification.Fax:
         return this._onFax(params)
-      case CallNotification.Detect:
+      case Notification.Detect:
         return this._onDetect(params)
-      case CallNotification.Tap:
+      case Notification.Tap:
         return this._onTap(params)
-      case CallNotification.SendDigits:
+      case Notification.SendDigits:
         return this._onSendDigits(params)
     }
   }

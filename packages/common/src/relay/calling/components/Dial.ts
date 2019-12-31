@@ -1,10 +1,10 @@
 import { BaseComponent } from './BaseComponent'
-import { CallNotification, CallState, CallMethod } from '../../../util/constants/relay'
+import { Notification, CallState, Method } from '../constants'
 import Event from '../Event'
 
 export class Dial extends BaseComponent {
-  public eventType: string = CallNotification.State
-  public method: string = CallMethod.Dial
+  public eventType: string = Notification.State
+  public method: string = Method.Dial
   public controlId: string = this.call.tag
 
   get payload(): any {

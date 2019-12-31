@@ -1,10 +1,10 @@
 import { BaseComponent } from './BaseComponent'
-import { CallNotification, CallConnectState, CallMethod } from '../../../util/constants/relay'
+import { Notification, ConnectState, Method } from '../constants'
 import Event from '../Event'
 
 export class Disconnect extends BaseComponent {
-  public eventType: string = CallNotification.Connect
-  public method: string = CallMethod.Disconnect
+  public eventType: string = Notification.Connect
+  public method: string = Method.Disconnect
   public controlId: string = this.call.tag
 
   get payload(): any {
@@ -17,9 +17,9 @@ export class Disconnect extends BaseComponent {
   notificationHandler(params: any): void {
     this.state = params.connect_state
 
-    this.completed = this.state !== CallConnectState.Connecting
+    this.completed = this.state !== ConnectState.Connecting
     if (this.completed) {
-      this.successful = this.state === CallConnectState.Disconnected
+      this.successful = this.state === ConnectState.Disconnected
       this.event = new Event(this.state, params)
     }
 

@@ -1,8 +1,3 @@
-export enum Netcast {
-  ProtocolProviderAdd = 'protocol.provider.add',
-  ProtocolProviderRemove = 'protocol.provider.remove'
-}
-
 export const STORAGE_PREFIX = '@signalwire:'
 export const ADD = 'add'
 export const REMOVE = 'remove'
@@ -22,10 +17,6 @@ export enum SwEvent {
   Ready = 'signalwire.ready',
   Error = 'signalwire.error',
   Notification = 'signalwire.notification',
-
-  // Blade Events
-  Messages = 'signalwire.messages',
-  Calls = 'signalwire.calls',
 
   // RTC Events
   MediaError = 'signalwire.rtc.mediaError',

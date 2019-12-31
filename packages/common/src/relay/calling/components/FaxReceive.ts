@@ -1,8 +1,8 @@
 import { BaseFax } from './BaseFax'
-import { CallMethod } from '../../../util/constants/relay'
+import { Method } from '../constants'
 
 export class FaxReceive extends BaseFax {
-  public method: string = CallMethod.ReceiveFax
+  public method: string = Method.ReceiveFax
 
   get payload(): any {
     return {

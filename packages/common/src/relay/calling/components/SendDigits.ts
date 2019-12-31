@@ -1,11 +1,11 @@
 import { BaseComponent } from './BaseComponent'
-import { CallNotification, SendDigitsState, CallMethod } from '../../../util/constants/relay'
+import { Notification, SendDigitsState, Method } from '../constants'
 import Call from '../Call'
 import Event from '../Event'
 
 export class SendDigits extends BaseComponent {
-  public eventType: string = CallNotification.SendDigits
-  public method: string = CallMethod.SendDigits
+  public eventType: string = Notification.SendDigits
+  public method: string = Method.SendDigits
   public controlId: string = this.controlId
 
   constructor(public call: Call, public digits: string) {

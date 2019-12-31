@@ -1,6 +1,6 @@
 import logger from '../../../util/logger'
 import { IMakeCallParams, IRelayDevice, IRelayDevicePhoneParams, IRelayDeviceAgoraParams, IRelayDeviceWebRTCParams, IRelayDeviceSipParams } from '../../../util/interfaces'
-import { CallType } from '../../../util/constants/relay'
+import { CallType } from '../constants'
 
 // TODO: move to helpers
 const _isIRelayDevice = (input: IMakeCallParams | IRelayDevice): input is IRelayDevice => {

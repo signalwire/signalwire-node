@@ -1,9 +1,9 @@
 import Call from '../Call'
 import { BaseFax } from './BaseFax'
-import { CallMethod } from '../../../util/constants/relay'
+import { Method } from '../constants'
 
 export class FaxSend extends BaseFax {
-  public method: string = CallMethod.SendFax
+  public method: string = Method.SendFax
 
   constructor(
     public call: Call,

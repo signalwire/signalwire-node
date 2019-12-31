@@ -1,6 +1,6 @@
 import logger from '../../util/logger'
 import { trigger } from '../../services/Handler'
-import { MessageNotification } from '../../util/constants/relay'
+import { Notification } from './constants'
 import Relay from '../Relay'
 import { Execute } from '../../messages/Blade'
 import SendResult from './SendResult'
@@ -13,11 +13,11 @@ export default class Messaging extends Relay {
     const { event_type, params, context } = notification
     const message = new Message(params)
     switch (event_type) {
-      case MessageNotification.State: {
+      case Notification.State: {
         logger.info(`Relay message '${message.id}' changes state to '${message.state}'`)
         return trigger(this.session.relayProtocol, message, this._ctxStateUniqueId(context))
       }
-      case MessageNotification.Receive: {
+      case Notification.Receive: {
         logger.info(`New Relay ${message.direction} message in context '${context}'`)
         return trigger(this.session.relayProtocol, message, this._ctxReceiveUniqueId(context))
       }

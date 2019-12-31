@@ -1,5 +1,5 @@
 import { Controllable } from './Controllable'
-import { IRelayCallingPlay, IRelayCallingCollect } from '../../../util/interfaces'
+import { IRelayCallingPlay, IRelayCallingCollect } from '../interfaces'
 import { Notification, PromptState, Method } from '../constants'
 import Call from '../Call'
 import Event from '../Event'

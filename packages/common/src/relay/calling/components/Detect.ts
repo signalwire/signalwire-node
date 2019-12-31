@@ -1,5 +1,5 @@
 import { Controllable } from './Controllable'
-import { IRelayCallingDetect } from '../../../util/interfaces'
+import { IRelayCallingDetect } from '../interfaces'
 import { Notification, DetectState, DetectType, Method } from '../constants'
 import Call from '../Call'
 import Event from '../Event'

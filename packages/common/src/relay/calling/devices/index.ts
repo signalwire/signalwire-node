@@ -1,5 +1,5 @@
 import logger from '../../../util/logger'
-import { IMakeCallParams, IRelayDevice, IRelayDevicePhoneParams, IRelayDeviceAgoraParams, IRelayDeviceWebRTCParams, IRelayDeviceSipParams } from '../../../util/interfaces'
+import { IMakeCallParams, IRelayDevice, IRelayDevicePhoneParams, IRelayDeviceAgoraParams, IRelayDeviceWebRTCParams, IRelayDeviceSipParams } from '../interfaces'
 import { CallType } from '../constants'
 
 // TODO: move to helpers

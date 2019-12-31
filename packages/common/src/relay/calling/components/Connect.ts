@@ -1,5 +1,5 @@
 import { BaseComponent } from './BaseComponent'
-import { DeepArray, IDevice, IRelayCallingPlay } from '../../../util/interfaces'
+import { DeepArray, IDevice, IRelayCallingPlay } from '../interfaces'
 import { Notification, ConnectState, Method } from '../constants'
 import Call from '../Call'
 import Event from '../Event'

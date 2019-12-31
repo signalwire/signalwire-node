@@ -1,5 +1,5 @@
-import { prepareRecordParams, preparePlayParams, preparePlayAudioParams, preparePromptParams, preparePromptAudioParams, preparePromptTTSParams, prepareTapParams, prepareDevices } from '../../src/relay/helpers'
-import { ICallingTapTap, ICallingTapDevice, ICallingTapFlat, ICallingPlayParams, IMakeCallParams, DeepArray } from '../../src/util/interfaces'
+import { prepareRecordParams, preparePlayParams, preparePlayAudioParams, preparePromptParams, preparePromptAudioParams, preparePromptTTSParams, prepareTapParams, prepareDevices } from '../../../common/src/relay/helpers'
+import { ICallingTapTap, ICallingTapDevice, ICallingTapFlat, ICallingPlayParams, IMakeCallParams, DeepArray } from '../../../common/src/relay/calling/interfaces'
 
 describe('prepareRecordParams()', () => {
   it('should handle the default empty object', () => {

@@ -1,5 +1,5 @@
 import { Controllable } from './Controllable'
-import { IRelayCallingTapTap, IRelayCallingTapDevice } from '../../../util/interfaces'
+import { IRelayCallingTapTap, IRelayCallingTapDevice } from '../interfaces'
 import { Notification, TapState, Method } from '../constants'
 import Call from '../Call'
 import Event from '../Event'

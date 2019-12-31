@@ -1,5 +1,5 @@
 import { trigger } from '../../services/Handler'
-import { IMakeCallParams, DeepArray, IDevice } from '../../util/interfaces'
+import { IMakeCallParams, DeepArray, IDevice } from './interfaces'
 import logger from '../../util/logger'
 import Relay from '../Relay'
 import Call from './Call'

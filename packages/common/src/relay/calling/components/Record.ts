@@ -2,7 +2,7 @@ import { Controllable } from './Controllable'
 import { Notification, RecordState, Method } from '../constants'
 import Call from '../Call'
 import Event from '../Event'
-import { IRelayCallingRecord } from '../../../util/interfaces'
+import { IRelayCallingRecord } from '../interfaces'
 
 export class Record extends Controllable {
   public eventType: string = Notification.Record

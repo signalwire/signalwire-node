@@ -1,5 +1,5 @@
 import RelayClient from '../../src/relay'
-import { ICallingPlay, IRelayCallingTapDevice, ICallingTapTap, ICallingTapDevice, IRelayCallingPlay, ICallingTapFlat } from '../../../common/src/util/interfaces'
+import { ICallingPlay, IRelayCallingTapDevice, ICallingTapTap, ICallingTapDevice, IRelayCallingPlay, ICallingTapFlat } from '../../../common/src/relay/calling/interfaces'
 import Call from '../../../common/src/relay/calling/Call'
 import { CallState, CallType } from '../../../common/src/relay/calling/constants'
 import { Execute } from '../../../common/src/messages/Blade'

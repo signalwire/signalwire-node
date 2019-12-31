@@ -1,4 +1,4 @@
-import { IMessage, IMessageOptions } from '../../util/interfaces'
+import { IMessage, IMessageOptions } from './interfaces'
 
 export default class Message implements IMessage {
   public id: string

@@ -12,9 +12,8 @@
   },
   "devDependencies": {
     "@types/webrtc": "0.0.25",
-    "execa": "^1.0.0",
-    "fs-extra": "^7.0.1",
-    "listr": "^0.14.3",
-    "tslint": "^5.19.0"
+    "execa": "^4.0.0",
+    "fs-extra": "^8.1.0",
+    "listr": "^0.14.3"
   }
 }

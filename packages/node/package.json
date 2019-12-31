@@ -40,9 +40,7 @@
     "dotenv": "^6.2.0",
     "faye-websocket": "^0.11.3",
     "loglevel": "^1.6.6",
-    "nock": "^10.0.6",
     "twilio": "3.29.2",
-    "typescript": "^3.7.4",
     "uuid": "^3.3.3"
   },
   "devDependencies": {
@@ -54,8 +52,10 @@
     "graphql": "^0.12.0",
     "jest": "^24.9.0",
     "mockttp": "^0.12.6",
+    "nock": "^10.0.6",
     "ts-jest": "^24.2.0",
     "ts-loader": "^5.4.5",
-    "tslint": "^5.20.1"
+    "tslint": "^5.20.1",
+    "typescript": "^3.7.4"
   }
 }

@@ -9,6 +9,13 @@ export enum CallState {
 
 export const CALL_STATES: string[] = Object.values(CallState)
 
+export enum CallType {
+  Phone = 'phone',
+  Agora = 'agora',
+  Sip = 'sip',
+  WebRTC = 'webrtc'
+}
+
 export enum DisconnectReason {
   Hangup = 'hangup',
   Cancel = 'cancel',
@@ -18,28 +25,21 @@ export enum DisconnectReason {
   Error = 'error'
 }
 
-export enum DisconnectSource {
-  None = 'none',
-  Client = 'client',
-  Server = 'server',
-  Endpoint = 'endpoint'
-}
+// export enum DisconnectSource {
+//   None = 'none',
+//   Client = 'client',
+//   Server = 'server',
+//   Endpoint = 'endpoint'
+// }
 
-export enum CallType {
-  Phone = 'phone',
-  Agora = 'agora',
-  Sip = 'sip',
-  WebRTC = 'webrtc'
-}
-
-export enum CallConnectState {
+export enum ConnectState {
   Disconnected = 'disconnected',
   Connecting = 'connecting',
   Connected = 'connected',
   Failed = 'failed',
 }
 
-export enum CallNotification {
+export enum Notification {
   State = 'calling.call.state',
   Receive = 'calling.call.receive',
   Connect = 'calling.call.connect',
@@ -52,9 +52,8 @@ export enum CallNotification {
   SendDigits = 'calling.call.send_digits',
 }
 
-export enum CallMethod {
+export enum Method {
   Answer = 'calling.answer',
-  // Begin = 'calling.begin', DEPRECATED
   Dial = 'calling.dial',
   Connect = 'calling.connect',
   Disconnect = 'calling.disconnect',
@@ -73,31 +72,31 @@ export enum SendDigitsState {
   Finished = 'finished',
 }
 
-export enum CallPlayState {
+export enum PlayState {
   Playing = 'playing',
   Error = 'error',
   Finished = 'finished',
 }
 
-export enum CallPlayType {
+export enum PlayType {
   Audio = 'audio',
   Silence = 'silence',
   TTS = 'tts',
   Ringtone = 'ringtone',
 }
 
-export enum CallTapState {
+export enum TapState {
   Tapping = 'tapping',
   Finished = 'finished',
 }
 
-export enum CallFaxState {
+export enum FaxState {
   Page = 'page',
   Error = 'error',
   Finished = 'finished',
 }
 
-export enum CallPromptState {
+export enum PromptState {
   Error = 'error',
   NoInput = 'no_input',
   NoMatch = 'no_match',
@@ -105,13 +104,13 @@ export enum CallPromptState {
   Speech = 'speech',
 }
 
-export enum CallRecordState {
+export enum RecordState {
   Recording = 'recording',
   NoInput = 'no_input',
   Finished = 'finished',
 }
 
-export enum CallDetectState {
+export enum DetectState {
   Error = 'error',
   Finished = 'finished',
   CED = 'CED',
@@ -123,13 +122,8 @@ export enum CallDetectState {
   NotReady = 'NOT_READY',
 }
 
-export enum CallDetectType {
+export enum DetectType {
   Fax = 'fax',
   Machine = 'machine',
   Digit = 'digit',
-}
-
-export enum MessageNotification {
-  State = 'messaging.state',
-  Receive = 'messaging.receive',
 }

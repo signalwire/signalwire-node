@@ -1,12 +1,12 @@
 import { Controllable } from './Controllable'
-import { CallNotification, CallRecordState, CallMethod } from '../../../util/constants/relay'
+import { Notification, RecordState, Method } from '../constants'
 import Call from '../Call'
 import Event from '../Event'
-import { IRelayCallingRecord } from '../../../util/interfaces'
+import { IRelayCallingRecord } from '../interfaces'
 
 export class Record extends Controllable {
-  public eventType: string = CallNotification.Record
-  public method: string = CallMethod.Record
+  public eventType: string = Notification.Record
+  public method: string = Method.Record
   public controlId: string = this.controlId
 
   public url: string
@@ -30,9 +30,9 @@ export class Record extends Controllable {
     const { state, url, duration, size } = params
     this.state = state
 
-    this.completed = this.state !== CallRecordState.Recording
+    this.completed = this.state !== RecordState.Recording
     if (this.completed) {
-      this.successful = this.state === CallRecordState.Finished
+      this.successful = this.state === RecordState.Finished
       this.event = new Event(this.state, params)
       this.url = url
       this.duration = duration

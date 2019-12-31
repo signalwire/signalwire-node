@@ -1,5 +1,5 @@
 import RelayClient from '../../src/relay'
-import { IRelayCallingPlay, IRelayDevice } from '../../../common/src/util/interfaces'
+import { IRelayCallingPlay, IRelayDevice } from '../../../common/src/relay/calling/interfaces'
 import Call from '../../../common/src/relay/calling/Call'
 import { Execute } from '../../../common/src/messages/Blade'
 import { Play, Prompt } from '../../../common/src/relay/calling/components'

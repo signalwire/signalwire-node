@@ -1,9 +1,9 @@
 import { Controllable } from './Controllable'
-import { CallNotification, CallFaxState } from '../../../util/constants/relay'
+import { Notification, FaxState } from '../constants'
 import Event from '../Event'
 
 export abstract class BaseFax extends Controllable {
-  public eventType: string = CallNotification.Fax
+  public eventType: string = Notification.Fax
   public controlId: string = this.controlId
 
   public direction: string
@@ -16,7 +16,7 @@ export abstract class BaseFax extends Controllable {
     const { fax: { type, params: faxParams } } = params
     this.state = type
 
-    this.completed = this.state !== CallFaxState.Page
+    this.completed = this.state !== FaxState.Page
     if (this.completed) {
       if (faxParams.success) {
         this.successful = true

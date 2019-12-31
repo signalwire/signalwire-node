@@ -1,8 +1,7 @@
-import { IMakeCallParams, IDevice, DeepArray, ICallingRecord, IRelayCallingRecord, IRelayCallingPlay, ICallingPlay, ICallingPlayParams, ICallingCollect, IRelayCallingCollect, ICallingCollectAudio, ICallingPlayTTS, ICallingCollectTTS, ICallingDetect, IRelayCallingDetect, ICallingTapTap, ICallingTapFlat, IRelayCallingTapTap, IRelayCallingTapDevice, ICallingTapDevice, ICallingCollectRingtone, ICallingPlayRingtone, ICallingConnectParams } from '../util/interfaces'
-import { CallPlayType } from '../util/constants/relay'
+import { IMakeCallParams, IDevice, DeepArray, ICallingRecord, IRelayCallingRecord, IRelayCallingPlay, ICallingPlay, ICallingPlayParams, ICallingCollect, IRelayCallingCollect, ICallingCollectAudio, ICallingPlayTTS, ICallingCollectTTS, ICallingDetect, IRelayCallingDetect, ICallingTapTap, ICallingTapFlat, IRelayCallingTapTap, IRelayCallingTapDevice, ICallingTapDevice, ICallingCollectRingtone, ICallingPlayRingtone, ICallingConnectParams } from './calling/interfaces'
+import { PlayType } from './calling/constants'
 import { deepCopy, objEmpty } from '../util/helpers'
 import * as Devices from '../relay/calling/devices'
-// import logger from '../util/logger'
 
 export const prepareDevices = (devices: DeepArray<IMakeCallParams>, defaultFrom: string = null, defaultTimeout: number = null, nested: boolean = false): DeepArray<IDevice> => {
   const relayDevices: DeepArray<IDevice> = []
@@ -123,7 +122,7 @@ export const preparePromptParams = (params: ICallingCollect, mediaList: (ICallin
 export const preparePromptAudioParams = (params: ICallingCollectAudio, urlDeprecated: string = ''): IRelayCallingCollect => {
   const { url = urlDeprecated, ...flattenedParams } = params
   flattenedParams.media = [
-    { type: CallPlayType.Audio, params: { url } }
+    { type: PlayType.Audio, params: { url } }
   ]
 
   return flattenedParams
@@ -141,7 +140,7 @@ export const preparePromptTTSParams = (params: ICallingCollectTTS, ttsOptions: I
     ttsOptions.language = language
   }
   flattenedParams.media = [
-    { type: CallPlayType.TTS, params: ttsOptions }
+    { type: PlayType.TTS, params: ttsOptions }
   ]
 
   return flattenedParams
@@ -154,7 +153,7 @@ export const preparePromptRingtoneParams = (params: ICallingCollectRingtone): IR
     mediaParams.duration = duration
   }
   flattenedParams.media = [
-    { type: CallPlayType.Ringtone, params: mediaParams }
+    { type: PlayType.Ringtone, params: mediaParams }
   ]
 
   return flattenedParams

@@ -1,6 +1,6 @@
 import { BaseResult } from './BaseResult'
 import { Tap } from '../components/Tap'
-import { IRelayCallingTapTap, IRelayCallingTapDevice } from '../../../util/interfaces'
+import { IRelayCallingTapTap, IRelayCallingTapDevice } from '../interfaces'
 
 export class TapResult extends BaseResult {
   constructor(public component: Tap) {

@@ -1,12 +1,12 @@
 import { BaseComponent } from './BaseComponent'
-import { DeepArray, IDevice, IRelayCallingPlay } from '../../../util/interfaces'
-import { CallNotification, CallConnectState, CallMethod } from '../../../util/constants/relay'
+import { DeepArray, IDevice, IRelayCallingPlay } from '../interfaces'
+import { Notification, ConnectState, Method } from '../constants'
 import Call from '../Call'
 import Event from '../Event'
 
 export class Connect extends BaseComponent {
-  public eventType: string = CallNotification.Connect
-  public method: string = CallMethod.Connect
+  public eventType: string = Notification.Connect
+  public method: string = Method.Connect
   public controlId: string = this.call.tag
 
   constructor(
@@ -32,9 +32,9 @@ export class Connect extends BaseComponent {
   notificationHandler(params: any): void {
     this.state = params.connect_state
 
-    this.completed = this.state !== CallConnectState.Connecting
+    this.completed = this.state !== ConnectState.Connecting
     if (this.completed) {
-      this.successful = this.state === CallConnectState.Connected
+      this.successful = this.state === ConnectState.Connected
       this.event = new Event(this.state, params)
     }
 

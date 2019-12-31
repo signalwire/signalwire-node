@@ -1,12 +1,19 @@
-import logger from '../util/logger'
 import BrowserSession from '../BrowserSession'
 import BaseCall from './BaseCall'
-import { SwEvent, NOTIFICATION_TYPE } from '../util/constants'
+import { SwEvent } from '../util/constants'
 import { trigger } from '../services/Handler'
-import { ConferenceAction } from '../util/constants/call'
+import { ConferenceAction, NOTIFICATION_TYPE } from './constants'
 import { safeParseJson } from '../util/helpers'
 
-const MCULayoutEventHandler = (session: BrowserSession, eventData: any) => {
+const _clearCanvasInfo = (canvasInfo: any) => {
+  const tmp = JSON.stringify(canvasInfo)
+    .replace(/memberID/g, 'participantId')
+    .replace(/ID"/g, 'Id"')
+    .replace(/POS"/g, 'Pos"')
+  return safeParseJson(tmp)
+}
+
+export const MCULayoutEventHandler = (session: BrowserSession, eventData: any) => {
   const { contentType, canvasType, callID, canvasInfo = null, currentLayerIdx = -1 } = eventData
   if (canvasInfo && canvasType !== 'mcu-personal-canvas') {
     delete canvasInfo.memberID
@@ -30,16 +37,4 @@ const MCULayoutEventHandler = (session: BrowserSession, eventData: any) => {
       break
     }
   }
-}
-
-const _clearCanvasInfo = (canvasInfo: any) => {
-  const tmp = JSON.stringify(canvasInfo)
-    .replace(/memberID/g, 'participantId')
-    .replace(/ID"/g, 'Id"')
-    .replace(/POS"/g, 'Pos"')
-  return safeParseJson(tmp)
-}
-
-export {
-  MCULayoutEventHandler
 }

@@ -4,9 +4,9 @@ import Call from './Call'
 import BaseCall from './BaseCall'
 import { checkSubscribeResponse } from './helpers'
 import { Result } from '../messages/Verto'
-import { SwEvent, VertoMethod, NOTIFICATION_TYPE } from '../util/constants'
+import { SwEvent } from '../util/constants'
 import { trigger, deRegister } from '../services/Handler'
-import { State, ConferenceAction } from '../util/constants/call'
+import { State, ConferenceAction, VertoMethod, NOTIFICATION_TYPE } from './constants'
 import { MCULayoutEventHandler } from './LayoutHandler'
 
 class VertoHandler {

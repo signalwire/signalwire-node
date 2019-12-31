@@ -1,5 +1,5 @@
 import { SwEvent } from '../../../common/src/util/constants'
-import { IMakeCallParams } from '../../../common/src/util/interfaces'
+import { IMakeCallParams } from '../../../common/src/relay/calling/interfaces'
 import { isQueued, trigger } from '../../../common/src/services/Handler'
 import Call from '../../../common/src/relay/calling/Call'
 import RelayClient from '../../src/relay'

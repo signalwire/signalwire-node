@@ -1,12 +1,12 @@
 import { Controllable } from './Controllable'
-import { IRelayCallingPlay, IRelayCallingCollect } from '../../../util/interfaces'
-import { CallNotification, CallPromptState, CallMethod } from '../../../util/constants/relay'
+import { IRelayCallingPlay, IRelayCallingCollect } from '../interfaces'
+import { Notification, PromptState, Method } from '../constants'
 import Call from '../Call'
 import Event from '../Event'
 
 export class Prompt extends Controllable {
-  public eventType: string = CallNotification.Collect
-  public method: string = CallMethod.PlayAndCollect
+  public eventType: string = Notification.Collect
+  public method: string = Method.PlayAndCollect
   public controlId: string = this.controlId
 
   public type: string
@@ -44,13 +44,13 @@ export class Prompt extends Controllable {
     this.type = result.type
     this.event = new Event(this.type, result)
     switch (this.type) {
-      case CallPromptState.Digit:
+      case PromptState.Digit:
         this.state = 'successful'
         this.successful = true
         this.input = result.params.digits
         this.terminator = result.params.terminator
         break
-      case CallPromptState.Speech:
+      case PromptState.Speech:
         this.state = 'successful'
         this.successful = true
         this.input = result.params.text

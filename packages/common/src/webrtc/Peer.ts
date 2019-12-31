@@ -1,6 +1,7 @@
 import logger from '../util/logger'
 import { getUserMedia, getMediaConstraints, sdpStereoHack, sdpBitrateHack } from './helpers'
-import { PeerType, SwEvent } from '../util/constants'
+import { SwEvent } from '../util/constants'
+import { PeerType } from './constants'
 import { attachMediaStream, muteMediaElement, sdpToJsonHack, RTCPeerConnection, streamIsValid } from '../util/webrtc'
 import { isFunction } from '../util/helpers'
 import { CallOptions } from '../util/interfaces'

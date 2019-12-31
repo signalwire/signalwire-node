@@ -1,13 +1,13 @@
 import RelayClient from '../../src/relay'
-import { ICallingPlay, IRelayCallingTapDevice, ICallingTapTap, ICallingTapDevice, IRelayCallingPlay, ICallingTapFlat } from '../../../common/src/util/interfaces'
+import { ICallingPlay, IRelayCallingTapDevice, ICallingTapTap, ICallingTapDevice, IRelayCallingPlay, ICallingTapFlat } from '../../../common/src/relay/calling/interfaces'
 import Call from '../../../common/src/relay/calling/Call'
-import { CallState, CallType } from '../../../common/src/util/constants/relay'
+import { CallState, CallType } from '../../../common/src/relay/calling/constants'
 import { Execute } from '../../../common/src/messages/Blade'
-const Connection = require('../../../common/src/services/Connection')
 import { RecordAction, PlayAction, PromptAction, ConnectAction, FaxAction, DetectAction, TapAction, SendDigitsAction } from '../../../common/src/relay/calling/actions'
 import { HangupResult, RecordResult, AnswerResult, PlayResult, PromptResult, ConnectResult, DialResult, FaxResult, DetectResult, TapResult, SendDigitsResult, DisconnectResult } from '../../../common/src/relay/calling/results'
 import { prepareDevices } from '../../../common/src/relay/helpers'
 import { buildDevice } from '../../../common/src/relay/calling/devices'
+const Connection = require('../../../common/src/services/Connection')
 jest.mock('../../../common/src/services/Connection')
 
 describe('Call', () => {

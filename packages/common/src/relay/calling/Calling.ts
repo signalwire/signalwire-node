@@ -5,6 +5,7 @@ import Relay from '../Relay'
 import Call from './Call'
 import { Notification } from './constants'
 import { prepareDevices } from '../helpers'
+import { buildDevice } from './devices'
 
 export default class Calling extends Relay {
   protected service: string = 'calling'
@@ -111,6 +112,7 @@ export default class Calling extends Relay {
    */
   private _onReceive(params: any): void {
     const call = new Call(this, params)
+    call.device = buildDevice(params.device)
     trigger(this.session.relayProtocol, call, this._ctxReceiveUniqueId(call.context))
   }
 

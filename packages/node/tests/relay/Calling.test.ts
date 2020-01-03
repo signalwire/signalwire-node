@@ -158,6 +158,10 @@ describe('Calling', () => {
       trigger(SwEvent.SocketMessage, msg, session.uuid)
       expect(fnMock).toHaveBeenCalledTimes(1)
       expect(fnMock).toBeCalledWith(expect.any(Call))
+      const call = fnMock.mock.calls[0][0]
+      expect(call.type).toEqual('phone')
+      expect(call.from).toEqual('+12222222222')
+      expect(call.to).toEqual('+12222222223')
       done()
     })
   })

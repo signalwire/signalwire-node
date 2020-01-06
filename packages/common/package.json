@@ -6,7 +6,6 @@
   "author": "SignalWire Team <open.source@signalwire.com>",
   "scripts": {},
   "dependencies": {
-    "loglevel": "^1.6.3",
     "uuid": "^3.3.2"
   },
   "devDependencies": {}

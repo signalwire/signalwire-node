@@ -12,7 +12,7 @@ describe('Calling Actions', () => {
   const _mockReturnSuccess = () => Connection.mockResponse.mockReturnValueOnce(JSON.parse('{"id":"uuid","jsonrpc":"2.0","result":{"result":{"code":"200","message":"message","control_id":"control-id"}}}'))
   const _mockReturnFail = () => Connection.mockResponse.mockReturnValueOnce(JSON.parse('{"id":"uuid","jsonrpc":"2.0","result":{"result":{"code":"400","message":"error message","control_id":"control-id"}}}'))
   const session = new RelayClient({ project: 'project', token: 'token' })
-  session.__logger.setLevel(session.__logger.levels.SILENT)
+  // session.__logger.setLevel(session.__logger.levels.SILENT)
   // @ts-ignore
   session.connection = Connection.default()
   session.relayProtocol = 'signalwire_service_random_uuid'

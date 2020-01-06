@@ -24,7 +24,7 @@ export default async (session: BaseSession): Promise<string> => {
     await session.subscribe({ protocol, channels: [SETUP_CHANNEL] })
     await sessionStorage.setItem(signature, protocol)
   } else {
-    logger.error('Error during setup the session protocol.')
+    logger('Error during setup the session protocol.')
   }
 
   return protocol

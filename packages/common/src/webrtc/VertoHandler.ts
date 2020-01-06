@@ -77,7 +77,7 @@ class VertoHandler {
       case VertoMethod.Event:
       case 'webrtc.event':
         if (!eventChannel) {
-          logger.error('Verto received an unknown event:', params)
+          logger('Verto received an unknown event:', params)
           return
         }
         const protocol = session.relayProtocol
@@ -103,7 +103,7 @@ class VertoHandler {
         trigger(SwEvent.Notification, params, session.uuid)
         break
       default:
-        logger.warn('Verto message unknown method:', msg)
+        logger('Verto message unknown method:', msg)
     }
   }
 
@@ -148,7 +148,7 @@ class VertoHandler {
         }
         const result = await session.vertoSubscribe(tmp)
           .catch(error => {
-            logger.error('liveArray subscription error:', error)
+            logger('liveArray subscription error:', error)
           })
         if (checkSubscribeResponse(result, laChannel)) {
           _liveArrayBootstrap()
@@ -181,7 +181,7 @@ class VertoHandler {
             }
           })
           .catch(error => {
-            logger.error('liveArray unsubscribe error:', error)
+            logger('liveArray unsubscribe error:', error)
           })
         break
       }

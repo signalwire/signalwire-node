@@ -7,7 +7,7 @@ export default class Tasking extends Relay {
 
   notificationHandler(notification: any) {
     const { context, message } = notification
-    logger.info(`Receive task in context: ${context}`)
+    logger(`Receive task in context: ${context}`)
     trigger(this.session.relayProtocol, message, this._ctxReceiveUniqueId(context))
   }
 }

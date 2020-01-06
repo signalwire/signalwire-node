@@ -54,14 +54,14 @@ export default class RelayConsumer {
     }
     const { host, project, token, contexts } = this
     if (!project || !token || !contexts.length) {
-      logger.error('"project", "token" and "contexts" are required!')
+      logger('"project", "token" and "contexts" are required!')
       return
     }
     this.client = new RelayClient({ host, project, token })
-    this.client.__logger.setLevel(this.client.__logger.levels.INFO)
+    // this.client.__logger(this.client.__logger.INFO)
 
     this.client.on('signalwire.error', error => {
-      logger.error('RelayConsumer error:', error)
+      logger('RelayConsumer error:', error)
     })
 
     this.client.on('signalwire.ready', async (client: RelayClient) => {

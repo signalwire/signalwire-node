@@ -40,7 +40,7 @@ export default class RelayClient extends BaseSession {
 
   private _handleSignals(): void {
     const _gracefulDisconnect = async () => {
-      logger.info('Disconnecting from Relay...')
+      logger('Disconnecting from Relay...')
       await this.disconnect()
     }
 

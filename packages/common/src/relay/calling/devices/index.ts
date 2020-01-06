@@ -20,7 +20,7 @@ export const buildDevice = (options: (IMakeCallParams | IRelayDevice)) => {
     case CallType.Sip:
       return new SipDevice(options)
     default:
-      logger.warn(`Unknown device type: ${type}`)
+      logger(`Unknown device type: ${type}`)
       return null
   }
 }

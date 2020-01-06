@@ -1,4 +1,3 @@
-import * as log from 'loglevel'
 import { v4 as uuidv4 } from 'uuid'
 import logger from './util/logger'
 import Connection from './services/Connection'
@@ -52,7 +51,7 @@ export default abstract class BaseSession {
     this.connection = new Connection(this)
   }
 
-  get __logger(): log.Logger {
+  get __logger() {
     return logger
   }
 
@@ -186,7 +185,7 @@ export default abstract class BaseSession {
         this.expiresAt = +expires_at || 0
       }
     } catch (error) {
-      logger.error('refreshToken error:', error)
+      logger('refreshToken error:', error)
       trigger(SwEvent.Error, error, this.uuid, false)
     }
   }
@@ -241,7 +240,7 @@ export default abstract class BaseSession {
       this._pong = null
       this._keepAlive()
       trigger(SwEvent.Ready, this, this.uuid)
-      logger.info('Session Ready!')
+      logger('Session Ready!')
     }
   }
 
@@ -250,7 +249,7 @@ export default abstract class BaseSession {
    * @return void
    */
   protected _onSocketCloseOrError(event: any): void {
-    logger.error(`Socket ${event.type} ${event.message}`)
+    logger(`Socket ${event.type} ${event.message}`)
     if (this.relayProtocol) {
       deRegisterAll(this.relayProtocol)
     }
@@ -391,7 +390,7 @@ export default abstract class BaseSession {
     }
     const diff = this.expiresAt - (Date.now() / 1000)
     if (diff <= 60) {
-      logger.warn('Your JWT is going to expire. You should refresh it to keep the session live.')
+      logger('Your JWT is going to expire. You should refresh it to keep the session live.')
       trigger(SwEvent.Notification, { type: NOTIFICATION_TYPE.refreshToken, session: this }, this.uuid, false)
     }
     if (!this.expired) {

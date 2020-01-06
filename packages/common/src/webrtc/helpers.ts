@@ -6,7 +6,7 @@ import { stopStream } from '../util/webrtc'
 import { DeviceType } from '../util/constants'
 
 const getUserMedia = async (constraints: MediaStreamConstraints): Promise<MediaStream | null> => {
-  logger.info('RTCService.getUserMedia', constraints)
+  logger('RTCService.getUserMedia', constraints)
   const { audio, video } = constraints
   if (!audio && !video) {
     return null
@@ -14,7 +14,7 @@ const getUserMedia = async (constraints: MediaStreamConstraints): Promise<MediaS
   try {
     return await WebRTC.getUserMedia(constraints)
   } catch (error) {
-    logger.error('getUserMedia error: ', error)
+    logger('getUserMedia error: ', error)
     throw error
   }
 }

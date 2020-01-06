@@ -6,7 +6,7 @@ export default (session: any, broadcastParams: any): void => {
   const { event_type, node_id } = params
 
   if (protocol !== session.relayProtocol) {
-    return logger.error('Session protocol mismatch.')
+    return logger('Session protocol mismatch.')
   }
 
   switch (event) {
@@ -26,6 +26,6 @@ export default (session: any, broadcastParams: any): void => {
       session.messaging.notificationHandler(params)
       break
     default:
-      return logger.error(`Unknown notification type: ${event_type}`)
+      return logger(`Unknown notification type: ${event_type}`)
   }
 }

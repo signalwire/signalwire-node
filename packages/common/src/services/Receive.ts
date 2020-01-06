@@ -10,7 +10,7 @@ export default async (session: BaseSession, contexts: string | string[]): Promis
   }
   contexts = contexts.filter(Boolean)
   if (!contexts.length) {
-    logger.error('One or more contexts are required.')
+    logger('One or more contexts are required.')
     return false
   }
   contexts = contexts.filter(c => !session.contexts.includes(c))
@@ -20,13 +20,13 @@ export default async (session: BaseSession, contexts: string | string[]): Promis
   const { relayProtocol: protocol } = session
   const be = new Execute({ protocol, method, params: { contexts } })
   const response = await session.execute(be).catch(error => {
-    logger.error(`Error registering contexts: [${error.code}] ${error.message}`)
+    logger(`Error registering contexts: [${error.code}] ${error.message}`)
     return null
   })
   if (response === null) {
     return false
   }
-  logger.info(response.message)
+  logger(response.message)
   session.contexts = session.contexts.concat(contexts)
 
   return true

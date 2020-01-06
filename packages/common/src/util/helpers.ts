@@ -14,7 +14,7 @@ export const mutateLiveArrayData = (data: any) => {
   try {
     media = JSON.parse(mediaJson.replace(/ID"/g, 'Id"'))
   } catch (error) {
-    logger.warn('Verto LA invalid media JSON string:', mediaJson)
+    logger('Verto LA invalid media JSON string:', mediaJson)
   }
   return { participantId: Number(participantId), participantNumber, participantName, codec, media, participantData }
 }

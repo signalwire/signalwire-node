@@ -22,7 +22,7 @@ describe('Call', () => {
   ])
   const device = buildDevice({ type: CallType.Phone, to: '6789' })
   const session = new RelayClient({ project: 'project', token: 'token' })
-  session.__logger.setLevel(session.__logger.levels.SILENT)
+  // session.__logger.setLevel(session.__logger.levels.SILENT)
   // @ts-ignore
   session.connection = Connection.default()
   session.relayProtocol = 'signalwire_service_random_uuid'

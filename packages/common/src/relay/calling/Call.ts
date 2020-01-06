@@ -87,7 +87,7 @@ export default class Call implements ICall {
     try {
       return await this.relayInstance.session.execute(msg)
     } catch (error) {
-      logger.error(`Relay command failed with code: ${error.code} - ${error.message}`)
+      logger(`Relay command failed with code: ${error.code} - ${error.message}`)
       throw error
     }
   }
@@ -371,7 +371,7 @@ export default class Call implements ICall {
    * @deprecated Since version 2.2. Will be deleted in version 3.0. Use detectAnsweringMachine instead.
    */
   async detectHuman(params: ICallingDetect = {}): Promise<DetectResult> {
-    logger.warn('detectHuman has been deprecated: use detectAnsweringMachine instead.')
+    logger('detectHuman has been deprecated: use detectAnsweringMachine instead.')
     params.type = DetectType.Machine
     const result = await this.detect(params)
     result.component.successful = result.component.result === DetectState.Human
@@ -382,7 +382,7 @@ export default class Call implements ICall {
    * @deprecated Since version 2.2. Will be deleted in version 3.0. Use detectAnsweringMachineAsync instead.
    */
   detectHumanAsync(params: ICallingDetect = {}): Promise<DetectAction> {
-    logger.warn('detectHumanAsync has been deprecated: use detectAnsweringMachineAsync instead.')
+    logger('detectHumanAsync has been deprecated: use detectAnsweringMachineAsync instead.')
     params.type = DetectType.Machine
     return this.detectAsync(params)
   }
@@ -391,7 +391,7 @@ export default class Call implements ICall {
    * @deprecated Since version 2.2. Will be deleted in version 3.0. Use detectAnsweringMachine instead.
    */
   async detectMachine(params: ICallingDetect = {}): Promise<DetectResult> {
-    logger.warn('detectMachine has been deprecated: use detectAnsweringMachine instead.')
+    logger('detectMachine has been deprecated: use detectAnsweringMachine instead.')
     params.type = DetectType.Machine
     const result = await this.detect(params)
     result.component.successful = result.component.result === DetectState.Machine
@@ -402,7 +402,7 @@ export default class Call implements ICall {
    * @deprecated Since version 2.2. Will be deleted in version 3.0. Use detectAnsweringMachineAsync instead.
    */
   detectMachineAsync(params: ICallingDetect = {}): Promise<DetectAction> {
-    logger.warn('detectMachineAsync has been deprecated: use detectAnsweringMachineAsync instead.')
+    logger('detectMachineAsync has been deprecated: use detectAnsweringMachineAsync instead.')
     params.type = DetectType.Machine
     return this.detectAsync(params)
   }

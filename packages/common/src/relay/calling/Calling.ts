@@ -89,7 +89,7 @@ export default class Calling extends Relay {
     } else if (call_id && peer) {
       const peerCall = new Call(this, params)
     } else {
-      logger.debug('\t - Unknown call:', params, '\n\n')
+      logger('\t - Unknown call:', params, '\n\n')
     }
   }
 

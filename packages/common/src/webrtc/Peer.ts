@@ -14,7 +14,7 @@ export default class Peer {
   private _negotiating: boolean = false
 
   constructor(public type: PeerType, private options: CallOptions) {
-    logger.info('New Peer with type:', this.type, 'Options:', this.options)
+    logger('New Peer with type:', this.type, 'Options:', this.options)
 
     this._constraints = { offerToReceiveAudio: true, offerToReceiveVideo: true }
     this._sdpReady = this._sdpReady.bind(this)
@@ -51,7 +51,7 @@ export default class Peer {
 
     this.instance.onnegotiationneeded = event => {
       if (this._negotiating) {
-        logger.debug('Skip twice onnegotiationneeded..')
+        logger('Skip twice onnegotiationneeded..')
         return
       }
       this.startNegotiation()
@@ -87,7 +87,7 @@ export default class Peer {
     this.instance.createOffer(this._constraints)
       .then(this._setLocalDescription.bind(this))
       .then(this._sdpReady)
-      .catch(error => logger.error('Peer _createOffer error:', error))
+      .catch(error => logger('Peer _createOffer error:', error))
   }
 
   private _createAnswer() {
@@ -101,7 +101,7 @@ export default class Peer {
       .then(() => this.instance.createAnswer())
       .then(this._setLocalDescription.bind(this))
       .then(this._sdpReady)
-      .catch(error => logger.error('Peer _createAnswer error:', error))
+      .catch(error => logger('Peer _createAnswer error:', error))
   }
 
   private _setLocalDescription(sessionDescription: RTCSessionDescriptionInit) {
@@ -142,7 +142,7 @@ export default class Peer {
     const { iceServers = [] } = this.options
     // @ts-ignore
     const config: RTCConfiguration = { sdpSemantics: 'plan-b', bundlePolicy: 'max-compat', iceServers }
-    logger.info('RTC config', config)
+    logger('RTC config', config)
     return config
   }
 }

@@ -87,7 +87,7 @@ export default abstract class BaseCall {
     if (execute) {
       const bye = new Bye({ sessid: this.session.sessionid, dialogParams: this.options })
       this._execute(bye)
-        .catch(error => logger.error('verto.bye failed!', error))
+        .catch(error => logger('verto.bye failed!', error))
         .then(_close.bind(this))
     } else {
       _close()
@@ -210,7 +210,7 @@ export default abstract class BaseCall {
     this._state = state
     this.state = State[this._state].toLowerCase()
     this.prevState = State[this._prevState].toLowerCase()
-    logger.info(`Call ${this.id} state change from ${this.prevState} to ${this.state}`)
+    logger(`Call ${this.id} state change from ${this.prevState} to ${this.state}`)
 
     this._dispatchNotification({ type: NOTIFICATION_TYPE.callUpdate, call: this })
 
@@ -286,7 +286,7 @@ export default abstract class BaseCall {
   async handleConferenceUpdate(packet: any, initialPvtData: any) {
     // FIXME: 'reorder' - changepage' - 'heartbeat' methods not implemented
     if (!this._checkConferenceSerno(packet.wireSerno) && packet.name !== initialPvtData.laName) {
-      logger.error('ConferenceUpdate invalid wireSerno or packet name:', packet)
+      logger('ConferenceUpdate invalid wireSerno or packet name:', packet)
       return 'INVALID_PACKET'
     }
     const { action, data, hashKey: callId = String(this._lastSerno), arrIndex: index } = packet
@@ -355,7 +355,7 @@ export default abstract class BaseCall {
     }
     const response = await this.session.vertoSubscribe(tmp)
       .catch(error => {
-        logger.error('ConfChat subscription error:', error)
+        logger('ConfChat subscription error:', error)
       })
     if (checkSubscribeResponse(response, channel)) {
       this._addChannel(channel)
@@ -383,13 +383,13 @@ export default abstract class BaseCall {
             MCULayoutEventHandler(this.session, eventData)
             break
           default:
-            logger.error('Conference-Info unknown contentType', params)
+            logger('Conference-Info unknown contentType', params)
         }
       }
     }
     const response = await this.session.vertoSubscribe(tmp)
       .catch(error => {
-        logger.error('ConfInfo subscription error:', error)
+        logger('ConfInfo subscription error:', error)
       })
     if (checkSubscribeResponse(response, channel)) {
       this._addChannel(channel)
@@ -439,7 +439,7 @@ export default abstract class BaseCall {
     }
     const response = await this.session.vertoSubscribe(tmp)
       .catch(error => {
-        logger.error('ConfMod subscription error:', error)
+        logger('ConfMod subscription error:', error)
       })
     if (checkSubscribeResponse(response, channel)) {
       this.role = Role.Moderator
@@ -582,7 +582,7 @@ export default abstract class BaseCall {
   }
 
   private _handleChangeHoldStateError(error) {
-    logger.error(`Failed to ${error.action} on call ${this.id}`)
+    logger(`Failed to ${error.action} on call ${this.id}`)
     return false
   }
 
@@ -602,7 +602,7 @@ export default abstract class BaseCall {
         }
       })
       .catch(error => {
-        logger.error('Call setRemoteDescription Error: ', error)
+        logger('Call setRemoteDescription Error: ', error)
         this.hangup()
       })
   }
@@ -640,7 +640,7 @@ export default abstract class BaseCall {
         msg = this.options.attach === true ? new Attach(tmpParams) : new Answer(tmpParams)
         break
       default:
-        logger.error(`${this.id} - Unknown local SDP type:`, data)
+        logger(`${this.id} - Unknown local SDP type:`, data)
         return this.hangup({}, false)
     }
     this._execute(msg)
@@ -650,7 +650,7 @@ export default abstract class BaseCall {
         type === PeerType.Offer ? this.setState(State.Trying) : this.setState(State.Active)
       })
       .catch(error => {
-        logger.error(`${this.id} - Sending ${type} error:`, error)
+        logger(`${this.id} - Sending ${type} error:`, error)
         this.hangup()
       })
   }
@@ -666,7 +666,7 @@ export default abstract class BaseCall {
         this._iceTimeout = setTimeout(() => this._onIceSdp(instance.localDescription), 1000)
       }
       if (event.candidate) {
-        logger.info('IceCandidate:', event.candidate)
+        logger('IceCandidate:', event.candidate)
       } else {
         this._onIceSdp(instance.localDescription)
       }
@@ -739,7 +739,7 @@ export default abstract class BaseCall {
     }
 
     this.setState(State.New)
-    logger.info('New Call with Options:', this.options)
+    logger('New Call with Options:', this.options)
   }
 
   protected _finalize() {

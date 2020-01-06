@@ -14,11 +14,11 @@ export default class Messaging extends Relay {
     const message = new Message(params)
     switch (event_type) {
       case Notification.State: {
-        logger.info(`Relay message '${message.id}' changes state to '${message.state}'`)
+        logger(`Relay message '${message.id}' changes state to '${message.state}'`)
         return trigger(this.session.relayProtocol, message, this._ctxStateUniqueId(context))
       }
       case Notification.Receive: {
-        logger.info(`New Relay ${message.direction} message in context '${context}'`)
+        logger(`New Relay ${message.direction} message in context '${context}'`)
         return trigger(this.session.relayProtocol, message, this._ctxReceiveUniqueId(context))
       }
     }
@@ -37,7 +37,7 @@ export default class Messaging extends Relay {
     })
 
     const response: any = await this.session.execute(msg).catch(error => error)
-    logger.debug('Send message response', response)
+    logger('Send message response', response)
     return new SendResult(response)
   }
 }

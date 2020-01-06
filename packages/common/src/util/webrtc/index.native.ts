@@ -5,7 +5,7 @@ import logger from '../logger'
 
 const _RTCPeerConnection = (config: RTCPeerConnectionConfig) => {
   const _config = objEmpty(config) ? null : config
-  logger.info('_RTCPeerConnection', _config)
+  logger('_RTCPeerConnection', _config)
   return new RTCPeerConnection(_config)
 }
 

@@ -1,7 +1,9 @@
 import { ICantinaAuthParams } from '../util/interfaces'
 import logger from '../util/logger'
 
-const FETCH_OPTIONS = {
+const FETCH_OPTIONS: RequestInit = {
+  method: 'POST',
+  credentials: 'include',
   headers: {
     'Content-Type': 'application/json'
   }
@@ -20,10 +22,8 @@ class CantinaAuth {
   async userLogin(username: string, password: string) {
     const body = { username, password }
     try {
-      let response = await fetch(`${this.baseUrl}/user-login`, {
+      let response = await fetch(`${this.baseUrl}/login/user`, {
         ...FETCH_OPTIONS,
-        credentials: 'include',
-        method: 'POST',
         body: JSON.stringify(body)
       })
       response = await response.json()
@@ -37,10 +37,8 @@ class CantinaAuth {
   async guestLogin(name: string, email: string) {
     const body = { name, email }
     try {
-      let response = await fetch(`${this.baseUrl}/guest-login`, {
+      let response = await fetch(`${this.baseUrl}/login/guest`, {
         ...FETCH_OPTIONS,
-        credentials: 'include',
-        method: 'POST',
         body: JSON.stringify(body)
       })
       response = await response.json()
@@ -53,7 +51,10 @@ class CantinaAuth {
 
   async refresh() {
     try {
-      let response = await fetch(`${this.baseUrl}/refresh`, { method: 'PUT', credentials: 'include' })
+      let response = await fetch(`${this.baseUrl}/refresh`, {
+        ...FETCH_OPTIONS,
+        method: 'PUT'
+      })
       response = await response.json()
       logger.info('refresh response', response)
       return response

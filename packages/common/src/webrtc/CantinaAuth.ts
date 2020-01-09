@@ -10,21 +10,19 @@ const FETCH_OPTIONS: RequestInit = {
 }
 
 class CantinaAuth {
-  public baseUrl: string
+  public baseUrl = 'https://cantina-backend.signalwire.com' // TODO: change me
   public hostname: string
 
   constructor(private params: ICantinaAuthParams = {}) {
     const { hostname = location.hostname } = params
     this.hostname = hostname
-    this.baseUrl = `https://${this.hostname}`
   }
 
   async userLogin(username: string, password: string) {
-    const body = { username, password }
     try {
       let response = await fetch(`${this.baseUrl}/login/user`, {
         ...FETCH_OPTIONS,
-        body: JSON.stringify(body)
+        body: JSON.stringify({ username, password, hostname: this.hostname })
       })
       response = await response.json()
       logger.info('userLogin response', response)
@@ -35,11 +33,10 @@ class CantinaAuth {
   }
 
   async guestLogin(name: string, email: string) {
-    const body = { name, email }
     try {
       let response = await fetch(`${this.baseUrl}/login/guest`, {
         ...FETCH_OPTIONS,
-        body: JSON.stringify(body)
+        body: JSON.stringify({ name, email, hostname: this.hostname })
       })
       response = await response.json()
       logger.info('guestLogin response', response)
@@ -53,7 +50,8 @@ class CantinaAuth {
     try {
       let response = await fetch(`${this.baseUrl}/refresh`, {
         ...FETCH_OPTIONS,
-        method: 'PUT'
+        method: 'PUT',
+        body: JSON.stringify({ hostname: this.hostname })
       })
       response = await response.json()
       logger.info('refresh response', response)

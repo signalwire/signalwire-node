@@ -1,6 +1,10 @@
 import { ICantinaAuthParams } from '../util/interfaces'
 import logger from '../util/logger'
 
+type UserLoginResponse = { jwt_token: string, scopes: string[], errors?: any[] }
+type GuestLoginResponse = { jwt_token: string, scopes: string[], errors?: any[] }
+type RefreshResponse = { jwt_token: string, refresh_token: string, errors?: any[] }
+
 const FETCH_OPTIONS: RequestInit = {
   method: 'POST',
   credentials: 'include',
@@ -18,47 +22,35 @@ class CantinaAuth {
     this.hostname = hostname
   }
 
-  async userLogin(username: string, password: string) {
-    try {
-      let response = await fetch(`${this.baseUrl}/login/user`, {
-        ...FETCH_OPTIONS,
-        body: JSON.stringify({ username, password, hostname: this.hostname })
-      })
-      response = await response.json()
-      logger.info('userLogin response', response)
-      return response
-    } catch (error) {
-      logger.error('userLogin invalid response', error)
-    }
+  async userLogin(username: string, password: string): Promise<UserLoginResponse> {
+    const response = await fetch(`${this.baseUrl}/login/user`, {
+      ...FETCH_OPTIONS,
+      body: JSON.stringify({ username, password, hostname: this.hostname })
+    })
+    const payload = await response.json()
+    logger.info('userLogin response', response.status, payload)
+    return payload
   }
 
-  async guestLogin(name: string, email: string) {
-    try {
-      let response = await fetch(`${this.baseUrl}/login/guest`, {
-        ...FETCH_OPTIONS,
-        body: JSON.stringify({ name, email, hostname: this.hostname })
-      })
-      response = await response.json()
-      logger.info('guestLogin response', response)
-      return response
-    } catch (error) {
-      logger.error('guestLogin invalid response', error)
-    }
+  async guestLogin(name: string, email: string): Promise<GuestLoginResponse> {
+    const response = await fetch(`${this.baseUrl}/login/guest`, {
+      ...FETCH_OPTIONS,
+      body: JSON.stringify({ name, email, hostname: this.hostname })
+    })
+    const payload = await response.json()
+    logger.info('guestLogin response', response.status, payload)
+    return payload
   }
 
-  async refresh() {
-    try {
-      let response = await fetch(`${this.baseUrl}/refresh`, {
-        ...FETCH_OPTIONS,
-        method: 'PUT',
-        body: JSON.stringify({ hostname: this.hostname })
-      })
-      response = await response.json()
-      logger.info('refresh response', response)
-      return response
-    } catch (error) {
-      logger.error('refresh invalid response', error)
-    }
+  async refresh(): Promise<RefreshResponse> {
+    const response = await fetch(`${this.baseUrl}/refresh`, {
+      ...FETCH_OPTIONS,
+      method: 'PUT',
+      body: JSON.stringify({ hostname: this.hostname })
+    })
+    const payload = await response.json()
+    logger.info('response response', response.status, payload)
+    return payload
   }
 }
 

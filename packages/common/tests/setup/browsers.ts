@@ -1,17 +1,16 @@
 import * as webrtcMocks from './webrtcMocks'
 
+declare var global: any;
+
 if (typeof RTCPeerConnection === 'undefined') {
-  // @ts-ignore
   global.RTCPeerConnection = webrtcMocks.RTCPeerConnectionMock
 }
 
 if (typeof MediaStream === 'undefined') {
-  // @ts-ignore
   global.MediaStream = webrtcMocks.MediaStreamMock
 }
 
 if (typeof navigator === 'undefined') {
-  // @ts-ignore
   global.navigator = {}
 }
 
@@ -40,7 +39,6 @@ Object.defineProperty(navigator, 'mediaDevices', {
     enumerateDevices: jest.fn().mockResolvedValue(ENUMERATED_MEDIA_DEVICES),
     getSupportedConstraints: jest.fn().mockReturnValue(SUPPORTED_CONSTRAINTS),
     getUserMedia: jest.fn(constraints => {
-      // @ts-ignore
       const stream = new global.MediaStream()
       const { audio = null, video = null } = constraints
       if (audio !== null) {
@@ -52,7 +50,6 @@ Object.defineProperty(navigator, 'mediaDevices', {
       return stream
     }),
     getDisplayMedia: jest.fn(constraints => {
-      // @ts-ignore
       const stream = new global.MediaStream()
       stream.addTrack(_newTrack('video'))
       return stream

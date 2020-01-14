@@ -5,6 +5,10 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 <!-- ## [Unreleased] -->
 
+## [1.2.5] - 2020-01-14
+### Fixed
+- [Verto client fix] Reattach previous session in case of use the SDK from multiple tabs of the same browser.
+
 ## [1.2.5-beta.1] - 2019-12-19
 ### Added
 - Ability to set `googleMaxBitrate`, `googleMinBitrate` and `googleStartBitrate` values per Call.

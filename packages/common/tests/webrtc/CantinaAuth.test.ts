@@ -68,14 +68,14 @@ describe('CantinaAuth', () => {
       global.fetch = mockFetchSuccess({ jwt_token: 'guest-jwt', scopes: ['scope3'] })
 
       const auth = new CantinaAuth({ hostname })
-      const response = await auth.guestLogin('name', 'email')
+      const response = await auth.guestLogin('name', 'email', 'uuid')
 
       expect(response.jwt_token).toEqual('guest-jwt')
       expect(response.scopes).toEqual(['scope3'])
       expect(global.fetch).toHaveBeenCalledTimes(1)
       expect(global.fetch).toHaveBeenCalledWith(`${auth.baseUrl}/login/guest`, {
         ...DEFAULT_FETCH_OPTIONS,
-        body: '{"name":"name","email":"email","hostname":"jest.relay.com"}'
+        body: '{"name":"name","email":"email","invite_token":"uuid","hostname":"jest.relay.com"}'
       })
     })
 
@@ -83,7 +83,7 @@ describe('CantinaAuth', () => {
       global.fetch = mockFetchFailure({ errors: [{ detail: 'Unauthorized', code: '401' }] })
 
       const auth = new CantinaAuth({ hostname })
-      const response = await auth.guestLogin('name', 'email')
+      const response = await auth.guestLogin('name', 'email', 'uuid')
 
       expect(response.errors[0].code).toEqual('401')
       expect(global.fetch).toHaveBeenCalledTimes(1)

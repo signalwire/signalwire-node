@@ -32,10 +32,10 @@ class CantinaAuth {
     return payload
   }
 
-  async guestLogin(name: string, email: string): Promise<GuestLoginResponse> {
+  async guestLogin(name: string, email: string, invite_token: string): Promise<GuestLoginResponse> {
     const response = await fetch(`${this.baseUrl}/login/guest`, {
       ...FETCH_OPTIONS,
-      body: JSON.stringify({ name, email, hostname: this.hostname })
+      body: JSON.stringify({ name, email, invite_token, hostname: this.hostname })
     })
     const payload = await response.json()
     logger.info('guestLogin response', response.status, payload)

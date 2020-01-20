@@ -4,6 +4,7 @@ import logger from '../util/logger'
 type UserLoginResponse = { jwt_token: string, scopes: string[], errors?: any[] }
 type GuestLoginResponse = { jwt_token: string, scopes: string[], errors?: any[] }
 type RefreshResponse = { jwt_token: string, refresh_token: string, errors?: any[] }
+type CheckInviteTokenResponse = { valid: boolean, name: string, config: object, errors?: any[] }
 
 const FETCH_OPTIONS: RequestInit = {
   method: 'POST',
@@ -32,10 +33,10 @@ class CantinaAuth {
     return payload
   }
 
-  async guestLogin(name: string, email: string, invite_token: string): Promise<GuestLoginResponse> {
+  async guestLogin(name: string, email: string, token: string): Promise<GuestLoginResponse> {
     const response = await fetch(`${this.baseUrl}/login/guest`, {
       ...FETCH_OPTIONS,
-      body: JSON.stringify({ name, email, invite_token, hostname: this.hostname })
+      body: JSON.stringify({ name, email, token, hostname: this.hostname })
     })
     const payload = await response.json()
     logger.info('guestLogin response', response.status, payload)
@@ -50,6 +51,16 @@ class CantinaAuth {
     })
     const payload = await response.json()
     logger.info('response response', response.status, payload)
+    return payload
+  }
+
+  async checkInviteToken(token: string): Promise<CheckInviteTokenResponse> {
+    const response = await fetch(`${this.baseUrl}/check-token`, {
+      ...FETCH_OPTIONS,
+      body: JSON.stringify({ token, hostname: this.hostname })
+    })
+    const payload = await response.json()
+    logger.info('checkInviteToken response', response.status, payload)
     return payload
   }
 }

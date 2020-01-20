@@ -75,7 +75,7 @@ describe('CantinaAuth', () => {
       expect(global.fetch).toHaveBeenCalledTimes(1)
       expect(global.fetch).toHaveBeenCalledWith(`${auth.baseUrl}/login/guest`, {
         ...DEFAULT_FETCH_OPTIONS,
-        body: '{"name":"name","email":"email","invite_token":"uuid","hostname":"jest.relay.com"}'
+        body: '{"name":"name","email":"email","token":"uuid","hostname":"jest.relay.com"}'
       })
     })
 
@@ -112,6 +112,33 @@ describe('CantinaAuth', () => {
 
       const auth = new CantinaAuth({ hostname })
       const response = await auth.refresh()
+
+      expect(response.errors[0].code).toEqual('401')
+      expect(global.fetch).toHaveBeenCalledTimes(1)
+    })
+  })
+
+  describe('checkInviteToken', () => {
+    it('should expose checkInviteToken to validate an invite-token from URL', async () => {
+      global.fetch = mockFetchSuccess({ valid: true, name: 'room name', config: {} })
+
+      const auth = new CantinaAuth({ hostname })
+      const response = await auth.checkInviteToken('uuid')
+
+      expect(response.valid).toEqual(true)
+      expect(response.name).toEqual('room name')
+      expect(global.fetch).toHaveBeenCalledTimes(1)
+      expect(global.fetch).toHaveBeenCalledWith(`${auth.baseUrl}/check-token`, {
+        ...DEFAULT_FETCH_OPTIONS,
+        body: '{"token":"uuid","hostname":"jest.relay.com"}'
+      })
+    })
+
+    it('should return the error if fetch failed', async () => {
+      global.fetch = mockFetchFailure({ errors: [{ detail: 'Unauthorized', code: '401' }] })
+
+      const auth = new CantinaAuth({ hostname })
+      const response = await auth.checkInviteToken('uuid')
 
       expect(response.errors[0].code).toEqual('401')
       expect(global.fetch).toHaveBeenCalledTimes(1)

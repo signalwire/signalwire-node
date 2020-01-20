@@ -428,7 +428,6 @@ export interface IMessage {
   segments: number
 }
 
-
 export interface IMessageOptions {
   message_id: string
   message_state: string
@@ -441,4 +440,52 @@ export interface IMessageOptions {
   media: string[]
   segments: number
   reason?: string
+}
+
+export interface IWebRTCCall {
+  id: string
+  state: string
+  prevState: string
+  direction: string
+  options: CallOptions
+  cause: string
+  causeCode: number
+  channels: string[]
+  role: string
+  extension: string
+  localStream: MediaStream
+  remoteStream: MediaStream
+  invite: () => void
+  answer: () => void
+  hangup: (params: any, execute: boolean) => void
+  transfer: (destination: string) => void
+  replace: (replaceCallID: string) => void
+  hold: () => void
+  unhold: () => void
+  toggleHold: () => void
+  dtmf: (dtmf: string) => void
+  message: (to: string, body: string) => void
+  muteAudio: () => void
+  unmuteAudio: () => void
+  toggleAudioMute: () => void
+  setAudioInDevice: (deviceId: string) => Promise<void>
+  muteVideo: () => void
+  unmuteVideo: () => void
+  toggleVideoMute: () => void
+  setVideoDevice: (deviceId: string) => Promise<void>
+  deaf: () => void
+  undeaf: () => void
+  toggleDeaf: () => void
+  setState: (state: any) => void
+  // RN Call
+  switchCamera?: () => void
+  setSpeakerPhone?: (flag: boolean) => void
+  // Web Call
+  startScreenShare?: (opts?: CallOptions) => Promise<IWebRTCCall>
+  stopScreenShare?: () => void
+  setAudioOutDevice?: (deviceId: string) => Promise<boolean>
+  // Privates
+  handleMessage: (msg: any) => void
+  _addChannel: (laChannel: any) => void
+  handleConferenceUpdate: (packet: any, pvtData: any) => Promise<string>
 }

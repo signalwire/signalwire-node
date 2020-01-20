@@ -1,7 +1,6 @@
 import logger from './util/logger'
 import BaseSession from './BaseSession'
-import BaseCall from './webrtc/BaseCall'
-import { ICacheDevices, IAudioSettings, IVideoSettings, BroadcastParams, SubscribeParams } from './util/interfaces'
+import { ICacheDevices, IAudioSettings, IVideoSettings, BroadcastParams, SubscribeParams, IWebRTCCall } from './util/interfaces'
 import { registerOnce, trigger } from './services/Handler'
 import { SwEvent, SESSION_ID, DeviceType } from './util/constants'
 import { State } from './util/constants/call'
@@ -12,7 +11,7 @@ import { localStorage } from './util/storage/'
 import { stopStream } from './util/webrtc'
 
 export default abstract class BrowserSession extends BaseSession {
-  public calls: { [callId: string]: BaseCall } = {}
+  public calls: { [callId: string]: IWebRTCCall } = {}
   public micId: string
   public micLabel: string
   public camId: string

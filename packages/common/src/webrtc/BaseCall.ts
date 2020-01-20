@@ -9,11 +9,11 @@ import { State, DEFAULT_CALL_OPTIONS, ConferenceAction, Role } from '../util/con
 import { trigger, register, deRegister } from '../services/Handler'
 import { sdpStereoHack, sdpMediaOrderHack, checkSubscribeResponse, enableAudioTracks, disableAudioTracks, toggleAudioTracks, enableVideoTracks, disableVideoTracks, toggleVideoTracks } from './helpers'
 import { objEmpty, mutateLiveArrayData, isFunction } from '../util/helpers'
-import { CallOptions } from '../util/interfaces'
+import { CallOptions, IWebRTCCall } from '../util/interfaces'
 import { attachMediaStream, detachMediaStream, sdpToJsonHack, stopStream, getUserMedia, setMediaElementSinkId } from '../util/webrtc'
 import { MCULayoutEventHandler } from './LayoutHandler'
 
-export default abstract class BaseCall {
+export default abstract class BaseCall implements IWebRTCCall {
   public id: string = ''
   public state: string = State[State.New]
   public prevState: string = ''

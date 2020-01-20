@@ -1,9 +1,9 @@
 import logger from '../util/logger'
 import BrowserSession from '../BrowserSession'
 import Call from './Call'
-import BaseCall from './BaseCall'
 import { checkSubscribeResponse } from './helpers'
 import { Result } from '../messages/Verto'
+import { IWebRTCCall } from '../util/interfaces'
 import { SwEvent, VertoMethod, NOTIFICATION_TYPE } from '../util/constants'
 import { trigger, deRegister } from '../services/Handler'
 import { State, ConferenceAction } from '../util/constants/call'
@@ -159,7 +159,7 @@ class VertoHandler {
         // trigger Notification at a Call or Session level.
         // deregister Notification callback at the Call level.
         // Cleanup subscriptions for all channels
-        let call: BaseCall = null
+        let call: IWebRTCCall = null
         if (laChannel && session._existsSubscription(protocol, laChannel)) {
           const { callId = null } = session.subscriptions[protocol][laChannel]
           call = session.calls[callId] || null

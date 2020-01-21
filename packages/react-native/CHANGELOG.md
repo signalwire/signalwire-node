@@ -7,6 +7,9 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Fixed
 - Keep trying to reconnect WS in case of network failure - even if it never has been connected.
 
+- ### Changed
+- Add TypeScript interface for WebRTC call object to include missing methods for TS users.
+
 ### Security
 - Update devDependencies
 

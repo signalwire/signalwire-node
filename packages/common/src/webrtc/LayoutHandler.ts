@@ -1,9 +1,8 @@
-import logger from '../util/logger'
 import BrowserSession from '../BrowserSession'
 import BaseCall from './BaseCall'
-import { SwEvent, NOTIFICATION_TYPE } from '../util/constants'
+import { NOTIFICATION_TYPE, ConferenceAction } from './constants'
+import { SwEvent } from '../util/constants'
 import { trigger } from '../services/Handler'
-import { ConferenceAction } from '../util/constants/call'
 import { safeParseJson } from '../util/helpers'
 
 const MCULayoutEventHandler = (session: BrowserSession, eventData: any) => {

@@ -1,5 +1,5 @@
 import { isQueued } from '../../../common/src/services/Handler'
-import { State } from '../../../common/src/util/constants/call'
+import { State } from '../../../common/src/webrtc/constants'
 import Call from '../../src/webrtc/Call'
 import Verto from '../../../js/src/Verto'
 const Connection = require('../../../common/src/services/Connection')

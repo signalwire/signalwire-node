@@ -1,7 +1,7 @@
-import BaseCall from './BaseCall'
-import { State } from '../util/constants/call'
 // @ts-ignore
 import InCallManager from 'react-native-incall-manager'
+import BaseCall from './BaseCall'
+import { State } from './constants'
 import { streamIsValid } from '../util/webrtc'
 
 export default class Call extends BaseCall {

@@ -1,7 +1,6 @@
 import logger from '../util/logger'
 import BrowserSession from '../BrowserSession'
 import Call from './Call'
-import BaseCall from './BaseCall'
 import { checkSubscribeResponse } from './helpers'
 import { Result } from '../messages/Verto'
 import { SwEvent } from '../util/constants'
@@ -9,6 +8,7 @@ import { VertoMethod, NOTIFICATION_TYPE } from './constants'
 import { trigger, deRegister } from '../services/Handler'
 import { State, ConferenceAction } from './constants'
 import { MCULayoutEventHandler } from './LayoutHandler'
+import { IWebRTCCall } from './interfaces'
 
 class VertoHandler {
   public nodeId: string
@@ -160,7 +160,7 @@ class VertoHandler {
         // trigger Notification at a Call or Session level.
         // deregister Notification callback at the Call level.
         // Cleanup subscriptions for all channels
-        let call: BaseCall = null
+        let call: IWebRTCCall = null
         if (laChannel && session._existsSubscription(protocol, laChannel)) {
           const { callId = null } = session.subscriptions[protocol][laChannel]
           call = session.calls[callId] || null

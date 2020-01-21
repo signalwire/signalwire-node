@@ -1,6 +1,5 @@
 import logger from './util/logger'
 import BaseSession from './BaseSession'
-import BaseCall from './webrtc/BaseCall'
 import { ICacheDevices, IAudioSettings, IVideoSettings, BroadcastParams, SubscribeParams } from './util/interfaces'
 import { registerOnce, trigger } from './services/Handler'
 import { SwEvent, SESSION_ID } from './util/constants'
@@ -10,9 +9,10 @@ import { findElementByType } from './util/helpers'
 import { Unsubscribe, Subscribe, Broadcast } from './messages/Verto'
 import { localStorage } from './util/storage/'
 import { stopStream } from './util/webrtc'
+import { IWebRTCCall } from './webrtc/interfaces'
 
 export default abstract class BrowserSession extends BaseSession {
-  public calls: { [callId: string]: BaseCall } = {}
+  public calls: { [callId: string]: IWebRTCCall } = {}
   public micId: string
   public micLabel: string
   public camId: string

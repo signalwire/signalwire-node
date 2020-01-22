@@ -1,4 +1,4 @@
-import behaveLikeBaseSession from '../../common/tests/behaveLike/BaseSession'
+import behaveLikeBaseSession from '../../common/tests/behaveLike/BaseSession.spec'
 import VertoHandler from '../../common/tests/webrtc/VertoHandler'
 import LayoutHandler from '../../common/tests/webrtc/LayoutHandler'
 import { isQueued } from '../../common/src/services/Handler'

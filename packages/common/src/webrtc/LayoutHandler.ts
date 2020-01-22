@@ -1,10 +1,9 @@
-import logger from '../util/logger'
 import BrowserSession from '../BrowserSession'
-import BaseCall from './BaseCall'
-import { SwEvent, NOTIFICATION_TYPE } from '../util/constants'
+import { NOTIFICATION_TYPE, ConferenceAction } from './constants'
+import { SwEvent } from '../util/constants'
 import { trigger } from '../services/Handler'
-import { ConferenceAction } from '../util/constants/call'
 import { safeParseJson } from '../util/helpers'
+import { IWebRTCCall } from './interfaces'
 
 const MCULayoutEventHandler = (session: BrowserSession, eventData: any) => {
   const { contentType, canvasType, callID, canvasInfo = null, currentLayerIdx = -1 } = eventData
@@ -12,7 +11,7 @@ const MCULayoutEventHandler = (session: BrowserSession, eventData: any) => {
     delete canvasInfo.memberID
   }
 
-  const data: { type: string, call: BaseCall, canvasInfo: any, currentLayerIdx: number } = {
+  const data: { type: string, call: IWebRTCCall, canvasInfo: any, currentLayerIdx: number } = {
     type: NOTIFICATION_TYPE.conferenceUpdate,
     call: session.calls[callID],
     canvasInfo: _clearCanvasInfo(canvasInfo),

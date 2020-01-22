@@ -1,9 +1,8 @@
 import logger from '../util/logger'
 import * as WebRTC from '../util/webrtc'
 import { isDefined } from '../util/helpers'
-import { CallOptions } from '../util/interfaces'
-import { stopStream } from '../util/webrtc'
-import { DeviceType } from '../util/constants'
+import { DeviceType } from './constants'
+import { CallOptions } from './interfaces'
 
 const getUserMedia = async (constraints: MediaStreamConstraints): Promise<MediaStream | null> => {
   logger.info('RTCService.getUserMedia', constraints)
@@ -72,7 +71,7 @@ const scanResolutions = async (deviceId: string) => {
       supported.push({ resolution: `${width}x${height}`, width, height })
     }
   }
-  stopStream(stream)
+  WebRTC.stopStream(stream)
 
   return supported
 }

@@ -1,7 +1,7 @@
 import BrowserSession from '../../src/BrowserSession'
 import VertoHandler from '../../../common/src/webrtc/VertoHandler'
 import Call from '../../../common/src/webrtc/Call'
-import { State } from '../../src/util/constants/call'
+import { State } from '../../src/webrtc/constants'
 const Connection = require('../../../common/src/services/Connection')
 
 export default (klass: any) => {

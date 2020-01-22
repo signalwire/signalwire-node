@@ -1,5 +1,6 @@
 import BrowserSession from '../../common/src/BrowserSession'
-import { SubscribeParams, BroadcastParams, CallOptions } from '../../common/src/util/interfaces'
+import { SubscribeParams, BroadcastParams } from '../../common/src/util/interfaces'
+import { CallOptions } from '../../common/src/webrtc/interfaces'
 import { Login } from '../../common/src/messages/Verto'
 import Call from '../../common/src/webrtc/Call'
 import { SwEvent, SESSION_ID } from '../../common/src/util/constants'

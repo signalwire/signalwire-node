@@ -1,6 +1,6 @@
 import logger from '../util/logger'
 import BaseCall from './BaseCall'
-import { CallOptions } from '../util/interfaces'
+import { CallOptions } from './interfaces'
 import { getDisplayMedia, setMediaElementSinkId } from '../util/webrtc'
 
 export default class Call extends BaseCall {

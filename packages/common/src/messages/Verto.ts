@@ -1,7 +1,7 @@
 import BaseRequest from './verto/BaseRequest'
 import { Login } from './verto/Login'
 import { Result } from './verto/Result'
-import { VertoMethod } from '../util/constants'
+import { VertoMethod } from '../webrtc/constants'
 
 class Invite extends BaseRequest {
   toString() {

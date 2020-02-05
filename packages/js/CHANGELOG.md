@@ -3,9 +3,11 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.2.6] - 2020-02-06
+### Fixed
+- Make sure `getDevices()` methods always return devices with both deviceId and label even if the browser does not have camera or microphone permissions
 ### Changed
-- Add TypeScript interface for WebRTC call object to include missing methods for TS users.
+- Add TypeScript interfaces for WebRTC call object to include missing methods.
 
 ## [1.2.5] - 2020-01-14
 ### Fixed

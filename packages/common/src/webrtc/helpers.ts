@@ -35,8 +35,8 @@ const getDevices = async (kind: string = null): Promise<MediaDeviceInfo[]> => {
   if (kind) {
     devices = devices.filter((d: MediaDeviceInfo) => d.kind === kind)
   }
-  const invalid: boolean = devices.length && devices.every((d: MediaDeviceInfo) => (!d.deviceId || !d.label))
-  if (invalid) {
+  const valid: boolean = devices.length && devices.every((d: MediaDeviceInfo) => (d.deviceId && d.label))
+  if (!valid) {
     const stream = await WebRTC.getUserMedia(_constraintsByKind(kind))
     WebRTC.stopStream(stream)
     return getDevices(kind)

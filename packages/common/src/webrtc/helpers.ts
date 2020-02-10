@@ -30,7 +30,7 @@ const _constraintsByKind = (kind: string = null): { audio: boolean, video: boole
  * If 'deviceId' or 'label' are missing it means we are on Safari (macOS or iOS)
  * so we must request permissions to the user and then refresh the device list.
  */
-const getDevices = async (kind: string = null): Promise<MediaDeviceInfo[]> => {
+const getDevices = async (kind: string = null, fullList: boolean = false): Promise<MediaDeviceInfo[]> => {
   let devices = await WebRTC.enumerateDevices().catch(error => [])
   if (kind) {
     devices = devices.filter((d: MediaDeviceInfo) => d.kind === kind)
@@ -40,6 +40,9 @@ const getDevices = async (kind: string = null): Promise<MediaDeviceInfo[]> => {
     const stream = await WebRTC.getUserMedia(_constraintsByKind(kind))
     WebRTC.stopStream(stream)
     return getDevices(kind)
+  }
+  if (fullList === true) {
+    return devices
   }
   const found = []
   devices = devices.filter(({ kind, groupId }: MediaDeviceInfo) => {

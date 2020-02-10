@@ -79,9 +79,15 @@ describe('Helpers browser functions', () => {
       navigator.mediaDevices.getUserMedia.mockClear()
     })
 
-    it('should return the device list removing the duplicated', async done => {
+    it('should return the device list removing the duplicates', async done => {
       const devices = await getDevices()
       expect(devices).toHaveLength(5)
+      done()
+    })
+
+    it('should return the full device list', async done => {
+      const devices = await getDevices(null, true)
+      expect(devices).toHaveLength(7)
       done()
     })
 

@@ -1,5 +1,5 @@
 import { findElementByType } from '../../../common/src/util/helpers'
-import { sdpStereoHack, sdpMediaOrderHack, sdpBitrateHack, getDevices } from '../../src/webrtc/helpers'
+import { sdpStereoHack, sdpMediaOrderHack, sdpBitrateHack, getDevices, assureDeviceId } from '../../src/webrtc/helpers'
 
 describe('Helpers browser functions', () => {
   describe('findElementByType', () => {
@@ -79,9 +79,15 @@ describe('Helpers browser functions', () => {
       navigator.mediaDevices.getUserMedia.mockClear()
     })
 
-    it('should return the device list removing the duplicated', async done => {
+    it('should return the device list removing the duplicates', async done => {
       const devices = await getDevices()
       expect(devices).toHaveLength(5)
+      done()
+    })
+
+    it('should return the full device list', async done => {
+      const devices = await getDevices(null, true)
+      expect(devices).toHaveLength(7)
       done()
     })
 
@@ -155,6 +161,49 @@ describe('Helpers browser functions', () => {
         expect(devices.every((d: MediaDeviceInfo) => (d.deviceId && d.label))).toBe(true)
         done()
       })
+    })
+
+  })
+
+  describe('assureDeviceId', () => {
+
+    beforeEach(() => {
+      // @ts-ignore
+      navigator.mediaDevices.enumerateDevices.mockClear()
+    })
+
+    it('should return the deviceId if the device is available', async done => {
+      // See setup/browser.ts for these values.
+      const deviceId = await assureDeviceId('2060bf50ab9c29c12598bf4eafeafa71d4837c667c7c172bb4407ec6c5150206', 'FaceTime HD Camera', 'videoinput')
+      expect(deviceId).toEqual('2060bf50ab9c29c12598bf4eafeafa71d4837c667c7c172bb4407ec6c5150206')
+      expect(navigator.mediaDevices.enumerateDevices).toHaveBeenCalledTimes(1)
+      done()
+    })
+
+    it('should return null if the device is no longer available', async done => {
+      const NEW_DEVICE_LIST = [
+        { 'deviceId': 'uuid', 'kind': 'videoinput', 'label': 'camera1', 'groupId': '72e8ab9444144c3f8e04276a5801e520e83fc801702a6ef68e9e344083f6f6ce' },
+        { 'deviceId': 'uuid', 'kind': 'videoinput', 'label': 'camera2', 'groupId': '67a612f4ac80c6c9854b50d664348e69b5a11421a0ba8d68e2c00f3539992b4c' }
+      ]
+      // @ts-ignore
+      navigator.mediaDevices.enumerateDevices.mockResolvedValueOnce(NEW_DEVICE_LIST)
+      const deviceId = await assureDeviceId('2060bf50ab9c29c12598bf4eafeafa71d4837c667c7c172bb4407ec6c5150206', 'FaceTime HD Camera', 'videoinput')
+      expect(deviceId).toBeNull()
+      expect(navigator.mediaDevices.enumerateDevices).toHaveBeenCalledTimes(1)
+      done()
+    })
+
+    it('should recognize the device by its label', async done => {
+      const NEW_DEVICE_LIST = [
+        { 'deviceId': 'uuid', 'kind': 'videoinput', 'label': 'camera1', 'groupId': '72e8ab9444144c3f8e04276a5801e520e83fc801702a6ef68e9e344083f6f6ce' },
+        { 'deviceId': 'new-uuid', 'kind': 'videoinput', 'label': 'FaceTime HD Camera', 'groupId': '67a612f4ac80c6c9854b50d664348e69b5a11421a0ba8d68e2c00f3539992b4c' }
+      ]
+      // @ts-ignore
+      navigator.mediaDevices.enumerateDevices.mockResolvedValueOnce(NEW_DEVICE_LIST)
+      const deviceId = await assureDeviceId('2060bf50ab9c29c12598bf4eafeafa71d4837c667c7c172bb4407ec6c5150206', 'FaceTime HD Camera', 'videoinput')
+      expect(deviceId).toEqual('new-uuid')
+      expect(navigator.mediaDevices.enumerateDevices).toHaveBeenCalledTimes(1)
+      done()
     })
 
   })

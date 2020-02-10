@@ -4,7 +4,7 @@ import { ICacheDevices, IAudioSettings, IVideoSettings, BroadcastParams, Subscri
 import { registerOnce, trigger } from './services/Handler'
 import { SwEvent, SESSION_ID } from './util/constants'
 import { State, DeviceType } from './webrtc/constants'
-import { getDevices, scanResolutions, removeUnsupportedConstraints, checkDeviceIdConstraints, destructSubscribeResponse, getUserMedia } from './webrtc/helpers'
+import { getDevices, scanResolutions, removeUnsupportedConstraints, checkDeviceIdConstraints, destructSubscribeResponse, getUserMedia, assureDeviceId } from './webrtc/helpers'
 import { findElementByType } from './util/helpers'
 import { Unsubscribe, Subscribe, Broadcast } from './messages/Verto'
 import { localStorage } from './util/storage/'
@@ -131,6 +131,10 @@ export default abstract class BrowserSession extends BaseSession {
       trigger(SwEvent.MediaError, error, this.uuid)
       return []
     })
+  }
+
+  validateDeviceId(id: string, label: string, kind: MediaDeviceInfo['kind']): Promise<string> {
+    return assureDeviceId(id, label, kind)
   }
 
   /**

@@ -108,15 +108,7 @@ const getMediaConstraints = async (options: CallOptions): Promise<MediaStreamCon
 }
 
 const assureDeviceId = async (id: string, label: string, kind: MediaDeviceInfo['kind']): Promise<string> => {
-  const devices = await WebRTC.enumerateDevices()
-    .catch(error => [])
-    .then(all => all.filter((d: MediaDeviceInfo) => d.kind === kind))
-  const invalid: boolean = devices.length && devices.every((d: MediaDeviceInfo) => (!d.deviceId || !d.label))
-  if (invalid) {
-    const stream = await WebRTC.getUserMedia(_constraintsByKind(kind))
-    WebRTC.stopStream(stream)
-    return assureDeviceId(id, label, kind)
-  }
+  const devices = await getDevices(kind, true)
   for (let i = 0; i < devices.length; i++) {
     const { deviceId, label: deviceLabel } = devices[i]
     if (id === deviceId || label === deviceLabel) {

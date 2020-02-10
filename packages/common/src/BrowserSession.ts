@@ -133,7 +133,7 @@ export default abstract class BrowserSession extends BaseSession {
     })
   }
 
-  assureDeviceId(id: string, label: string, kind: MediaDeviceInfo['kind']): Promise<string> {
+  validateDeviceId(id: string, label: string, kind: MediaDeviceInfo['kind']): Promise<string> {
     return assureDeviceId(id, label, kind)
   }
 

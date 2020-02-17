@@ -528,7 +528,7 @@ export default class Call implements ICall {
 
   _collectChange(params: any) {
     this._notifyComponents(CallNotification.Collect, params.control_id, params)
-    this._dispatchCallback('collect', params)
+    this._dispatchCallback('prompt', params)
   }
 
   _faxChange(params: any) {

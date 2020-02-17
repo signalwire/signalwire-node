@@ -205,14 +205,20 @@ describe('Call', () => {
       })
 
       it('.recordAsync() should return a RecordAction for async control', async done => {
+        const callback = jest.fn()
+        call.on('record.stateChange', callback)
+        call.on('record.finished', callback)
         const action = await call.recordAsync(record)
         expect(action).toBeInstanceOf(RecordAction)
         expect(action.completed).toBe(false)
         expect(action.url).toEqual('record.mp3')
         expect(action.result).toBeInstanceOf(RecordResult)
         expect(Connection.mockSend).nthCalledWith(1, getMsg())
+        expect(callback).not.toHaveBeenCalled()
         session.calling.notificationHandler(_recordNotification)
         expect(action.completed).toBe(true)
+        expect(callback).toHaveBeenCalledTimes(2)
+        expect(callback).toHaveBeenCalledWith(call, _recordNotification.params)
         done()
       })
 
@@ -302,16 +308,20 @@ describe('Call', () => {
       })
 
       it('.connectAsync() in serial should return a ConnectAction for async control', async done => {
+        const callback = jest.fn()
+        call.on('connect.stateChange', callback)
+        call.on('connect.connected', callback)
         const action = await call.connectAsync(..._tmpDevices)
         expect(action).toBeInstanceOf(ConnectAction)
         expect(action.completed).toBe(false)
         expect(Connection.mockSend).nthCalledWith(1, getMsg(true))
-
+        expect(callback).not.toHaveBeenCalled()
         session.calling.notificationHandler(_connectNotificationPeerCreated)
         session.calling.notificationHandler(_connectNotification)
         expect(action.result.call.id).toEqual('peer-call-id')
         expect(action.completed).toBe(true)
-
+        expect(callback).toHaveBeenCalledTimes(2)
+        expect(callback).toHaveBeenCalledWith(call)
         done()
       })
 
@@ -368,12 +378,18 @@ describe('Call', () => {
       })
 
       it('.playAsync() should return a PlayAction for async control', async done => {
+        const callback = jest.fn()
+        call.on('play.stateChange', callback)
+        call.on('play.finished', callback)
         const action = await call.playAsync(...media)
         expect(action).toBeInstanceOf(PlayAction)
         expect(action.completed).toBe(false)
         expect(Connection.mockSend).nthCalledWith(1, getMsg(media))
+        expect(callback).not.toHaveBeenCalled()
         session.calling.notificationHandler(_playNotification)
         expect(action.completed).toBe(true)
+        expect(callback).toHaveBeenCalledTimes(2)
+        expect(callback).toHaveBeenCalledWith(call, _playNotification.params)
         done()
       })
 
@@ -389,13 +405,19 @@ describe('Call', () => {
       })
 
       it('.playAsync() with the new signature should return a PlayAction for async control', async done => {
+        const callback = jest.fn()
+        call.on('play.stateChange', callback)
+        call.on('play.finished', callback)
         const params = { media, volume: 6.3 }
         const action = await call.playAsync(params)
         expect(action).toBeInstanceOf(PlayAction)
         expect(action.completed).toBe(false)
         expect(Connection.mockSend).nthCalledWith(1, getMsg(media, 6.3))
+        expect(callback).not.toHaveBeenCalled()
         session.calling.notificationHandler(_playNotification)
         expect(action.completed).toBe(true)
+        expect(callback).toHaveBeenCalledTimes(2)
+        expect(callback).toHaveBeenCalledWith(call, _playNotification.params)
         done()
       })
 
@@ -585,12 +607,17 @@ describe('Call', () => {
       })
 
       it('.promptAsync() should return a PromptAction for async control', async done => {
+        const callback = jest.fn()
+        call.on('prompt', callback)
         const action = await call.promptAsync(collect, audio)
         expect(action).toBeInstanceOf(PromptAction)
         expect(action.completed).toBe(false)
         expect(Connection.mockSend).nthCalledWith(1, getMsg(audio))
+        expect(callback).not.toHaveBeenCalled()
         session.calling.notificationHandler(_collectNotification)
         expect(action.completed).toBe(true)
+        expect(callback).toHaveBeenCalledTimes(1)
+        expect(callback).toHaveBeenCalledWith(call, _collectNotification.params)
         done()
       })
 
@@ -757,12 +784,18 @@ describe('Call', () => {
       })
 
       it('.faxReceiveAsync() should return a FaxAction for async control', async done => {
+        const callback = jest.fn()
+        call.on('fax.stateChange', callback)
+        call.on('fax.finished', callback)
         const action = await call.faxReceiveAsync()
         expect(action).toBeInstanceOf(FaxAction)
         expect(action.completed).toBe(false)
         expect(Connection.mockSend).nthCalledWith(1, getMsg())
+        expect(callback).not.toHaveBeenCalled()
         session.calling.notificationHandler(_faxNotificationFinished)
         expect(action.completed).toBe(true)
+        expect(callback).toHaveBeenCalledTimes(2)
+        expect(callback).toHaveBeenCalledWith(call, _faxNotificationFinished.params)
         done()
       })
 
@@ -786,12 +819,18 @@ describe('Call', () => {
       })
 
       it('.faxSendAsync() should return a FaxAction for async control', async done => {
+        const faxCallback = jest.fn()
+        call.on('fax.stateChange', faxCallback)
+        call.on('fax.finished', faxCallback)
         const action = await call.faxSendAsync('document.pdf', null, 'custom')
         expect(action).toBeInstanceOf(FaxAction)
         expect(action.completed).toBe(false)
         expect(Connection.mockSend).nthCalledWith(1, getMsg())
+        expect(faxCallback).not.toHaveBeenCalled()
         session.calling.notificationHandler(_faxNotificationFinished)
         expect(action.completed).toBe(true)
+        expect(faxCallback).toHaveBeenCalledTimes(2)
+        expect(faxCallback).toHaveBeenCalledWith(call, _faxNotificationFinished.params)
         done()
       })
 
@@ -881,15 +920,21 @@ describe('Call', () => {
       })
 
       it('.detectAsync() should return a DetectAction for async control', async done => {
+        const callback = jest.fn()
+        call.on('detect.update', callback)
+        call.on('detect.finished', callback)
         const action = await call.detectAsync({ type: 'fax', timeout: 30 })
         expect(action).toBeInstanceOf(DetectAction)
         expect(action.completed).toBe(false)
         expect(Connection.mockSend).nthCalledWith(1, getMsg('fax'))
+        expect(callback).not.toHaveBeenCalled()
         session.calling.notificationHandler(_notificationFaxCED)
         expect(action.completed).toBe(false)
+        expect(callback).toHaveBeenNthCalledWith(1, call, _notificationFaxCED.params)
         session.calling.notificationHandler(_notificationFaxFinished)
         expect(action.completed).toBe(true)
         expect(action.result.result).toBe('CED')
+        expect(callback).toHaveBeenNthCalledWith(2, call, _notificationFaxFinished.params)
         done()
       })
 
@@ -1136,13 +1181,18 @@ describe('Call', () => {
       })
 
       it('.tapAsync() should return a TapAction for async control', async done => {
+        const callback = jest.fn()
+        call.on('tap.finished', callback)
         const action = await call.tapAsync(tap, device)
         expect(action).toBeInstanceOf(TapAction)
         expect(action.completed).toBe(false)
         expect(action.result).toBeInstanceOf(TapResult)
         expect(Connection.mockSend).nthCalledWith(1, getMsg())
+        expect(callback).not.toHaveBeenCalled()
         session.calling.notificationHandler(_tapNotificationFinished)
         expect(action.completed).toBe(true)
+        expect(callback).toHaveBeenCalledTimes(1)
+        expect(callback).toHaveBeenCalledWith(call, _tapNotificationFinished.params)
         done()
       })
 
@@ -1166,13 +1216,19 @@ describe('Call', () => {
       })
 
       it('.sendDigitsAsync() should return a SendDigitsAction', async done => {
+        const callback = jest.fn()
+        call.on('sendDigits.stateChange', callback)
+        call.on('sendDigits.finished', callback)
         const action = await call.sendDigitsAsync('1234')
         expect(action).toBeInstanceOf(SendDigitsAction)
         expect(action.completed).toBe(false)
         expect(Connection.mockSend).nthCalledWith(1, getMsg())
+        expect(callback).not.toHaveBeenCalled()
         session.calling.notificationHandler(_sendDigitsNotificationFinished)
         expect(action.completed).toBe(true)
         expect(action.result).toBeInstanceOf(SendDigitsResult)
+        expect(callback).toHaveBeenCalledTimes(2)
+        expect(callback).toHaveBeenCalledWith(call, _sendDigitsNotificationFinished.params)
         done()
       })
 

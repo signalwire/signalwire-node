@@ -7,8 +7,10 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Added
 - Call `disconnect()` method.
 
+## [2.3.2] - 2020-02-17
 ### Fixed
-- Keep trying to reconnect WS in case of network failure - even if it never has been connected.
+- Keep trying to reconnect WS in case of network failure - even if it has never been connected.
+- Dispatch proper `prompt` event for all calling prompt asynchronous methods.
 
 ### Security
 - Update devDependencies

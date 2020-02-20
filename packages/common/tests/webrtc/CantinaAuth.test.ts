@@ -5,6 +5,7 @@ declare var global: any;
 const mockFetchSuccess = (data: object) => {
   return jest.fn().mockImplementationOnce(() => Promise.resolve({
     ok: true,
+    status: 200,
     json: () => data
   }))
 }
@@ -12,6 +13,7 @@ const mockFetchSuccess = (data: object) => {
 const mockFetchFailure = (error: object) => {
   return jest.fn().mockImplementationOnce(() => Promise.resolve({
     ok: false,
+    status: 422,
     json: () => error
   }))
 }
@@ -26,6 +28,14 @@ const DEFAULT_FETCH_OPTIONS = {
 
 describe('CantinaAuth', () => {
   const hostname = 'jest.relay.com'
+  const errorResponse = {
+    errors: [{ detail: 'Unauthorized', code: '401' }]
+  }
+
+  let auth: CantinaAuth = null
+  beforeEach(() => {
+    auth = new CantinaAuth({ hostname })
+  })
 
   it('should default the hostname from global location if not provided', () => {
     const authDef = new CantinaAuth()
@@ -39,8 +49,6 @@ describe('CantinaAuth', () => {
   describe('userLogin', () => {
     it('should expose userLogin to get jwt for a user', async () => {
       global.fetch = mockFetchSuccess({ jwt_token: 'user-jwt', scopes: ['scope1', 'scope2'] })
-
-      const auth = new CantinaAuth({ hostname })
       const response = await auth.userLogin('username', 'password')
 
       expect(response.jwt_token).toEqual('user-jwt')
@@ -53,12 +61,10 @@ describe('CantinaAuth', () => {
     })
 
     it('should return the error if fetch failed', async () => {
-      global.fetch = mockFetchFailure({ errors: [{ detail: 'Unauthorized', code: '401' }] })
+      global.fetch = mockFetchFailure(errorResponse)
 
-      const auth = new CantinaAuth({ hostname })
-      const response = await auth.userLogin('username', 'password')
-
-      expect(response.errors[0].code).toEqual('401')
+      expect.assertions(2)
+      await expect(auth.userLogin('username', 'password')).rejects.toEqual(expect.any(Error))
       expect(global.fetch).toHaveBeenCalledTimes(1)
     })
   })
@@ -67,9 +73,7 @@ describe('CantinaAuth', () => {
     it('should expose guestLogin to get jwt for a guest', async () => {
       global.fetch = mockFetchSuccess({ jwt_token: 'guest-jwt', scopes: ['scope3'] })
 
-      const auth = new CantinaAuth({ hostname })
       const response = await auth.guestLogin('name', 'email', 'uuid')
-
       expect(response.jwt_token).toEqual('guest-jwt')
       expect(response.scopes).toEqual(['scope3'])
       expect(global.fetch).toHaveBeenCalledTimes(1)
@@ -80,12 +84,10 @@ describe('CantinaAuth', () => {
     })
 
     it('should return the error if fetch failed', async () => {
-      global.fetch = mockFetchFailure({ errors: [{ detail: 'Unauthorized', code: '401' }] })
+      global.fetch = mockFetchFailure(errorResponse)
 
-      const auth = new CantinaAuth({ hostname })
-      const response = await auth.guestLogin('name', 'email', 'uuid')
-
-      expect(response.errors[0].code).toEqual('401')
+      expect.assertions(2)
+      await expect(auth.guestLogin('name', 'email', 'uuid')).rejects.toEqual(expect.any(Error))
       expect(global.fetch).toHaveBeenCalledTimes(1)
     })
   })
@@ -94,7 +96,6 @@ describe('CantinaAuth', () => {
     it('should request to refresh the JWT', async () => {
       global.fetch = mockFetchSuccess({ jwt_token: 'new-jwt', refresh_token: 'refresh_token' })
 
-      const auth = new CantinaAuth({ hostname })
       const response = await auth.refresh()
 
       expect(response.jwt_token).toEqual('new-jwt')
@@ -108,12 +109,10 @@ describe('CantinaAuth', () => {
     })
 
     it('should return the error if fetch failed', async () => {
-      global.fetch = mockFetchFailure({ errors: [{ detail: 'Unauthorized', code: '401' }] })
+      global.fetch = mockFetchFailure(errorResponse)
 
-      const auth = new CantinaAuth({ hostname })
-      const response = await auth.refresh()
-
-      expect(response.errors[0].code).toEqual('401')
+      expect.assertions(2)
+      await expect(auth.refresh()).rejects.toEqual(expect.any(Error))
       expect(global.fetch).toHaveBeenCalledTimes(1)
     })
   })
@@ -122,7 +121,6 @@ describe('CantinaAuth', () => {
     it('should expose checkInviteToken to validate an invite-token from URL', async () => {
       global.fetch = mockFetchSuccess({ valid: true, name: 'room name', config: {} })
 
-      const auth = new CantinaAuth({ hostname })
       const response = await auth.checkInviteToken('uuid')
 
       expect(response.valid).toEqual(true)
@@ -135,12 +133,10 @@ describe('CantinaAuth', () => {
     })
 
     it('should return the error if fetch failed', async () => {
-      global.fetch = mockFetchFailure({ errors: [{ detail: 'Unauthorized', code: '401' }] })
+      global.fetch = mockFetchFailure(errorResponse)
 
-      const auth = new CantinaAuth({ hostname })
-      const response = await auth.checkInviteToken('uuid')
-
-      expect(response.errors[0].code).toEqual('401')
+      expect.assertions(2)
+      await expect(auth.checkInviteToken('uuid')).rejects.toEqual(expect.any(Error))
       expect(global.fetch).toHaveBeenCalledTimes(1)
     })
   })

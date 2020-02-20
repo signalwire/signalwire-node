@@ -29,7 +29,7 @@ class CantinaAuth {
       if (response.status >= 200 && response.status < 300) {
         return payload
       } else {
-        const errorMessage = `HTTP Request failed with status ${response.statusText}`
+        const errorMessage = `HTTP Request failed with status ${response.status}`
         const error = new Error(errorMessage)
         // @ts-ignore
         error.payload = payload

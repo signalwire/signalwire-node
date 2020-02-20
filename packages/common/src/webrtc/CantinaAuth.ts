@@ -1,10 +1,8 @@
-import { ICantinaAuthParams } from '../util/interfaces'
+import { ICantinaAuthParams, ICantinaUser } from './interfaces'
 import logger from '../util/logger'
 
-type UserLoginResponse = { jwt_token: string, scopes: string[], errors?: any[] }
-type GuestLoginResponse = { jwt_token: string, scopes: string[], errors?: any[] }
-type RefreshResponse = { jwt_token: string, refresh_token: string, errors?: any[] }
-type CheckInviteTokenResponse = { valid: boolean, name: string, config: object, errors?: any[] }
+type RefreshResponse = { project: string, jwt_token: string }
+type CheckInviteTokenResponse = { valid: boolean, name: string, config: object }
 
 const FETCH_OPTIONS: RequestInit = {
   method: 'POST',
@@ -38,7 +36,7 @@ class CantinaAuth {
     })
   }
 
-  async userLogin(username: string, password: string): Promise<UserLoginResponse> {
+  async userLogin(username: string, password: string): Promise<ICantinaUser> {
     const response = await this._fetch(`${this.baseUrl}/login/user`, {
       ...FETCH_OPTIONS,
       body: JSON.stringify({ username, password, hostname: this.hostname })
@@ -47,7 +45,7 @@ class CantinaAuth {
     return response
   }
 
-  async guestLogin(name: string, email: string, token: string): Promise<GuestLoginResponse> {
+  async guestLogin(name: string, email: string, token: string): Promise<ICantinaUser> {
     const response = await this._fetch(`${this.baseUrl}/login/guest`, {
       ...FETCH_OPTIONS,
       body: JSON.stringify({ name, email, token, hostname: this.hostname })

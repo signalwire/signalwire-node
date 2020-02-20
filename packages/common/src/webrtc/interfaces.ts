@@ -77,3 +77,19 @@ export interface IWebRTCCall {
   switchCamera?: () => void
   setSpeakerPhone?: (flag: boolean) => void
 }
+
+export interface ICantinaAuthParams {
+  hostname?: string
+}
+
+export interface ICantinaUser {
+  first_name: string
+  last_name: string
+  email: string
+  phone: string
+  avatar: string
+  project: string
+  jwt_token: string
+  scopes: string[]
+  config?: object
+}

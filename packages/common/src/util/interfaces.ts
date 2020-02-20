@@ -410,7 +410,3 @@ export interface IMessageOptions {
   segments: number
   reason?: string
 }
-
-export interface ICantinaAuthParams {
-  hostname?: string
-}

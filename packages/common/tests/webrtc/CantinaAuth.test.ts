@@ -94,12 +94,12 @@ describe('CantinaAuth', () => {
 
   describe('refresh', () => {
     it('should request to refresh the JWT', async () => {
-      global.fetch = mockFetchSuccess({ jwt_token: 'new-jwt', refresh_token: 'refresh_token' })
+      global.fetch = mockFetchSuccess({ project: 'project', jwt_token: 'new-jwt' })
 
       const response = await auth.refresh()
 
+      expect(response.project).toEqual('project')
       expect(response.jwt_token).toEqual('new-jwt')
-      expect(response.refresh_token).toEqual('refresh_token')
       expect(global.fetch).toHaveBeenCalledTimes(1)
       expect(global.fetch).toHaveBeenCalledWith(`${auth.baseUrl}/refresh`, {
         ...DEFAULT_FETCH_OPTIONS,

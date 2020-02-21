@@ -50,9 +50,6 @@ export const DEFAULT_CALL_OPTIONS: CallOptions = {
   attach: false,
   screenShare: false,
   userVariables: {},
-  googleMaxBitrate: 2048,
-  googleMinBitrate: 0,
-  googleStartBitrate: 1024,
 }
 
 export enum State {

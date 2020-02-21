@@ -3,6 +3,10 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.7] - 2020-02-21
+### Fixed
+- Remove default values for `googleMaxBitrate`, `googleMinBitrate` and `googleStartBitrate`.
+
 ## [1.2.6] - 2020-02-06
 ### Added
 - New method `validateDeviceId()` to assure the `deviceId` is available after page refresh.

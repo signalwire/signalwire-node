@@ -1,4 +1,4 @@
-import { objEmpty, isFunction } from '../util/helpers'
+import { isFunction } from '../util/helpers'
 
 type QueueMap = { [key: string]: Function[] }
 

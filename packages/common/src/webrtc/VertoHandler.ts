@@ -1,6 +1,8 @@
 import logger from '../util/logger'
 import BrowserSession from '../BrowserSession'
 import Call from './Call'
+import Conference from './Conference'
+import WebRTCCall from './WebRTCCall'
 import { checkSubscribeResponse } from './helpers'
 import { Result } from '../messages/Verto'
 import { SwEvent } from '../util/constants'
@@ -31,18 +33,21 @@ class VertoHandler {
     if (eventType === 'channelPvtData') {
       return this._handlePvtEvent(params.pvtData)
     }
+    if (eventChannel === session.sessionid) {
+      return this._handleSessionEvent(params.eventData)
+    }
 
     if (callID && session.calls.hasOwnProperty(callID)) {
       if (attach) {
         session.calls[callID].hangup({}, false)
       } else {
-        session.calls[callID].handleMessage(msg)
+        trigger(callID, params, method)
         this._ack(id, method)
         return
       }
     }
     const _buildCall = () => {
-      const call = new Call(session, {
+      const call = new WebRTCCall(session, {
         id: callID,
         remoteSdp: params.sdp,
         destinationNumber: params.callee_id_number,
@@ -72,25 +77,22 @@ class VertoHandler {
         } else {
           call.setState(State.Recovering)
         }
-        call.handleMessage(msg)
+        // FIXME: handleMessage?
+        // call.handleMessage(msg)
         break
       }
       case VertoMethod.Event:
       case 'webrtc.event':
         if (!eventChannel) {
-          logger.error('Verto received an unknown event:', params)
+          logger.error('Malformed verto event:', msg)
           return
         }
-        const protocol = session.relayProtocol
-        const firstValue = eventChannel.split('.')[0]
-        if (session._existsSubscription(protocol, eventChannel)) {
-          trigger(protocol, params, eventChannel)
-        } else if (eventChannel === session.sessionid) {
-          this._handleSessionEvent(params.eventData)
-        } else if (session._existsSubscription(protocol, firstValue)) {
-          trigger(protocol, params, firstValue)
-        } else if (session.calls.hasOwnProperty(eventChannel)) {
-          session.calls[eventChannel].handleMessage(msg)
+        if (trigger(eventChannel, params)) {
+          return
+        }
+        if (session.calls.hasOwnProperty(eventChannel)) {
+          // TODO: it's possible this case does not exists anymore
+          logger.error('Unhandled verto event:', msg)
         } else {
           trigger(SwEvent.Notification, params, session.uuid)
         }
@@ -108,82 +110,49 @@ class VertoHandler {
     }
   }
 
-  private _retrieveCallId(packet: any, laChannel: string) {
-    const callIds = Object.keys(this.session.calls)
-    if (packet.action === 'bootObj') {
-      const me = packet.data.find((pr: [string, []]) => callIds.includes(pr[0]))
-      if (me instanceof Array) {
-        return me[0]
-      }
-    } else {
-      return callIds.find((id: string) => this.session.calls[id].channels.includes(laChannel))
-    }
-  }
-
   private async _handlePvtEvent(pvtData: any) {
     const { session } = this
-    const protocol = session.relayProtocol
-    const { action, laChannel, laName, chatChannel, infoChannel, modChannel, conferenceMemberID, role, callID } = pvtData
+    const { action, callID } = pvtData
+    if (!callID || !session.calls[callID]) {
+      return logger.warn('Verto pvtData with invalid or unknown callID.')
+    }
     switch (action) {
       case 'conference-liveArray-join': {
-        const _liveArrayBootstrap = () => {
-          session.vertoBroadcast({ nodeId: this.nodeId, channel: laChannel, data: { liveArray: { command: 'bootstrap', context: laChannel, name: laName } } })
-        }
-        const tmp = {
-          nodeId: this.nodeId,
-          channels: [laChannel],
-          handler: ({ data: packet }: any) => {
-            const id = callID || this._retrieveCallId(packet, laChannel)
-            if (id && session.calls.hasOwnProperty(id)) {
-              const call = session.calls[id]
-              call._addChannel(laChannel)
-              call.extension = laName
-              call.handleConferenceUpdate(packet, pvtData)
-                .then(error => {
-                  if (error === 'INVALID_PACKET') {
-                    _liveArrayBootstrap()
-                  }
-                })
-            }
-          }
-        }
-        const result = await session.vertoSubscribe(tmp)
-          .catch(error => {
-            logger.error('liveArray subscription error:', error)
-          })
-        if (checkSubscribeResponse(result, laChannel)) {
-          _liveArrayBootstrap()
-        }
+        pvtData.nodeId = this.nodeId
+        // @ts-ignore
+        session.calls[callID].conference = new Conference(session, pvtData)
         break
       }
       case 'conference-liveArray-part': {
+        // @ts-ignore
+        session.calls[callID].conference.destroy()
         // trigger Notification at a Call or Session level.
         // deregister Notification callback at the Call level.
         // Cleanup subscriptions for all channels
-        let call: IWebRTCCall = null
-        if (laChannel && session._existsSubscription(protocol, laChannel)) {
-          const { callId = null } = session.subscriptions[protocol][laChannel]
-          call = session.calls[callId] || null
-          if (callId !== null) {
-            const notification = { type: NOTIFICATION_TYPE.conferenceUpdate, action: ConferenceAction.Leave, conferenceName: laName, participantId: Number(conferenceMemberID), role }
-            if (!trigger(SwEvent.Notification, notification, callId, false)) {
-              trigger(SwEvent.Notification, notification, session.uuid)
-            }
-            if (call === null) {
-              deRegister(SwEvent.Notification, null, callId)
-            }
-          }
-        }
-        const channels = [laChannel, chatChannel, infoChannel, modChannel]
-        session.vertoUnsubscribe({ nodeId: this.nodeId, channels })
-          .then(({ unsubscribedChannels = [] }) => {
-            if (call) {
-              call.channels = call.channels.filter(c => !unsubscribedChannels.includes(c))
-            }
-          })
-          .catch(error => {
-            logger.error('liveArray unsubscribe error:', error)
-          })
+        // let call: IWebRTCCall = null
+        // if (laChannel && session._existsSubscription(protocol, laChannel)) {
+        //   const { callId = null } = session.subscriptions[protocol][laChannel]
+        //   call = session.calls[callId] || null
+        //   if (callId !== null) {
+        //     const notification = { type: NOTIFICATION_TYPE.conferenceUpdate, action: ConferenceAction.Leave, conferenceName: laName, participantId: Number(conferenceMemberID), role }
+        //     if (!trigger(SwEvent.Notification, notification, callId, false)) {
+        //       trigger(SwEvent.Notification, notification, session.uuid)
+        //     }
+        //     if (call === null) {
+        //       deRegister(SwEvent.Notification, null, callId)
+        //     }
+        //   }
+        // }
+        // const channels = [laChannel, chatChannel, infoChannel, modChannel]
+        // session.vertoUnsubscribe({ nodeId: this.nodeId, channels })
+        //   .then(({ unsubscribedChannels = [] }) => {
+        //     if (call) {
+        //       call.channels = call.channels.filter(c => !unsubscribedChannels.includes(c))
+        //     }
+        //   })
+        //   .catch(error => {
+        //     logger.error('liveArray unsubscribe error:', error)
+        //   })
         break
       }
     }

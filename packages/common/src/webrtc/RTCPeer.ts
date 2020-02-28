@@ -163,23 +163,22 @@ export default class RTCPeer {
     }
   }
 
-  private _setLocalDescription(sessionDescription: RTCSessionDescriptionInit) {
+  private _setLocalDescription(localDescription: RTCSessionDescriptionInit) {
     const { useStereo, googleMaxBitrate, googleMinBitrate, googleStartBitrate } = this.options
     if (useStereo) {
-      sessionDescription.sdp = sdpStereoHack(sessionDescription.sdp)
+      localDescription.sdp = sdpStereoHack(localDescription.sdp)
     }
     if (googleMaxBitrate && googleMinBitrate && googleStartBitrate) {
-      sessionDescription.sdp = sdpBitrateHack(sessionDescription.sdp, googleMaxBitrate, googleMinBitrate, googleStartBitrate)
+      localDescription.sdp = sdpBitrateHack(localDescription.sdp, googleMaxBitrate, googleMinBitrate, googleStartBitrate)
     }
-    return this.instance.setLocalDescription(sessionDescription)
+    return this.instance.setLocalDescription(localDescription)
   }
 
-  private _setRemoteDescription(sessionDescription: RTCSessionDescriptionInit) {
-    let { sdp, type } = sessionDescription
+  private _setRemoteDescription(remoteDescription: RTCSessionDescriptionInit) {
     if (this.options.useStereo) {
-      sdp = sdpStereoHack(sdp)
+      remoteDescription.sdp = sdpStereoHack(remoteDescription.sdp)
     }
-    const sessionDescr: RTCSessionDescription = sdpToJsonHack({ sdp, type })
+    const sessionDescr: RTCSessionDescription = sdpToJsonHack(remoteDescription)
     return this.instance.setRemoteDescription(sessionDescr)
   }
 

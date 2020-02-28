@@ -27,6 +27,16 @@ export enum VertoMethod {
   Modify = 'verto.modify',
 }
 
+export enum Notification {
+  Generic = 'event',
+  ParticipantData = 'participantData',
+  ConferenceUpdate = 'conferenceUpdate',
+  CallUpdate = 'callUpdate',
+  VertoClientReady = 'vertoClientReady',
+  UserMediaError = 'userMediaError',
+  RefreshToken = 'refreshToken',
+}
+
 export const NOTIFICATION_TYPE = {
   generic: 'event',
   [VertoMethod.Display]: 'participantData',

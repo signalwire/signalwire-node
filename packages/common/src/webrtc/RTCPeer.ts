@@ -1,11 +1,12 @@
 import logger from '../util/logger'
 import { getUserMedia, getMediaConstraints, sdpStereoHack, sdpBitrateHack } from './helpers'
 import { SwEvent } from '../util/constants'
-import { PeerType } from './constants'
+import { PeerType, State } from './constants'
 import WebRTCCall from './WebRTCCall'
 import { attachMediaStream, muteMediaElement, sdpToJsonHack, RTCPeerConnection, streamIsValid } from '../util/webrtc'
 import { CallOptions } from './interfaces'
 import { trigger } from '../services/Handler'
+import { Invite, Attach, Answer } from '../messages/Verto'
 
 export default class RTCPeer {
   public instance: RTCPeerConnection
@@ -46,16 +47,28 @@ export default class RTCPeer {
       }
 
       if (this.isAnswer) {
-        const { remoteSdp, useStereo } = this.options
-        const sdp = useStereo ? sdpStereoHack(remoteSdp) : remoteSdp
-        const sessionDescr: RTCSessionDescription = sdpToJsonHack({ sdp, type: PeerType.Offer })
-        await this.instance.setRemoteDescription(sessionDescr)
+        await this._setRemoteDescription({ sdp: this.options.remoteSdp, type: PeerType.Offer })
         const answer = await this.instance.createAnswer()
         await this._setLocalDescription(answer)
         return
       }
     } catch (error) {
       logger.error(`Error creating ${this.type}:`, error)
+    }
+  }
+
+  async onRemoteSdp(sdp: string) {
+    try {
+      await this._setRemoteDescription({ sdp, type: PeerType.Answer })
+      if (this.call.gotEarly) {
+        this.call.setState(State.Early)
+      }
+      if (this.call.gotAnswer) {
+        this.call.setState(State.Active)
+      }
+    } catch (error) {
+      logger.error(`Error handling remote SDP on call ${this.options.id}:`, error)
+      this.call.hangup()
     }
   }
 
@@ -84,7 +97,6 @@ export default class RTCPeer {
       this.options.remoteStream = event.stream
     })
 
-    // TODO: CHECK HERE!
     this.options.localStream = await this._retrieveLocalStream().catch(error => {
       trigger(SwEvent.MediaError, error, this.options.id)
       return null
@@ -109,14 +121,35 @@ export default class RTCPeer {
 
   private async _sdpReady() {
     clearTimeout(this._iceTimeout)
-    const { sdp } = this.instance.localDescription
+    const { sdp, type } = this.instance.localDescription
     if (sdp.indexOf('candidate') === -1) {
       this.startNegotiation()
       return
     }
     this.instance.removeEventListener('icecandidate', this._onIce)
-    console.log('SEND THIS FUCKING SDP!')
-    this.call._onLocalSdp()
+    let msg = null
+    const tmpParams = { ...this.call.messagePayload, sdp }
+    switch (type) {
+      case PeerType.Offer:
+        this.call.setState(State.Requesting)
+        msg = new Invite(tmpParams)
+        break
+      case PeerType.Answer:
+        this.call.setState(State.Answering)
+        msg = this.options.attach === true ? new Attach(tmpParams) : new Answer(tmpParams)
+        break
+      default:
+        return logger.error(`Unknown SDP type: '${type}' on call ${this.options.id}`)
+    }
+    try {
+      const response = await this.call._execute(msg)
+      const { node_id = null } = response
+      this.call.nodeId = node_id
+      type === PeerType.Offer ? this.call.setState(State.Trying) : this.call.setState(State.Active)
+    } catch (error) {
+      logger.error(`Error sending ${type} on call ${this.options.id}:`, error)
+      this.call.hangup()
+    }
   }
 
   private _onIce(event: RTCPeerConnectionIceEvent) {
@@ -139,6 +172,15 @@ export default class RTCPeer {
       sessionDescription.sdp = sdpBitrateHack(sessionDescription.sdp, googleMaxBitrate, googleMinBitrate, googleStartBitrate)
     }
     return this.instance.setLocalDescription(sessionDescription)
+  }
+
+  private _setRemoteDescription(sessionDescription: RTCSessionDescriptionInit) {
+    let { sdp, type } = sessionDescription
+    if (this.options.useStereo) {
+      sdp = sdpStereoHack(sdp)
+    }
+    const sessionDescr: RTCSessionDescription = sdpToJsonHack({ sdp, type })
+    return this.instance.setRemoteDescription(sessionDescr)
   }
 
   private async _retrieveLocalStream() {

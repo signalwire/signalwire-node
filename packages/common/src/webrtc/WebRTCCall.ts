@@ -170,7 +170,7 @@ export default class WebRTCCall {
     if (this.options.screenShare === true) {
       return
     }
-    if (!trigger(SwEvent.Notification, notification, this.id, false)) {
+    if (!trigger(this.id, notification, SwEvent.Notification, false)) {
       trigger(SwEvent.Notification, notification, this.session.uuid)
     }
   }
@@ -199,9 +199,8 @@ export default class WebRTCCall {
     this.session.calls[this.id] = this
 
     if (isFunction(onNotification)) {
-      register(SwEvent.Notification, onNotification.bind(this), this.id)
+      register(this.id, onNotification.bind(this), SwEvent.Notification)
     }
-
     register(this.id, this._onMediaError, SwEvent.MediaError)
     register(this.id, this._onVertoAnswer, VertoMethod.Answer)
     register(this.id, this._onVertoMedia, VertoMethod.Media)

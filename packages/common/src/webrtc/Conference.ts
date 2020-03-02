@@ -3,23 +3,20 @@ import BrowserSession from '../BrowserSession'
 import { register, deRegisterAll } from '../services/Handler'
 import { checkSubscribeResponse } from './helpers'
 import { ConferenceAction, Notification } from './constants'
+import { VertoPvtData } from './interfaces'
 import { mutateLiveArrayData } from '../util/helpers'
 import { MCULayoutEventHandler } from './LayoutHandler'
 
 export default class Conference {
 
+  private pvtData: VertoPvtData
   private _lastSerno = 0
 
-  constructor(protected session: BrowserSession, private pvtData: any) {
+  constructor(protected session: BrowserSession) {
     this.laChannelHandler = this.laChannelHandler.bind(this)
     this.infoChannelHandler = this.infoChannelHandler.bind(this)
     this.chatChannelHandler = this.chatChannelHandler.bind(this)
     this.modChannelHandler = this.modChannelHandler.bind(this)
-    this._subscribe()
-
-    session.calls[this.callId].extension = this.pvtData.laName
-    const notification = { action: ConferenceAction.Join, conferenceName: this.pvtData.laName, participantId: this.participantId, role: this.participantRole }
-    this._dispatchConferenceUpdate(notification)
   }
 
   get nodeId() {
@@ -41,6 +38,19 @@ export default class Conference {
   get channels() {
     const { laChannel, chatChannel, infoChannel, modChannel } = this.pvtData
     return [laChannel, chatChannel, infoChannel, modChannel].filter(Boolean)
+  }
+
+  join(pvtData: VertoPvtData) {
+    this.pvtData = pvtData
+    this._subscribe()
+
+    this.session.calls[this.callId].extension = this.pvtData.laName
+    this._dispatchConferenceUpdate({ action: ConferenceAction.Join, conferenceName: this.pvtData.laName, participantId: this.participantId, role: this.participantRole })
+  }
+
+  part(pvtData: VertoPvtData) {
+    this.pvtData = pvtData
+    this._dispatchConferenceUpdate({ action: ConferenceAction.Leave, conferenceName: this.pvtData.laName, participantId: this.participantId, role: this.participantRole })
   }
 
   sendChatMessage(message: string, type: string) {
@@ -151,6 +161,7 @@ export default class Conference {
       case 'del':
         return this._dispatchConferenceUpdate({ action: ConferenceAction.Delete, callId, index, ...mutateLiveArrayData(data) })
       case 'clear':
+        this._unsubscribe()
         return this._dispatchConferenceUpdate({ action: ConferenceAction.Clear })
       default:
         return this._dispatchConferenceUpdate({ action, data, callId, index })
@@ -185,23 +196,6 @@ export default class Conference {
         break
       default:
         this._dispatchConferenceUpdate({ action: ConferenceAction.ModCmdResponse, command: data['conf-command'], response: data.response })
-    }
-  }
-
-  destroy() {
-    console.log('Destroy this conference object!')
-    const { laChannel, chatChannel, infoChannel, modChannel } = this.pvtData
-    if (laChannel) {
-      deRegisterAll(laChannel)
-    }
-    if (chatChannel) {
-      deRegisterAll(chatChannel)
-    }
-    if (infoChannel) {
-      deRegisterAll(infoChannel)
-    }
-    if (modChannel) {
-      deRegisterAll(modChannel)
     }
   }
 
@@ -252,11 +246,23 @@ export default class Conference {
     }
   }
 
+  private async _unsubscribe() {
+    const params = {
+      nodeId: this.nodeId,
+      channels: this.channels
+    }
+    try {
+      await this.session.vertoUnsubscribe(params)
+    } catch (error) {
+      logger.error('Conference unsubscribe error:', error)
+    }
+    this.channels.forEach(deRegisterAll)
+    this.session.calls[this.callId]._onConferenceClear()
+    this._lastSerno = 0
+  }
+
   private _dispatchConferenceUpdate(params: any) {
-    console.log('_dispatchNotification', params)
-    // TODO: dispatch notification
-    // this.session.calls[this.callId]._dispatchNotification({ type: Notification.ConferenceUpdate, call: this, ...params })
-    // this._dispatchNotification()
+    this.session.calls[this.callId]._dispatchNotification({ type: Notification.ConferenceUpdate, ...params })
   }
 
   private _checkSerno = (serno: number) => {

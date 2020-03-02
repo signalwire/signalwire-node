@@ -2,25 +2,24 @@ import { v4 as uuidv4 } from 'uuid'
 import logger from '../util/logger'
 import BrowserSession from '../BrowserSession'
 import BaseMessage from '../messages/BaseMessage'
-import { Invite, Answer, Attach, Bye, Modify, Info } from '../messages/Verto'
+import { Bye, Info } from '../messages/Verto'
 import RTCPeer from './RTCPeer'
 import { SwEvent } from '../util/constants'
-import { State, DEFAULT_CALL_OPTIONS, ConferenceAction, Role, PeerType, VertoMethod, Notification, Direction } from './constants'
-import { trigger, register, deRegister, deRegisterAll } from '../services/Handler'
-import { sdpStereoHack, sdpMediaOrderHack, checkSubscribeResponse, enableAudioTracks, disableAudioTracks, toggleAudioTracks, enableVideoTracks, disableVideoTracks, toggleVideoTracks } from './helpers'
-import { objEmpty, mutateLiveArrayData, isFunction } from '../util/helpers'
-import { CallOptions, IWebRTCCall } from './interfaces'
-import { attachMediaStream, detachMediaStream, sdpToJsonHack, stopStream, getUserMedia, setMediaElementSinkId } from '../util/webrtc'
-import { MCULayoutEventHandler } from './LayoutHandler'
+import { State, DEFAULT_CALL_OPTIONS, Role, PeerType, VertoMethod, Notification, Direction } from './constants'
+import { trigger, register, deRegisterAll } from '../services/Handler'
+import { objEmpty, isFunction } from '../util/helpers'
+import { CallOptions } from './interfaces'
+import { detachMediaStream, stopStream, setMediaElementSinkId } from '../util/webrtc'
+import Conference from './Conference'
 
 export default class WebRTCCall {
   public id: string = ''
   public direction: Direction
   public peer: RTCPeer
   public options: CallOptions
+  public conference: Conference
   public cause: string
   public causeCode: number
-  public channels: string[] = []
   public role: string = Role.Participant
   public extension: string = null
   public gotAnswer = false
@@ -28,7 +27,6 @@ export default class WebRTCCall {
 
   private _state: State = State.New
   private _prevState: State = State.New
-  private _lastSerno: number = 0
   private _targetNodeId: string = null
 
   constructor(protected session: BrowserSession, opts?: CallOptions) {
@@ -99,7 +97,7 @@ export default class WebRTCCall {
     this._state = state
     logger.info(`Call ${this.id} state change from ${this.prevState} to ${this.state}`)
 
-    this._dispatchNotification({ type: Notification.CallUpdate, call: this })
+    this._dispatchNotification({ type: Notification.CallUpdate })
 
     switch (state) {
       case State.Purge:
@@ -123,6 +121,13 @@ export default class WebRTCCall {
     }
   }
 
+  _onConferenceClear() {
+    if (this._state === State.Destroy) {
+      delete this.conference
+      this._finalize()
+    }
+  }
+
   private _hangup(params: any = {}) {
     this.cause = params.cause || 'NORMAL_CLEARING'
     this.causeCode = params.causeCode || 16
@@ -135,7 +140,7 @@ export default class WebRTCCall {
   }
 
   private _onGenericEvent(params: any) {
-    this._dispatchNotification({ ...params, type: Notification.Generic, call: this })
+    this._dispatchNotification({ ...params, type: Notification.Generic })
   }
 
   private _onParticipantData(params: any) {
@@ -143,7 +148,7 @@ export default class WebRTCCall {
     const { display_name: displayName, display_number: displayNumber, display_direction } = params
     this.extension = displayNumber
     const displayDirection = display_direction === Direction.Inbound ? Direction.Outbound : Direction.Inbound
-    this._dispatchNotification({ type: Notification.ParticipantData, call: this, displayName, displayNumber, displayDirection })
+    this._dispatchNotification({ type: Notification.ParticipantData, displayName, displayNumber, displayDirection })
   }
 
   private _onVertoAnswer(params: any) {
@@ -167,10 +172,11 @@ export default class WebRTCCall {
     this.peer.onRemoteSdp(params.sdp)
   }
 
-  private _dispatchNotification(notification: any) {
+  public _dispatchNotification(notification: any) {
     if (this.options.screenShare === true) {
       return
     }
+    notification.call = this
     if (!trigger(this.id, notification, SwEvent.Notification, false)) {
       trigger(SwEvent.Notification, notification, this.session.uuid)
     }
@@ -196,7 +202,6 @@ export default class WebRTCCall {
     if (!remoteCallerNumber) {
       this.options.remoteCallerNumber = this.options.destinationNumber
     }
-    // @ts-ignore
     this.session.calls[this.id] = this
 
     if (isFunction(onNotification)) {
@@ -216,6 +221,9 @@ export default class WebRTCCall {
   }
 
   protected _finalize() {
+    if (this.conference) {
+      return
+    }
     if (this.peer && this.peer.instance) {
       this.peer.instance.close()
       this.peer = null

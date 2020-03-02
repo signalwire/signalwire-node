@@ -1,16 +1,13 @@
 import logger from '../util/logger'
 import BrowserSession from '../BrowserSession'
-import Call from './Call'
 import Conference from './Conference'
 import WebRTCCall from './WebRTCCall'
-import { checkSubscribeResponse } from './helpers'
 import { Result } from '../messages/Verto'
 import { SwEvent } from '../util/constants'
 import { VertoMethod, NOTIFICATION_TYPE } from './constants'
-import { trigger, deRegister } from '../services/Handler'
+import { trigger } from '../services/Handler'
 import { State, ConferenceAction } from './constants'
 import { MCULayoutEventHandler } from './LayoutHandler'
-import { IWebRTCCall } from './interfaces'
 
 class VertoHandler {
   public nodeId: string
@@ -39,7 +36,8 @@ class VertoHandler {
 
     if (callID && session.calls.hasOwnProperty(callID)) {
       if (attach) {
-        session.calls[callID].hangup({}, false)
+        // @ts-ignore
+        session.calls[callID]._hangup()
       } else {
         trigger(callID, params, method)
         this._ack(id, method)
@@ -116,43 +114,17 @@ class VertoHandler {
     if (!callID || !session.calls[callID]) {
       return logger.warn('Verto pvtData with invalid or unknown callID.')
     }
+    pvtData.nodeId = this.nodeId
     switch (action) {
       case 'conference-liveArray-join': {
-        pvtData.nodeId = this.nodeId
-        // @ts-ignore
-        session.calls[callID].conference = new Conference(session, pvtData)
+        if (!session.calls[callID].conference) {
+          session.calls[callID].conference = new Conference(session)
+        }
+        session.calls[callID].conference.join(pvtData)
         break
       }
       case 'conference-liveArray-part': {
-        // @ts-ignore
-        session.calls[callID].conference.destroy()
-        // trigger Notification at a Call or Session level.
-        // deregister Notification callback at the Call level.
-        // Cleanup subscriptions for all channels
-        // let call: IWebRTCCall = null
-        // if (laChannel && session._existsSubscription(protocol, laChannel)) {
-        //   const { callId = null } = session.subscriptions[protocol][laChannel]
-        //   call = session.calls[callId] || null
-        //   if (callId !== null) {
-        //     const notification = { type: NOTIFICATION_TYPE.conferenceUpdate, action: ConferenceAction.Leave, conferenceName: laName, participantId: Number(conferenceMemberID), role }
-        //     if (!trigger(SwEvent.Notification, notification, callId, false)) {
-        //       trigger(SwEvent.Notification, notification, session.uuid)
-        //     }
-        //     if (call === null) {
-        //       deRegister(SwEvent.Notification, null, callId)
-        //     }
-        //   }
-        // }
-        // const channels = [laChannel, chatChannel, infoChannel, modChannel]
-        // session.vertoUnsubscribe({ nodeId: this.nodeId, channels })
-        //   .then(({ unsubscribedChannels = [] }) => {
-        //     if (call) {
-        //       call.channels = call.channels.filter(c => !unsubscribedChannels.includes(c))
-        //     }
-        //   })
-        //   .catch(error => {
-        //     logger.error('liveArray unsubscribe error:', error)
-        //   })
+        session.calls[callID].conference.part(pvtData)
         break
       }
     }

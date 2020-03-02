@@ -84,8 +84,9 @@ export default class WebRTCCall {
 
   hangup(params: any = {}) {
     const bye = new Bye(this.messagePayload)
-    this._execute(bye).catch(error => logger.error('Hangup error:', error))
-    this._hangup(params)
+    this._execute(bye)
+      .catch(error => logger.error('Hangup error:', error))
+      .then(() => this._hangup(params))
   }
 
   dtmf(dtmf: string) {

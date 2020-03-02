@@ -202,8 +202,7 @@ export default class WebRTCCall {
       register(SwEvent.Notification, onNotification.bind(this), this.id)
     }
 
-    // FIXME: revert uniqueId
-    register(SwEvent.MediaError, this._onMediaError, this.id)
+    register(this.id, this._onMediaError, SwEvent.MediaError)
     register(this.id, this._onVertoAnswer, VertoMethod.Answer)
     register(this.id, this._onVertoMedia, VertoMethod.Media)
     register(this.id, this._hangup, VertoMethod.Bye)
@@ -228,7 +227,6 @@ export default class WebRTCCall {
       detachMediaStream(remoteElement)
       detachMediaStream(localElement)
     }
-    deRegister(SwEvent.MediaError, null, this.id)
     deRegisterAll(this.id)
     this.session.calls[this.id] = null
     delete this.session.calls[this.id]

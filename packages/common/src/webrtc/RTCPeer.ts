@@ -98,7 +98,7 @@ export default class RTCPeer {
     })
 
     this.options.localStream = await this._retrieveLocalStream().catch(error => {
-      trigger(SwEvent.MediaError, error, this.options.id)
+      trigger(this.options.id, error, SwEvent.MediaError)
       return null
     })
     const { localElement, localStream = null, screenShare } = this.options

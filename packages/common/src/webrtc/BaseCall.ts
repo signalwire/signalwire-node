@@ -9,11 +9,11 @@ import { State, DEFAULT_CALL_OPTIONS, ConferenceAction, Role, PeerType, VertoMet
 import { trigger, register, deRegister } from '../services/Handler'
 import { sdpStereoHack, sdpMediaOrderHack, checkSubscribeResponse, enableAudioTracks, disableAudioTracks, toggleAudioTracks, enableVideoTracks, disableVideoTracks, toggleVideoTracks } from './helpers'
 import { objEmpty, mutateLiveArrayData, isFunction } from '../util/helpers'
-import { CallOptions, IWebRTCCall } from './interfaces'
+import { CallOptions } from './interfaces'
 import { attachMediaStream, detachMediaStream, sdpToJsonHack, stopStream, getUserMedia, setMediaElementSinkId } from '../util/webrtc'
 import { MCULayoutEventHandler } from './LayoutHandler'
 
-export default abstract class BaseCall implements IWebRTCCall {
+export default abstract class BaseCall {
   public id: string = ''
   public state: string = State[State.New]
   public prevState: string = ''

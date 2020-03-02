@@ -9,10 +9,10 @@ import { findElementByType } from './util/helpers'
 import { Unsubscribe, Subscribe, Broadcast } from './messages/Verto'
 import { localStorage } from './util/storage/'
 import { stopStream } from './util/webrtc'
-import { IWebRTCCall } from './webrtc/interfaces'
+import WebRTCCall from './webrtc/WebRTCCall'
 
 export default abstract class BrowserSession extends BaseSession {
-  public calls: { [callId: string]: IWebRTCCall } = {}
+  public calls: { [callId: string]: WebRTCCall } = {}
   public micId: string
   public micLabel: string
   public camId: string
@@ -279,48 +279,27 @@ export default abstract class BrowserSession extends BaseSession {
     return this._remoteElement
   }
 
-  vertoBroadcast({ nodeId, channel: eventChannel = '', data }: BroadcastParams) {
-    if (!eventChannel) {
-      throw new Error('Invalid channel for broadcast: ' + eventChannel)
-    }
-    const msg = new Broadcast({ sessid: this.sessionid, eventChannel, data })
+  vertoBroadcast({ nodeId, channel, data }: BroadcastParams) {
+    const msg = new Broadcast({ sessid: this.sessionid, eventChannel: channel, data })
     if (nodeId) {
       msg.targetNodeId = nodeId
     }
-    this.execute(msg).catch(error => error)
+    return this.execute(msg)
   }
 
-  async vertoSubscribe({ nodeId, channels: eventChannel = [], handler }: SubscribeParams) {
-    eventChannel = eventChannel.filter(channel => channel && !this._existsSubscription(this.relayProtocol, channel))
-    if (!eventChannel.length) {
-      return {}
-    }
-    const msg = new Subscribe({ sessid: this.sessionid, eventChannel })
+  async vertoSubscribe({ nodeId, channels, handler }: SubscribeParams) {
+    const msg = new Subscribe({ sessid: this.sessionid, eventChannel: channels })
     if (nodeId) {
       msg.targetNodeId = nodeId
     }
-    const response = await this.execute(msg)
-    const { unauthorized = [], subscribed = [] } = destructSubscribeResponse(response)
-    if (unauthorized.length) {
-      unauthorized.forEach(channel => this._removeSubscription(this.relayProtocol, channel))
-    }
-    subscribed.forEach(channel => this._addSubscription(this.relayProtocol, handler, channel))
-    return response
+    return this.execute(msg)
   }
 
-  async vertoUnsubscribe({ nodeId, channels: eventChannel = [] }: SubscribeParams) {
-    eventChannel = eventChannel.filter(channel => channel && this._existsSubscription(this.relayProtocol, channel))
-    if (!eventChannel.length) {
-      return {}
-    }
-    const msg = new Unsubscribe({ sessid: this.sessionid, eventChannel })
+  vertoUnsubscribe({ nodeId, channels }: SubscribeParams) {
+    const msg = new Unsubscribe({ sessid: this.sessionid, eventChannel: channels })
     if (nodeId) {
       msg.targetNodeId = nodeId
     }
-    const response = await this.execute(msg)
-    const { unsubscribed = [], notSubscribed = [] } = destructSubscribeResponse(response)
-    unsubscribed.forEach(channel => this._removeSubscription(this.relayProtocol, channel))
-    notSubscribed.forEach(channel => this._removeSubscription(this.relayProtocol, channel))
-    return response
+    return this.execute(msg)
   }
 }

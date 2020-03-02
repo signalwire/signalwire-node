@@ -3,7 +3,7 @@ import BaseMessage from '../../common/src/messages/BaseMessage'
 import { Execute } from '../../common/src/messages/Blade'
 import BaseRequest from '../../common/src/messages/verto/BaseRequest'
 import { CallOptions } from '../../common/src/webrtc/interfaces'
-import Call from '../../common/src/webrtc/Call'
+import WebRTCCall from '../../common/src/webrtc/WebRTCCall'
 
 export default class SignalWire extends BrowserSession {
   execute(message: BaseMessage) {
@@ -23,7 +23,7 @@ export default class SignalWire extends BrowserSession {
     if (!destinationNumber) {
       throw new TypeError('destinationNumber is required')
     }
-    const call = new Call(this, options)
+    const call = new WebRTCCall(this, options)
     call.invite()
     return call
   }

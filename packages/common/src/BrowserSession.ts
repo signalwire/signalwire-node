@@ -49,14 +49,6 @@ export default abstract class BrowserSession extends BaseSession {
   }
 
   /**
-   * Alias for .disconnect()
-   * @deprecated
-   */
-  logout() {
-    this.disconnect()
-  }
-
-  /**
    * Disconnect all active calls
    */
   async disconnect() {

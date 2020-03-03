@@ -1,7 +1,7 @@
 import behaveLikeBaseSession from '../../common/tests/behaveLike/BaseSession.spec'
 import behaveLikeBrowserSession from '../../common/tests/behaveLike/BrowserSession.spec'
-import VertoHandler from '../../common/tests/webrtc/VertoHandler'
-import LayoutHandler from '../../common/tests/webrtc/LayoutHandler'
+import VertoHandler from '../../common/tests/webrtc/VertoHandler.spec'
+import LayoutHandler from '../../common/tests/webrtc/LayoutHandler.spec'
 import { Subscribe, Unsubscribe, Broadcast } from '../../common/src/messages/Verto'
 import Verto from '../src/Verto'
 const Connection = require('../../common/src/services/Connection')
@@ -17,8 +17,8 @@ describe('Verto', () => {
 
   behaveLikeBaseSession.call(this, instance)
   behaveLikeBrowserSession.call(this, instance)
-  VertoHandler.call(this, Verto)
-  LayoutHandler.call(this, Verto)
+  VertoHandler.call(this, instance)
+  LayoutHandler.call(this, instance)
 
   beforeEach(() => {
     instance = _buildInstance()

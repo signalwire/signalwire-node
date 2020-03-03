@@ -15,17 +15,17 @@ const _handlePvtEvent = async (session: BrowserSession, pvtData: any) => {
     return logger.warn('Verto pvtData with invalid or unknown callID.')
   }
   switch (action) {
-    case 'conference-liveArray-join': {
+    case 'conference-liveArray-join':
       if (!session.calls[callID].conference) {
         session.calls[callID].conference = new Conference(session)
       }
       session.calls[callID].conference.join(pvtData)
       break
-    }
-    case 'conference-liveArray-part': {
-      session.calls[callID].conference.part(pvtData)
+    case 'conference-liveArray-part':
+      if (session.calls[callID].conference) {
+        session.calls[callID].conference.part(pvtData)
+      }
       break
-    }
   }
 }
 
@@ -42,9 +42,8 @@ const _handleSessionEvent = (session: BrowserSession, eventData: any) => {
 }
 
 const _buildCall = (session: BrowserSession, params: any, attach: boolean, nodeId: string) => {
-  const { callID, eventChannel, eventType } = params
   const call = new WebRTCCall(session, {
-    id: callID,
+    id: params.callID,
     remoteSdp: params.sdp,
     destinationNumber: params.callee_id_number,
     remoteCallerName: params.caller_id_name,
@@ -93,14 +92,8 @@ export default (session: BrowserSession, msg: any) => {
     }
     case VertoMethod.Attach: {
       const call = _buildCall(session, params, attach, nodeId)
-      if (this.session.autoRecoverCalls) {
-        call.answer()
-      } else {
-        call.setState(State.Recovering)
-      }
-      // FIXME: handleMessage?
-      // call.handleMessage(msg)
-      break
+      session.autoRecoverCalls ? call.answer() : call.setState(State.Recovering)
+      return trigger(call.id, params, method)
     }
     case VertoMethod.Event:
     case 'webrtc.event':

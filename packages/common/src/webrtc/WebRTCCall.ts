@@ -116,15 +116,12 @@ export default class WebRTCCall {
         this.setState(State.Destroy)
         break
       case State.Destroy:
-        this._finalize()
+        if (this.conference instanceof Conference) {
+          this.conference.destroy().then(() => this._finalize())
+        } else {
+          this._finalize()
+        }
         break
-    }
-  }
-
-  _onConferenceClear() {
-    if (this._state === State.Destroy) {
-      delete this.conference
-      this._finalize()
     }
   }
 
@@ -221,13 +218,11 @@ export default class WebRTCCall {
   }
 
   protected _finalize() {
-    if (this.conference) {
-      return
-    }
     if (this.peer && this.peer.instance) {
       this.peer.instance.close()
       this.peer = null
     }
+    delete this.conference
     const { remoteStream, localStream, remoteElement, localElement } = this.options
     stopStream(remoteStream)
     stopStream(localStream)

@@ -53,6 +53,10 @@ export default class Conference {
     this._dispatchConferenceUpdate({ action: ConferenceAction.Leave, conferenceName: this.pvtData.laName, participantId: this.participantId, role: this.participantRole })
   }
 
+  destroy() {
+    return this._unsubscribe()
+  }
+
   sendChatMessage(message: string, type: string) {
     this.session.vertoBroadcast({ nodeId: this.nodeId, channel: this.pvtData.chatChannel, data: { action: 'send', message, type } })
   }
@@ -161,7 +165,6 @@ export default class Conference {
       case 'del':
         return this._dispatchConferenceUpdate({ action: ConferenceAction.Delete, callId, index, ...mutateLiveArrayData(data) })
       case 'clear':
-        this._unsubscribe()
         return this._dispatchConferenceUpdate({ action: ConferenceAction.Clear })
       default:
         return this._dispatchConferenceUpdate({ action, data, callId, index })
@@ -257,7 +260,6 @@ export default class Conference {
       logger.error('Conference unsubscribe error:', error)
     }
     this.channels.forEach(deRegisterAll)
-    this.session.calls[this.callId]._onConferenceClear()
     this._lastSerno = 0
   }
 

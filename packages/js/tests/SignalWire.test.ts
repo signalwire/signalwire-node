@@ -18,13 +18,11 @@ describe('SignalWire Web', () => {
   let instance = _buildInstance()
   const nodeId = 'node-uuid'
 
-  beforeAll(() => {
-    behaveLikeBaseSession.call(this, instance)
-    behaveLikeBrowserSession.call(this, instance)
-    behaveLikeReceive.call(this, instance)
-    behaveLikeSetup.call(this, instance)
-    BladeDisconnect.call(this, instance)
-  })
+  behaveLikeBaseSession.call(this, instance)
+  behaveLikeBrowserSession.call(this, instance)
+  behaveLikeReceive.call(this, instance)
+  behaveLikeSetup.call(this, instance)
+  BladeDisconnect.call(this, instance)
 
   beforeEach(() => {
     instance = _buildInstance()

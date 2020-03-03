@@ -4,7 +4,6 @@ const Connection = require('../../src/services/Connection')
 
 export default (instance: any) => {
   describe('Inherit BaseClass', () => {
-
     beforeEach(() => {
       instance._idle = false
       instance._executeQueue = []

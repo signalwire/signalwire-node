@@ -25,6 +25,44 @@ export default (instance: any) => {
       })
     })
 
+    describe('.checkPermissions()', () => {
+
+      beforeEach(() => {
+        // @ts-ignore
+        navigator.mediaDevices.getUserMedia.mockClear()
+      })
+
+      it('should check both audio and video by default', async () => {
+        const result = await instance.checkPermissions()
+        expect(result).toBe(true)
+        expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalledTimes(1)
+        expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalledWith({ audio: true, video: true })
+      })
+
+      it('should check only video', async () => {
+        const result = await instance.checkPermissions(false, true)
+        expect(result).toBe(true)
+        expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalledTimes(1)
+        expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalledWith({ audio: false, video: true })
+      })
+
+      it('should check only audio', async () => {
+        const result = await instance.checkPermissions(true, false)
+        expect(result).toBe(true)
+        expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalledTimes(1)
+        expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalledWith({ audio: true, video: false })
+      })
+
+      it('should return false in case of error', async () => {
+        // @ts-ignore
+        navigator.mediaDevices.getUserMedia.mockRejectedValueOnce(new Error('Perms error'))
+        const result = await instance.checkPermissions()
+        expect(result).toBe(false)
+        expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalledTimes(1)
+        expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalledWith({ audio: true, video: true })
+      })
+    })
+
     describe('.setAudioSettings()', () => {
       const MIC_ID = 'c3d0a4cb47f5efd7af14c2c3860d12f0199042db6cbdf0c690c38644a24a6ba7'
       const CAM_ID = '2060bf50ab9c29c12598bf4eafeafa71d4837c667c7c172bb4407ec6c5150206'

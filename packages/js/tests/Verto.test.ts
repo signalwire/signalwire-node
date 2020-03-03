@@ -7,21 +7,18 @@ import Verto from '../src/Verto'
 const Connection = require('../../common/src/services/Connection')
 
 describe('Verto', () => {
-  let instance: Verto = null
-
   const _buildInstance = () => {
     const instance = new Verto({ host: 'example.signalwire.com', login: 'login', password: 'password' })
     // @ts-ignore
     instance.connection = Connection.default()
     return instance
   }
+  let instance = _buildInstance()
 
-  beforeAll(() => {
-    behaveLikeBaseSession.call(this, _buildInstance())
-    behaveLikeBrowserSession.call(this, _buildInstance())
-    VertoHandler.call(this, Verto)
-    LayoutHandler.call(this, Verto)
-  })
+  behaveLikeBaseSession.call(this, instance)
+  behaveLikeBrowserSession.call(this, instance)
+  VertoHandler.call(this, Verto)
+  LayoutHandler.call(this, Verto)
 
   beforeEach(() => {
     instance = _buildInstance()

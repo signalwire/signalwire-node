@@ -731,6 +731,7 @@ export default abstract class BaseCall {
     if (!remoteCallerNumber) {
       this.options.remoteCallerNumber = this.options.destinationNumber
     }
+    // @ts-ignore
     this.session.calls[this.id] = this
 
     register(SwEvent.MediaError, this._onMediaError, this.id)

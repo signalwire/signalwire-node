@@ -58,7 +58,6 @@ export default class Verto extends BrowserSession {
   }
 
   protected _onSocketMessage(msg: any) {
-    const handler = new VertoHandler(this)
-    handler.handleMessage(msg)
+    VertoHandler(this, msg)
   }
 }

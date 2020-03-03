@@ -6,7 +6,6 @@ const Connection = require('../../../common/src/services/Connection')
 export default (instance: any) => {
   const DEFAULT_PARAMS = { destinationNumber: 'x3599', remoteCallerName: 'Js Client Test', remoteCallerNumber: '1234', callerName: 'Jest Client', callerNumber: '5678' }
   describe('VertoHandler', () => {
-    let handler: VertoHandler
     let call: Call
     const onNotification = jest.fn()
 
@@ -18,7 +17,6 @@ export default (instance: any) => {
       onNotification.mockClear()
       instance.off('signalwire.notification', onNotification)
       instance.on('signalwire.notification', onNotification)
-      handler = new VertoHandler(instance)
     })
 
     afterEach(() => {
@@ -30,7 +28,7 @@ export default (instance: any) => {
       it('should initiate the logout process', () => {
         const msg = JSON.parse('{"jsonrpc":"2.0","id":38,"method":"verto.punt","params":{}}')
         instance.disconnect = jest.fn()
-        handler.handleMessage(msg)
+        VertoHandler(instance, msg)
         expect(instance.disconnect).toBeCalledTimes(1)
       })
     })
@@ -40,7 +38,7 @@ export default (instance: any) => {
         await instance.connect()
         const callId = 'cd35e65f-a507-4bd2-8d21-80f36d134a2e'
         const msg = JSON.parse(`{"jsonrpc":"2.0","id":4402,"method":"verto.invite","params":{"callID":"${callId}","sdp":"SDP","caller_id_name":"Extension 1004","caller_id_number":"1004","callee_id_name":"Outbound Call","callee_id_number":"1003","display_direction":"outbound"}}`)
-        handler.handleMessage(msg)
+        VertoHandler(instance, msg)
         expect(instance.calls).toHaveProperty(callId)
         expect(instance.calls[callId].id).toEqual(callId)
         expect(instance.calls[callId].state).toEqual('ringing')
@@ -61,7 +59,7 @@ export default (instance: any) => {
       describe('verto.media', () => {
         it('should pass the msg to the call and reply back to the server', () => {
           const msg = JSON.parse('{"jsonrpc":"2.0","id":4403,"method":"verto.media","params":{"callID":"e2fda6dc-fc9d-4d77-8096-53bb502443b6","sdp":"<REMOTE-SDP>"}}')
-          handler.handleMessage(msg)
+          VertoHandler(instance, msg)
           // expect(call.handleMessage).toBeCalledTimes(1)
           expect(Connection.mockSend).toHaveBeenLastCalledWith({ request: { jsonrpc: '2.0', id: 4403, result: { method: 'verto.media' } } })
         })
@@ -70,7 +68,7 @@ export default (instance: any) => {
       describe('verto.answer', () => {
         it('should pass the msg to the call and reply back to the server', () => {
           const msg = JSON.parse('{"jsonrpc":"2.0","id":4404,"method":"verto.answer","params":{"callID":"e2fda6dc-fc9d-4d77-8096-53bb502443b6"}}')
-          handler.handleMessage(msg)
+          VertoHandler(instance, msg)
           // expect(call.handleMessage).toBeCalledTimes(1)
           expect(Connection.mockSend).toHaveBeenLastCalledWith({ request: { jsonrpc: '2.0', id: 4404, result: { method: 'verto.answer' } } })
         })
@@ -87,17 +85,17 @@ export default (instance: any) => {
 
     describe('verto.info', () => {
       it('should dispatch a notification', () => {
-        handler.handleMessage(JSON.parse('{"jsonrpc":"2.0","id":37,"method":"verto.info","params":{"fake":"data", "test": "data"}}'))
+        VertoHandler(instance, JSON.parse('{"jsonrpc":"2.0","id":37,"method":"verto.info","params":{"fake":"data", "test": "data"}}'))
         expect(onNotification).toBeCalledWith({ type: 'event', fake: 'data', test: 'data' })
       })
     })
 
     describe('verto.clientReady', () => {
       it('should dispatch a notification', () => {
-        handler.handleMessage(JSON.parse('{"jsonrpc":"2.0","id":37,"method":"verto.clientReady","params":{"reattached_sessions":[]}}'))
+        VertoHandler(instance, JSON.parse('{"jsonrpc":"2.0","id":37,"method":"verto.clientReady","params":{"reattached_sessions":[]}}'))
         expect(onNotification).toBeCalledWith({ type: 'vertoClientReady', reattached_sessions: [] })
 
-        handler.handleMessage(JSON.parse('{"jsonrpc":"2.0","id":37,"method":"verto.clientReady","params":{"reattached_sessions":["test"]}}'))
+        VertoHandler(instance, JSON.parse('{"jsonrpc":"2.0","id":37,"method":"verto.clientReady","params":{"reattached_sessions":["test"]}}'))
         expect(onNotification).toBeCalledWith({ type: 'vertoClientReady', reattached_sessions: ['test'] })
       })
     })

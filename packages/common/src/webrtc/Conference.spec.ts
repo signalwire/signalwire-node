@@ -1,4 +1,4 @@
-import WebRTCCall from './WebRTCCall'
+import Call from './Call'
 import { Notification, ConferenceAction } from './constants'
 import Conference from './Conference'
 import { Subscribe, Broadcast, Unsubscribe } from '../messages/Verto'
@@ -9,7 +9,7 @@ jest.unmock('./Conference')
 
 export default (instance: any) => {
   describe('Conference', () => {
-    let call: WebRTCCall
+    let call: Call
     const onNotification = jest.fn()
     const callID = 'e2fda6dc-fc9d-4d77-8096-53bb502443b6'
     const channels = [
@@ -20,7 +20,7 @@ export default (instance: any) => {
     ]
 
     beforeEach(() => {
-      call = new WebRTCCall(instance, { id: callID, destinationNumber: 'x3599', remoteCallerName: 'Js Client Test', remoteCallerNumber: '1234', callerName: 'Jest Client', callerNumber: '5678' })
+      call = new Call(instance, { id: callID, destinationNumber: 'x3599', remoteCallerName: 'Js Client Test', remoteCallerNumber: '1234', callerName: 'Jest Client', callerNumber: '5678' })
       call.conference = new Conference(instance)
       instance.on('signalwire.notification', onNotification)
       onNotification.mockClear()

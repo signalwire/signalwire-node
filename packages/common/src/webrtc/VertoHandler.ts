@@ -35,7 +35,8 @@ const _handleSessionEvent = (session: BrowserSession, eventData: any) => {
     case 'layer-info':
       return MCULayoutEventHandler(session, eventData)
     case 'logo-info': {
-      const notification = { type: NOTIFICATION_TYPE.conferenceUpdate, action: ConferenceAction.LogoInfo, logo: eventData.logoURL }
+      const { logoURL: logo, callID } = eventData
+      const notification = { type: NOTIFICATION_TYPE.conferenceUpdate, action: ConferenceAction.LogoInfo, call: session.calls[callID], logo }
       return trigger(SwEvent.Notification, notification, session.uuid)
     }
   }

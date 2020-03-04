@@ -98,10 +98,9 @@ export default (instance: any) => {
 
       describe('with eventChannel equal to the sessionId', () => {
         it('should handle the logo-info event', () => {
-          // TODO: add call object to the notification
-          const payload = JSON.parse(`{"jsonrpc":"2.0","id":37,"method":"verto.event","params":{"eventChannel":"${instance.sessionid}","eventData":{"contentType":"logo-info","callID":"52ae5c63-bf9a-456f-97e0-3bb06415e01f","logoURL":"data:image/png;base64,long-string"}}}`)
+          const payload = JSON.parse(`{"jsonrpc":"2.0","id":37,"method":"verto.event","params":{"eventChannel":"${instance.sessionid}","eventData":{"contentType":"logo-info","callID":"${callId}","logoURL":"data:image/png;base64,long-string"}}}`)
           VertoHandler(instance, payload)
-          expect(onNotification).toBeCalledWith({ type: Notification.ConferenceUpdate, action: ConferenceAction.LogoInfo, logo: 'data:image/png;base64,long-string' })
+          expect(onNotification).toBeCalledWith({ type: Notification.ConferenceUpdate, action: ConferenceAction.LogoInfo, call: instance.calls[callId], logo: 'data:image/png;base64,long-string' })
         })
 
         it('should handle the layout-info event', () => {

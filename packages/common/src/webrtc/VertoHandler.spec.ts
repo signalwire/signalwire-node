@@ -16,6 +16,8 @@ export default (instance: any) => {
     beforeEach(() => {
       instance.sessionid = 'sessid'
       call = new Call(instance, { id: callId, destinationNumber: 'x3599', remoteCallerName: 'Js Client Test', remoteCallerNumber: '1234', callerName: 'Jest Client', callerNumber: '5678' })
+      // @ts-ignore
+      call.peer = { onRemoteSdp: jest.fn() }
       instance.on('signalwire.notification', onNotification)
       onNotification.mockClear()
     })

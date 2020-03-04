@@ -182,19 +182,5 @@ export default (instance: any) => {
 
       describe('_emptyExecuteQueues()', () => { })
     })
-
-    describe('static methods', () => {
-      const mockFn = jest.fn()
-
-      it('.on() should add a listener into the internal queue', () => {
-        BaseSession.on('event', mockFn)
-        expect(isQueued('event')).toEqual(true)
-      })
-
-      it('.off() should remove a listener from the internal queue', () => {
-        BaseSession.off('event')
-        expect(isQueued('event')).toEqual(false)
-      })
-    })
   })
 }

@@ -1,6 +1,6 @@
 import behaveLikeBaseSession from '../../common/tests/behaveLike/BaseSession.spec'
 import behaveLikeBrowserSession from '../../common/tests/behaveLike/BrowserSession.spec'
-import VertoHandler from '../../common/tests/webrtc/VertoHandler.spec'
+import VertoHandler from '../../common/src/webrtc/VertoHandler.spec'
 import LayoutHandler from '../../common/tests/webrtc/LayoutHandler.spec'
 import { Subscribe, Unsubscribe, Broadcast } from '../../common/src/messages/Verto'
 import Verto from '../src/Verto'
@@ -13,16 +13,15 @@ describe('Verto', () => {
     instance.connection = Connection.default()
     return instance
   }
-  let instance = _buildInstance()
+  let instance = null
 
-  behaveLikeBaseSession.call(this, instance)
-  behaveLikeBrowserSession.call(this, instance)
-  VertoHandler.call(this, instance)
-  LayoutHandler.call(this, instance)
+  behaveLikeBaseSession(_buildInstance())
+  behaveLikeBrowserSession(_buildInstance())
+  VertoHandler(_buildInstance())
+  LayoutHandler(_buildInstance())
 
   beforeEach(() => {
     instance = _buildInstance()
-    instance.subscriptions = {}
     Connection.mockSend.mockClear()
     Connection.default.mockClear()
     Connection.mockClose.mockClear()

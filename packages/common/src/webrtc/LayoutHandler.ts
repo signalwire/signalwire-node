@@ -1,5 +1,5 @@
 import BrowserSession from '../BrowserSession'
-import { NOTIFICATION_TYPE, ConferenceAction } from './constants'
+import { Notification, ConferenceAction } from './constants'
 import { SwEvent } from '../util/constants'
 import { trigger } from '../services/Handler'
 import { safeParseJson } from '../util/helpers'
@@ -11,7 +11,7 @@ const MCULayoutEventHandler = (session: BrowserSession, eventData: any) => {
   }
 
   const data: { type: string, call: any, canvasInfo: any, currentLayerIdx: number } = {
-    type: NOTIFICATION_TYPE.conferenceUpdate,
+    type: Notification.ConferenceUpdate,
     call: session.calls[callID],
     canvasInfo: _clearCanvasInfo(canvasInfo),
     currentLayerIdx

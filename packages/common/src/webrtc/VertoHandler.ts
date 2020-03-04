@@ -4,7 +4,7 @@ import Conference from './Conference'
 import Call from './Call'
 import { Result } from '../messages/Verto'
 import { SwEvent } from '../util/constants'
-import { VertoMethod, NOTIFICATION_TYPE } from './constants'
+import { VertoMethod, Notification } from './constants'
 import { trigger } from '../services/Handler'
 import { State, ConferenceAction } from './constants'
 import { MCULayoutEventHandler } from './LayoutHandler'
@@ -36,7 +36,7 @@ const _handleSessionEvent = (session: BrowserSession, eventData: any) => {
       return MCULayoutEventHandler(session, eventData)
     case 'logo-info': {
       const { logoURL: logo, callID } = eventData
-      const notification = { type: NOTIFICATION_TYPE.conferenceUpdate, action: ConferenceAction.LogoInfo, call: session.calls[callID], logo }
+      const notification = { type: Notification.ConferenceUpdate, action: ConferenceAction.LogoInfo, call: session.calls[callID], logo }
       return trigger(SwEvent.Notification, notification, session.uuid)
     }
   }
@@ -104,10 +104,10 @@ export default (session: BrowserSession, msg: any) => {
       logger.warn('Unhandled verto event:', msg)
       break
     case VertoMethod.Info:
-      params.type = NOTIFICATION_TYPE.generic
+      params.type = Notification.Generic
       return trigger(SwEvent.Notification, params, session.uuid)
     case VertoMethod.ClientReady:
-      params.type = NOTIFICATION_TYPE.vertoClientReady
+      params.type = Notification.VertoClientReady
       return trigger(SwEvent.Notification, params, session.uuid)
     default:
       logger.warn('Unknown Verto method:', msg)

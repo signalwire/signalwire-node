@@ -37,17 +37,6 @@ export enum Notification {
   RefreshToken = 'refreshToken',
 }
 
-export const NOTIFICATION_TYPE = {
-  generic: 'event',
-  [VertoMethod.Display]: 'participantData',
-  [VertoMethod.Attach]: 'participantData',
-  conferenceUpdate: 'conferenceUpdate',
-  callUpdate: 'callUpdate',
-  vertoClientReady: 'vertoClientReady',
-  userMediaError: 'userMediaError',
-  refreshToken: 'refreshToken',
-}
-
 export const DEFAULT_CALL_OPTIONS: CallOptions = {
   destinationNumber: '',
   remoteCallerName: 'Outbound Call',

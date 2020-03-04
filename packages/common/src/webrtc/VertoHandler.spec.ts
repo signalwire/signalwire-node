@@ -2,6 +2,7 @@ import VertoHandler from './VertoHandler'
 import Call from './Call'
 import { Notification, ConferenceAction } from './constants'
 import Conference from './Conference'
+import { Result } from '../messages/Verto'
 const Connection = require('../../../common/src/services/Connection')
 
 jest.mock('./Conference')
@@ -46,33 +47,37 @@ export default (instance: any) => {
 
     describe('verto.media', () => {
       it('should pass the msg to the call and reply back to the server', () => {
-        const msg = JSON.parse(`{"jsonrpc":"2.0","id":4403,"method":"verto.media","params":{"callID":"${callId}","sdp":"<REMOTE-SDP>"}}`)
-        VertoHandler(instance, msg)
-        expect(Connection.mockSend).toHaveBeenLastCalledWith({ request: { jsonrpc: '2.0', id: 4403, result: { method: 'verto.media' } } })
+        const payload = JSON.parse(`{"jsonrpc":"2.0","id":44,"method":"verto.media","params":{"callID":"${callId}","sdp":"<REMOTE-SDP>"}}`)
+        VertoHandler(instance, payload)
+        const msg = instance._wrapInExecute(new Result(44, 'verto.media'))
+        expect(Connection.mockSend).toHaveBeenLastCalledWith(msg)
       })
     })
 
     describe('verto.answer', () => {
       it('should pass the msg to the call and reply back to the server', () => {
-        const msg = JSON.parse(`{"jsonrpc":"2.0","id":4404,"method":"verto.answer","params":{"callID":"${callId}"}}`)
-        VertoHandler(instance, msg)
-        expect(Connection.mockSend).toHaveBeenLastCalledWith({ request: { jsonrpc: '2.0', id: 4404, result: { method: 'verto.answer' } } })
+        const payload = JSON.parse(`{"jsonrpc":"2.0","id":44,"method":"verto.answer","params":{"callID":"${callId}"}}`)
+        VertoHandler(instance, payload)
+        const msg = instance._wrapInExecute(new Result(44, 'verto.answer'))
+        expect(Connection.mockSend).toHaveBeenLastCalledWith(msg)
       })
     })
 
     describe('verto.bye', () => {
       it('should pass the msg to the call and reply back to the server', () => {
-        const msg = JSON.parse(`{"jsonrpc":"2.0","id":4405,"method":"verto.bye","params":{"callID":"${callId}","causeCode":16,"cause":"NORMAL_CLEARING"}}`)
-        VertoHandler(instance, msg)
-        expect(Connection.mockSend).toHaveBeenLastCalledWith({ request: { jsonrpc: '2.0', id: 4405, result: { method: 'verto.bye' } } })
+        const payload = JSON.parse(`{"jsonrpc":"2.0","id":44,"method":"verto.bye","params":{"callID":"${callId}","causeCode":16,"cause":"NORMAL_CLEARING"}}`)
+        VertoHandler(instance, payload)
+        const msg = instance._wrapInExecute(new Result(44, 'verto.bye'))
+        expect(Connection.mockSend).toHaveBeenLastCalledWith(msg)
       })
     })
 
     describe('verto.display', () => {
       it('should pass the msg to the call and reply back to the server', () => {
-        const msg = JSON.parse(`{"jsonrpc":"2.0","id":4406,"method":"verto.display","params":{"callID":"${callId}","display_name":"example","display_number":"1234","caller_id_name":"","caller_id_number":"0000000000","callee_id_name":"Outbound Call","callee_id_number":"1234","display_direction":"inbound"}}`)
-        VertoHandler(instance, msg)
-        expect(Connection.mockSend).toHaveBeenLastCalledWith({ request: { jsonrpc: '2.0', id: 4406, result: { method: 'verto.display' } } })
+        const payload = JSON.parse(`{"jsonrpc":"2.0","id":44,"method":"verto.display","params":{"callID":"${callId}","display_name":"example","display_number":"1234","caller_id_name":"","caller_id_number":"0000000000","callee_id_name":"Outbound Call","callee_id_number":"1234","display_direction":"inbound"}}`)
+        VertoHandler(instance, payload)
+        const msg = instance._wrapInExecute(new Result(44, 'verto.display'))
+        expect(Connection.mockSend).toHaveBeenLastCalledWith(msg)
       })
     })
 

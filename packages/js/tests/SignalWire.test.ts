@@ -1,5 +1,8 @@
 import behaveLikeBaseSession from '../../common/tests/behaveLike/BaseSession.spec'
 import behaveLikeBrowserSession from '../../common/tests/behaveLike/BrowserSession.spec'
+import VertoHandler from '../../common/src/webrtc/VertoHandler.spec'
+import LayoutHandler from '../../common/tests/webrtc/LayoutHandler.spec'
+import ConferenceSpec from '../../common/src/webrtc/Conference.spec'
 import behaveLikeReceive from '../../common/tests/behaveLike/Receive.spec'
 import behaveLikeSetup from '../../common/tests/behaveLike/Setup.spec'
 import { BladeDisconnect } from '../../common/tests/behaveLike/BladeMessages.spec'
@@ -20,6 +23,9 @@ describe('SignalWire Web', () => {
 
   behaveLikeBaseSession(_buildInstance())
   behaveLikeBrowserSession(_buildInstance())
+  VertoHandler(_buildInstance())
+  LayoutHandler(_buildInstance())
+  ConferenceSpec(_buildInstance())
   behaveLikeReceive(_buildInstance())
   behaveLikeSetup(_buildInstance())
   BladeDisconnect(_buildInstance())

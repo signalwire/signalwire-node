@@ -142,9 +142,9 @@ export default (instance: any) => {
         Connection.mockResponse.mockImplementationOnce(() => JSON.parse(`{"jsonrpc":"2.0","id":77,"result":{"subscribedChannels":${JSON.stringify(channels)},"sessid":"sessid-xyz"}}`))
         await call.conference.join(pvtData)
         expect(Connection.mockSend).toHaveBeenCalledTimes(2)
-        const subscribe = new Subscribe({ sessid: instance.sessionid, eventChannel: channels })
+        const subscribe = instance._wrapInExecute(new Subscribe({ sessid: instance.sessionid, eventChannel: channels }))
         expect(Connection.mockSend).toHaveBeenNthCalledWith(1, subscribe)
-        const broadcast = new Broadcast({ sessid: instance.sessionid, eventChannel: channels[0], data: { liveArray: { command: 'bootstrap', context: channels[0], name: '3594' } } })
+        const broadcast = instance._wrapInExecute(new Broadcast({ sessid: instance.sessionid, eventChannel: channels[0], data: { liveArray: { command: 'bootstrap', context: channels[0], name: '3594' } } }))
         expect(Connection.mockSend).toHaveBeenNthCalledWith(2, broadcast)
         expectChannelsToHaveBeenQueued(true)
       })
@@ -171,7 +171,7 @@ export default (instance: any) => {
         Connection.mockSend.mockClear()
 
         await call.conference.destroy()
-        const unsubscribe = new Unsubscribe({ sessid: instance.sessionid, eventChannel: channels })
+        const unsubscribe = instance._wrapInExecute(new Unsubscribe({ sessid: instance.sessionid, eventChannel: channels }))
         expect(Connection.mockSend).toHaveBeenNthCalledWith(1, unsubscribe)
         expectChannelsToHaveBeenQueued(false)
       })
@@ -185,7 +185,8 @@ export default (instance: any) => {
       })
 
       const _buildBroadcast = (data: any) => {
-        return new Broadcast({ sessid: instance.sessionid, eventChannel: channels[3], data: { application: 'conf-control', callID, value: null, id: null, ...data } })
+        const params = { sessid: instance.sessionid, eventChannel: channels[3], data: { application: 'conf-control', callID, value: null, id: null, ...data } }
+        return instance._wrapInExecute(new Broadcast(params))
       }
 
       it('should respond to listVideoLayouts method', () => {

@@ -4,8 +4,11 @@ import { ICacheDevices, IAudioSettings, IVideoSettings, BroadcastParams, Subscri
 import { registerOnce, trigger } from './services/Handler'
 import { SwEvent, SESSION_ID } from './util/constants'
 import { State, DeviceType } from './webrtc/constants'
-import { getDevices, scanResolutions, removeUnsupportedConstraints, checkDeviceIdConstraints, destructSubscribeResponse, getUserMedia, assureDeviceId } from './webrtc/helpers'
+import { getDevices, scanResolutions, removeUnsupportedConstraints, checkDeviceIdConstraints, getUserMedia, assureDeviceId } from './webrtc/helpers'
 import { findElementByType } from './util/helpers'
+import BaseMessage from './messages/BaseMessage'
+import BaseRequest from './messages/verto/BaseRequest'
+import { Execute } from './messages/Blade'
 import { Unsubscribe, Subscribe, Broadcast } from './messages/Verto'
 import { localStorage } from './util/storage/'
 import { stopStream } from './util/webrtc'
@@ -293,5 +296,20 @@ export default abstract class BrowserSession extends BaseSession {
       msg.targetNodeId = nodeId
     }
     return this.execute(msg)
+  }
+
+  _wrapInExecute(message: BaseMessage): BaseMessage {
+    const params = {
+      message: message.request,
+      node_id: message.targetNodeId || undefined
+    }
+    return new Execute({ protocol: this.relayProtocol, method: 'message', params })
+  }
+
+  execute(message: BaseMessage) {
+    if (message instanceof BaseRequest) {
+      message = this._wrapInExecute(message)
+    }
+    return super.execute(message)
   }
 }

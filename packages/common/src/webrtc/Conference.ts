@@ -42,10 +42,9 @@ export default class Conference {
 
   join(pvtData: VertoPvtData) {
     this.pvtData = pvtData
-    this._subscribe()
-
     this.session.calls[this.callId].extension = this.pvtData.laName
     this._dispatchConferenceUpdate({ action: ConferenceAction.Join, conferenceName: this.pvtData.laName, participantId: this.participantId, role: this.participantRole })
+    return this._subscribe()
   }
 
   part(pvtData: VertoPvtData) {

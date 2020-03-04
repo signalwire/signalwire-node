@@ -1,0 +1,257 @@
+import WebRTCCall from './WebRTCCall'
+import { Notification, ConferenceAction } from './constants'
+import Conference from './Conference'
+import { Subscribe, Broadcast, Unsubscribe } from '../messages/Verto'
+import { isQueued } from '../services/Handler'
+const Connection = require('../../../common/src/services/Connection')
+
+jest.unmock('./Conference')
+
+export default (instance: any) => {
+  describe('Conference', () => {
+    let call: WebRTCCall
+    const onNotification = jest.fn()
+    const callID = 'e2fda6dc-fc9d-4d77-8096-53bb502443b6'
+    const channels = [
+      'conference-liveArray.3594@cantina.freeswitch.org',
+      'conference-chat.3594@cantina.freeswitch.org',
+      'conference-info.3594@cantina.freeswitch.org',
+      'conference-mod.3594@cantina.freeswitch.org',
+    ]
+
+    beforeEach(() => {
+      call = new WebRTCCall(instance, { id: callID, destinationNumber: 'x3599', remoteCallerName: 'Js Client Test', remoteCallerNumber: '1234', callerName: 'Jest Client', callerNumber: '5678' })
+      call.conference = new Conference(instance)
+      instance.on('signalwire.notification', onNotification)
+      onNotification.mockClear()
+    })
+
+    afterEach(() => {
+      instance.off('signalwire.notification')
+    })
+
+    const expectChannelsToHaveBeenQueued = (check: boolean) => {
+      for (const channel of channels) {
+        expect(isQueued(channel)).toEqual(check)
+      }
+    }
+
+    describe('Join as moderator', () => {
+      const pvtData = JSON.parse(`{"callID":"${callID}","action":"conference-liveArray-join","laChannel":"${channels[0]}","laName":"3594","role":"moderator","chatID":"conf+3594@cantina.freeswitch.org","conferenceMemberID":"455","canvasCount":1,"modChannel":"${channels[3]}","chatChannel":"${channels[1]}","infoChannel":"${channels[2]}"}`)
+
+      it('should set the extension on the Call', () => {
+        call.conference.join(pvtData)
+        expect(call.extension).toBe('3594')
+      })
+
+      it('should dispatch a ConferenceUpdate join notification', () => {
+        call.conference.join(pvtData)
+        expect(onNotification).toBeCalledWith({ type: Notification.ConferenceUpdate, action: ConferenceAction.Join, call, conferenceName: '3594', participantId: '455', role: 'moderator' })
+      })
+
+      it('should execute the verto.subscribe with all channels', async () => {
+        Connection.mockResponse.mockImplementationOnce(() => JSON.parse(`{"jsonrpc":"2.0","id":77,"result":{"subscribedChannels":${JSON.stringify(channels)},"sessid":"sessid-xyz"}}`))
+        await call.conference.join(pvtData)
+        expect(Connection.mockSend).toHaveBeenCalledTimes(2)
+        const subscribe = new Subscribe({ sessid: instance.sessionid, eventChannel: channels })
+        expect(Connection.mockSend).toHaveBeenNthCalledWith(1, subscribe)
+        const broadcast = new Broadcast({ sessid: instance.sessionid, eventChannel: channels[0], data: { liveArray: { command: 'bootstrap', context: channels[0], name: '3594' } } })
+        expect(Connection.mockSend).toHaveBeenNthCalledWith(2, broadcast)
+        expectChannelsToHaveBeenQueued(true)
+      })
+    })
+
+    describe('Join as participant', () => {
+      const pvtData = JSON.parse(`{"callID":"${callID}","action":"conference-liveArray-join","laChannel":"${channels[0]}","laName":"3594","role":"participant","chatID":"conf+3594@cantina.freeswitch.org","conferenceMemberID":"455","canvasCount":1,"chatChannel":"${channels[1]}","infoChannel":"${channels[2]}"}`)
+
+      it('should set the extension on the Call', () => {
+        call.conference.join(pvtData)
+        expect(call.extension).toBe('3594')
+      })
+
+      it('should dispatch a ConferenceUpdate join notification', () => {
+        call.conference.join(pvtData)
+        expect(onNotification).toBeCalledWith({ type: Notification.ConferenceUpdate, action: ConferenceAction.Join, call, conferenceName: '3594', participantId: '455', role: 'participant' })
+      })
+
+      it('should execute the verto.subscribe with all channels', async () => {
+        const channelsNoMod = channels.filter(c => !c.includes('mod'))
+        Connection.mockResponse.mockImplementationOnce(() => JSON.parse(`{"jsonrpc":"2.0","id":77,"result":{"subscribedChannels":${JSON.stringify(channelsNoMod)},"sessid":"sessid-xyz"}}`))
+        await call.conference.join(pvtData)
+        expect(Connection.mockSend).toHaveBeenCalledTimes(2)
+        const subscribe = new Subscribe({ sessid: instance.sessionid, eventChannel: channelsNoMod })
+        expect(Connection.mockSend).toHaveBeenNthCalledWith(1, subscribe)
+        const broadcast = new Broadcast({ sessid: instance.sessionid, eventChannel: channelsNoMod[0], data: { liveArray: { command: 'bootstrap', context: channelsNoMod[0], name: '3594' } } })
+        expect(Connection.mockSend).toHaveBeenNthCalledWith(2, broadcast)
+        expectChannelsToHaveBeenQueued(true)
+      })
+    })
+
+    describe('Part', () => {
+      const pvtData = JSON.parse(`{"callID":"${callID}","action":"conference-liveArray-part","laChannel":"${channels[0]}","laName":"3594","role":"moderator","chatID":"conf+3594@cantina.freeswitch.org","conferenceMemberID":"455","canvasCount":1,"modChannel":"${channels[3]}","chatChannel":"${channels[1]}","infoChannel":"${channels[2]}"}`)
+
+      it('should dispatch a ConferenceUpdate leave notification', () => {
+        call.conference.part(pvtData)
+        expect(onNotification).toBeCalledWith({ type: Notification.ConferenceUpdate, action: ConferenceAction.Leave, call, conferenceName: '3594', participantId: '455', role: 'moderator' })
+      })
+    })
+
+    describe('destroy', () => {
+      const pvtData = JSON.parse(`{"callID":"${callID}","action":"conference-liveArray-part","laChannel":"${channels[0]}","laName":"3594","role":"moderator","chatID":"conf+3594@cantina.freeswitch.org","conferenceMemberID":"455","canvasCount":1,"modChannel":"${channels[3]}","chatChannel":"${channels[1]}","infoChannel":"${channels[2]}"}`)
+
+      it('should execute the verto.unsubscribe with all channels and remove callbacks from the queue', async () => {
+        Connection.mockResponse
+          .mockImplementationOnce(() => JSON.parse(`{"jsonrpc":"2.0","id":77,"result":{"subscribedChannels":${JSON.stringify(channels)},"sessid":"sessid-xyz"}}`))
+          .mockImplementationOnce(() => JSON.parse(`{"jsonrpc":"2.0","id":77,"result":{"unsubscribedChannels":${JSON.stringify(channels)},"sessid":"sessid-xyz"}}`))
+        await call.conference.join(pvtData)
+        expectChannelsToHaveBeenQueued(true)
+        Connection.mockSend.mockClear()
+
+        await call.conference.destroy()
+        const unsubscribe = new Unsubscribe({ sessid: instance.sessionid, eventChannel: channels })
+        expect(Connection.mockSend).toHaveBeenNthCalledWith(1, unsubscribe)
+        expectChannelsToHaveBeenQueued(false)
+      })
+    })
+
+    describe('moderator commands', () => {
+      const pvtData = JSON.parse(`{"callID":"${callID}","action":"conference-liveArray-join","laChannel":"${channels[0]}","laName":"3594","role":"moderator","chatID":"conf+3594@cantina.freeswitch.org","conferenceMemberID":"455","canvasCount":1,"modChannel":"${channels[3]}","chatChannel":"${channels[1]}","infoChannel":"${channels[2]}"}`)
+      const application = 'conf-control'
+      beforeEach(() => {
+        // @ts-ignore
+        call.conference.pvtData = pvtData
+      })
+
+      const _buildBroadcast = (data: any) => {
+        return new Broadcast({ sessid: instance.sessionid, eventChannel: channels[3], data: { application, callID, value: null, id: null, ...data } })
+      }
+
+      it('should respond to listVideoLayouts method', () => {
+        call.conference.listVideoLayouts()
+        const msg = _buildBroadcast({ command: 'list-videoLayouts' })
+        expect(Connection.mockSend).toHaveBeenNthCalledWith(1, msg)
+      })
+
+      it('should respond to playMedia method', () => {
+        call.conference.playMedia('media.mp4')
+        const msg = _buildBroadcast({ command: 'play', value: 'media.mp4',  })
+        expect(Connection.mockSend).toHaveBeenNthCalledWith(1, msg)
+      })
+
+      it('should respond to stopMedia method', () => {
+        call.conference.stopMedia()
+        const msg = _buildBroadcast({ command: 'stop', value: 'all',  })
+        expect(Connection.mockSend).toHaveBeenNthCalledWith(1, msg)
+      })
+
+      it('should respond to deaf method', () => {
+        call.conference.deaf('789')
+        const msg = _buildBroadcast({ command: 'deaf', id: '789' })
+        expect(Connection.mockSend).toHaveBeenNthCalledWith(1, msg)
+      })
+
+      it('should respond to undeaf method', () => {
+        call.conference.undeaf('789')
+        const msg = _buildBroadcast({ command: 'undeaf', id: '789' })
+        expect(Connection.mockSend).toHaveBeenNthCalledWith(1, msg)
+      })
+
+      it('should respond to startRecord method', () => {
+        call.conference.startRecord('rec.mp4')
+        const msg = _buildBroadcast({ command: 'recording', value: ['start', 'rec.mp4'] })
+        expect(Connection.mockSend).toHaveBeenNthCalledWith(1, msg)
+      })
+
+      it('should respond to stopRecord method', () => {
+        call.conference.stopRecord()
+        const msg = _buildBroadcast({ command: 'recording', value: ['stop', 'all'] })
+        expect(Connection.mockSend).toHaveBeenNthCalledWith(1, msg)
+      })
+
+      it('should respond to snapshot method', () => {
+        call.conference.snapshot('snapshot.jpg')
+        const msg = _buildBroadcast({ command: 'vid-write-png', value: 'snapshot.jpg' })
+        expect(Connection.mockSend).toHaveBeenNthCalledWith(1, msg)
+      })
+
+      it('should respond to setVideoLayout method', () => {
+        call.conference.setVideoLayout('layout', 123)
+        const msg = _buildBroadcast({ command: 'vid-layout', value: ['layout', 123] })
+        expect(Connection.mockSend).toHaveBeenNthCalledWith(1, msg)
+      })
+
+      it('should respond to kick method', () => {
+        call.conference.kick('789')
+        const msg = _buildBroadcast({ command: 'kick', id: '789' })
+        expect(Connection.mockSend).toHaveBeenNthCalledWith(1, msg)
+      })
+
+      it('should respond to muteMic method', () => {
+        call.conference.muteMic('789')
+        const msg = _buildBroadcast({ command: 'tmute', id: '789' })
+        expect(Connection.mockSend).toHaveBeenNthCalledWith(1, msg)
+      })
+
+      it('should respond to muteVideo method', () => {
+        call.conference.muteVideo('789')
+        const msg = _buildBroadcast({ command: 'tvmute', id: '789' })
+        expect(Connection.mockSend).toHaveBeenNthCalledWith(1, msg)
+      })
+
+      it('should respond to presenter method', () => {
+        call.conference.presenter('789')
+        const msg = _buildBroadcast({ command: 'vid-res-id', id: '789', value: 'presenter' })
+        expect(Connection.mockSend).toHaveBeenNthCalledWith(1, msg)
+      })
+
+      it('should respond to videoFloor method', () => {
+        call.conference.videoFloor('789')
+        const msg = _buildBroadcast({ command: 'vid-floor', id: '789', value: 'force' })
+        expect(Connection.mockSend).toHaveBeenNthCalledWith(1, msg)
+      })
+
+      it('should respond to banner method', () => {
+        const text = 'Banner Text'
+        call.conference.banner('789', text)
+        const msg = _buildBroadcast({ command: 'vid-banner', id: '789', value: encodeURI(text) })
+        expect(Connection.mockSend).toHaveBeenNthCalledWith(1, msg)
+      })
+
+      it('should respond to volumeDown method', () => {
+        call.conference.volumeDown('789')
+        const msg = _buildBroadcast({ command: 'volume_out', id: '789', value: 'down' })
+        expect(Connection.mockSend).toHaveBeenNthCalledWith(1, msg)
+      })
+
+      it('should respond to volumeUp method', () => {
+        call.conference.volumeUp('789')
+        const msg = _buildBroadcast({ command: 'volume_out', id: '789', value: 'up' })
+        expect(Connection.mockSend).toHaveBeenNthCalledWith(1, msg)
+      })
+
+      it('should respond to gainDown method', () => {
+        call.conference.gainDown('789')
+        const msg = _buildBroadcast({ command: 'volume_in', id: '789', value: 'down' })
+        expect(Connection.mockSend).toHaveBeenNthCalledWith(1, msg)
+      })
+
+      it('should respond to gainUp method', () => {
+        call.conference.gainUp('789')
+        const msg = _buildBroadcast({ command: 'volume_in', id: '789', value: 'up' })
+        expect(Connection.mockSend).toHaveBeenNthCalledWith(1, msg)
+      })
+
+      it('should respond to transfer method', () => {
+        call.conference.transfer('789', '3595')
+        const msg = _buildBroadcast({ command: 'transfer', id: '789', value: '3595' })
+        expect(Connection.mockSend).toHaveBeenNthCalledWith(1, msg)
+      })
+
+
+      it('should dispatch a ConferenceUpdate leave notification', () => {
+        call.conference.part(pvtData)
+        expect(onNotification).toBeCalledWith({ type: Notification.ConferenceUpdate, action: ConferenceAction.Leave, call, conferenceName: '3594', participantId: '455', role: 'moderator' })
+      })
+    })
+  })
+}

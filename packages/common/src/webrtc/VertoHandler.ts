@@ -1,7 +1,7 @@
 import logger from '../util/logger'
 import BrowserSession from '../BrowserSession'
 import Conference from './Conference'
-import WebRTCCall from './WebRTCCall'
+import Call from './Call'
 import { Result } from '../messages/Verto'
 import { SwEvent } from '../util/constants'
 import { VertoMethod, NOTIFICATION_TYPE } from './constants'
@@ -43,7 +43,7 @@ const _handleSessionEvent = (session: BrowserSession, eventData: any) => {
 }
 
 const _buildCall = (session: BrowserSession, params: any, attach: boolean, nodeId: string) => {
-  const call = new WebRTCCall(session, {
+  const call = new Call(session, {
     id: params.callID,
     remoteSdp: params.sdp,
     destinationNumber: params.callee_id_number,

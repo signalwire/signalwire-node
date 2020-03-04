@@ -2,7 +2,7 @@ import BrowserSession from '../../common/src/BrowserSession'
 import { SubscribeParams, BroadcastParams } from '../../common/src/util/interfaces'
 import { CallOptions } from '../../common/src/webrtc/interfaces'
 import { Login } from '../../common/src/messages/Verto'
-import WebRTCCall from '../../common/src/webrtc/WebRTCCall'
+import Call from '../../common/src/webrtc/Call'
 import { SwEvent, SESSION_ID } from '../../common/src/util/constants'
 import { trigger } from '../../common/src/services/Handler'
 import { localStorage } from '../../common/src/util/storage/'
@@ -24,7 +24,7 @@ export default class Verto extends BrowserSession {
     if (!destinationNumber) {
       throw new Error('Verto.newCall() error: destinationNumber is required.')
     }
-    const call = new WebRTCCall(this, options)
+    const call = new Call(this, options)
     call.invite()
     return call
   }

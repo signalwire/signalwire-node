@@ -2,32 +2,38 @@ import { v4 as uuidv4 } from 'uuid'
 import logger from '../util/logger'
 import BrowserSession from '../BrowserSession'
 import BaseMessage from '../messages/BaseMessage'
-import { Bye, Info } from '../messages/Verto'
 import RTCPeer from './RTCPeer'
+import { Bye, Info, Modify } from '../messages/Verto'
 import { SwEvent } from '../util/constants'
 import { State, DEFAULT_CALL_OPTIONS, Role, PeerType, VertoMethod, Notification, Direction } from './constants'
 import { trigger, register, deRegisterAll } from '../services/Handler'
+import { enableAudioTracks, disableAudioTracks, toggleAudioTracks, enableVideoTracks, disableVideoTracks, toggleVideoTracks } from './helpers'
 import { objEmpty, isFunction } from '../util/helpers'
 import { CallOptions } from './interfaces'
 import { detachMediaStream, stopStream, setMediaElementSinkId } from '../util/webrtc'
 import Conference from './Conference'
 
-export default class WebRTCCall {
+export default abstract class WebRTCCall {
   public id: string = ''
+  public nodeId: string
   public direction: Direction
   public peer: RTCPeer
   public options: CallOptions
   public conference: Conference
   public cause: string
   public causeCode: number
+  // TODO: check role on Conference using getter
   public role: string = Role.Participant
   public extension: string = null
   public gotAnswer = false
   public gotEarly = false
+  public screenShare?: WebRTCCall
 
   private _state: State = State.New
   private _prevState: State = State.New
-  private _targetNodeId: string = null
+
+  startScreenShare?(opts?: CallOptions): Promise<WebRTCCall>
+  stopScreenShare?(): void
 
   constructor(protected session: BrowserSession, opts?: CallOptions) {
     const { iceServers, speaker: speakerId, micId, micLabel, camId, camLabel, localElement, remoteElement, mediaConstraints: { audio, video } } = session
@@ -48,14 +54,6 @@ export default class WebRTCCall {
 
   get prevState() {
     return State[this._prevState].toLowerCase()
-  }
-
-  get nodeId() {
-    return this._targetNodeId
-  }
-
-  set nodeId(nodeId: string) {
-    this._targetNodeId = nodeId
   }
 
   get localStream() {
@@ -88,8 +86,66 @@ export default class WebRTCCall {
   }
 
   dtmf(dtmf: string) {
-    const msg = new Info({ sessid: this.session.sessionid, dtmf, dialogParams: this.options })
+    const msg = new Info({ ...this.messagePayload, dtmf })
     this._execute(msg)
+  }
+
+  transfer(destination: string) {
+    const msg = new Modify({ ...this.messagePayload, action: 'transfer', destination })
+    this._execute(msg)
+  }
+
+  replace(callId: string) {
+    const msg = new Modify({ ...this.messagePayload, action: 'replace', replaceCallID: callId })
+    this._execute(msg)
+  }
+
+  hold() {
+    return this._changeHold('hold')
+  }
+
+  unhold() {
+    return this._changeHold('unhold')
+  }
+
+  toggleHold() {
+    return this._changeHold('toggleHold')
+  }
+
+  muteAudio() {
+    disableAudioTracks(this.options.localStream)
+  }
+
+  unmuteAudio() {
+    enableAudioTracks(this.options.localStream)
+  }
+
+  toggleAudioMute() {
+    toggleAudioTracks(this.options.localStream)
+  }
+
+  muteVideo() {
+    disableVideoTracks(this.options.localStream)
+  }
+
+  unmuteVideo() {
+    enableVideoTracks(this.options.localStream)
+  }
+
+  toggleVideoMute() {
+    toggleVideoTracks(this.options.localStream)
+  }
+
+  deaf() {
+    disableAudioTracks(this.options.remoteStream)
+  }
+
+  undeaf() {
+    enableAudioTracks(this.options.remoteStream)
+  }
+
+  toggleDeaf() {
+    toggleAudioTracks(this.options.remoteStream)
   }
 
   setState(state: State) {
@@ -113,6 +169,9 @@ export default class WebRTCCall {
         break
       }
       case State.Hangup:
+        if (this.screenShare instanceof WebRTCCall) {
+          this.screenShare.hangup()
+        }
         this.setState(State.Destroy)
         break
       case State.Destroy:
@@ -122,6 +181,18 @@ export default class WebRTCCall {
           this._finalize()
         }
         break
+    }
+  }
+
+  private async _changeHold(action: string) {
+    const msg = new Modify({ ...this.messagePayload, action })
+    try {
+      const { holdState } = await this._execute(msg)
+      holdState === 'active' ? this.setState(State.Active) : this.setState(State.Held)
+      return true
+    } catch (error) {
+      logger.error('Error changing hold state', error)
+      return false
     }
   }
 

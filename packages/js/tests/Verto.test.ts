@@ -2,6 +2,7 @@ import behaveLikeBaseSession from '../../common/tests/behaveLike/BaseSession.spe
 import behaveLikeBrowserSession from '../../common/tests/behaveLike/BrowserSession.spec'
 import VertoHandler from '../../common/src/webrtc/VertoHandler.spec'
 import LayoutHandler from '../../common/tests/webrtc/LayoutHandler.spec'
+import ConferenceSpec from '../../common/src/webrtc/Conference.spec'
 import { Subscribe, Unsubscribe, Broadcast } from '../../common/src/messages/Verto'
 import Verto from '../src/Verto'
 const Connection = require('../../common/src/services/Connection')
@@ -19,6 +20,7 @@ describe('Verto', () => {
   behaveLikeBrowserSession(_buildInstance())
   VertoHandler(_buildInstance())
   LayoutHandler(_buildInstance())
+  ConferenceSpec(_buildInstance())
 
   beforeEach(() => {
     instance = _buildInstance()

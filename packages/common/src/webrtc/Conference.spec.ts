@@ -2,7 +2,7 @@ import WebRTCCall from './WebRTCCall'
 import { Notification, ConferenceAction } from './constants'
 import Conference from './Conference'
 import { Subscribe, Broadcast, Unsubscribe } from '../messages/Verto'
-import { isQueued } from '../services/Handler'
+import { isQueued, trigger } from '../services/Handler'
 const Connection = require('../../../common/src/services/Connection')
 
 jest.unmock('./Conference')
@@ -36,7 +36,96 @@ export default (instance: any) => {
       }
     }
 
-    describe('Join as moderator', () => {
+    describe('handle inbound verto events', () => {
+      const media = {
+        audio: { muted: false, deaf: false, onHold: false, talking: true, floor: true, energyScore: 681 },
+        video: { visible: false, videoOnly: false, avatarPresented: false, mediaFlow: 'sendRecv', muted: false, floor: true, reservationId: null, roleId: null, videoLayerId: -1, canvasId: 0, watchingCanvasId: 0 },
+        oldStatus: 'old-status'
+      }
+      const mediaJsonString = JSON.stringify(media).replace(/"/g, '\\"')
+      const partialNotification = {
+        type: Notification.ConferenceUpdate,
+        callId: callID,
+        participantId: 843,
+        participantNumber: 'example@domain.com',
+        participantName: 'Joe',
+        codec: 'opus@48000',
+        media,
+        participantData: {
+          email: 'example@domain.com'
+        }
+      }
+
+      beforeEach(async () => {
+        const pvtData = JSON.parse(`{"callID":"${callID}","action":"conference-liveArray-join","laChannel":"${channels[0]}","laName":"3594","role":"moderator","chatID":"conf+3594@cantina.freeswitch.org","conferenceMemberID":"455","canvasCount":1,"modChannel":"${channels[3]}","chatChannel":"${channels[1]}","infoChannel":"${channels[2]}"}`)
+        Connection.mockResponse.mockImplementationOnce(() => JSON.parse(`{"jsonrpc":"2.0","id":77,"result":{"subscribedChannels":${JSON.stringify(channels)},"sessid":"sessid-xyz"}}`))
+        await call.conference.join(pvtData)
+        onNotification.mockClear()
+      })
+
+      it('should handle the bootObj event', async () => {
+        const params = JSON.parse(`{"data":{"action":"bootObj","name":"3598","wireSerno":-1,"data":[["${callID}",["0843","example@domain.com","Joe","opus@48000","${mediaJsonString}",{"email":"example@domain.com"},null]]]},"eventChannel":"conference-liveArray.3598@cantina.freeswitch.org","sessid":"b72b1e7c-47fd-4202-b615-376a86dfdc8b","eventSerno":0}`)
+        trigger(channels[0], params)
+        const participants = [
+          {
+            callId: callID,
+            participantId: 843,
+            participantNumber: 'example@domain.com',
+            participantName: 'Joe',
+            codec: 'opus@48000',
+            media,
+            participantData: {
+              email: 'example@domain.com'
+            }
+          }
+        ]
+        const notif = { type: Notification.ConferenceUpdate, action: ConferenceAction.Bootstrap, call, participants }
+        expect(onNotification).toBeCalledWith(notif)
+      })
+
+      it('should handle the add participant event', async () => {
+        const params = JSON.parse(`{"data":{"action":"add","arrIndex":1,"name":"3598","hashKey":"${callID}","wireSerno":11,"data":["0843","example@domain.com","Joe","opus@48000","${mediaJsonString}",{"email":"example@domain.com"},null]},"eventChannel":"conference-liveArray.3598@cantina.freeswitch.org","eventSerno":6}`)
+        trigger(channels[0], params)
+        const notif = {
+          ...partialNotification,
+          call,
+          action: ConferenceAction.Add
+        }
+        expect(onNotification).toBeCalledWith(notif)
+      })
+
+      it('should handle the modify participant event', async () => {
+        const params = JSON.parse(`{"data":{"action":"modify","name":"3598","hashKey":"${callID}","wireSerno":8,"data":["0843","example@domain.com","Joe","opus@48000","${mediaJsonString}",{"email":"example@domain.com"},null]},"eventChannel":"conference-liveArray.3598@cantina.freeswitch.org","eventSerno":3}`)
+        trigger(channels[0], params)
+        const notif = {
+          ...partialNotification,
+          call,
+          action: ConferenceAction.Modify
+        }
+        expect(onNotification).toBeCalledWith(notif)
+      })
+
+      it('should handle the del participant event', async () => {
+        const params = JSON.parse(`{"data":{"name":"3598","action":"del","hashKey":"${callID}","wireSerno":8,"data":["0843","example@domain.com","Joe","opus@48000","${mediaJsonString}",{"email":"example@domain.com"},null]},"eventChannel":"conference-liveArray.3599@cantina.freeswitch.org","eventSerno":4}`)
+        trigger(channels[0], params)
+        const notif = {
+          ...partialNotification,
+          call,
+          action: ConferenceAction.Delete
+        }
+        expect(onNotification).toBeCalledWith(notif)
+      })
+
+      it('should handle chat events', async () => {
+        const params = JSON.parse('{"data":{"direction":"outbound","message":"hi","fromDisplay":"Joe","from":"1008","type":"message"},"eventChannel":"conference-chat.3599@cantina.freeswitch.org","eventSerno":9}')
+        trigger(channels[1], params)
+        const notif = { type: Notification.ConferenceUpdate, action: ConferenceAction.ChatMessage, call, direction: 'outbound', participantNumber: '1008', participantName: 'Joe', messageText: 'hi', messageType: 'message', messageId: 9 }
+        expect(onNotification).toBeCalledWith(notif)
+      })
+
+    })
+
+    describe('Join', () => {
       const pvtData = JSON.parse(`{"callID":"${callID}","action":"conference-liveArray-join","laChannel":"${channels[0]}","laName":"3594","role":"moderator","chatID":"conf+3594@cantina.freeswitch.org","conferenceMemberID":"455","canvasCount":1,"modChannel":"${channels[3]}","chatChannel":"${channels[1]}","infoChannel":"${channels[2]}"}`)
 
       it('should set the extension on the Call', () => {
@@ -56,32 +145,6 @@ export default (instance: any) => {
         const subscribe = new Subscribe({ sessid: instance.sessionid, eventChannel: channels })
         expect(Connection.mockSend).toHaveBeenNthCalledWith(1, subscribe)
         const broadcast = new Broadcast({ sessid: instance.sessionid, eventChannel: channels[0], data: { liveArray: { command: 'bootstrap', context: channels[0], name: '3594' } } })
-        expect(Connection.mockSend).toHaveBeenNthCalledWith(2, broadcast)
-        expectChannelsToHaveBeenQueued(true)
-      })
-    })
-
-    describe('Join as participant', () => {
-      const pvtData = JSON.parse(`{"callID":"${callID}","action":"conference-liveArray-join","laChannel":"${channels[0]}","laName":"3594","role":"participant","chatID":"conf+3594@cantina.freeswitch.org","conferenceMemberID":"455","canvasCount":1,"chatChannel":"${channels[1]}","infoChannel":"${channels[2]}"}`)
-
-      it('should set the extension on the Call', () => {
-        call.conference.join(pvtData)
-        expect(call.extension).toBe('3594')
-      })
-
-      it('should dispatch a ConferenceUpdate join notification', () => {
-        call.conference.join(pvtData)
-        expect(onNotification).toBeCalledWith({ type: Notification.ConferenceUpdate, action: ConferenceAction.Join, call, conferenceName: '3594', participantId: '455', role: 'participant' })
-      })
-
-      it('should execute the verto.subscribe with all channels', async () => {
-        const channelsNoMod = channels.filter(c => !c.includes('mod'))
-        Connection.mockResponse.mockImplementationOnce(() => JSON.parse(`{"jsonrpc":"2.0","id":77,"result":{"subscribedChannels":${JSON.stringify(channelsNoMod)},"sessid":"sessid-xyz"}}`))
-        await call.conference.join(pvtData)
-        expect(Connection.mockSend).toHaveBeenCalledTimes(2)
-        const subscribe = new Subscribe({ sessid: instance.sessionid, eventChannel: channelsNoMod })
-        expect(Connection.mockSend).toHaveBeenNthCalledWith(1, subscribe)
-        const broadcast = new Broadcast({ sessid: instance.sessionid, eventChannel: channelsNoMod[0], data: { liveArray: { command: 'bootstrap', context: channelsNoMod[0], name: '3594' } } })
         expect(Connection.mockSend).toHaveBeenNthCalledWith(2, broadcast)
         expectChannelsToHaveBeenQueued(true)
       })
@@ -116,14 +179,13 @@ export default (instance: any) => {
 
     describe('moderator commands', () => {
       const pvtData = JSON.parse(`{"callID":"${callID}","action":"conference-liveArray-join","laChannel":"${channels[0]}","laName":"3594","role":"moderator","chatID":"conf+3594@cantina.freeswitch.org","conferenceMemberID":"455","canvasCount":1,"modChannel":"${channels[3]}","chatChannel":"${channels[1]}","infoChannel":"${channels[2]}"}`)
-      const application = 'conf-control'
       beforeEach(() => {
         // @ts-ignore
         call.conference.pvtData = pvtData
       })
 
       const _buildBroadcast = (data: any) => {
-        return new Broadcast({ sessid: instance.sessionid, eventChannel: channels[3], data: { application, callID, value: null, id: null, ...data } })
+        return new Broadcast({ sessid: instance.sessionid, eventChannel: channels[3], data: { application: 'conf-control', callID, value: null, id: null, ...data } })
       }
 
       it('should respond to listVideoLayouts method', () => {

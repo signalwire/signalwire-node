@@ -147,26 +147,26 @@ export default class Conference {
       logger.error('Invalid conference wireSerno:', packet)
       return this._bootstrap()
     }
-    const { action, data, hashKey: callId, arrIndex: index } = packet
+    const { action, data, hashKey: callId } = packet
     switch (action) {
       case 'bootObj': {
         this._lastSerno = 0
         const participants = []
         for (const i in data) {
-          participants.push({ callId: data[i][0], index: Number(i), ...mutateLiveArrayData(data[i][1]) })
+          participants.push({ callId: data[i][0], ...mutateLiveArrayData(data[i][1]) })
         }
         return this._dispatchConferenceUpdate({ action: ConferenceAction.Bootstrap, participants })
       }
       case 'add':
-        return this._dispatchConferenceUpdate({ action: ConferenceAction.Add, callId, index, ...mutateLiveArrayData(data) })
+        return this._dispatchConferenceUpdate({ action: ConferenceAction.Add, callId, ...mutateLiveArrayData(data) })
       case 'modify':
-        return this._dispatchConferenceUpdate({ action: ConferenceAction.Modify, callId, index, ...mutateLiveArrayData(data) })
+        return this._dispatchConferenceUpdate({ action: ConferenceAction.Modify, callId, ...mutateLiveArrayData(data) })
       case 'del':
-        return this._dispatchConferenceUpdate({ action: ConferenceAction.Delete, callId, index, ...mutateLiveArrayData(data) })
+        return this._dispatchConferenceUpdate({ action: ConferenceAction.Delete, callId, ...mutateLiveArrayData(data) })
       case 'clear':
         return this._dispatchConferenceUpdate({ action: ConferenceAction.Clear })
       default:
-        return this._dispatchConferenceUpdate({ action, data, callId, index })
+        return this._dispatchConferenceUpdate({ action, data, callId })
     }
   }
 
@@ -202,7 +202,6 @@ export default class Conference {
   }
 
   private _bootstrap() {
-    console.warn('Sending conf bootstrap!')
     const { laName, laChannel } = this.pvtData
     const data = { liveArray: { command: 'bootstrap', context: laChannel, name: laName } }
     this.session.vertoBroadcast({ nodeId: this.nodeId, channel: laChannel, data })

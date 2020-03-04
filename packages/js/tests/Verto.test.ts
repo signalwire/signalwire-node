@@ -5,6 +5,7 @@ import LayoutHandler from '../../common/tests/webrtc/LayoutHandler.spec'
 import ConferenceSpec from '../../common/src/webrtc/Conference.spec'
 import { Subscribe, Unsubscribe, Broadcast } from '../../common/src/messages/Verto'
 import Verto from '../src/Verto'
+import { clearQueue } from '../../common/src/services/Handler'
 const Connection = require('../../common/src/services/Connection')
 
 describe('Verto', () => {
@@ -23,6 +24,7 @@ describe('Verto', () => {
   ConferenceSpec(_buildInstance())
 
   beforeEach(() => {
+    clearQueue()
     instance = _buildInstance()
     Connection.mockSend.mockClear()
     Connection.default.mockClear()

@@ -97,6 +97,8 @@ const deRegisterAll = (event: string) => {
     .forEach(event => delete queue[event])
 }
 
+const clearQueue = () => Object.keys(queue).forEach(event => delete queue[event])
+
 export {
   trigger,
   register,
@@ -104,5 +106,6 @@ export {
   deRegister,
   deRegisterAll,
   isQueued,
-  queueLength
+  queueLength,
+  clearQueue
 }

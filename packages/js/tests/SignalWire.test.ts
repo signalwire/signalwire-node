@@ -9,6 +9,7 @@ import { BladeDisconnect } from '../../common/tests/behaveLike/BladeMessages.spe
 import { Subscribe, Unsubscribe, Broadcast } from '../../common/src/messages/Verto'
 import { Execute } from '../../common/src/messages/Blade'
 import SignalWire from '../src/SignalWire'
+import { clearQueue } from '../../common/src/services/Handler'
 const Connection = require('../../common/src/services/Connection')
 
 describe('SignalWire Web', () => {
@@ -31,6 +32,7 @@ describe('SignalWire Web', () => {
   BladeDisconnect(_buildInstance())
 
   beforeEach(() => {
+    clearQueue()
     instance = _buildInstance()
     Connection.mockSend.mockClear()
     Connection.default.mockClear()

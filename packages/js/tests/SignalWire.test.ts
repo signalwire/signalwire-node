@@ -18,15 +18,14 @@ describe('SignalWire Web', () => {
   let instance = _buildInstance()
   const nodeId = 'node-uuid'
 
-  behaveLikeBaseSession.call(this, instance)
-  behaveLikeBrowserSession.call(this, instance)
-  behaveLikeReceive.call(this, instance)
-  behaveLikeSetup.call(this, instance)
-  BladeDisconnect.call(this, instance)
+  behaveLikeBaseSession(_buildInstance())
+  behaveLikeBrowserSession(_buildInstance())
+  behaveLikeReceive(_buildInstance())
+  behaveLikeSetup(_buildInstance())
+  BladeDisconnect(_buildInstance())
 
   beforeEach(() => {
     instance = _buildInstance()
-    instance.subscriptions = {}
     Connection.mockSend.mockClear()
     Connection.default.mockClear()
     Connection.mockClose.mockClear()

@@ -58,11 +58,9 @@ export default class App extends Component<Props> {
       }
     })
 
-    this.client.iceServers = [{
-      url: 'turn:turn.cantina.signalwire.com:443?transport=tcp',
-      username: 'verto',
-      credential: 'signalwire'
-    }];
+    this.client.iceServers = [
+      { urls: ['stun:stun.l.google.com:19302'] }
+    ];
 
     this.client.on('signalwire.socket.open', () => {
       console.log('Socket Open')

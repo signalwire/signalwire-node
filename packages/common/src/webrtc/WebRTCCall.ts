@@ -80,7 +80,7 @@ export default abstract class WebRTCCall {
 
   hangup(params: any = {}) {
     const bye = new Bye(this.messagePayload)
-    this._execute(bye)
+    return this._execute(bye)
       .catch(error => logger.error('Hangup error:', error))
       .then(() => this._hangup(params))
   }

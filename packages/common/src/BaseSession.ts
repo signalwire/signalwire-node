@@ -6,7 +6,7 @@ import Setup from './services/Setup'
 import BaseMessage from '../../common/src/messages/BaseMessage'
 import { deRegister, register, trigger, deRegisterAll } from './services/Handler'
 import BroadcastHandler from './services/BroadcastHandler'
-import { ADD, REMOVE, SwEvent, BladeMethod } from './util/constants'
+import { ADD, REMOVE, SwEvent, BladeMethod, TIMEOUT_ERROR_CODE } from './util/constants'
 import { NOTIFICATION_TYPE } from './webrtc/constants'
 import { BroadcastParams, ISignalWireOptions, SubscribeParams, IBladeConnectResult } from './util/interfaces'
 import { Subscription, Connect, Reauthenticate, Ping } from './messages/Blade'
@@ -79,6 +79,12 @@ export default abstract class BaseSession {
       })
     }
     return this.connection.send(msg)
+      .catch(error => {
+        if (error.code && error.code === TIMEOUT_ERROR_CODE) {
+          this._closeConnection()
+        }
+        throw error
+      })
   }
 
   /**
@@ -213,7 +219,6 @@ export default abstract class BaseSession {
    * @return void
    */
   protected _handleLoginError(error: any) {
-    this._autoReconnect = false
     trigger(SwEvent.Error, error, this.uuid)
   }
 

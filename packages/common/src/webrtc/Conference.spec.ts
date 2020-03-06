@@ -185,7 +185,7 @@ export default (instance: any) => {
       })
 
       const _buildBroadcast = (data: any) => {
-        const params = { sessid: instance.sessionid, eventChannel: channels[3], data: { application: 'conf-control', callID, value: null, id: null, ...data } }
+        const params = { sessid: instance.sessionid, eventChannel: channels[3], data: { application: 'conf-control', callID, ...data } }
         return instance._wrapInExecute(new Broadcast(params))
       }
 

@@ -61,84 +61,84 @@ export default class Conference {
   }
 
   listVideoLayouts() {
-    this._modCommand('list-videoLayouts')
+    this._confControl(this.pvtData.modChannel, { command: 'list-videoLayouts' })
   }
 
   playMedia(file: string) {
-    this._modCommand('play', null, file)
+    this._confControl(this.pvtData.modChannel, { command: 'play', value: file })
   }
 
   stopMedia() {
-    this._modCommand('stop', null, 'all')
+    this._confControl(this.pvtData.modChannel, { command: 'stop', value: 'all' })
   }
 
-  deaf(participantId: number | string) {
-    this._modCommand('deaf', participantId)
+  deaf(id: number | string) {
+    this._confControl(this.pvtData.modChannel, { command: 'deaf', id })
   }
 
-  undeaf(participantId: number | string) {
-    this._modCommand('undeaf', participantId)
+  undeaf(id: number | string) {
+    this._confControl(this.pvtData.modChannel, { command: 'undeaf', id })
   }
 
   startRecord(file: string) {
-    this._modCommand('recording', null, ['start', file])
+    this._confControl(this.pvtData.modChannel, { command: 'recording', value: ['start', file] })
   }
 
   stopRecord() {
-    this._modCommand('recording', null, ['stop', 'all'])
+    this._confControl(this.pvtData.modChannel, { command: 'recording', value: ['stop', 'all'] })
   }
 
   snapshot(file: string) {
-    this._modCommand('vid-write-png', null, file)
+    this._confControl(this.pvtData.modChannel, { command: 'vid-write-png', value: file })
   }
 
   setVideoLayout(layout: string, canvasID: number) {
     const value = canvasID ? [layout, canvasID] : layout
-    this._modCommand('vid-layout', null, value)
+    this._confControl(this.pvtData.modChannel, { command: 'vid-layout', value })
   }
 
-  kick(participantId: number | string) {
-    this._modCommand('kick', participantId)
+  kick(id: number | string) {
+    this._confControl(this.pvtData.modChannel, { command: 'kick', id })
   }
 
-  muteMic(participantId: number | string) {
-    this._modCommand('tmute', participantId)
+  muteMic(id: number | string) {
+    this._confControl(this.pvtData.modChannel, { command: 'tmute', id })
   }
 
-  muteVideo(participantId: number | string) {
-    this._modCommand('tvmute', participantId)
+  muteVideo(id: number | string) {
+    this._confControl(this.pvtData.modChannel, { command: 'tvmute', id })
   }
 
-  presenter(participantId: number | string) {
-    this._modCommand('vid-res-id', participantId, 'presenter')
+  presenter(id: number | string) {
+    this._confControl(this.pvtData.modChannel, { command: 'vid-res-id', id, value: 'presenter' })
   }
 
-  videoFloor(participantId: number | string) {
-    this._modCommand('vid-floor', participantId, 'force')
+  videoFloor(id: number | string) {
+    this._confControl(this.pvtData.modChannel, { command: 'vid-floor', id, value: 'force' })
   }
 
-  banner(participantId: number | string, text: string) {
-    this._modCommand('vid-banner', participantId, encodeURI(text))
+  banner(id: number | string, text: string) {
+    this._confControl(this.pvtData.modChannel, { command: 'vid-banner', id, value: encodeURI(text) })
   }
 
-  volumeDown(participantId: number | string) {
-    this._modCommand('volume_out', participantId, 'down')
+  volumeDown(id: number | string) {
+    this._confControl(this.pvtData.modChannel, { command: 'volume_out', id, value: 'down' })
   }
 
-  volumeUp(participantId: number | string) {
-    this._modCommand('volume_out', participantId, 'up')
+  volumeUp(id: number | string) {
+    this._confControl(this.pvtData.modChannel, { command: 'volume_out', id, value: 'up' })
   }
 
-  gainDown(participantId: number | string) {
-    this._modCommand('volume_in', participantId, 'down')
+  gainDown(id: number | string) {
+    this._confControl(this.pvtData.modChannel, { command: 'volume_in', id, value: 'down' })
   }
 
-  gainUp(participantId: number | string) {
-    this._modCommand('volume_in', participantId, 'up')
+  gainUp(id: number | string) {
+    this._confControl(this.pvtData.modChannel, { command: 'volume_in', id, value: 'up' })
   }
 
-  transfer(participantId: number | string, exten: string) {
-    this._modCommand('transfer', participantId, exten)
+  transfer(id: number | string, exten: string) {
+    this._confControl(this.pvtData.modChannel, { command: 'transfer', id, value: exten })
   }
 
   laChannelHandler({ data: packet }: any) {
@@ -211,14 +211,9 @@ export default class Conference {
     const data = {
       application: 'conf-control',
       callID: this.callId,
-      value: null,
       ...params
     }
     this.session.vertoBroadcast({ nodeId: this.nodeId, channel, data })
-  }
-
-  private _modCommand = (command: string, id = null, value = null): void => {
-    this._confControl(this.pvtData.modChannel, { command, id, value })
   }
 
   private async _subscribe() {

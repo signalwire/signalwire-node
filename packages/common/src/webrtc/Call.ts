@@ -1,20 +1,11 @@
 import logger from '../util/logger'
-import BaseCall from './BaseCall'
+import WebRTCCall from './WebRTCCall'
 import { CallOptions } from './interfaces'
-import { getDisplayMedia, setMediaElementSinkId } from '../util/webrtc'
+import { getDisplayMedia } from '../util/webrtc'
 
-export default class Call extends BaseCall {
-
-  public screenShare: Call
+export default class Call extends WebRTCCall {
 
   private _statsInterval: any = null
-
-  hangup(params: any = {}, execute: boolean = true) {
-    if (this.screenShare instanceof Call) {
-      this.screenShare.hangup(params, execute)
-    }
-    super.hangup(params, execute)
-  }
 
   async startScreenShare(opts?: CallOptions) {
     const displayStream: MediaStream = await getDisplayMedia({ video: true })
@@ -45,15 +36,6 @@ export default class Call extends BaseCall {
     if (this.screenShare instanceof Call) {
       this.screenShare.hangup()
     }
-  }
-
-  async setAudioOutDevice(deviceId: string): Promise<boolean> {
-    this.options.speakerId = deviceId
-    const { remoteElement, speakerId } = this.options
-    if (remoteElement && speakerId) {
-      return setMediaElementSinkId(remoteElement, speakerId)
-    }
-    return false
   }
 
   protected _finalize() {

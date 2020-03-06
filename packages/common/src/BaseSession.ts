@@ -7,7 +7,7 @@ import BaseMessage from '../../common/src/messages/BaseMessage'
 import { deRegister, register, trigger, deRegisterAll } from './services/Handler'
 import BroadcastHandler from './services/BroadcastHandler'
 import { ADD, REMOVE, SwEvent, BladeMethod } from './util/constants'
-import { NOTIFICATION_TYPE } from './webrtc/constants'
+import { Notification } from './webrtc/constants'
 import { BroadcastParams, ISignalWireOptions, SubscribeParams, IBladeConnectResult } from './util/interfaces'
 import { Subscription, Connect, Reauthenticate, Ping } from './messages/Blade'
 import { isFunction, randomInt } from './util/helpers'
@@ -401,7 +401,7 @@ export default abstract class BaseSession {
     const diff = this.expiresAt - (Date.now() / 1000)
     if (diff <= 60) {
       logger.warn('Your JWT is going to expire. You should refresh it to keep the session live.')
-      trigger(SwEvent.Notification, { type: NOTIFICATION_TYPE.refreshToken, session: this }, this.uuid, false)
+      trigger(SwEvent.Notification, { type: Notification.RefreshToken, session: this }, this.uuid, false)
     }
     if (!this.expired) {
       setTimeout(this._checkTokenExpiration, 30 * 1000)

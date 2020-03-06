@@ -27,15 +27,14 @@ export enum VertoMethod {
   Modify = 'verto.modify',
 }
 
-export const NOTIFICATION_TYPE = {
-  generic: 'event',
-  [VertoMethod.Display]: 'participantData',
-  [VertoMethod.Attach]: 'participantData',
-  conferenceUpdate: 'conferenceUpdate',
-  callUpdate: 'callUpdate',
-  vertoClientReady: 'vertoClientReady',
-  userMediaError: 'userMediaError',
-  refreshToken: 'refreshToken',
+export enum Notification {
+  Generic = 'event',
+  ParticipantData = 'participantData',
+  ConferenceUpdate = 'conferenceUpdate',
+  CallUpdate = 'callUpdate',
+  VertoClientReady = 'vertoClientReady',
+  UserMediaError = 'userMediaError',
+  RefreshToken = 'refreshToken',
 }
 
 export const DEFAULT_CALL_OPTIONS: CallOptions = {

@@ -12,9 +12,8 @@ export default (session: any, broadcastParams: any): void => {
   switch (event) {
     case 'queuing.relay.events':
       if (event_type === 'webrtc.message') {
-        const handler = new VertoHandler(session)
-        handler.nodeId = node_id
-        handler.handleMessage(params.params)
+        params.params.nodeId = node_id
+        VertoHandler(session, params.params)
       } else {
         session.calling.notificationHandler(params)
       }

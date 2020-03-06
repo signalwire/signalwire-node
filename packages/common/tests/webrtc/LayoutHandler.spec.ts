@@ -1,16 +1,13 @@
-import BrowserSession from '../../src/BrowserSession'
 import { MCULayoutEventHandler } from '../../src/webrtc/LayoutHandler'
 import Call from '../../src/webrtc/Call'
 
-export default (klass: any) => {
+export default (instance: any) => {
   const CALL_PARAMS = { id: 'c1d19df5-5cdf-439a-9678-079549a43f40', destinationNumber: 'x3599', remoteCallerName: 'Js Client Test', remoteCallerNumber: '1234', callerName: 'Jest Client', callerNumber: '5678' }
   describe('MCULayoutEventHandler', () => {
-    let instance: BrowserSession
     let call: Call
     const onNotification = jest.fn()
 
     beforeEach(() => {
-      instance = new klass({ host: 'example.signalwire.com', login: 'login', password: 'password', project: 'project', token: 'token' })
       call = new Call(instance, CALL_PARAMS)
       onNotification.mockClear()
       instance.off('signalwire.notification')

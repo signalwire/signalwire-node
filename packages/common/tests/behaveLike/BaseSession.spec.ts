@@ -4,13 +4,13 @@ const Connection = require('../../src/services/Connection')
 
 export default (instance: any) => {
   describe('Inherit BaseClass', () => {
-
     beforeEach(() => {
       instance._idle = false
       instance._executeQueue = []
       instance.subscriptions = {}
       Connection.mockSend.mockClear()
       Connection.mockSendRawText.mockClear()
+      Connection.mockClose.mockClear()
     })
 
     describe('public methods', () => {
@@ -77,6 +77,33 @@ export default (instance: any) => {
       describe('subscribe', () => { })
       describe('unsubscribe', () => { })
       describe('broadcast', () => { })
+
+      describe('.connect()', () => {
+        it('should register socket listeners', () => {
+          const listeners = ['signalwire.socket.close', 'signalwire.socket.open', 'signalwire.socket.error', 'signalwire.socket.message']
+          listeners.forEach(event => {
+            expect(isQueued(event, instance.uuid)).toEqual(true)
+          })
+        })
+
+        describe('with an already established connection', () => {
+          it('should do nothing', async done => {
+            await instance.connect()
+            expect(Connection.mockClose).not.toHaveBeenCalled()
+            done()
+          })
+        })
+
+        describe('with an invalid connection (closed/closing state)', () => {
+          it('should close the previous one and create another', async done => {
+            Connection.mockConnect.mockClear()
+            Connection.isAlive.mockReturnValueOnce(false)
+            await instance.connect()
+            expect(Connection.mockConnect).toHaveBeenCalledTimes(1)
+            done()
+          })
+        })
+      })
 
       describe('.disconnect()', () => {
         it('should close the connection', async done => {
@@ -154,20 +181,6 @@ export default (instance: any) => {
       describe('_detachListeners()', () => { })
 
       describe('_emptyExecuteQueues()', () => { })
-    })
-
-    describe('static methods', () => {
-      const mockFn = jest.fn()
-
-      it('.on() should add a listener into the internal queue', () => {
-        BaseSession.on('event', mockFn)
-        expect(isQueued('event')).toEqual(true)
-      })
-
-      it('.off() should remove a listener from the internal queue', () => {
-        BaseSession.off('event')
-        expect(isQueued('event')).toEqual(false)
-      })
     })
   })
 }

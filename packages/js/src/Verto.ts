@@ -7,6 +7,7 @@ import { SwEvent, SESSION_ID } from '../../common/src/util/constants'
 import { trigger } from '../../common/src/services/Handler'
 import { localStorage } from '../../common/src/util/storage/'
 import VertoHandler from '../../common/src/webrtc/VertoHandler'
+import BaseMessage from '../../common/src/messages/BaseMessage'
 
 export const VERTO_PROTOCOL = 'verto-protocol'
 export default class Verto extends BrowserSession {
@@ -41,6 +42,10 @@ export default class Verto extends BrowserSession {
     return this.vertoUnsubscribe(params)
   }
 
+  _wrapInExecute(message: BaseMessage): BaseMessage {
+    return message
+  }
+
   protected async _onSocketOpen() {
     this._idle = false
     const { login, password, passwd, userVariables } = this.options
@@ -59,7 +64,6 @@ export default class Verto extends BrowserSession {
   }
 
   protected _onSocketMessage(msg: any) {
-    const handler = new VertoHandler(this)
-    handler.handleMessage(msg)
+    VertoHandler(this, msg)
   }
 }

@@ -116,6 +116,17 @@ export default (instance: any) => {
         expect(onNotification).toBeCalledWith(notif)
       })
 
+      it('should handle the clear event', async () => {
+        const params = JSON.parse(`{"data":{"action":"clear","name":"3599","wireSerno":-1,"data":{}},"eventChannel":"conference-liveArray.3599@cantina.freeswitch.org","eventSerno":4}`)
+        trigger(channels[0], params)
+        const notif = {
+          type: Notification.ConferenceUpdate,
+          action: ConferenceAction.Clear,
+          call,
+        }
+        expect(onNotification).toBeCalledWith(notif)
+      })
+
       it('should handle chat events', async () => {
         const params = JSON.parse('{"data":{"direction":"outbound","message":"hi","fromDisplay":"Joe","from":"1008","type":"message"},"eventChannel":"conference-chat.3599@cantina.freeswitch.org","eventSerno":9}')
         trigger(channels[1], params)

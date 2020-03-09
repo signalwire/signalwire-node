@@ -37,6 +37,9 @@ describe('RelayClient Node', () => {
   })
 
   describe('_onSocketOpen()', () => {
+
+    const connectMsg = new Connect(clientOptions)
+
     it('should send a blade.connect, execute setup and set signature and sessionid', async done => {
       Connection.mockResponse
         .mockImplementationOnce(() => JSON.parse('{"jsonrpc":"2.0","id":"uuid","result":{"session_restored":false,"sessionid":"bfb34f66-3caf-45a9-8a4b-a74bbd3d0b28","nodeid":"uuid","master_nodeid":"uuid","authorization":{"project":"uuid","expires_at":null,"scopes":["calling","messaging","tasking"],"signature":"uuid-signature"},"routes":[],"protocols":[],"subscriptions":[],"authorities":[],"authorizations":[],"accesses":[],"protocols_uncertified":["signalwire"]}}'))
@@ -45,8 +48,7 @@ describe('RelayClient Node', () => {
 
       // @ts-ignore
       await instance._onSocketOpen()
-      const msg = new Connect({ project: 'project', token: 'token' })
-      expect(Connection.mockSend).toHaveBeenNthCalledWith(1, msg)
+      expect(Connection.mockSend).toHaveBeenNthCalledWith(1, connectMsg)
       expect(instance.sessionid).toEqual('bfb34f66-3caf-45a9-8a4b-a74bbd3d0b28')
       expect(instance.signature).toEqual('uuid-signature')
       expect(instance.relayProtocol).toEqual('signalwire_service_random_uuid')
@@ -61,17 +63,20 @@ describe('RelayClient Node', () => {
 
     it('in case of Timeout on blade.connect it should close the connection and attempt to reconnect', async done => {
       Connection.mockResponse.mockImplementationOnce(() => JSON.parse('{"jsonrpc":"2.0","id":"uuid","error":{"code":-32000,"message":"Timeout"}}'))
+      // @ts-ignore
+      instance._reconnectDelay = 5
+      instance.connect = jest.fn()
 
       // @ts-ignore
       await instance._onSocketOpen()
-      const msg = new Connect({ project: 'project', token: 'token' })
-      expect(Connection.mockSend).toHaveBeenNthCalledWith(1, msg)
+      expect(Connection.mockSend).toHaveBeenNthCalledWith(1, connectMsg)
       expect(Connection.mockClose).toHaveBeenCalledTimes(1)
       // @ts-ignore
       expect(instance._idle).toEqual(true)
       // @ts-ignore
       expect(instance._autoReconnect).toEqual(true)
       expect(onNotification).toHaveBeenCalledTimes(0)
+      expect(instance.connect).toHaveBeenCalledTimes(0)
       done()
     })
   })

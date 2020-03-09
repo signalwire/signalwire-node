@@ -15,6 +15,7 @@ describe('RelayClient Node', () => {
     return instance
   }
   let instance: RelayClient = null
+  const onNotification = jest.fn()
 
   behaveLikeBaseSession(_buildInstance())
   behaveLikeReceive(_buildInstance())
@@ -23,10 +24,12 @@ describe('RelayClient Node', () => {
 
   beforeEach(() => {
     instance = _buildInstance()
-    instance.off('signalwire.ready')
     Connection.mockSend.mockClear()
     Connection.default.mockClear()
     Connection.mockClose.mockClear()
+    instance.off('signalwire.ready')
+    onNotification.mockClear()
+    instance.on('signalwire.ready', onNotification)
   })
 
   afterEach(() => {
@@ -37,49 +40,39 @@ describe('RelayClient Node', () => {
     it('should send a blade.connect, execute setup and set signature and sessionid', async done => {
       Connection.mockResponse
         .mockImplementationOnce(() => JSON.parse('{"jsonrpc":"2.0","id":"uuid","result":{"session_restored":false,"sessionid":"bfb34f66-3caf-45a9-8a4b-a74bbd3d0b28","nodeid":"uuid","master_nodeid":"uuid","authorization":{"project":"uuid","expires_at":null,"scopes":["calling","messaging","tasking"],"signature":"uuid-signature"},"routes":[],"protocols":[],"subscriptions":[],"authorities":[],"authorizations":[],"accesses":[],"protocols_uncertified":["signalwire"]}}'))
-        .mockImplementationOnce(() => JSON.parse('{"jsonrpc":"2.0","id":"uuid","result":{"requester_nodeid":"uuid","responder_nodeid":"uuid","result":{"protocol":"signalwire_service_random_uuid"}}}'))
+        .mockImplementationOnce(() => JSON.parse('{"jsonrpc":"2.0","id":"uuid","result":{"result":{"protocol":"signalwire_service_random_uuid"}}}'))
         .mockImplementationOnce(() => JSON.parse('{"jsonrpc":"2.0","id":"uuid","result":{"command":"add","failed_channels":[],"protocol":"signalwire_service_random_uuid","subscribe_channels":["notifications"]}}'))
 
-      const onNotification = jest.fn()
-      instance.on('signalwire.ready', onNotification)
       // @ts-ignore
       await instance._onSocketOpen()
-
       const msg = new Connect({ project: 'project', token: 'token' })
       expect(Connection.mockSend).toHaveBeenNthCalledWith(1, msg)
       expect(instance.sessionid).toEqual('bfb34f66-3caf-45a9-8a4b-a74bbd3d0b28')
       expect(instance.signature).toEqual('uuid-signature')
       expect(instance.relayProtocol).toEqual('signalwire_service_random_uuid')
       expect(instance.expiresAt).toEqual(0)
-      expect(onNotification).toHaveBeenCalledTimes(1)
       // @ts-ignore
       expect(instance._idle).toEqual(false)
       // @ts-ignore
       expect(instance._autoReconnect).toEqual(true)
+      expect(onNotification).toHaveBeenCalledTimes(1)
       done()
     })
 
     it('in case of Timeout on blade.connect it should close the connection and attempt to reconnect', async done => {
       Connection.mockResponse.mockImplementationOnce(() => JSON.parse('{"jsonrpc":"2.0","id":"uuid","error":{"code":-32000,"message":"Timeout"}}'))
 
-      const onNotification = jest.fn()
-      instance.on('signalwire.ready', onNotification)
       // @ts-ignore
       await instance._onSocketOpen()
-
       const msg = new Connect({ project: 'project', token: 'token' })
       expect(Connection.mockSend).toHaveBeenNthCalledWith(1, msg)
       expect(Connection.mockClose).toHaveBeenCalledTimes(1)
-      expect(onNotification).toHaveBeenCalledTimes(0)
       // @ts-ignore
       expect(instance._idle).toEqual(true)
       // @ts-ignore
       expect(instance._autoReconnect).toEqual(true)
+      expect(onNotification).toHaveBeenCalledTimes(0)
       done()
     })
   })
-
-  describe('_onSocketClose()', () => { })
-  describe('_onSocketError()', () => { })
-  describe('_onSocketMessage()', () => { })
 })

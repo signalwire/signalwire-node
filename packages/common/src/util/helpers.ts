@@ -83,3 +83,7 @@ export const destructResponse = (response: any, nodeId: string = null): { [key: 
   }
   return { result: nestedResult }
 }
+
+export const randomInt = (min: number, max: number) => {
+  return Math.floor(Math.random() * (max - min + 1) + min)
+}

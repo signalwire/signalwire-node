@@ -18,13 +18,13 @@ export default abstract class BrowserSession extends BaseSession {
   public camId: string
   public camLabel: string
   public autoRecoverCalls: boolean = true
+  public reconnectDelay = 1000
 
   private _iceServers: RTCIceServer[] = []
   private _localElement: HTMLMediaElement = null
   private _remoteElement: HTMLMediaElement = null
 
   protected _jwtAuth: boolean = true
-  protected _reconnectDelay: number = 1000
   protected _devices: ICacheDevices = {}
   protected _audioConstraints: boolean | MediaTrackConstraints = true
   protected _videoConstraints: boolean | MediaTrackConstraints = false

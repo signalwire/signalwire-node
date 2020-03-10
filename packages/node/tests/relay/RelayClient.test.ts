@@ -64,10 +64,6 @@ describe('RelayClient Node', () => {
     it('in case of Timeout on blade.connect it should close the connection and attempt to reconnect', async done => {
       Connection.mockResponse.mockImplementationOnce(() => JSON.parse('{"jsonrpc":"2.0","id":"uuid","error":{"code":-32000,"message":"Timeout"}}'))
       // @ts-ignore
-      instance._reconnectDelay = 5
-      instance.connect = jest.fn()
-
-      // @ts-ignore
       await instance._onSocketOpen()
       expect(Connection.mockSend).toHaveBeenNthCalledWith(1, connectMsg)
       expect(Connection.mockClose).toHaveBeenCalledTimes(1)
@@ -76,7 +72,6 @@ describe('RelayClient Node', () => {
       // @ts-ignore
       expect(instance._autoReconnect).toEqual(true)
       expect(onNotification).toHaveBeenCalledTimes(0)
-      expect(instance.connect).toHaveBeenCalledTimes(0)
       done()
     })
   })

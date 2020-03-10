@@ -12,6 +12,7 @@ export const VERTO_PROTOCOL = 'verto-protocol'
 export default class Verto extends BrowserSession {
 
   public relayProtocol: string = VERTO_PROTOCOL
+  public timeoutErrorCode = -329990 // fake verto timeout error code.
 
   validateOptions() {
     const { host, login, passwd, password } = this.options

@@ -1,6 +1,6 @@
 import logger from '../util/logger'
 import BaseSession from '../BaseSession'
-import { SwEvent, TIMEOUT_ERROR_CODE } from '../util/constants'
+import { SwEvent } from '../util/constants'
 import { safeParseJson, checkWebSocketHost, destructResponse } from '../util/helpers'
 import { registerOnce, trigger } from '../services/Handler'
 import { isFunction } from '../util/helpers'
@@ -17,7 +17,6 @@ const WS_STATE = {
   CLOSED: 3
 }
 const TIMEOUT_MS = 10 * 1000
-const TIMEOUT_ERROR = { error: { code: TIMEOUT_ERROR_CODE, message: 'Timeout' } }
 
 export default class Connection {
   private _wsClient: any = null
@@ -114,7 +113,7 @@ export default class Connection {
 
   private _setTimer(id: string) {
     this._timers[id] = setTimeout(() => {
-      trigger(id, TIMEOUT_ERROR)
+      trigger(id, { error: { code: this.session.timeoutErrorCode, message: 'Timeout' } })
       this._unsetTimer(id)
     }, TIMEOUT_MS)
   }

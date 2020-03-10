@@ -18,7 +18,6 @@ export default abstract class BrowserSession extends BaseSession {
   public camId: string
   public camLabel: string
   public autoRecoverCalls: boolean = true
-  public reconnectDelay = 1000
 
   private _iceServers: RTCIceServer[] = []
   private _localElement: HTMLMediaElement = null
@@ -29,6 +28,10 @@ export default abstract class BrowserSession extends BaseSession {
   protected _audioConstraints: boolean | MediaTrackConstraints = true
   protected _videoConstraints: boolean | MediaTrackConstraints = false
   protected _speaker: string = null
+
+  get reconnectDelay() {
+    return 1000
+  }
 
   async connect(): Promise<void> {
     this.sessionid = await localStorage.getItem(SESSION_ID)

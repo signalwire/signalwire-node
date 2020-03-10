@@ -7,7 +7,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Added
 - Call `disconnect()` method.
 
-## [2.3.3] - 2020-03-09
+## [2.3.3] - 2020-03-10
 ### Fixed
 - Handle server-side timeout error closing and reconnecting the websocket connection.
 

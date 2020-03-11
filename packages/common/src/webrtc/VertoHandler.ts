@@ -60,7 +60,6 @@ const _buildCall = (session: BrowserSession, params: any, attach: boolean, nodeI
 export default (session: BrowserSession, msg: any) => {
   const { id, method, nodeId, params } = msg
   const { callID, eventChannel, eventType } = params
-  const attach = method === VertoMethod.Attach
   if (eventType === 'channelPvtData') {
     params.pvtData.nodeId = nodeId
     return _handlePvtEvent(session, params.pvtData)
@@ -70,17 +69,12 @@ export default (session: BrowserSession, msg: any) => {
   }
 
   if (callID && session.calls.hasOwnProperty(callID)) {
-    if (attach) {
-      // @ts-ignore
-      session.calls[callID]._hangup()
-    } else {
-      trigger(callID, params, method)
-      const msg = new Result(id, method)
-      msg.targetNodeId = nodeId
-      return session.execute(msg)
-    }
+    trigger(callID, params, method)
+    const msg = new Result(id, method)
+    msg.targetNodeId = nodeId
+    return session.execute(msg)
   }
-
+  const attach = method === VertoMethod.Attach
   switch (method) {
     case VertoMethod.Punt:
       return session.disconnect()
@@ -93,7 +87,6 @@ export default (session: BrowserSession, msg: any) => {
     }
     case VertoMethod.Attach: {
       const call = _buildCall(session, params, attach, nodeId)
-      session.autoRecoverCalls ? call.answer() : call.setState(State.Recovering)
       return trigger(call.id, params, method)
     }
     case VertoMethod.Event:

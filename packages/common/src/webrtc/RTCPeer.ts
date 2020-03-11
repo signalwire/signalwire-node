@@ -6,7 +6,7 @@ import WebRTCCall from './WebRTCCall'
 import { attachMediaStream, muteMediaElement, sdpToJsonHack, RTCPeerConnection, streamIsValid } from '../util/webrtc'
 import { CallOptions } from './interfaces'
 import { trigger } from '../services/Handler'
-import { Invite, Attach, Answer } from '../messages/Verto'
+import { Invite, Attach, Answer, Modify } from '../messages/Verto'
 
 export default class RTCPeer {
   public instance: RTCPeerConnection
@@ -41,12 +41,14 @@ export default class RTCPeer {
   async startNegotiation() {
     try {
       if (this.isOffer) {
+        console.log('Trying to generate offer')
         const offer = await this.instance.createOffer()
         await this._setLocalDescription(offer)
         return
       }
 
       if (this.isAnswer) {
+        console.log('Trying to generate answer')
         await this._setRemoteDescription({ sdp: this.options.remoteSdp, type: PeerType.Offer })
         const answer = await this.instance.createAnswer()
         await this._setLocalDescription(answer)
@@ -60,12 +62,6 @@ export default class RTCPeer {
   async onRemoteSdp(sdp: string) {
     try {
       await this._setRemoteDescription({ sdp, type: PeerType.Answer })
-      if (this.call.gotEarly) {
-        this.call.setState(State.Early)
-      }
-      if (this.call.gotAnswer) {
-        this.call.setState(State.Active)
-      }
     } catch (error) {
       logger.error(`Error handling remote SDP on call ${this.options.id}:`, error)
       this.call.hangup()
@@ -80,6 +76,7 @@ export default class RTCPeer {
     }
 
     this.instance.onnegotiationneeded = event => {
+      console.log('A new negotiation is needed!!')
       this.startNegotiation()
     }
 
@@ -122,17 +119,25 @@ export default class RTCPeer {
   private async _sdpReady() {
     clearTimeout(this._iceTimeout)
     const { sdp, type } = this.instance.localDescription
+    console.log('LOCAL SDP \n', `Type: ${type}`, '\n\n', sdp)
     if (sdp.indexOf('candidate') === -1) {
       this.startNegotiation()
       return
     }
-    this.instance.removeEventListener('icecandidate', this._onIce)
+    // this.instance.removeEventListener('icecandidate', this._onIce)
     let msg = null
     const tmpParams = { ...this.call.messagePayload, sdp }
+    //@ts-ignore
+    const REINVITE = this.call._state === State.Active
     switch (type) {
       case PeerType.Offer:
-        this.call.setState(State.Requesting)
-        msg = new Invite(tmpParams)
+        if (REINVITE) {
+          console.log('Generate verto.modify request')
+          msg = new Modify({ ...this.call.messagePayload, sdp, action: 'updateMedia' })
+        } else {
+          this.call.setState(State.Requesting)
+          msg = new Invite(tmpParams)
+        }
         break
       case PeerType.Answer:
         this.call.setState(State.Answering)
@@ -142,9 +147,12 @@ export default class RTCPeer {
         return logger.error(`Unknown SDP type: '${type}' on call ${this.options.id}`)
     }
     try {
-      const response = await this.call._execute(msg)
-      const { node_id = null } = response
+      const { node_id = null, sdp } = await this.call._execute(msg)
       this.call.nodeId = node_id
+      if (REINVITE) {
+        await this._setRemoteDescription({ sdp, type: PeerType.Answer })
+        return
+      }
       type === PeerType.Offer ? this.call.setState(State.Trying) : this.call.setState(State.Active)
     } catch (error) {
       logger.error(`Error sending ${type} on call ${this.options.id}:`, error)
@@ -171,14 +179,17 @@ export default class RTCPeer {
     if (googleMaxBitrate && googleMinBitrate && googleStartBitrate) {
       localDescription.sdp = sdpBitrateHack(localDescription.sdp, googleMaxBitrate, googleMinBitrate, googleStartBitrate)
     }
+    console.log('>>>> _setLocalDescription', localDescription)
     return this.instance.setLocalDescription(localDescription)
   }
 
   private _setRemoteDescription(remoteDescription: RTCSessionDescriptionInit) {
+    console.log('REMOTE SDP \n', `Type: ${remoteDescription.type}`, '\n\n', remoteDescription.sdp)
     if (this.options.useStereo) {
       remoteDescription.sdp = sdpStereoHack(remoteDescription.sdp)
     }
     const sessionDescr: RTCSessionDescription = sdpToJsonHack(remoteDescription)
+    console.log('>>>> _setRemoteDescription', remoteDescription)
     return this.instance.setRemoteDescription(sessionDescr)
   }
 

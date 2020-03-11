@@ -10,7 +10,7 @@ import { trigger, register, deRegisterAll } from '../services/Handler'
 import { enableAudioTracks, disableAudioTracks, toggleAudioTracks, enableVideoTracks, disableVideoTracks, toggleVideoTracks } from './helpers'
 import { objEmpty, isFunction } from '../util/helpers'
 import { CallOptions } from './interfaces'
-import { detachMediaStream, stopStream, setMediaElementSinkId } from '../util/webrtc'
+import { detachMediaStream, stopStream, setMediaElementSinkId, getUserMedia } from '../util/webrtc'
 import Conference from './Conference'
 
 export default abstract class WebRTCCall {
@@ -25,7 +25,6 @@ export default abstract class WebRTCCall {
   // TODO: check role on Conference using getter
   public role: string = Role.Participant
   public extension: string = null
-  public gotAnswer = false
   public gotEarly = false
   public screenShare?: WebRTCCall
 
@@ -148,6 +147,15 @@ export default abstract class WebRTCCall {
     toggleAudioTracks(this.options.remoteStream)
   }
 
+  async reinvite() {
+    const stream = await getUserMedia({ video: true })
+    stream.getVideoTracks().forEach(t => {
+      this.options.localStream.addTrack(t)
+      this.peer.instance.addTrack(t, this.options.localStream)
+    })
+    // stopStream(stream)
+  }
+
   setState(state: State) {
     this._prevState = this._state
     this._state = state
@@ -220,16 +228,16 @@ export default abstract class WebRTCCall {
   }
 
   private _onVertoAnswer(params: any) {
-    this.gotAnswer = true
     if (this._state >= State.Active) {
       return
     }
-    if (this._state >= State.Early) {
-      this.setState(State.Active)
-    }
+    // if (this._state >= State.Early) {
+    //   this.setState(State.Active)
+    // }
     if (!this.gotEarly) {
       this.peer.onRemoteSdp(params.sdp)
     }
+    this.setState(State.Active)
   }
 
   private _onVertoMedia(params: any) {
@@ -238,6 +246,7 @@ export default abstract class WebRTCCall {
     }
     this.gotEarly = true
     this.peer.onRemoteSdp(params.sdp)
+    this.setState(State.Early)
   }
 
   public _dispatchNotification(notification: any) {

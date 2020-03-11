@@ -6,8 +6,7 @@ import { Result } from '../messages/Verto'
 import { SwEvent } from '../util/constants'
 import { VertoMethod, Notification } from './constants'
 import { trigger } from '../services/Handler'
-import { State, ConferenceAction } from './constants'
-import { MCULayoutEventHandler } from './LayoutHandler'
+import { State } from './constants'
 
 const _handlePvtEvent = async (session: BrowserSession, pvtData: any) => {
   const { action, callID } = pvtData
@@ -30,15 +29,23 @@ const _handlePvtEvent = async (session: BrowserSession, pvtData: any) => {
 }
 
 const _handleSessionEvent = (session: BrowserSession, eventData: any) => {
-  switch (eventData.contentType) {
+  const { contentType, callID } = eventData
+  if (!callID || !session.calls.hasOwnProperty(callID)) {
+    return logger.warn('Unhandled session event:', eventData)
+  }
+  const call = session.calls[callID]
+  if (!call.conference) {
+    return logger.warn('Unhandled session event: call is not a conference!', eventData)
+  }
+  switch (contentType) {
     case 'layout-info':
     case 'layer-info':
-      return MCULayoutEventHandler(session, eventData)
-    case 'logo-info': {
-      const { logoURL: logo, callID } = eventData
-      const notification = { type: Notification.ConferenceUpdate, action: ConferenceAction.LogoInfo, call: session.calls[callID], logo }
-      return trigger(SwEvent.Notification, notification, session.uuid)
-    }
+      call.conference.updateLayouts(eventData)
+      call.conference.strunz()
+      break
+    case 'logo-info':
+      call.conference.updateLogo(eventData)
+      break
   }
 }
 

@@ -2,7 +2,7 @@ import logger from '../util/logger'
 import * as WebRTC from '../util/webrtc'
 import { isDefined } from '../util/helpers'
 import { DeviceType } from './constants'
-import { CallOptions } from './interfaces'
+import { CallOptions, IVertoCanvasInfo, ICanvasInfo, ICanvasLayout } from './interfaces'
 
 const getUserMedia = async (constraints: MediaStreamConstraints): Promise<MediaStream | null> => {
   logger.info('RTCService.getUserMedia', constraints)
@@ -288,6 +288,42 @@ const sdpBitrateHack = (sdp: string, max: number, min: number, start: number) =>
     }
   })
   return lines.join(endOfLine)
+}
+
+export const transformCanvasInfo = (canvasInfo: IVertoCanvasInfo): ICanvasInfo => {
+  const { canvasID, layoutFloorID, scale, canvasLayouts, ...rest } = canvasInfo
+  const tmp: ICanvasLayout[] = []
+  for (let i = 0; i < canvasLayouts.length; i++) {
+    const layout = canvasLayouts[i]
+    const { memberID, audioPOS, xPOS, yPOS, ...rest } = layout
+    tmp.push({
+      startX: `${(layout.x / scale) * 100}%`,
+      startY: `${(layout.y / scale) * 100}%`,
+      percentageWidth: `${(layout.scale / scale) * 100}%`,
+      percentageHeight: `${(layout.hscale / scale) * 100}%`,
+      participantId: memberID,
+      audioPos: audioPOS,
+      xPos: xPOS,
+      yPos: yPOS,
+      ...rest
+    })
+  }
+  return {
+    ...rest,
+    canvasId: canvasID,
+    layoutFloorId: layoutFloorID,
+    scale,
+    canvasLayouts: tmp,
+  }
+}
+
+export const mutateConferenceLayoutData = (data: any) => {
+  const { contentType, canvasType, callID, canvasInfo = null, currentLayerIdx = -1 } = data
+  if (canvasInfo && canvasType !== 'mcu-personal-canvas') {
+    delete canvasInfo.memberID
+  }
+
+  const t = transformCanvasInfo(canvasInfo)
 }
 
 export {

@@ -1,13 +1,16 @@
 import logger from '../util/logger'
 import BrowserSession from '../BrowserSession'
 import { register, deRegisterAll } from '../services/Handler'
-import { checkSubscribeResponse } from './helpers'
+import { checkSubscribeResponse, mutateConferenceLayoutData } from './helpers'
 import { ConferenceAction, Notification } from './constants'
 import { VertoPvtData } from './interfaces'
 import { mutateLiveArrayData } from '../util/helpers'
 import { MCULayoutEventHandler } from './LayoutHandler'
 
 export default class Conference {
+
+  public participantLogo = ''
+  public canvasInfo: any
 
   private pvtData: VertoPvtData
   private _lastSerno = 0
@@ -199,6 +202,17 @@ export default class Conference {
       default:
         this._dispatchConferenceUpdate({ action: ConferenceAction.ModCmdResponse, command: data['conf-command'], response: data.response })
     }
+  }
+
+  updateLayouts(params: any) {
+    this.canvasInfo = mutateConferenceLayoutData(params)
+    // TODO: dispatch notification
+  }
+
+  updateLogo(params: any) {
+    const { logoURL: logo } = params
+    this.participantLogo = logo
+    this._dispatchConferenceUpdate({ action: ConferenceAction.LogoInfo, logo })
   }
 
   private _bootstrap() {

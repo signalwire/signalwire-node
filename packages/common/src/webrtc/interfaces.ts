@@ -60,3 +60,61 @@ export interface VertoPvtData {
   chatChannel: string
   infoChannel: string
 }
+
+export interface IVertoCanvasInfo {
+  canvasID: number
+  totalLayers: number
+  layersUsed: number
+  layoutFloorID: number
+  layoutName: string
+  canvasLayouts: IVertoCanvasLayout[]
+  scale: number
+}
+
+export interface IVertoCanvasLayout {
+  x: number
+  y: number
+  scale: number
+  hscale: number
+  zoom: number
+  border: number
+  floor: number
+  overlap: number
+  screenWidth: number
+  screenHeight: number
+  xPOS: number
+  yPOS: number
+  audioPOS: string
+  memberID: number
+}
+
+export interface ICanvasInfo {
+  canvasId: number
+  totalLayers: number
+  layersUsed: number
+  layoutFloorId: number
+  layoutName: string
+  canvasLayouts: ICanvasLayout[]
+  scale: number
+}
+
+export interface ICanvasLayout {
+  x: number
+  y: number
+  startX: string
+  startY: string
+  percentageWidth: string
+  percentageHeight: string
+  scale: number
+  hscale: number
+  zoom: number
+  border: number
+  floor: number
+  overlap: number
+  screenWidth: number
+  screenHeight: number
+  xPos: number
+  yPos: number
+  audioPos: string
+  participantId: number
+}

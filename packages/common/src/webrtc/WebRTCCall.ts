@@ -27,6 +27,7 @@ export default abstract class WebRTCCall {
   public extension: string = null
   public gotEarly = false
   public screenShare?: WebRTCCall
+  public doReinvite = false
 
   private _state: State = State.New
   private _prevState: State = State.New
@@ -40,6 +41,7 @@ export default abstract class WebRTCCall {
 
     this._onMediaError = this._onMediaError.bind(this)
     this._onVertoAnswer = this._onVertoAnswer.bind(this)
+    this._onVertoAttach = this._onVertoAttach.bind(this)
     this._onVertoMedia = this._onVertoMedia.bind(this)
     this._hangup = this._hangup.bind(this)
     this._onParticipantData = this._onParticipantData.bind(this)
@@ -151,13 +153,17 @@ export default abstract class WebRTCCall {
     toggleAudioTracks(this.options.remoteStream)
   }
 
-  async reinvite() {
+  async upgrade() {
+    // FIXME: Hack to prevent endless loop on modify vs attach
+    this.doReinvite = true
+    // TODO: force peer.type to an Offer
+    this.peer.type = PeerType.Offer
+
     const stream = await getUserMedia({ video: true })
-    stream.getVideoTracks().forEach(t => {
+    stream.getTracks().forEach(t => {
       this.options.localStream.addTrack(t)
       this.peer.instance.addTrack(t, this.options.localStream)
     })
-    // stopStream(stream)
   }
 
   setState(state: State) {
@@ -267,6 +273,30 @@ export default abstract class WebRTCCall {
     return this.session.execute(msg)
   }
 
+  private async _onVertoAttach(params: any) {
+    // FIXME: need to dispatch a participantData notification??
+    switch (this._state) {
+      case State.New:
+        this.session.autoRecoverCalls ? this.answer() : this.setState(State.Recovering)
+        break
+      case State.Active: {
+        if (this.doReinvite) {
+          return logger.warn('>>>> This leg alreay sent a reinvite??')
+        }
+        // TODO: force peer.type to an Answer
+        this.peer.type = PeerType.Answer
+        this.options.remoteSdp = params.sdp
+
+        const stream = await getUserMedia({ video: true })
+        stream.getVideoTracks().forEach(t => {
+          this.options.localStream.addTrack(t)
+          this.peer.instance.addTrack(t, this.options.localStream)
+        })
+        break
+      }
+    }
+  }
+
   private _init() {
     const { id, userVariables, remoteCallerNumber, onNotification } = this.options
     if (!id) {
@@ -290,7 +320,7 @@ export default abstract class WebRTCCall {
     register(this.id, this._onVertoMedia, VertoMethod.Media)
     register(this.id, this._hangup, VertoMethod.Bye)
     register(this.id, this._onParticipantData, VertoMethod.Display)
-    register(this.id, this._onParticipantData, VertoMethod.Attach)
+    register(this.id, this._onVertoAttach, VertoMethod.Attach)
     register(this.id, this._onGenericEvent, VertoMethod.Info)
     register(this.id, this._onGenericEvent, VertoMethod.Event)
 

@@ -10,7 +10,7 @@ import { trigger, register, deRegisterAll } from '../services/Handler'
 import { enableAudioTracks, disableAudioTracks, toggleAudioTracks, enableVideoTracks, disableVideoTracks, toggleVideoTracks } from './helpers'
 import { objEmpty, isFunction } from '../util/helpers'
 import { CallOptions } from './interfaces'
-import { detachMediaStream, stopStream, setMediaElementSinkId } from '../util/webrtc'
+import { detachMediaStream, stopStream, setMediaElementSinkId, getUserMedia } from '../util/webrtc'
 import Conference from './Conference'
 
 export default abstract class WebRTCCall {
@@ -25,9 +25,9 @@ export default abstract class WebRTCCall {
   // TODO: check role on Conference using getter
   public role: string = Role.Participant
   public extension: string = null
-  public gotAnswer = false
   public gotEarly = false
   public screenShare?: WebRTCCall
+  public doReinvite = false
 
   private _state: State = State.New
   private _prevState: State = State.New
@@ -41,6 +41,7 @@ export default abstract class WebRTCCall {
 
     this._onMediaError = this._onMediaError.bind(this)
     this._onVertoAnswer = this._onVertoAnswer.bind(this)
+    this._onVertoAttach = this._onVertoAttach.bind(this)
     this._onVertoMedia = this._onVertoMedia.bind(this)
     this._hangup = this._hangup.bind(this)
     this._onParticipantData = this._onParticipantData.bind(this)
@@ -50,6 +51,10 @@ export default abstract class WebRTCCall {
 
   get state() {
     return State[this._state].toLowerCase()
+  }
+
+  get active() {
+    return this._state === State.Active
   }
 
   get prevState() {
@@ -148,6 +153,19 @@ export default abstract class WebRTCCall {
     toggleAudioTracks(this.options.remoteStream)
   }
 
+  async upgrade() {
+    // FIXME: Hack to prevent endless loop on modify vs attach
+    this.doReinvite = true
+    // TODO: force peer.type to an Offer
+    this.peer.type = PeerType.Offer
+
+    const stream = await getUserMedia({ video: true })
+    stream.getTracks().forEach(t => {
+      this.options.localStream.addTrack(t)
+      this.peer.instance.addTrack(t, this.options.localStream)
+    })
+  }
+
   setState(state: State) {
     this._prevState = this._state
     this._state = state
@@ -220,16 +238,13 @@ export default abstract class WebRTCCall {
   }
 
   private _onVertoAnswer(params: any) {
-    this.gotAnswer = true
     if (this._state >= State.Active) {
       return
-    }
-    if (this._state >= State.Early) {
-      this.setState(State.Active)
     }
     if (!this.gotEarly) {
       this.peer.onRemoteSdp(params.sdp)
     }
+    this.setState(State.Active)
   }
 
   private _onVertoMedia(params: any) {
@@ -238,6 +253,7 @@ export default abstract class WebRTCCall {
     }
     this.gotEarly = true
     this.peer.onRemoteSdp(params.sdp)
+    this.setState(State.Early)
   }
 
   public _dispatchNotification(notification: any) {
@@ -255,6 +271,30 @@ export default abstract class WebRTCCall {
       msg.targetNodeId = this.nodeId
     }
     return this.session.execute(msg)
+  }
+
+  private async _onVertoAttach(params: any) {
+    // FIXME: need to dispatch a participantData notification??
+    switch (this._state) {
+      case State.New:
+        this.session.autoRecoverCalls ? this.answer() : this.setState(State.Recovering)
+        break
+      case State.Active: {
+        if (this.doReinvite) {
+          return logger.warn('>>>> This leg alreay sent a reinvite??')
+        }
+        // TODO: force peer.type to an Answer
+        this.peer.type = PeerType.Answer
+        this.options.remoteSdp = params.sdp
+
+        const stream = await getUserMedia({ video: true })
+        stream.getVideoTracks().forEach(t => {
+          this.options.localStream.addTrack(t)
+          this.peer.instance.addTrack(t, this.options.localStream)
+        })
+        break
+      }
+    }
   }
 
   private _init() {
@@ -280,7 +320,7 @@ export default abstract class WebRTCCall {
     register(this.id, this._onVertoMedia, VertoMethod.Media)
     register(this.id, this._hangup, VertoMethod.Bye)
     register(this.id, this._onParticipantData, VertoMethod.Display)
-    register(this.id, this._onParticipantData, VertoMethod.Attach)
+    register(this.id, this._onVertoAttach, VertoMethod.Attach)
     register(this.id, this._onGenericEvent, VertoMethod.Info)
     register(this.id, this._onGenericEvent, VertoMethod.Event)
 

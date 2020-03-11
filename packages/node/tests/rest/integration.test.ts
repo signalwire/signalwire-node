@@ -40,7 +40,7 @@ describe('RestClient', () => {
       const endpointMock = await mockServer.get(BASE_URL).thenReply(200, RESPONSE)
       const list = await client.calls.list().catch(_error => [])
       const requests = await endpointMock.getSeenRequests()
-      expect(requests[0].url).toEqual(BASE_URL)
+      expect(requests[0].path).toEqual(BASE_URL)
       expect(list.length).toEqual(1)
       expect(list[0].sid).toEqual('82e7850d-054e-4067-8c4f-6568acd96575')
 
@@ -87,7 +87,7 @@ describe('RestClient', () => {
       const endpointMock = await mockServer.get(BASE_URL).thenReply(200, RESPONSE)
       const list = await client.fax.faxes.list().catch(_error => { console.error(_error); return [] })
       const requests = await endpointMock.getSeenRequests()
-      expect(requests[0].url).toEqual(BASE_URL)
+      expect(requests[0].path).toEqual(BASE_URL)
       expect(list.length).toEqual(1)
       expect(list[0].sid).toEqual('0b9df3ce-0e93-4e94-a386-a8f1a22e59bb')
 

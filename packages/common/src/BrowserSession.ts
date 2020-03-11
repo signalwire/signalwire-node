@@ -24,11 +24,14 @@ export default abstract class BrowserSession extends BaseSession {
   private _remoteElement: HTMLMediaElement = null
 
   protected _jwtAuth: boolean = true
-  protected _reconnectDelay: number = 1000
   protected _devices: ICacheDevices = {}
   protected _audioConstraints: boolean | MediaTrackConstraints = true
   protected _videoConstraints: boolean | MediaTrackConstraints = false
   protected _speaker: string = null
+
+  get reconnectDelay() {
+    return 1000
+  }
 
   async connect(): Promise<void> {
     this.sessionid = await localStorage.getItem(SESSION_ID)

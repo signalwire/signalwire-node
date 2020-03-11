@@ -10,7 +10,7 @@ import { ADD, REMOVE, SwEvent, BladeMethod } from './util/constants'
 import { NOTIFICATION_TYPE } from './webrtc/constants'
 import { BroadcastParams, ISignalWireOptions, SubscribeParams, IBladeConnectResult } from './util/interfaces'
 import { Subscription, Connect, Reauthenticate, Ping } from './messages/Blade'
-import { isFunction } from './util/helpers'
+import { isFunction, randomInt } from './util/helpers'
 import { sessionStorage } from './util/storage/'
 
 const KEEPALIVE_INTERVAL = 10 * 1000
@@ -25,13 +25,13 @@ export default abstract class BaseSession {
   public signature: string = null
   public relayProtocol: string = null
   public contexts: string[] = []
+  public timeoutErrorCode = -32000
 
   protected connection: Connection = null
   protected _jwtAuth: boolean = false
   protected _doKeepAlive: boolean = false
   protected _keepAliveTimeout: any
   protected _reconnectTimeout: any
-  protected _reconnectDelay: number = 5000
   protected _autoReconnect: boolean = true
   protected _idle: boolean = false
 
@@ -64,6 +64,10 @@ export default abstract class BaseSession {
     return this.expiresAt && this.expiresAt <= (Date.now() / 1000)
   }
 
+  get reconnectDelay() {
+    return randomInt(6, 2) * 1000
+  }
+
   /**
    * Send a JSON object to the server.
    * @return Promise that will resolve/reject depending on the server response
@@ -79,6 +83,12 @@ export default abstract class BaseSession {
       })
     }
     return this.connection.send(msg)
+      .catch(error => {
+        if (error.code && error.code === this.timeoutErrorCode) {
+          this._closeConnection()
+        }
+        throw error
+      })
   }
 
   /**
@@ -213,7 +223,6 @@ export default abstract class BaseSession {
    * @return void
    */
   protected _handleLoginError(error: any) {
-    this._autoReconnect = false
     trigger(SwEvent.Error, error, this.uuid)
   }
 
@@ -265,7 +274,7 @@ export default abstract class BaseSession {
       this.expiresAt = 0
     }
     if (this._autoReconnect) {
-      this._reconnectTimeout = setTimeout(() => this.connect(), this._reconnectDelay)
+      this._reconnectTimeout = setTimeout(() => this.connect(), this.reconnectDelay)
     }
   }
 

@@ -51,6 +51,10 @@ export default abstract class WebRTCCall {
     return State[this._state].toLowerCase()
   }
 
+  get active() {
+    return this._state === State.Active
+  }
+
   get prevState() {
     return State[this._prevState].toLowerCase()
   }
@@ -231,9 +235,6 @@ export default abstract class WebRTCCall {
     if (this._state >= State.Active) {
       return
     }
-    // if (this._state >= State.Early) {
-    //   this.setState(State.Active)
-    // }
     if (!this.gotEarly) {
       this.peer.onRemoteSdp(params.sdp)
     }

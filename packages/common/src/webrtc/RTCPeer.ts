@@ -41,14 +41,14 @@ export default class RTCPeer {
   async startNegotiation() {
     try {
       if (this.isOffer) {
-        console.log('Trying to generate offer')
+        logger.info('Trying to generate offer')
         const offer = await this.instance.createOffer()
         await this._setLocalDescription(offer)
         return
       }
 
       if (this.isAnswer) {
-        console.log('Trying to generate answer')
+        logger.info('Trying to generate answer')
         await this._setRemoteDescription({ sdp: this.options.remoteSdp, type: PeerType.Offer })
         const answer = await this.instance.createAnswer()
         await this._setLocalDescription(answer)
@@ -72,11 +72,11 @@ export default class RTCPeer {
     this.instance = RTCPeerConnection(this.config)
 
     this.instance.onsignalingstatechange = event => {
-      console.log('signalingState:', this.instance.signalingState)
+      logger.info('signalingState:', this.instance.signalingState)
     }
 
     this.instance.onnegotiationneeded = event => {
-      console.log('A new negotiation is needed!!')
+      logger.info('Negotiation needed event')
       this.startNegotiation()
     }
 
@@ -119,7 +119,7 @@ export default class RTCPeer {
   private async _sdpReady() {
     clearTimeout(this._iceTimeout)
     const { sdp, type } = this.instance.localDescription
-    console.log('LOCAL SDP \n', `Type: ${type}`, '\n\n', sdp)
+    logger.info('LOCAL SDP \n', `Type: ${type}`, '\n\n', sdp)
     if (sdp.indexOf('candidate') === -1) {
       this.startNegotiation()
       return
@@ -127,12 +127,9 @@ export default class RTCPeer {
     // this.instance.removeEventListener('icecandidate', this._onIce)
     let msg = null
     const tmpParams = { ...this.call.messagePayload, sdp }
-    //@ts-ignore
-    const REINVITE = this.call._state === State.Active
     switch (type) {
       case PeerType.Offer:
-        if (REINVITE) {
-          console.log('Generate verto.modify request')
+        if (this.call.active) {
           msg = new Modify({ ...this.call.messagePayload, sdp, action: 'updateMedia' })
         } else {
           this.call.setState(State.Requesting)
@@ -148,12 +145,15 @@ export default class RTCPeer {
     }
     try {
       const { node_id = null, sdp } = await this.call._execute(msg)
-      this.call.nodeId = node_id
-      if (REINVITE) {
-        await this._setRemoteDescription({ sdp, type: PeerType.Answer })
-        return
+      if (node_id) {
+        this.call.nodeId = node_id
       }
-      type === PeerType.Offer ? this.call.setState(State.Trying) : this.call.setState(State.Active)
+      if (this.call.active) {
+        await this._setRemoteDescription({ sdp, type: PeerType.Answer })
+      } else {
+        const state = type === PeerType.Offer ? State.Trying : State.Active
+        this.call.setState(state)
+      }
     } catch (error) {
       logger.error(`Error sending ${type} on call ${this.options.id}:`, error)
       this.call.hangup()
@@ -165,7 +165,7 @@ export default class RTCPeer {
       this._iceTimeout = setTimeout(() => this._sdpReady(), 1000)
     }
     if (event.candidate) {
-      logger.info('RTCPEer Candidate:', event.candidate)
+      logger.info('RTCPeer Candidate:', event.candidate)
     } else {
       this._sdpReady()
     }
@@ -179,17 +179,17 @@ export default class RTCPeer {
     if (googleMaxBitrate && googleMinBitrate && googleStartBitrate) {
       localDescription.sdp = sdpBitrateHack(localDescription.sdp, googleMaxBitrate, googleMinBitrate, googleStartBitrate)
     }
-    console.log('>>>> _setLocalDescription', localDescription)
+    logger.info('>>>> _setLocalDescription', localDescription)
     return this.instance.setLocalDescription(localDescription)
   }
 
   private _setRemoteDescription(remoteDescription: RTCSessionDescriptionInit) {
-    console.log('REMOTE SDP \n', `Type: ${remoteDescription.type}`, '\n\n', remoteDescription.sdp)
+    logger.info('REMOTE SDP \n', `Type: ${remoteDescription.type}`, '\n\n', remoteDescription.sdp)
     if (this.options.useStereo) {
       remoteDescription.sdp = sdpStereoHack(remoteDescription.sdp)
     }
     const sessionDescr: RTCSessionDescription = sdpToJsonHack(remoteDescription)
-    console.log('>>>> _setRemoteDescription', remoteDescription)
+    logger.info('>>>> _setRemoteDescription', remoteDescription)
     return this.instance.setRemoteDescription(sessionDescr)
   }
 

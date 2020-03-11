@@ -10,7 +10,6 @@ import { State, ConferenceAction } from './constants'
 import { MCULayoutEventHandler } from './LayoutHandler'
 
 const _handlePvtEvent = async (session: BrowserSession, pvtData: any) => {
-  return
   const { action, callID } = pvtData
   if (!callID || !session.calls[callID]) {
     return logger.warn('Verto pvtData with invalid or unknown callID.')

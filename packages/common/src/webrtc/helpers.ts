@@ -290,18 +290,20 @@ const sdpBitrateHack = (sdp: string, max: number, min: number, start: number) =>
   return lines.join(endOfLine)
 }
 
-export const transformCanvasInfo = (canvasInfo: IVertoCanvasInfo): ICanvasInfo => {
+const mutateCanvasInfoData = (canvasInfo: IVertoCanvasInfo): ICanvasInfo => {
   const { canvasID, layoutFloorID, scale, canvasLayouts, ...rest } = canvasInfo
-  const tmp: ICanvasLayout[] = []
+  const layouts: ICanvasLayout[] = []
+  let layoutOverlap = false
   for (let i = 0; i < canvasLayouts.length; i++) {
     const layout = canvasLayouts[i]
     const { memberID, audioPOS, xPOS, yPOS, ...rest } = layout
-    tmp.push({
+    layoutOverlap = layoutOverlap || layout.overlap === 1
+    layouts.push({
       startX: `${(layout.x / scale) * 100}%`,
       startY: `${(layout.y / scale) * 100}%`,
       percentageWidth: `${(layout.scale / scale) * 100}%`,
       percentageHeight: `${(layout.hscale / scale) * 100}%`,
-      participantId: memberID,
+      participantId: String(memberID),
       audioPos: audioPOS,
       xPos: xPOS,
       yPos: yPOS,
@@ -313,17 +315,9 @@ export const transformCanvasInfo = (canvasInfo: IVertoCanvasInfo): ICanvasInfo =
     canvasId: canvasID,
     layoutFloorId: layoutFloorID,
     scale,
-    canvasLayouts: tmp,
+    canvasLayouts: layouts,
+    layoutOverlap,
   }
-}
-
-export const mutateConferenceLayoutData = (data: any) => {
-  const { contentType, canvasType, callID, canvasInfo = null, currentLayerIdx = -1 } = data
-  if (canvasInfo && canvasType !== 'mcu-personal-canvas') {
-    delete canvasInfo.memberID
-  }
-
-  const t = transformCanvasInfo(canvasInfo)
 }
 
 export {
@@ -345,4 +339,5 @@ export {
   enableVideoTracks,
   disableVideoTracks,
   toggleVideoTracks,
+  mutateCanvasInfoData,
 }

@@ -96,6 +96,7 @@ export interface ICanvasInfo {
   layoutName: string
   canvasLayouts: ICanvasLayout[]
   scale: number
+  layoutOverlap: boolean
 }
 
 export interface ICanvasLayout {
@@ -116,5 +117,5 @@ export interface ICanvasLayout {
   xPos: number
   yPos: number
   audioPos: string
-  participantId: number
+  participantId: string
 }

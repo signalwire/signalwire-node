@@ -1,16 +1,17 @@
 import logger from '../util/logger'
 import BrowserSession from '../BrowserSession'
 import { register, deRegisterAll } from '../services/Handler'
-import { checkSubscribeResponse, mutateConferenceLayoutData } from './helpers'
+import { checkSubscribeResponse, mutateCanvasInfoData } from './helpers'
 import { ConferenceAction, Notification } from './constants'
-import { VertoPvtData } from './interfaces'
+import { VertoPvtData, ICanvasInfo } from './interfaces'
 import { mutateLiveArrayData } from '../util/helpers'
-import { MCULayoutEventHandler } from './LayoutHandler'
 
 export default class Conference {
 
   public participantLogo = ''
-  public canvasInfo: any
+  public canvasType: string
+  public canvasInfo: ICanvasInfo
+  public participantLayerIndex = -1
 
   private pvtData: VertoPvtData
   private _lastSerno = 0
@@ -30,8 +31,24 @@ export default class Conference {
     return this.pvtData.callID
   }
 
+  get participant() {
+    const participant = {
+      id: this.participantId,
+      role: this.participantRole,
+      layer: null,
+      layerIndex: this.participantLayerIndex,
+      isLayerBehind: false,
+    }
+    if (this.canvasInfo && this.participantLayerIndex >= 0) {
+      const { layoutOverlap, canvasLayouts } = this.canvasInfo
+      participant.layer = canvasLayouts[this.participantLayerIndex]
+      participant.isLayerBehind = layoutOverlap && participant.layer.overlap === 0
+    }
+    return participant
+  }
+
   get participantId() {
-    return this.pvtData.conferenceMemberID
+    return String(this.pvtData.conferenceMemberID)
   }
 
   get participantRole() {
@@ -177,9 +194,7 @@ export default class Conference {
     const { eventData } = params
     switch (eventData.contentType) {
       case 'layout-info':
-        // FIXME: workaround to fix missing callID on payload
-        eventData.callID = this.callId
-        return MCULayoutEventHandler(this.session, eventData)
+        return this.updateLayouts(eventData)
       default:
         logger.error('Conference info unknown contentType', params)
     }
@@ -205,8 +220,22 @@ export default class Conference {
   }
 
   updateLayouts(params: any) {
-    this.canvasInfo = mutateConferenceLayoutData(params)
-    // TODO: dispatch notification
+    const { contentType, canvasType, canvasInfo = null, currentLayerIdx = null } = params
+    this.canvasType = canvasType
+    // let changed = false
+    if (currentLayerIdx !== null) {
+      // changed = this.participantLayerIndex !== currentLayerIdx
+      this.participantLayerIndex = currentLayerIdx
+    }
+    if (canvasInfo !== null) {
+      // const old = JSON.stringify(this.canvasInfo)
+      this.canvasInfo = mutateCanvasInfoData(canvasInfo)
+      // changed = changed || old !== JSON.stringify(this.canvasInfo)
+    }
+    // console.log('changed??', changed)
+    // if (changed) {
+      this._dispatchConferenceUpdate({ action: ConferenceAction.LayoutInfo, participant: this.participant, canvasInfo: this.canvasInfo })
+    // }
   }
 
   updateLogo(params: any) {

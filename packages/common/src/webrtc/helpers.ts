@@ -1,6 +1,6 @@
 import logger from '../util/logger'
 import * as WebRTC from '../util/webrtc'
-import { isDefined } from '../util/helpers'
+import { isDefined, roundToFixed } from '../util/helpers'
 import { DeviceType } from './constants'
 import { CallOptions, IVertoCanvasInfo, ICanvasInfo, ICanvasLayout } from './interfaces'
 
@@ -299,10 +299,10 @@ const mutateCanvasInfoData = (canvasInfo: IVertoCanvasInfo): ICanvasInfo => {
     const { memberID, audioPOS, xPOS, yPOS, ...rest } = layout
     layoutOverlap = layoutOverlap || layout.overlap === 1
     layouts.push({
-      startX: `${(layout.x / scale) * 100}%`,
-      startY: `${(layout.y / scale) * 100}%`,
-      percentageWidth: `${(layout.scale / scale) * 100}%`,
-      percentageHeight: `${(layout.hscale / scale) * 100}%`,
+      startX: `${roundToFixed((layout.x / scale) * 100)}%`,
+      startY: `${roundToFixed((layout.y / scale) * 100)}%`,
+      percentageWidth: `${roundToFixed((layout.scale / scale) * 100)}%`,
+      percentageHeight: `${roundToFixed((layout.hscale / scale) * 100)}%`,
       participantId: String(memberID),
       audioPos: audioPOS,
       xPos: xPOS,

@@ -341,7 +341,8 @@ export default (instance: any) => {
           const eventData = JSON.parse(`{"contentType":"layout-info","canvasType":"mcu-personal-canvas","callID":"${callID}","canvasInfo":{"canvasID":-1,"totalLayers":1,"layersUsed":1,"layoutFloorID":0,"layoutName":"1x1","canvasLayouts":[{"x":0,"y":0,"scale":360,"hscale":360,"zoom":0,"border":0,"floor":1,"overlap":0,"screenWidth":1280,"screenHeight":720,"xPOS":0,"yPOS":0,"audioPOS":"0.000000:0.0:1.000000","memberID":116}],"scale":360}}`)
           call.conference.updateLayouts(eventData)
           expect(call.conference.canvasType).toEqual('mcu-personal-canvas')
-          expect(onNotification).toBeCalledWith({ type: Notification.ConferenceUpdate, action: ConferenceAction.LayoutInfo, call, participant: call.conference.participant, canvasInfo: mutateCanvasInfoData(eventData.canvasInfo) })
+          const participant = call.conference.currentParticipant
+          expect(onNotification).toBeCalledWith({ type: Notification.ConferenceUpdate, action: ConferenceAction.LayoutInfo, call, participant, canvasInfo: mutateCanvasInfoData(eventData.canvasInfo) })
         })
 
         it('should set participantLayerIndex if present', () => {
@@ -349,7 +350,8 @@ export default (instance: any) => {
           call.conference.updateLayouts(eventData)
           expect(call.conference.canvasType).toEqual('mcu-canvas')
           expect(call.conference.participantLayerIndex).toEqual(3)
-          expect(onNotification).toBeCalledWith({ type: Notification.ConferenceUpdate, action: ConferenceAction.LayoutInfo, call, participant: call.conference.participant, canvasInfo: mutateCanvasInfoData(eventData.canvasInfo) })
+          const participant = call.conference.currentParticipant
+          expect(onNotification).toBeCalledWith({ type: Notification.ConferenceUpdate, action: ConferenceAction.LayoutInfo, call, participant, canvasInfo: mutateCanvasInfoData(eventData.canvasInfo) })
         })
       })
 

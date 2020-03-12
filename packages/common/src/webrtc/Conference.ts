@@ -31,7 +31,7 @@ export default class Conference {
     return this.pvtData.callID
   }
 
-  get participant() {
+  get currentParticipant() {
     const participant = {
       id: this.participantId,
       role: this.participantRole,
@@ -234,7 +234,7 @@ export default class Conference {
     }
     // console.log('changed??', changed)
     // if (changed) {
-      this._dispatchConferenceUpdate({ action: ConferenceAction.LayoutInfo, participant: this.participant, canvasInfo: this.canvasInfo })
+      this._dispatchConferenceUpdate({ action: ConferenceAction.LayoutInfo, participant: this.currentParticipant, canvasInfo: this.canvasInfo })
     // }
   }
 

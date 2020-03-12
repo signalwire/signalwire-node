@@ -5,8 +5,10 @@ import Call from './Call'
 import { Result } from '../messages/Verto'
 import { SwEvent } from '../util/constants'
 import { VertoMethod, Notification } from './constants'
-import { trigger } from '../services/Handler'
+import { trigger, registerOnce } from '../services/Handler'
 import { State } from './constants'
+
+const CONF_READY = 'CONF_READY'
 
 const _handlePvtEvent = async (session: BrowserSession, pvtData: any) => {
   const { action, callID } = pvtData
@@ -19,6 +21,7 @@ const _handlePvtEvent = async (session: BrowserSession, pvtData: any) => {
         session.calls[callID].conference = new Conference(session)
       }
       session.calls[callID].conference.join(pvtData)
+      trigger(callID, null, CONF_READY)
       break
     case 'conference-liveArray-part':
       if (session.calls[callID].conference) {
@@ -35,13 +38,12 @@ const _handleSessionEvent = (session: BrowserSession, eventData: any) => {
   }
   const call = session.calls[callID]
   if (!call.conference) {
-    return logger.warn('Unhandled session event: call is not a conference!', eventData)
+    return registerOnce(callID, _handleSessionEvent.bind(this, session, eventData), CONF_READY)
   }
   switch (contentType) {
     case 'layout-info':
     case 'layer-info':
       call.conference.updateLayouts(eventData)
-      call.conference.strunz()
       break
     case 'logo-info':
       call.conference.updateLogo(eventData)

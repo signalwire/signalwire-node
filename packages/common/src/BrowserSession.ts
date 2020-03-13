@@ -20,6 +20,7 @@ export default abstract class BrowserSession extends BaseSession {
   public camId: string
   public camLabel: string
   public autoRecoverCalls: boolean = true
+  public incognito = false
 
   private _iceServers: RTCIceServer[] = []
   private _localElement: HTMLMediaElement = null
@@ -35,7 +36,9 @@ export default abstract class BrowserSession extends BaseSession {
   }
 
   async connect(): Promise<void> {
-    this.sessionid = await localStorage.getItem(SESSION_ID)
+    if (!this.incognito) {
+      this.sessionid = await localStorage.getItem(SESSION_ID)
+    }
     super.connect()
   }
 

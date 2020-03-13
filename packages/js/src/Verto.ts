@@ -58,7 +58,9 @@ export default class Verto extends BrowserSession {
     if (response) {
       this._autoReconnect = true
       this.sessionid = response.sessid
-      localStorage.setItem(SESSION_ID, this.sessionid)
+      if (!this.incognito) {
+        localStorage.setItem(SESSION_ID, this.sessionid)
+      }
       trigger(SwEvent.Ready, this, this.uuid)
     }
   }

@@ -3,6 +3,11 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+### Removed
+- Remove deprecated getters: `devices`, `videoDevices`, `audioInDevices`, `audioOutDevices`.
+- Remove deprecated `refreshDevices()` method. Use `getDevices()` instead.
+
 ## [1.2.7] - 2020-02-21
 ### Fixed
 - Remove default values for `googleMaxBitrate`, `googleMinBitrate` and `googleStartBitrate`.

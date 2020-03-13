@@ -3,6 +3,7 @@ import { Notification, ConferenceAction } from './constants'
 import Conference from './Conference'
 import { Subscribe, Broadcast, Unsubscribe } from '../messages/Verto'
 import { isQueued, trigger } from '../services/Handler'
+import { mutateCanvasInfoData } from './helpers'
 const Connection = require('../../../common/src/services/Connection')
 
 jest.unmock('./Conference')
@@ -326,6 +327,42 @@ export default (instance: any) => {
         call.conference.part(pvtData)
         expect(onNotification).toBeCalledWith({ type: Notification.ConferenceUpdate, action: ConferenceAction.Leave, call, conferenceName: '3594', participantId: '455', role: 'moderator' })
       })
+    })
+
+    describe('with pvtData already set', () => {
+      const pvtData = JSON.parse(`{"callID":"${callID}","action":"conference-liveArray-join","laChannel":"${channels[0]}","laName":"3594","role":"moderator","chatID":"conf+3594@cantina.freeswitch.org","conferenceMemberID":"455","canvasCount":1,"modChannel":"${channels[3]}","chatChannel":"${channels[1]}","infoChannel":"${channels[2]}"}`)
+      beforeEach(() => {
+        // @ts-ignore
+        call.conference.pvtData = pvtData
+      })
+
+      describe('updateLayouts', () => {
+        it('should set canvasInfo and dispatch a notification', () => {
+          const eventData = JSON.parse(`{"contentType":"layout-info","canvasType":"mcu-personal-canvas","callID":"${callID}","canvasInfo":{"canvasID":-1,"totalLayers":1,"layersUsed":1,"layoutFloorID":0,"layoutName":"1x1","canvasLayouts":[{"x":0,"y":0,"scale":360,"hscale":360,"zoom":0,"border":0,"floor":1,"overlap":0,"screenWidth":1280,"screenHeight":720,"xPOS":0,"yPOS":0,"audioPOS":"0.000000:0.0:1.000000","memberID":116}],"scale":360}}`)
+          call.conference.updateLayouts(eventData)
+          expect(call.conference.canvasType).toEqual('mcu-personal-canvas')
+          const participant = call.conference.currentParticipant
+          expect(onNotification).toBeCalledWith({ type: Notification.ConferenceUpdate, action: ConferenceAction.LayoutInfo, call, participant, canvasInfo: mutateCanvasInfoData(eventData.canvasInfo) })
+        })
+
+        it('should set participantLayerIndex if present', () => {
+          const eventData = JSON.parse(`{"contentType":"layer-info","currentLayerIdx":3,"canvasType":"mcu-canvas","callID":"${callID}","canvasInfo":{"canvasID":0,"totalLayers":4,"layersUsed":4,"layoutFloorID":-1,"layoutName":"2x2","canvasLayouts":[{"x":0,"y":0,"scale":180,"hscale":180,"zoom":0,"border":0,"floor":0,"overlap":0,"screenWidth":640,"screenHeight":360,"xPOS":0,"yPOS":0,"audioPOS":"-1.000000:0.0:0.500000","memberID":121},{"x":180,"y":0,"scale":180,"hscale":180,"zoom":0,"border":0,"floor":0,"overlap":0,"screenWidth":640,"screenHeight":360,"xPOS":640,"yPOS":0,"audioPOS":"0.500000:0.0:0.500000","memberID":116},{"x":0,"y":180,"scale":180,"hscale":180,"zoom":0,"border":0,"floor":0,"overlap":0,"screenWidth":640,"screenHeight":360,"xPOS":0,"yPOS":360,"audioPOS":"-1.000000:0.0:-1.000000","memberID":107},{"x":180,"y":180,"scale":180,"hscale":180,"zoom":0,"border":0,"floor":0,"overlap":0,"screenWidth":640,"screenHeight":360,"xPOS":640,"yPOS":360,"audioPOS":"0.500000:0.0:-1.000000","memberID":104}],"scale":360}}`)
+          call.conference.updateLayouts(eventData)
+          expect(call.conference.canvasType).toEqual('mcu-canvas')
+          expect(call.conference.participantLayerIndex).toEqual(3)
+          const participant = call.conference.currentParticipant
+          expect(onNotification).toBeCalledWith({ type: Notification.ConferenceUpdate, action: ConferenceAction.LayoutInfo, call, participant, canvasInfo: mutateCanvasInfoData(eventData.canvasInfo) })
+        })
+      })
+
+      describe('updateLogo', () => {
+        it('should set the extension on the Call', () => {
+          call.conference.updateLogo({ logoURL: 'logo' })
+          expect(call.conference.participantLogo).toEqual('logo')
+          expect(onNotification).toBeCalledWith({ type: Notification.ConferenceUpdate, action: ConferenceAction.LogoInfo, call, logo: 'logo' })
+        })
+      })
+
     })
   })
 }

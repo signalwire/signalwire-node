@@ -81,84 +81,84 @@ export default class Conference {
   }
 
   listVideoLayouts() {
-    this._confControl(this.pvtData.modChannel, { command: 'list-videoLayouts' })
+    this._moderatorCommand({ command: 'list-videoLayouts' })
   }
 
   playMedia(file: string) {
-    this._confControl(this.pvtData.modChannel, { command: 'play', value: file })
+    this._moderatorCommand({ command: 'play', value: file })
   }
 
   stopMedia() {
-    this._confControl(this.pvtData.modChannel, { command: 'stop', value: 'all' })
+    this._moderatorCommand({ command: 'stop', value: 'all' })
   }
 
   deaf(id: number | string) {
-    this._confControl(this.pvtData.modChannel, { command: 'deaf', id })
+    this._moderatorCommand({ command: 'deaf', id })
   }
 
   undeaf(id: number | string) {
-    this._confControl(this.pvtData.modChannel, { command: 'undeaf', id })
+    this._moderatorCommand({ command: 'undeaf', id })
   }
 
   startRecord(file: string) {
-    this._confControl(this.pvtData.modChannel, { command: 'recording', value: ['start', file] })
+    this._moderatorCommand({ command: 'recording', value: ['start', file] })
   }
 
   stopRecord() {
-    this._confControl(this.pvtData.modChannel, { command: 'recording', value: ['stop', 'all'] })
+    this._moderatorCommand({ command: 'recording', value: ['stop', 'all'] })
   }
 
   snapshot(file: string) {
-    this._confControl(this.pvtData.modChannel, { command: 'vid-write-png', value: file })
+    this._moderatorCommand({ command: 'vid-write-png', value: file })
   }
 
   setVideoLayout(layout: string, canvasID: number) {
     const value = canvasID ? [layout, canvasID] : layout
-    this._confControl(this.pvtData.modChannel, { command: 'vid-layout', value })
+    this._moderatorCommand({ command: 'vid-layout', value })
   }
 
   kick(id: number | string) {
-    this._confControl(this.pvtData.modChannel, { command: 'kick', id })
+    this._moderatorCommand({ command: 'kick', id })
   }
 
   muteMic(id: number | string) {
-    this._confControl(this.pvtData.modChannel, { command: 'tmute', id })
+    this._moderatorCommand({ command: 'tmute', id })
   }
 
   muteVideo(id: number | string) {
-    this._confControl(this.pvtData.modChannel, { command: 'tvmute', id })
+    this._moderatorCommand({ command: 'tvmute', id })
   }
 
   presenter(id: number | string) {
-    this._confControl(this.pvtData.modChannel, { command: 'vid-res-id', id, value: 'presenter' })
+    this._moderatorCommand({ command: 'vid-res-id', id, value: 'presenter' })
   }
 
   videoFloor(id: number | string) {
-    this._confControl(this.pvtData.modChannel, { command: 'vid-floor', id, value: 'force' })
+    this._moderatorCommand({ command: 'vid-floor', id, value: 'force' })
   }
 
   banner(id: number | string, text: string) {
-    this._confControl(this.pvtData.modChannel, { command: 'vid-banner', id, value: encodeURI(text) })
+    this._moderatorCommand({ command: 'vid-banner', id, value: encodeURI(text) })
   }
 
   volumeDown(id: number | string) {
-    this._confControl(this.pvtData.modChannel, { command: 'volume_out', id, value: 'down' })
+    this._moderatorCommand({ command: 'volume_out', id, value: 'down' })
   }
 
   volumeUp(id: number | string) {
-    this._confControl(this.pvtData.modChannel, { command: 'volume_out', id, value: 'up' })
+    this._moderatorCommand({ command: 'volume_out', id, value: 'up' })
   }
 
   gainDown(id: number | string) {
-    this._confControl(this.pvtData.modChannel, { command: 'volume_in', id, value: 'down' })
+    this._moderatorCommand({ command: 'volume_in', id, value: 'down' })
   }
 
   gainUp(id: number | string) {
-    this._confControl(this.pvtData.modChannel, { command: 'volume_in', id, value: 'up' })
+    this._moderatorCommand({ command: 'volume_in', id, value: 'up' })
   }
 
   transfer(id: number | string, exten: string) {
-    this._confControl(this.pvtData.modChannel, { command: 'transfer', id, value: exten })
+    this._moderatorCommand({ command: 'transfer', id, value: exten })
   }
 
   laChannelHandler({ data: packet }: any) {
@@ -250,13 +250,17 @@ export default class Conference {
     this.session.vertoBroadcast({ nodeId: this.nodeId, channel: laChannel, data })
   }
 
-  private _confControl(channel: string, params: any = {}) {
+  private _moderatorCommand(params: any = {}) {
+    const { role, modChannel } = this.pvtData
+    if (role !== 'moderator' || !modChannel) {
+      return logger.warn('You are not a moderator for this conference.')
+    }
     const data = {
       application: 'conf-control',
       callID: this.callId,
       ...params
     }
-    this.session.vertoBroadcast({ nodeId: this.nodeId, channel, data })
+    this.session.vertoBroadcast({ nodeId: this.nodeId, channel: modChannel, data })
   }
 
   private async _subscribe() {

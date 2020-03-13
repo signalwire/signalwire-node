@@ -12,7 +12,9 @@ import { objEmpty, isFunction } from '../util/helpers'
 import { CallOptions } from './interfaces'
 import { detachMediaStream, stopStream, setMediaElementSinkId, getUserMedia } from '../util/webrtc'
 import Conference from './Conference'
+import { InjectConferenceMethods, CheckConferenceMethod } from './decorators'
 
+@InjectConferenceMethods()
 export default abstract class WebRTCCall {
   public id: string = ''
   public nodeId: string
@@ -34,6 +36,22 @@ export default abstract class WebRTCCall {
 
   startScreenShare?(opts?: CallOptions): Promise<WebRTCCall>
   stopScreenShare?(): void
+
+  listVideoLayouts?(): void
+  playMedia?(file: string): void
+  stopMedia?(): void
+  startRecord?(file: string): void
+  stopRecord?(): void
+  snapshot?(file: string): void
+  setVideoLayout?(layout: string, canvasID: number): void
+  presenter?(id: number | string): void
+  videoFloor?(id: number | string): void
+  banner?(id: number | string, text: string): void
+  volumeDown?(id: number | string): void
+  volumeUp?(id: number | string): void
+  gainDown?(id: number | string): void
+  gainUp?(id: number | string): void
+  kick?(id: number | string): void
 
   constructor(protected session: BrowserSession, opts?: CallOptions) {
     const { iceServers, speaker: speakerId, micId, micLabel, camId, camLabel, localElement, remoteElement, mediaConstraints: { audio, video } } = session
@@ -95,7 +113,8 @@ export default abstract class WebRTCCall {
     this._execute(msg)
   }
 
-  transfer(destination: string) {
+  @CheckConferenceMethod
+  transfer(destination: string, id?: string) {
     const msg = new Modify({ ...this.messagePayload, action: 'transfer', destination })
     this._execute(msg)
   }
@@ -117,38 +136,47 @@ export default abstract class WebRTCCall {
     return this._changeHold('toggleHold')
   }
 
+  @CheckConferenceMethod
   muteAudio() {
     disableAudioTracks(this.options.localStream)
   }
 
+  @CheckConferenceMethod
   unmuteAudio() {
     enableAudioTracks(this.options.localStream)
   }
 
+  @CheckConferenceMethod
   toggleAudioMute() {
     toggleAudioTracks(this.options.localStream)
   }
 
+  @CheckConferenceMethod
   muteVideo() {
     disableVideoTracks(this.options.localStream)
   }
 
+  @CheckConferenceMethod
   unmuteVideo() {
     enableVideoTracks(this.options.localStream)
   }
 
+  @CheckConferenceMethod
   toggleVideoMute() {
     toggleVideoTracks(this.options.localStream)
   }
 
+  @CheckConferenceMethod
   deaf() {
     disableAudioTracks(this.options.remoteStream)
   }
 
+  @CheckConferenceMethod
   undeaf() {
     enableAudioTracks(this.options.remoteStream)
   }
 
+  @CheckConferenceMethod
   toggleDeaf() {
     toggleAudioTracks(this.options.remoteStream)
   }

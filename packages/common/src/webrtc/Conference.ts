@@ -92,14 +92,6 @@ export default class Conference {
     this._moderatorCommand({ command: 'stop', value: 'all' })
   }
 
-  deaf(id: number | string) {
-    this._moderatorCommand({ command: 'deaf', id })
-  }
-
-  undeaf(id: number | string) {
-    this._moderatorCommand({ command: 'undeaf', id })
-  }
-
   startRecord(file: string) {
     this._moderatorCommand({ command: 'recording', value: ['start', file] })
   }
@@ -117,48 +109,74 @@ export default class Conference {
     this._moderatorCommand({ command: 'vid-layout', value })
   }
 
-  kick(id: number | string) {
+  kick(id: string) {
     this._moderatorCommand({ command: 'kick', id })
   }
 
-  muteMic(id: number | string) {
-    this._moderatorCommand({ command: 'tmute', id })
+  muteAudio(participantId?: string) {
+    this._moderatorCommand({ command: 'mute', id: participantId || this.participantId })
   }
 
-  muteVideo(id: number | string) {
-    this._moderatorCommand({ command: 'tvmute', id })
+  unmuteAudio(participantId?: string) {
+    this._moderatorCommand({ command: 'unmute', id: participantId || this.participantId })
   }
 
-  presenter(id: number | string) {
-    this._moderatorCommand({ command: 'vid-res-id', id, value: 'presenter' })
+  toggleAudioMute(participantId?: string) {
+    this._moderatorCommand({ command: 'tmute', id: participantId || this.participantId })
   }
 
-  videoFloor(id: number | string) {
-    this._moderatorCommand({ command: 'vid-floor', id, value: 'force' })
+  muteVideo(participantId?: string) {
+    this._moderatorCommand({ command: 'vmute', id: participantId || this.participantId })
   }
 
-  banner(id: number | string, text: string) {
-    this._moderatorCommand({ command: 'vid-banner', id, value: encodeURI(text) })
+  unmuteVideo(participantId?: string) {
+    this._moderatorCommand({ command: 'unvmute', id: participantId || this.participantId })
   }
 
-  volumeDown(id: number | string) {
-    this._moderatorCommand({ command: 'volume_out', id, value: 'down' })
+  toggleVideoMute(participantId?: string) {
+    this._moderatorCommand({ command: 'tvmute', id: participantId || this.participantId })
   }
 
-  volumeUp(id: number | string) {
-    this._moderatorCommand({ command: 'volume_out', id, value: 'up' })
+  deaf(participantId?: string) {
+    this._moderatorCommand({ command: 'deaf', id: participantId || this.participantId })
   }
 
-  gainDown(id: number | string) {
-    this._moderatorCommand({ command: 'volume_in', id, value: 'down' })
+  undeaf(participantId?: string) {
+    this._moderatorCommand({ command: 'undeaf', id: participantId || this.participantId })
   }
 
-  gainUp(id: number | string) {
-    this._moderatorCommand({ command: 'volume_in', id, value: 'up' })
+  // TODO: implement toggleDeaf
+
+  presenter(participantId?: string) {
+    this._moderatorCommand({ command: 'vid-res-id', id: participantId || this.participantId, value: 'presenter' })
   }
 
-  transfer(id: number | string, exten: string) {
-    this._moderatorCommand({ command: 'transfer', id, value: exten })
+  videoFloor(participantId?: string) {
+    this._moderatorCommand({ command: 'vid-floor', id: participantId || this.participantId, value: 'force' })
+  }
+
+  banner(text: string, participantId?: string) {
+    this._moderatorCommand({ command: 'vid-banner', id: participantId || this.participantId, value: encodeURI(text) })
+  }
+
+  volumeDown(participantId?: string) {
+    this._moderatorCommand({ command: 'volume_out', id: participantId || this.participantId, value: 'down' })
+  }
+
+  volumeUp(participantId?: string) {
+    this._moderatorCommand({ command: 'volume_out', id: participantId || this.participantId, value: 'up' })
+  }
+
+  gainDown(participantId?: string) {
+    this._moderatorCommand({ command: 'volume_in', id: participantId || this.participantId, value: 'down' })
+  }
+
+  gainUp(participantId?: string) {
+    this._moderatorCommand({ command: 'volume_in', id: participantId || this.participantId, value: 'up' })
+  }
+
+  transfer(destination: string, participantId?: string) {
+    this._moderatorCommand({ command: 'transfer', id: participantId || this.participantId, value: destination })
   }
 
   laChannelHandler({ data: packet }: any) {

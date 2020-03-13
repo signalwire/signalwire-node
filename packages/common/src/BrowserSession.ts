@@ -136,12 +136,8 @@ export default abstract class BrowserSession extends BaseSession {
   /**
    * Return supported resolution for the given webcam.
    */
-  async getDeviceResolutions(deviceId: string) {
-    try {
-      return await scanResolutions(deviceId)
-    } catch (error) {
-      throw error
-    }
+  getDeviceResolutions(deviceId: string) {
+    return scanResolutions(deviceId)
   }
 
   get mediaConstraints() {

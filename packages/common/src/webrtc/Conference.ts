@@ -70,6 +70,7 @@ export default class Conference {
   part(pvtData: VertoPvtData) {
     this.pvtData = pvtData
     this._dispatchConferenceUpdate({ action: ConferenceAction.Leave, conferenceName: this.pvtData.laName, participantId: this.participantId, role: this.participantRole })
+    return this._unsubscribe()
   }
 
   destroy() {

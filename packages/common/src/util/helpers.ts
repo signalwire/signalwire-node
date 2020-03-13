@@ -87,3 +87,7 @@ export const destructResponse = (response: any, nodeId: string = null): { [key: 
 export const randomInt = (min: number, max: number) => {
   return Math.floor(Math.random() * (max - min + 1) + min)
 }
+
+export const roundToFixed = (value: number, num = 2) => {
+  return Number(value.toFixed(num))
+}

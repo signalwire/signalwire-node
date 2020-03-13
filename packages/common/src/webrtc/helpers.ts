@@ -1,8 +1,8 @@
 import logger from '../util/logger'
 import * as WebRTC from '../util/webrtc'
-import { isDefined } from '../util/helpers'
+import { isDefined, roundToFixed } from '../util/helpers'
 import { DeviceType } from './constants'
-import { CallOptions } from './interfaces'
+import { CallOptions, IVertoCanvasInfo, ICanvasInfo, ICanvasLayout } from './interfaces'
 
 const getUserMedia = async (constraints: MediaStreamConstraints): Promise<MediaStream | null> => {
   logger.info('RTCService.getUserMedia', constraints)
@@ -290,6 +290,36 @@ const sdpBitrateHack = (sdp: string, max: number, min: number, start: number) =>
   return lines.join(endOfLine)
 }
 
+const mutateCanvasInfoData = (canvasInfo: IVertoCanvasInfo): ICanvasInfo => {
+  const { canvasID, layoutFloorID, scale, canvasLayouts, ...rest } = canvasInfo
+  const layouts: ICanvasLayout[] = []
+  let layoutOverlap = false
+  for (let i = 0; i < canvasLayouts.length; i++) {
+    const layout = canvasLayouts[i]
+    const { memberID, audioPOS, xPOS, yPOS, ...rest } = layout
+    layoutOverlap = layoutOverlap || layout.overlap === 1
+    layouts.push({
+      startX: `${roundToFixed((layout.x / scale) * 100)}%`,
+      startY: `${roundToFixed((layout.y / scale) * 100)}%`,
+      percentageWidth: `${roundToFixed((layout.scale / scale) * 100)}%`,
+      percentageHeight: `${roundToFixed((layout.hscale / scale) * 100)}%`,
+      participantId: String(memberID),
+      audioPos: audioPOS,
+      xPos: xPOS,
+      yPos: yPOS,
+      ...rest
+    })
+  }
+  return {
+    ...rest,
+    canvasId: canvasID,
+    layoutFloorId: layoutFloorID,
+    scale,
+    canvasLayouts: layouts,
+    layoutOverlap,
+  }
+}
+
 export {
   getUserMedia,
   getDevices,
@@ -309,4 +339,5 @@ export {
   enableVideoTracks,
   disableVideoTracks,
   toggleVideoTracks,
+  mutateCanvasInfoData,
 }

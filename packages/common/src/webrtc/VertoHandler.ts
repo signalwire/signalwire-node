@@ -5,9 +5,10 @@ import Call from './Call'
 import { Result } from '../messages/Verto'
 import { SwEvent } from '../util/constants'
 import { VertoMethod, Notification } from './constants'
-import { trigger } from '../services/Handler'
-import { State, ConferenceAction } from './constants'
-import { MCULayoutEventHandler } from './LayoutHandler'
+import { trigger, registerOnce } from '../services/Handler'
+import { State } from './constants'
+
+const CONF_READY = 'CONF_READY'
 
 const _handlePvtEvent = async (session: BrowserSession, pvtData: any) => {
   const { action, callID } = pvtData
@@ -20,6 +21,7 @@ const _handlePvtEvent = async (session: BrowserSession, pvtData: any) => {
         session.calls[callID].conference = new Conference(session)
       }
       session.calls[callID].conference.join(pvtData)
+      trigger(callID, null, CONF_READY)
       break
     case 'conference-liveArray-part':
       if (session.calls[callID].conference) {
@@ -30,15 +32,22 @@ const _handlePvtEvent = async (session: BrowserSession, pvtData: any) => {
 }
 
 const _handleSessionEvent = (session: BrowserSession, eventData: any) => {
-  switch (eventData.contentType) {
+  const { contentType, callID } = eventData
+  if (!callID || !session.calls.hasOwnProperty(callID)) {
+    return logger.warn('Unhandled session event:', eventData)
+  }
+  const call = session.calls[callID]
+  if (!call.conference) {
+    return registerOnce(callID, _handleSessionEvent.bind(this, session, eventData), CONF_READY)
+  }
+  switch (contentType) {
     case 'layout-info':
     case 'layer-info':
-      return MCULayoutEventHandler(session, eventData)
-    case 'logo-info': {
-      const { logoURL: logo, callID } = eventData
-      const notification = { type: Notification.ConferenceUpdate, action: ConferenceAction.LogoInfo, call: session.calls[callID], logo }
-      return trigger(SwEvent.Notification, notification, session.uuid)
-    }
+      call.conference.updateLayouts(eventData)
+      break
+    case 'logo-info':
+      call.conference.updateLogo(eventData)
+      break
   }
 }
 

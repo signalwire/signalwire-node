@@ -104,24 +104,27 @@ export default (instance: any) => {
       })
 
       describe('with eventChannel equal to the sessionId', () => {
+
+        beforeEach(() => {
+          instance.calls[callId].conference = new Conference(instance)
+        })
+
         it('should handle the logo-info event', () => {
           const payload = JSON.parse(`{"jsonrpc":"2.0","id":37,"method":"verto.event","params":{"eventChannel":"${instance.sessionid}","eventData":{"contentType":"logo-info","callID":"${callId}","logoURL":"data:image/png;base64,long-string"}}}`)
           VertoHandler(instance, payload)
-          expect(onNotification).toBeCalledWith({ type: Notification.ConferenceUpdate, action: ConferenceAction.LogoInfo, call: instance.calls[callId], logo: 'data:image/png;base64,long-string' })
+          expect(instance.calls[callId].conference.updateLogo).toHaveBeenCalledTimes(1)
         })
 
         it('should handle the layout-info event', () => {
-          const payload = JSON.parse(`{"jsonrpc":"2.0","id":37,"method":"verto.event","params":{"eventChannel":"${instance.sessionid}","eventData":{"contentType":"layout-info","canvasType":"mcu-personal-canvas","callID":"8cbece07-487f-4191-8e8f-b785f1345bc4","canvasInfo":{"canvasID":-1,"totalLayers":1,"layersUsed":0,"layoutFloorID":0,"layoutName":"1x1","canvasLayouts":[],"scale":360}}}}`)
+          const payload = JSON.parse(`{"jsonrpc":"2.0","id":37,"method":"verto.event","params":{"eventChannel":"${instance.sessionid}","eventData":{"contentType":"layout-info","canvasType":"mcu-personal-canvas","callID":"${callId}","canvasInfo":{"canvasID":-1,"totalLayers":1,"layersUsed":0,"layoutFloorID":0,"layoutName":"1x1","canvasLayouts":[],"scale":360}}}}`)
           VertoHandler(instance, payload)
-          // TODO: Update specs with new layout structure
-          expect(onNotification).toBeCalledTimes(1)
+          expect(instance.calls[callId].conference.updateLayouts).toHaveBeenCalledTimes(1)
         })
 
         it('should handle the layer-info event', () => {
-          const payload = JSON.parse(`{"jsonrpc":"2.0","id":37,"method":"verto.event","params":{"eventChannel":"${instance.sessionid}","eventData":{"contentType":"layer-info","currentLayerIdx":-1,"canvasType":"mcu-personal-canvas","callID":"8cbece07-487f-4191-8e8f-b785f1345bc4"}}}`)
+          const payload = JSON.parse(`{"jsonrpc":"2.0","id":37,"method":"verto.event","params":{"eventChannel":"${instance.sessionid}","eventData":{"contentType":"layer-info","currentLayerIdx":-1,"canvasType":"mcu-personal-canvas","callID":"${callId}"}}}`)
           VertoHandler(instance, payload)
-          // TODO: Update specs with new layout structure
-          expect(onNotification).toBeCalledTimes(1)
+          expect(instance.calls[callId].conference.updateLayouts).toHaveBeenCalledTimes(1)
         })
       })
     })

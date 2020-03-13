@@ -11,12 +11,6 @@ export default (instance: any) => {
       Connection.mockSendRawText.mockClear()
     })
 
-    it('should set the devices object', () => {
-      expect(instance.videoDevices).toBeDefined()
-      expect(instance.audioInDevices).toBeDefined()
-      expect(instance.audioOutDevices).toBeDefined()
-    })
-
     describe('.mediaConstraints', () => {
       it('should match default constraints', () => {
         const tmp = instance.mediaConstraints

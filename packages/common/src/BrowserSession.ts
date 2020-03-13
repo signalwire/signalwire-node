@@ -1,6 +1,5 @@
-import logger from './util/logger'
 import BaseSession from './BaseSession'
-import { ICacheDevices, IAudioSettings, IVideoSettings, BroadcastParams, SubscribeParams } from './util/interfaces'
+import { IAudioSettings, IVideoSettings, BroadcastParams, SubscribeParams } from './util/interfaces'
 import { registerOnce, trigger } from './services/Handler'
 import { SwEvent, SESSION_ID } from './util/constants'
 import { State, DeviceType } from './webrtc/constants'
@@ -27,7 +26,6 @@ export default abstract class BrowserSession extends BaseSession {
   private _remoteElement: HTMLMediaElement = null
 
   protected _jwtAuth: boolean = true
-  protected _devices: ICacheDevices = {}
   protected _audioConstraints: boolean | MediaTrackConstraints = true
   protected _videoConstraints: boolean | MediaTrackConstraints = false
   protected _speaker: string = null
@@ -136,39 +134,6 @@ export default abstract class BrowserSession extends BaseSession {
   }
 
   /**
-   * Refresh the device list doing an enumerateDevices
-   * @deprecated
-   */
-  async refreshDevices() {
-    logger.warn('This method has been deprecated. Use getDevices() instead.')
-    const cache = {};
-    ['videoinput', 'audioinput', 'audiooutput'].map((kind: string) => {
-      cache[kind] = {}
-      Object.defineProperty(cache[kind], 'toArray', {
-        value: function () {
-          return Object.keys(this).map(k => this[k])
-        }
-      })
-    })
-    const devices = await this.getDevices()
-    devices.forEach((t: MediaDeviceInfo) => {
-      if (cache.hasOwnProperty(t.kind)) {
-        cache[t.kind][t.deviceId] = t
-      }
-    })
-
-    this._devices = cache
-    return this.devices
-  }
-
-  /**
-   * @deprecated
-   */
-  get devices() {
-    return this._devices || {}
-  }
-
-  /**
    * Return supported resolution for the given webcam.
    */
   async getDeviceResolutions(deviceId: string) {
@@ -177,30 +142,6 @@ export default abstract class BrowserSession extends BaseSession {
     } catch (error) {
       throw error
     }
-  }
-
-  /**
-   * @deprecated
-   */
-  get videoDevices() {
-    logger.warn('This property has been deprecated. Use getVideoDevices() instead.')
-    return this._devices.videoinput || {}
-  }
-
-  /**
-   * @deprecated
-   */
-  get audioInDevices() {
-    logger.warn('This property has been deprecated. Use getAudioInDevices() instead.')
-    return this._devices.audioinput || {}
-  }
-
-  /**
-   * @deprecated
-   */
-  get audioOutDevices() {
-    logger.warn('This property has been deprecated. Use getAudioOutDevices() instead.')
-    return this._devices.audiooutput || {}
   }
 
   get mediaConstraints() {

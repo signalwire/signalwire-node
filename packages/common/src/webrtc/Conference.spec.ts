@@ -261,14 +261,38 @@ export default (instance: any) => {
         expect(Connection.mockSend).toHaveBeenNthCalledWith(1, msg)
       })
 
-      it('should respond to muteMic method', () => {
-        call.conference.muteMic('789')
+      it('should respond to muteAudio method', () => {
+        call.conference.muteAudio('789')
+        const msg = _buildBroadcast({ command: 'mute', id: '789' })
+        expect(Connection.mockSend).toHaveBeenNthCalledWith(1, msg)
+      })
+
+      it('should respond to unmuteAudio method', () => {
+        call.conference.unmuteAudio('789')
+        const msg = _buildBroadcast({ command: 'unmute', id: '789' })
+        expect(Connection.mockSend).toHaveBeenNthCalledWith(1, msg)
+      })
+
+      it('should respond to toggleAudioMute method', () => {
+        call.conference.toggleAudioMute('789')
         const msg = _buildBroadcast({ command: 'tmute', id: '789' })
         expect(Connection.mockSend).toHaveBeenNthCalledWith(1, msg)
       })
 
       it('should respond to muteVideo method', () => {
         call.conference.muteVideo('789')
+        const msg = _buildBroadcast({ command: 'vmute', id: '789' })
+        expect(Connection.mockSend).toHaveBeenNthCalledWith(1, msg)
+      })
+
+      it('should respond to unmuteVideo method', () => {
+        call.conference.unmuteVideo('789')
+        const msg = _buildBroadcast({ command: 'unvmute', id: '789' })
+        expect(Connection.mockSend).toHaveBeenNthCalledWith(1, msg)
+      })
+
+      it('should respond to toggleVideoMute method', () => {
+        call.conference.toggleVideoMute('789')
         const msg = _buildBroadcast({ command: 'tvmute', id: '789' })
         expect(Connection.mockSend).toHaveBeenNthCalledWith(1, msg)
       })
@@ -287,8 +311,8 @@ export default (instance: any) => {
 
       it('should respond to banner method', () => {
         const text = 'Banner Text'
-        call.conference.banner('789', text)
-        const msg = _buildBroadcast({ command: 'vid-banner', id: '789', value: encodeURI(text) })
+        call.conference.banner(text)
+        const msg = _buildBroadcast({ command: 'vid-banner', id: '455', value: encodeURI(text) })
         expect(Connection.mockSend).toHaveBeenNthCalledWith(1, msg)
       })
 
@@ -317,7 +341,7 @@ export default (instance: any) => {
       })
 
       it('should respond to transfer method', () => {
-        call.conference.transfer('789', '3595')
+        call.conference.transfer('3595', '789')
         const msg = _buildBroadcast({ command: 'transfer', id: '789', value: '3595' })
         expect(Connection.mockSend).toHaveBeenNthCalledWith(1, msg)
       })

@@ -19,6 +19,7 @@ export default class App extends Component<Props> {
 
   constructor(props) {
     super(props)
+    Icon.loadFont()
     this.makeCall = this.makeCall.bind(this)
     this.hangup = this.hangup.bind(this)
     this.toggleMic = this.toggleMic.bind(this)

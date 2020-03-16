@@ -1,4 +1,4 @@
-platform :ios, '9.0'
+platform :ios, '10.0'
 require_relative '../node_modules/@react-native-community/cli-platform-ios/native_modules'
 
 target 'VanillaCalling' do
@@ -39,6 +39,8 @@ target 'VanillaCalling' do
   pod 'ReactNativeIncallManager', :path => '../node_modules/react-native-incall-manager'
 
   pod 'RNCAsyncStorage', :path => '../node_modules/@react-native-community/async-storage'
+
+  pod 'RNVectorIcons', :path => '../node_modules/react-native-vector-icons'
 
   target 'VanillaCallingTests' do
     inherit! :search_paths

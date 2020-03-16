@@ -1,6 +1,6 @@
 {
-  "short_name": "SignalWire React Demo",
-  "name": "SignalWire client in React",
+  "short_name": "signalwire-relay-demo",
+  "name": "React Relay Client",
   "icons": [
     {
       "src": "favicon.ico",

@@ -10,7 +10,6 @@ export function InjectConferenceMethods() {
     methods.forEach(method => {
       Object.defineProperty(klass.prototype, method, {
         value: function () {
-          console.log('Invoke:', method)
           this.conference[method](...arguments)
         }
       })
@@ -27,7 +26,7 @@ export function CheckConferenceMethod(target: WebRTCCall, key: string, descripto
   descriptor.value = function () {
     if (this.conference instanceof Conference) {
       if (!this.conference[key]) {
-        return console.warn(`The method '${key}' does not exist on Conference yet.`)
+        return console.warn(`The method '${key}' does not exist on Conference.`)
       }
       return this.conference[key](...arguments)
     }

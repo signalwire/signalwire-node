@@ -1,6 +1,7 @@
 import WebRTCCall from './WebRTCCall'
 import Conference from './Conference'
 
+/* tslint:disable-next-line */
 export function InjectConferenceMethods() {
   return (klass: Function) => {
     const methods = [
@@ -17,6 +18,7 @@ export function InjectConferenceMethods() {
   }
 }
 
+/* tslint:disable-next-line */
 export function CheckConferenceMethod(target: WebRTCCall, key: string, descriptor: PropertyDescriptor) {
   if (descriptor === undefined) {
     descriptor = Object.getOwnPropertyDescriptor(target, key)

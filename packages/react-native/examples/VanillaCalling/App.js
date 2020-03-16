@@ -72,7 +72,7 @@ export default class App extends Component<Props> {
     this.client.on('signalwire.socket.error', () => {
       console.log('Socket Error')
     })
-    this.client.__logger.setLevel(this.client.__logger.levels.DEBUG)
+
     this.client.connect()
   }
 

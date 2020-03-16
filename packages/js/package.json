@@ -40,21 +40,21 @@
   "homepage": "https://github.com/signalwire/signalwire-node",
   "license": "MIT",
   "dependencies": {
-    "loglevel": "^1.6.4",
-    "uuid": "^3.3.3"
+    "loglevel": "^1.6.7",
+    "uuid": "^7.0.2"
   },
   "devDependencies": {
-    "@types/jest": "^24.0.21",
-    "@types/uuid": "^3.4.6",
+    "@types/jest": "^25.1.4",
+    "@types/uuid": "^7.0.0",
     "babel-core": "^6.26.3",
     "babel-loader": "^7.1.5",
     "babel-plugin-transform-runtime": "^6.23.0",
     "babel-preset-env": "^1.7.0",
-    "jest": "^24.9.0",
-    "ts-jest": "^24.1.0",
-    "ts-loader": "^5.4.5",
-    "tslint": "^5.20.0",
-    "typescript": "^3.6.4",
+    "jest": "^25.1.0",
+    "ts-jest": "^25.2.1",
+    "ts-loader": "^6.2.1",
+    "tslint": "^6.1.0",
+    "typescript": "^3.8.3",
     "webpack": "^4.41.2",
     "webpack-cli": "^3.3.10",
     "webpack-dev-server": "^3.9.0"

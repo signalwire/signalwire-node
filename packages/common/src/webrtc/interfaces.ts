@@ -126,3 +126,11 @@ export interface IHangupParams {
   code?: string
   cause?: string
 }
+
+export interface ICallParticipant {
+  id: string
+  role: string
+  layer: ICanvasLayout
+  layerIndex: number
+  isLayerBehind: boolean
+}

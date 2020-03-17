@@ -9,7 +9,7 @@ import { State, DEFAULT_CALL_OPTIONS, Role, PeerType, VertoMethod, Notification,
 import { trigger, register, deRegisterAll } from '../services/Handler'
 import { enableAudioTracks, disableAudioTracks, toggleAudioTracks, enableVideoTracks, disableVideoTracks, toggleVideoTracks } from './helpers'
 import { objEmpty, isFunction } from '../util/helpers'
-import { CallOptions, IHangupParams } from './interfaces'
+import { CallOptions, IHangupParams, ICallParticipant } from './interfaces'
 import { detachMediaStream, stopStream, setMediaElementSinkId, getUserMedia } from '../util/webrtc'
 import Conference from './Conference'
 import { InjectConferenceMethods, CheckConferenceMethod } from './decorators'
@@ -90,6 +90,10 @@ export default abstract class WebRTCCall {
 
   get messagePayload() {
     return { sessid: this.session.sessionid, dialogParams: this.options }
+  }
+
+  get currentParticipant(): Partial<ICallParticipant> {
+    return this.conference ? this.conference.currentParticipant : {}
   }
 
   get role() {

@@ -3,7 +3,7 @@ import BrowserSession from '../BrowserSession'
 import { register, deRegisterAll } from '../services/Handler'
 import { checkSubscribeResponse, mutateCanvasInfoData } from './helpers'
 import { ConferenceAction, Notification } from './constants'
-import { VertoPvtData, ICanvasInfo } from './interfaces'
+import { VertoPvtData, ICanvasInfo, ICallParticipant } from './interfaces'
 import { mutateLiveArrayData } from '../util/helpers'
 
 export default class Conference {
@@ -31,7 +31,7 @@ export default class Conference {
     return this.pvtData.callID
   }
 
-  get currentParticipant() {
+  get currentParticipant(): ICallParticipant {
     const participant = {
       id: this.participantId,
       role: this.participantRole,

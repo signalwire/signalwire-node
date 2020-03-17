@@ -9,13 +9,13 @@ import { State, DEFAULT_CALL_OPTIONS, Role, PeerType, VertoMethod, Notification,
 import { trigger, register, deRegisterAll } from '../services/Handler'
 import { enableAudioTracks, disableAudioTracks, toggleAudioTracks, enableVideoTracks, disableVideoTracks, toggleVideoTracks } from './helpers'
 import { objEmpty, isFunction } from '../util/helpers'
-import { CallOptions, ICallMethods, IHangupParams } from './interfaces'
+import { CallOptions, IHangupParams } from './interfaces'
 import { detachMediaStream, stopStream, setMediaElementSinkId, getUserMedia } from '../util/webrtc'
 import Conference from './Conference'
 import { InjectConferenceMethods, CheckConferenceMethod } from './decorators'
 
 @InjectConferenceMethods()
-export default abstract class WebRTCCall implements ICallMethods {
+export default abstract class WebRTCCall {
   public id: string = ''
   public nodeId: string
   public direction: Direction
@@ -31,6 +31,28 @@ export default abstract class WebRTCCall implements ICallMethods {
 
   private _state: State = State.New
   private _prevState: State = State.New
+
+  startScreenShare?(opts?: CallOptions): Promise<WebRTCCall>
+  stopScreenShare?(): void
+  switchCamera?(): void
+  setSpeakerPhone?(flag: boolean): void
+
+  sendChatMessage?(message: string, type: string): void
+  listVideoLayouts?(): void
+  playMedia?(file: string): void
+  stopMedia?(): void
+  startRecord?(file: string): void
+  stopRecord?(): void
+  snapshot?(file: string): void
+  setVideoLayout?(layout: string, canvasID: number): void
+  presenter?(participantId?: string): void
+  videoFloor?(participantId?: string): void
+  banner?(text: string, participantId?: string): void
+  volumeDown?(participantId?: string): void
+  volumeUp?(participantId?: string): void
+  gainDown?(participantId?: string): void
+  gainUp?(participantId?: string): void
+  kick?(participantId?: string): void
 
   constructor(protected session: BrowserSession, opts?: CallOptions) {
     const { iceServers, speaker: speakerId, micId, micLabel, camId, camLabel, localElement, remoteElement, mediaConstraints: { audio, video } } = session

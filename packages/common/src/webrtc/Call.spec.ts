@@ -158,7 +158,7 @@ export default (instance: any) => {
     describe('.hangup()', () => {
       it('should change the call state and send verto.bye with execute true', async done => {
         Connection.mockSend.mockClear()
-        await call.hangup({ cause: 'T01', causeCode: 'Test01' })
+        await call.hangup({ cause: 'T01', code: 'Test01' })
         expect(call.cause).toEqual('T01')
         expect(call.causeCode).toEqual('Test01')
         expect(Connection.mockSend).toHaveBeenCalledTimes(1)

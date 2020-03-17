@@ -1,3 +1,5 @@
+import WebRTCCall from './WebRTCCall'
+
 export interface CallOptions {
   // Required
   destinationNumber: string
@@ -118,4 +120,51 @@ export interface ICanvasLayout {
   yPos: number
   audioPos: string
   participantId: string
+}
+
+export interface IHangupParams {
+  code?: string
+  cause?: string
+}
+
+export interface ICallMethods {
+  invite(): void
+  answer(): void
+  hangup(params?: IHangupParams): Promise<void>
+
+  dtmf(dtmf: string): void
+  transfer(destination: string, id?: string): void
+  replace(callId: string): void
+  hold(): Promise<boolean>
+  unhold(): Promise<boolean>
+  toggleHold(): Promise<boolean>
+  muteAudio(participantId?: string): void
+  unmuteAudio(participantId?: string): void
+  toggleAudioMute(participantId?: string): void
+  muteVideo(participantId?: string): void
+  unmuteVideo(participantId?: string): void
+  toggleVideoMute(participantId?: string): void
+  deaf(participantId?: string): void
+  undeaf(participantId?: string): void
+  toggleDeaf(participantId?: string): void
+
+  startScreenShare?(opts?: CallOptions): Promise<WebRTCCall>
+  stopScreenShare?(): void
+
+  sendChatMessage?(message: string, type: string): void
+  listVideoLayouts?(): void
+  playMedia?(file: string): void
+  stopMedia?(): void
+  startRecord?(file: string): void
+  stopRecord?(): void
+  snapshot?(file: string): void
+  setVideoLayout?(layout: string, canvasID: number): void
+  presenter?(participantId?: string): void
+  videoFloor?(participantId?: string): void
+  banner?(text: string, participantId?: string): void
+  volumeDown?(participantId?: string): void
+  volumeUp?(participantId?: string): void
+  gainDown?(participantId?: string): void
+  gainUp?(participantId?: string): void
+  kick?(participantId?: string): void
 }

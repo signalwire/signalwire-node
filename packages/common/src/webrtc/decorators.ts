@@ -5,12 +5,15 @@ import Conference from './Conference'
 export function InjectConferenceMethods() {
   return (klass: Function) => {
     const methods = [
-      'listVideoLayouts', 'playMedia', 'stopMedia', 'startRecord', 'stopRecord', 'snapshot', 'setVideoLayout', 'kick', 'presenter', 'videoFloor', 'banner', 'volumeDown', 'volumeUp', 'gainDown', 'gainUp'
+      'sendChatMessage', 'listVideoLayouts', 'playMedia', 'stopMedia', 'startRecord', 'stopRecord', 'snapshot', 'setVideoLayout', 'kick', 'presenter', 'videoFloor', 'banner', 'volumeDown', 'volumeUp', 'gainDown', 'gainUp'
     ]
     methods.forEach(method => {
       Object.defineProperty(klass.prototype, method, {
         value: function () {
-          this.conference[method](...arguments)
+          if (this.conference instanceof Conference) {
+            return this.conference[method](...arguments)
+          }
+          console.warn(`Invalid method: ${method}. This Call is not a Conference.`)
         }
       })
     })

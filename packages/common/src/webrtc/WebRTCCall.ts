@@ -9,13 +9,13 @@ import { State, DEFAULT_CALL_OPTIONS, Role, PeerType, VertoMethod, Notification,
 import { trigger, register, deRegisterAll } from '../services/Handler'
 import { enableAudioTracks, disableAudioTracks, toggleAudioTracks, enableVideoTracks, disableVideoTracks, toggleVideoTracks } from './helpers'
 import { objEmpty, isFunction } from '../util/helpers'
-import { CallOptions } from './interfaces'
+import { CallOptions, ICallMethods, IHangupParams } from './interfaces'
 import { detachMediaStream, stopStream, setMediaElementSinkId, getUserMedia } from '../util/webrtc'
 import Conference from './Conference'
 import { InjectConferenceMethods, CheckConferenceMethod } from './decorators'
 
 @InjectConferenceMethods()
-export default abstract class WebRTCCall {
+export default abstract class WebRTCCall implements ICallMethods {
   public id: string = ''
   public nodeId: string
   public direction: Direction
@@ -23,9 +23,7 @@ export default abstract class WebRTCCall {
   public options: CallOptions
   public conference: Conference
   public cause: string
-  public causeCode: number
-  // TODO: check role on Conference using getter
-  public role: string = Role.Participant
+  public causeCode: string
   public extension: string = null
   public gotEarly = false
   public screenShare?: WebRTCCall
@@ -33,25 +31,6 @@ export default abstract class WebRTCCall {
 
   private _state: State = State.New
   private _prevState: State = State.New
-
-  startScreenShare?(opts?: CallOptions): Promise<WebRTCCall>
-  stopScreenShare?(): void
-
-  listVideoLayouts?(): void
-  playMedia?(file: string): void
-  stopMedia?(): void
-  startRecord?(file: string): void
-  stopRecord?(): void
-  snapshot?(file: string): void
-  setVideoLayout?(layout: string, canvasID: number): void
-  presenter?(id: number | string): void
-  videoFloor?(id: number | string): void
-  banner?(id: number | string, text: string): void
-  volumeDown?(id: number | string): void
-  volumeUp?(id: number | string): void
-  gainDown?(id: number | string): void
-  gainUp?(id: number | string): void
-  kick?(id: number | string): void
 
   constructor(protected session: BrowserSession, opts?: CallOptions) {
     const { iceServers, speaker: speakerId, micId, micLabel, camId, camLabel, localElement, remoteElement, mediaConstraints: { audio, video } } = session
@@ -91,6 +70,10 @@ export default abstract class WebRTCCall {
     return { sessid: this.session.sessionid, dialogParams: this.options }
   }
 
+  get role() {
+    return this.conference ? this.conference.participantRole : Role.Participant
+  }
+
   invite() {
     this.direction = Direction.Outbound
     this.peer = new RTCPeer(this, PeerType.Offer, this.options)
@@ -101,7 +84,7 @@ export default abstract class WebRTCCall {
     this.peer = new RTCPeer(this, PeerType.Answer, this.options)
   }
 
-  hangup(params: any = {}) {
+  hangup(params?: IHangupParams) {
     const bye = new Bye(this.messagePayload)
     return this._execute(bye)
       .catch(error => logger.error('Hangup error:', error))
@@ -137,47 +120,47 @@ export default abstract class WebRTCCall {
   }
 
   @CheckConferenceMethod
-  muteAudio() {
+  muteAudio(participantId?: string) {
     disableAudioTracks(this.options.localStream)
   }
 
   @CheckConferenceMethod
-  unmuteAudio() {
+  unmuteAudio(participantId?: string) {
     enableAudioTracks(this.options.localStream)
   }
 
   @CheckConferenceMethod
-  toggleAudioMute() {
+  toggleAudioMute(participantId?: string) {
     toggleAudioTracks(this.options.localStream)
   }
 
   @CheckConferenceMethod
-  muteVideo() {
+  muteVideo(participantId?: string) {
     disableVideoTracks(this.options.localStream)
   }
 
   @CheckConferenceMethod
-  unmuteVideo() {
+  unmuteVideo(participantId?: string) {
     enableVideoTracks(this.options.localStream)
   }
 
   @CheckConferenceMethod
-  toggleVideoMute() {
+  toggleVideoMute(participantId?: string) {
     toggleVideoTracks(this.options.localStream)
   }
 
   @CheckConferenceMethod
-  deaf() {
+  deaf(participantId?: string) {
     disableAudioTracks(this.options.remoteStream)
   }
 
   @CheckConferenceMethod
-  undeaf() {
+  undeaf(participantId?: string) {
     enableAudioTracks(this.options.remoteStream)
   }
 
   @CheckConferenceMethod
-  toggleDeaf() {
+  toggleDeaf(participantId?: string) {
     toggleAudioTracks(this.options.remoteStream)
   }
 
@@ -203,7 +186,7 @@ export default abstract class WebRTCCall {
 
     switch (state) {
       case State.Purge:
-        this._hangup({ cause: 'PURGE', causeCode: '01' })
+        this._hangup({ cause: 'PURGE', code: '01' })
         break
       case State.Active: {
         setTimeout(() => {
@@ -242,9 +225,9 @@ export default abstract class WebRTCCall {
     }
   }
 
-  private _hangup(params: any = {}) {
+  private _hangup(params: IHangupParams = {}) {
     this.cause = params.cause || 'NORMAL_CLEARING'
-    this.causeCode = params.causeCode || 16
+    this.causeCode = params.code || '16'
     this.setState(State.Hangup)
   }
 

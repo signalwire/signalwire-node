@@ -13,3 +13,4 @@ export {
 }
 
 export * from '../common/src/util/interfaces'
+export * from '../common/src/webrtc/interfaces'

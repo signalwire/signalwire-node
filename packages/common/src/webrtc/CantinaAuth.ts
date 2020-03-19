@@ -72,6 +72,15 @@ class CantinaAuth {
     logger.info('checkInviteToken response', response)
     return response
   }
+
+  async logout(): Promise<void> {
+    const response = await this._fetch(`${this.baseUrl}/logout`, {
+      ...FETCH_OPTIONS,
+      method: 'PUT'
+    })
+    logger.info('logout response', response)
+    return response
+  }
 }
 
 export default CantinaAuth

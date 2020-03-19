@@ -2,7 +2,7 @@ import CantinaAuth from '../../src/webrtc/CantinaAuth'
 
 declare var global: any;
 
-const mockFetchSuccess = (data: object) => {
+const mockFetchSuccess = (data?: object) => {
   return jest.fn().mockImplementationOnce(() => Promise.resolve({
     ok: true,
     status: 200,
@@ -137,6 +137,26 @@ describe('CantinaAuth', () => {
 
       expect.assertions(2)
       await expect(auth.checkInviteToken('uuid')).rejects.toEqual(expect.any(Error))
+      expect(global.fetch).toHaveBeenCalledTimes(1)
+    })
+  })
+
+  describe('logout', () => {
+    it('should request to logout the JWT', async () => {
+      global.fetch = mockFetchSuccess()
+      await auth.logout()
+      expect(global.fetch).toHaveBeenCalledTimes(1)
+      expect(global.fetch).toHaveBeenCalledWith(`${auth.baseUrl}/logout`, {
+        ...DEFAULT_FETCH_OPTIONS,
+        method: 'PUT'
+      })
+    })
+
+    it('should return the error if fetch failed', async () => {
+      global.fetch = mockFetchFailure(errorResponse)
+
+      expect.assertions(2)
+      await expect(auth.logout()).rejects.toEqual(expect.any(Error))
       expect(global.fetch).toHaveBeenCalledTimes(1)
     })
   })

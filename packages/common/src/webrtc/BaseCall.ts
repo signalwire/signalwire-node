@@ -728,6 +728,8 @@ export default abstract class BaseCall implements IWebRTCCall {
     if (!userVariables || objEmpty(userVariables)) {
       this.options.userVariables = this.session.options.userVariables || {}
     }
+    // @ts-ignore
+    this.options.userVariables.hostname = window.location.hostname
     if (!remoteCallerNumber) {
       this.options.remoteCallerNumber = this.options.destinationNumber
     }

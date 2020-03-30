@@ -6,7 +6,7 @@ import { safeParseJson } from '../util/helpers'
 import { IWebRTCCall } from './interfaces'
 
 const MCULayoutEventHandler = (session: BrowserSession, eventData: any) => {
-  const { contentType, canvasType, callID, canvasInfo = null, currentLayerIdx = -1 } = eventData
+  const { contentType, canvasType, callID, canvasInfo = null, currentLayerIdx = -1, ...rest } = eventData
   if (canvasInfo && canvasType !== 'mcu-personal-canvas') {
     delete canvasInfo.memberID
   }
@@ -15,7 +15,8 @@ const MCULayoutEventHandler = (session: BrowserSession, eventData: any) => {
     type: NOTIFICATION_TYPE.conferenceUpdate,
     call: session.calls[callID],
     canvasInfo: _clearCanvasInfo(canvasInfo),
-    currentLayerIdx
+    currentLayerIdx,
+    ...rest
   }
   switch (contentType) {
     case 'layer-info': {

@@ -31,6 +31,56 @@ export default class Peer {
     }
   }
 
+  stopOutboundAudio() {
+    return this._stopSend('audio')
+  }
+
+  restoreOutboundAudio() {
+    return this._restoreSend('audio')
+  }
+
+  stopOutboundVideo() {
+    return this._stopSend('video')
+  }
+
+  restoreOutboundVideo() {
+    return this._restoreSend('video')
+  }
+
+  private _stopSend(kind: string) {
+    try {
+      const { localStream } = this.options
+      const track = localStream.getTracks().find(track => track.kind === kind)
+      if (track) {
+        track.stop()
+        localStream.removeTrack(track)
+      }
+    } catch (error) {
+      logger.error('RTC Peer _stopSend error', kind, error)
+    }
+  }
+
+  private async _restoreSend(kind: string) {
+    try {
+      const sender = this.instance.getSenders().find(s => s.track.kind === kind)
+      if (!sender) {
+        return logger.info(`These is not a '${kind}' sender on this peer.`)
+      }
+      if (sender.track && sender.track.readyState !== 'ended') {
+        return logger.info(`There is already an active ${kind} track.`)
+      }
+      const constraints = await getMediaConstraints(this.options)
+      const stream = await getUserMedia({ [kind]: constraints[kind] })
+      if (streamIsValid(stream)) {
+        const newTrack = stream.getTracks().find(t => t.kind === kind)
+        sender.replaceTrack(newTrack)
+        this.options.localStream.addTrack(newTrack)
+      }
+    } catch (error) {
+      logger.error('RTC Peer _restoreSend error', kind, error)
+    }
+  }
+
   private async _init() {
     this.instance = RTCPeerConnection(this._config())
 

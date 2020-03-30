@@ -10,7 +10,7 @@ export const mutateStorageKey = (key: string) => `${STORAGE_PREFIX}${key}`
 
 export const mutateLiveArrayData = (data: any) => {
   const [participantId, participantNumber, participantName, codec, mediaJson, participantData] = data
-  let media = {}
+  let media: { audio?: any, video?: any } = {}
   try {
     media = JSON.parse(mediaJson.replace(/ID"/g, 'Id"'))
   } catch (error) {

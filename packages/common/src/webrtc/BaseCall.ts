@@ -315,9 +315,20 @@ export default abstract class BaseCall implements IWebRTCCall {
         this._dispatchConferenceUpdate({ action: ConferenceAction.Add, callId, index, ...mutateLiveArrayData(data) })
         break
       }
-      case 'modify':
-        this._dispatchConferenceUpdate({ action: ConferenceAction.Modify, callId, index, ...mutateLiveArrayData(data) })
+      case 'modify': {
+        const notification = { action: ConferenceAction.Modify, callId, index, ...mutateLiveArrayData(data) }
+        if (this.id === callId) {
+          const { media: { audio, video } } = notification
+          if (audio && 'muted' in audio) {
+            Boolean(audio.muted) ? this.peer.stopOutboundAudio() : this.peer.restoreOutboundAudio()
+          }
+          if (video && 'muted' in video) {
+            Boolean(video.muted) ? this.peer.stopOutboundVideo() : this.peer.restoreOutboundVideo()
+          }
+        }
+        this._dispatchConferenceUpdate(notification)
         break
+      }
       case 'del':
         this._dispatchConferenceUpdate({ action: ConferenceAction.Delete, callId, index, ...mutateLiveArrayData(data) })
         break

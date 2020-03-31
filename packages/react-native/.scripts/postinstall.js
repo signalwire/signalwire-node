@@ -10,7 +10,7 @@ async function main() {
     {
       title: 'Checking react-native..',
       task: async () =>
-        await execa('react-native', [ '--version' ], { cwd: cwd() }).catch((error) => {
+        await execa('react-native', [ '--version' ], { cwd: cwd() }).catch(error => {
           throw new Error('\n\n\treact-native CLI not available.\n\n')
         }),
     },
@@ -34,7 +34,7 @@ async function main() {
     },
   ]
 
-  await new Listr(mainTasks, { showSubtasks: true }).run().catch((e) => console.error(e.message))
+  await new Listr(mainTasks, { showSubtasks: true }).run().catch(e => console.error(e.message))
 }
 
 const { INIT_CWD, PWD } = process.env

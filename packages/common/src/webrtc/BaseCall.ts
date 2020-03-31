@@ -616,6 +616,12 @@ export default abstract class BaseCall implements IWebRTCCall {
           value: (memberID: number | string, value: string = null) => {
             _modCommand('lowbr', memberID, value)
           }
+        },
+        addToCall: {
+          configurable: true,
+          value: (value: string) => {
+            _modCommand('xdial', null, value)
+          }
         }
       })
     }

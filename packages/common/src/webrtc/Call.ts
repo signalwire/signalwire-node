@@ -17,7 +17,7 @@ export default class Call extends BaseCall {
   }
 
   async startScreenShare(opts?: CallOptions) {
-    const { video = true } = opts
+    const video = opts ? (opts.video || true) : true
     const displayStream: MediaStream = await getDisplayMedia({ video })
     displayStream.getTracks().forEach(t => {
       t.addEventListener('ended', () => {

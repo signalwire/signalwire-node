@@ -46,7 +46,7 @@ export default class Verto extends BrowserSession {
     const { login, password, passwd, userVariables } = this.options
     if (this.sessionid) {
       const sessidLogin = new Login(undefined, undefined, this.sessionid, undefined)
-      await this.execute(sessidLogin).catch(console.error)
+      await this.execute(sessidLogin).catch(() => null)
     }
     const msg = new Login(login, (password || passwd), this.sessionid, userVariables)
     const response = await this.execute(msg).catch(this._handleLoginError)

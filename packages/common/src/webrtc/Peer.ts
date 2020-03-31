@@ -67,7 +67,7 @@ export default class Peer {
         return logger.info(`These is not a '${kind}' sender on this peer.`)
       }
       if (sender.track && sender.track.readyState !== 'ended') {
-        return logger.info(`There is already an active ${kind} track.`)
+        return
       }
       const constraints = await getMediaConstraints(this.options)
       const stream = await getUserMedia({ [kind]: constraints[kind] })

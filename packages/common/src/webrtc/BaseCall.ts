@@ -280,6 +280,28 @@ export default abstract class BaseCall implements IWebRTCCall {
       case VertoMethod.Bye:
         this.hangup(params, false)
         break
+      case VertoMethod.MediaParams: {
+        ['audio', 'video'].forEach(kind => {
+          if (kind in params.mediaParams) {
+          this._applyMediaConstraints(kind, params.mediaParams[kind])
+        }
+        })
+        break
+      }
+    }
+  }
+
+  private async _applyMediaConstraints(kind: string, constraints: MediaTrackConstraints) {
+    const sender = this.peer.instance.getSenders().find(({ track }) => track.kind === kind)
+    if (!sender || !sender.track) {
+      return logger.info('No sender to apply constraints', kind, constraints)
+    }
+    try {
+      if (sender.track.readyState === 'live') {
+        await sender.track.applyConstraints(constraints)
+      }
+    } catch (error) {
+      logger.error('Error applying constraints', kind, constraints)
     }
   }
 
@@ -293,8 +315,7 @@ export default abstract class BaseCall implements IWebRTCCall {
     switch (action) {
       case 'bootObj': {
         this._lastSerno = 0
-        const { chatID, chatChannel, infoChannel, modChannel, laName, conferenceMemberID, role } = initialPvtData
-        this._dispatchConferenceUpdate({ action: ConferenceAction.Join, conferenceName: laName, participantId: Number(conferenceMemberID), role })
+        const { chatChannel, infoChannel, modChannel, laName, conferenceMemberID, role } = initialPvtData
         if (chatChannel) {
           await this._subscribeConferenceChat(chatChannel)
         }
@@ -304,6 +325,7 @@ export default abstract class BaseCall implements IWebRTCCall {
         if (modChannel && role === Role.Moderator) {
           await this._subscribeConferenceModerator(modChannel)
         }
+        this._dispatchConferenceUpdate({ action: ConferenceAction.Join, conferenceName: laName, participantId: Number(conferenceMemberID), role })
         const participants = []
         for (const i in data) {
           participants.push({ callId: data[i][0], index: Number(i), ...mutateLiveArrayData(data[i][1]) })

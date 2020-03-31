@@ -604,6 +604,18 @@ export default abstract class BaseCall implements IWebRTCCall {
           value: (memberID: number | string, exten: string) => {
             _modCommand('transfer', memberID, exten)
           }
+        },
+        toggleNoiseBlocker: {
+          configurable: true,
+          value: (memberID: number | string, value: string = null) => {
+            _modCommand('denoise', memberID, value)
+          }
+        },
+        toggleLowBitrateMode: {
+          configurable: true,
+          value: (memberID: number | string, value: string = null) => {
+            _modCommand('lowbr', memberID, value)
+          }
         }
       })
     }

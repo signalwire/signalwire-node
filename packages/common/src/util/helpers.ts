@@ -17,6 +17,7 @@ export const mutateLiveArrayData = (data: any) => {
     logger.warn('Verto LA invalid media JSON string:', mediaJson)
   }
   const result: any = { participantId: Number(participantId), participantNumber, participantName, codec, media, participantData }
+  // TODO: Remove from here. It's already in MEDIA!
   if (media.conferenceState) {
     result.conferenceState = media.conferenceState
   }

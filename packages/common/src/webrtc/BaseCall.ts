@@ -283,8 +283,8 @@ export default abstract class BaseCall implements IWebRTCCall {
       case VertoMethod.MediaParams: {
         ['audio', 'video'].forEach(kind => {
           if (kind in params.mediaParams) {
-          this._applyMediaConstraints(kind, params.mediaParams[kind])
-        }
+            this._applyMediaConstraints(kind, params.mediaParams[kind])
+          }
         })
         break
       }
@@ -298,6 +298,7 @@ export default abstract class BaseCall implements IWebRTCCall {
     }
     try {
       if (sender.track.readyState === 'live') {
+        console.log(`Apply ${kind} constraints`, constraints)
         await sender.track.applyConstraints(constraints)
       }
     } catch (error) {

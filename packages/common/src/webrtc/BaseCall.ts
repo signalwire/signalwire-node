@@ -415,6 +415,9 @@ export default abstract class BaseCall implements IWebRTCCall {
             eventData.callID = this.id
             MCULayoutEventHandler(this.session, eventData)
             break
+          case 'conference-info':
+            this._dispatchConferenceUpdate({ action: ConferenceAction.ConferenceInfo, ...eventData.conferenceState })
+            break
           default:
             logger.error('Conference-Info unknown contentType', params)
         }

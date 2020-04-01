@@ -86,7 +86,7 @@ export enum ConferenceAction {
   LogoInfo = 'logoInfo',
   LayoutInfo = 'layoutInfo',
   LayoutList = 'layoutList',
-  ConferenceInfo = 'ConferenceInfo',
+  ConferenceInfo = 'conferenceInfo',
   ModCmdResponse = 'modCommandResponse',
 }
 

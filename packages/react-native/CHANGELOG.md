@@ -3,12 +3,13 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.0.2] - 2020-04-02
 ### Fixed
 - Keep trying to reconnect WS in case of network failure - even if it never has been connected.
 
 - ### Changed
-- Add TypeScript interface for WebRTC call object to include missing methods for TS users.
+- Remove autolinking of native modules in postinstall script.
+- Export TypeScript interfaces for WebRTC call object.
 
 ### Security
 - Update devDependencies

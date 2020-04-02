@@ -37,7 +37,9 @@ export default class App extends Component<Props> {
       btnCamActive: true,
       btnSpeakerActive: true,
     }
+  }
 
+  componentDidMount() {
     // Use your Project ID and a JWT to create a Relay client.
     this.client = new Relay({
       project: '',

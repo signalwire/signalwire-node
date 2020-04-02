@@ -627,6 +627,18 @@ export default abstract class BaseCall implements IWebRTCCall {
           value: (value: string) => {
             _modCommand('xdial', null, value)
           }
+        },
+        toggleHandRaised: {
+          configurable: true,
+          value: (memberID: number | string) => {
+            _modCommand('handraise', memberID)
+          }
+        },
+        confQuality: {
+          configurable: true,
+          value: (value: string) => {
+            _modCommand('quality', null, value)
+          }
         }
       })
     }

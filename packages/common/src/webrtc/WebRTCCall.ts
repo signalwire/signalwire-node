@@ -274,12 +274,12 @@ export default abstract class WebRTCCall {
     this._dispatchNotification({ type: Notification.ParticipantData, displayName, displayNumber, displayDirection })
   }
 
-  private _onVertoAnswer(params: any) {
+  private async _onVertoAnswer(params: any) {
     if (this._state >= State.Active) {
       return
     }
     if (!this.gotEarly) {
-      this.peer.onRemoteSdp(params.sdp)
+      await this.peer.onRemoteSdp(params.sdp)
     }
     this.setState(State.Active)
   }

@@ -630,8 +630,14 @@ export default abstract class BaseCall implements IWebRTCCall {
         },
         toggleHandRaised: {
           configurable: true,
-          value: (memberID: number | string) => {
-            _modCommand('handraise', null, memberID)
+          value: (memberID: number | string, value: string = null) => {
+            _modCommand('handraise', memberID, value)
+          }
+        },
+        confFullscreen: {
+          configurable: true,
+          value: (memberID: number | string, value: string = null) => {
+            _modCommand('full-screen', memberID, value)
           }
         },
         confQuality: {
@@ -639,7 +645,13 @@ export default abstract class BaseCall implements IWebRTCCall {
           value: (value: string) => {
             _modCommand('quality.lua', null, value)
           }
-        }
+        },
+        modCommand: {
+          configurable: true,
+          value: (command: string, memberID: string = null, value: string = null) => {
+            _modCommand(command, memberID, value)
+          }
+        },
       })
     }
   }

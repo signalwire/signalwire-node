@@ -631,7 +631,7 @@ export default abstract class BaseCall implements IWebRTCCall {
         toggleHandRaised: {
           configurable: true,
           value: (memberID: number | string) => {
-            _modCommand('handraise', memberID)
+            _modCommand('handraise', null, memberID)
           }
         },
         confQuality: {

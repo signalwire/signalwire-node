@@ -637,7 +637,7 @@ export default abstract class BaseCall implements IWebRTCCall {
         confQuality: {
           configurable: true,
           value: (value: string) => {
-            _modCommand('quality', null, value)
+            _modCommand('quality.lua', null, value)
           }
         }
       })

@@ -46,7 +46,7 @@ export const DEFAULT_CALL_OPTIONS: CallOptions = {
   callerName: '',
   callerNumber: '',
   audio: true,
-  video: false,
+  video: true,
   useStereo: false,
   attach: false,
   screenShare: false,

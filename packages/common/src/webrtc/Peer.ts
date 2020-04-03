@@ -10,13 +10,13 @@ import { trigger } from '../services/Handler'
 export default class Peer {
   public instance: RTCPeerConnection
   public onSdpReadyTwice: Function = null
-  private _constraints: { offerToReceiveAudio: boolean, offerToReceiveVideo: boolean }
+  private _constraints: RTCOfferOptions | RTCAnswerOptions
   private _negotiating: boolean = false
 
   constructor(public type: PeerType, private options: CallOptions) {
     logger.info('New Peer with type:', this.type, 'Options:', this.options)
 
-    this._constraints = { offerToReceiveAudio: true, offerToReceiveVideo: true }
+    this._constraints = { offerToReceiveAudio: true, offerToReceiveVideo: true, voiceActivityDetection: false }
     this._sdpReady = this._sdpReady.bind(this)
     this._init()
   }
@@ -148,7 +148,7 @@ export default class Peer {
     const sdp = useStereo ? sdpStereoHack(remoteSdp) : remoteSdp
     const sessionDescr: RTCSessionDescription = sdpToJsonHack({ sdp, type: PeerType.Offer })
     this.instance.setRemoteDescription(sessionDescr)
-      .then(() => this.instance.createAnswer())
+      .then(() => this.instance.createAnswer(this._constraints))
       .then(this._setLocalDescription.bind(this))
       .then(this._sdpReady)
       .catch(error => logger.error('Peer _createAnswer error:', error))

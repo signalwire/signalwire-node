@@ -6,7 +6,7 @@ import { SwEvent, SESSION_ID } from './util/constants'
 import { State, DeviceType } from './webrtc/constants'
 import { getDevices, scanResolutions, removeUnsupportedConstraints, checkDeviceIdConstraints, destructSubscribeResponse, getUserMedia, assureDeviceId } from './webrtc/helpers'
 import { findElementByType } from './util/helpers'
-import { Unsubscribe, Subscribe, Broadcast } from './messages/Verto'
+import { Unsubscribe, Subscribe, Broadcast, JSApi } from './messages/Verto'
 import { localStorage } from './util/storage/'
 import { stopStream } from './util/webrtc'
 import { IWebRTCCall } from './webrtc/interfaces'
@@ -325,5 +325,10 @@ export default abstract class BrowserSession extends BaseSession {
     unsubscribed.forEach(channel => this._removeSubscription(this.relayProtocol, channel))
     notSubscribed.forEach(channel => this._removeSubscription(this.relayProtocol, channel))
     return response
+  }
+
+  _jsApi(params = {}) {
+    const msg = new JSApi({ ...params, sessid: this.sessionid })
+    return this.execute(msg)
   }
 }

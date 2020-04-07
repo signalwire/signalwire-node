@@ -48,6 +48,11 @@ class Unsubscribe extends BaseRequest {
     return VertoMethod.Unsubscribe
   }
 }
+class JSApi extends BaseRequest {
+  toString() {
+    return 'jsapi'
+  }
+}
 
 export {
   Login,
@@ -60,5 +65,6 @@ export {
   Broadcast,
   Subscribe,
   Unsubscribe,
-  Result
+  Result,
+  JSApi,
 }

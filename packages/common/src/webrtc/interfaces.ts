@@ -24,6 +24,7 @@ export interface CallOptions {
   speakerId?: string
   userVariables?: Object
   screenShare?: boolean
+  altSource?: boolean
   onNotification?: Function
   googleMaxBitrate?: number
   googleMinBitrate?: number

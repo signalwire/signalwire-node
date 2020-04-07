@@ -6,12 +6,16 @@ import { getDisplayMedia, setMediaElementSinkId } from '../util/webrtc'
 export default class Call extends BaseCall {
 
   public screenShare: Call
+  public altSource: Call
 
   private _statsInterval: any = null
 
   hangup(params: any = {}, execute: boolean = true) {
     if (this.screenShare instanceof Call) {
       this.screenShare.hangup(params, execute)
+    }
+    if (this.altSource instanceof Call) {
+      this.altSource.hangup(params, execute)
     }
     super.hangup(params, execute)
   }
@@ -45,6 +49,29 @@ export default class Call extends BaseCall {
   stopScreenShare() {
     if (this.screenShare instanceof Call) {
       this.screenShare.hangup()
+    }
+  }
+
+  async addAltSource(opts?: CallOptions) {
+    const { remoteCallerName, remoteCallerNumber, callerName, callerNumber } = this.options
+    const options: CallOptions = {
+      altSource: true,
+      destinationNumber: `${this.extension}-screen`,
+      remoteCallerName,
+      remoteCallerNumber: `${remoteCallerNumber}-screen`,
+      callerName: `${callerName} (Alt Source)`,
+      callerNumber: `${callerNumber} (Alt Source)`,
+      localStream: null,
+      ...opts,
+    }
+    this.altSource = new Call(this.session, options)
+    this.altSource.invite()
+    return this.altSource
+  }
+
+  removeAltSource() {
+    if (this.altSource instanceof Call) {
+      this.altSource.hangup()
     }
   }
 

@@ -63,6 +63,12 @@ export default abstract class BaseCall implements IWebRTCCall {
     return `conference-member.${this.id}`
   }
 
+  // altSource and screenShare calls are not "main"
+  get isMainCall() {
+    const { screenShare, altSource } = this.options
+    return !screenShare && !altSource
+  }
+
   invite() {
     this.direction = Direction.Outbound
     this.peer = new Peer(PeerType.Offer, this.options)
@@ -754,8 +760,8 @@ export default abstract class BaseCall implements IWebRTCCall {
 
     instance.addEventListener('track', (event: RTCTrackEvent) => {
       this.options.remoteStream = event.streams[0]
-      const { remoteElement, remoteStream, screenShare } = this.options
-      if (screenShare === false) {
+      if (this.isMainCall) {
+        const { remoteElement, remoteStream } = this.options
         attachMediaStream(remoteElement, remoteStream)
       }
     })
@@ -783,7 +789,7 @@ export default abstract class BaseCall implements IWebRTCCall {
   }
 
   private _dispatchNotification(notification: any) {
-    if (this.options.screenShare === true) {
+    if (!this.isMainCall) {
       return
     }
     if (!trigger(SwEvent.Notification, notification, this.id, false)) {
@@ -828,7 +834,7 @@ export default abstract class BaseCall implements IWebRTCCall {
     const { remoteStream, localStream, remoteElement, localElement } = this.options
     stopStream(remoteStream)
     stopStream(localStream)
-    if (this.options.screenShare !== true) {
+    if (this.isMainCall) {
       detachMediaStream(remoteElement)
       detachMediaStream(localElement)
     }

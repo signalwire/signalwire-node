@@ -451,8 +451,7 @@ export default abstract class BaseCall implements IWebRTCCall {
   }
 
   private async _subscribeConferenceModerator(channel: string) {
-    const _modCommand = (command: string, memberID: any = null, value: any = null): void => {
-      const id = parseInt(memberID) || null
+    const _modCommand = (command: string, id: string = null, value: any = null): void => {
       this._confControl(channel, { command, id, value })
     }
 
@@ -509,13 +508,13 @@ export default abstract class BaseCall implements IWebRTCCall {
         },
         deaf: {
           configurable: true,
-          value: (memberID: number | string) => {
+          value: (memberID: string) => {
             _modCommand('deaf', memberID)
           }
         },
         undeaf: {
           configurable: true,
-          value: (memberID: number | string) => {
+          value: (memberID: string) => {
             _modCommand('undeaf', memberID)
           }
         },
@@ -548,83 +547,83 @@ export default abstract class BaseCall implements IWebRTCCall {
         },
         kick: {
           configurable: true,
-          value: (memberID: number | string) => {
+          value: (memberID: string) => {
             _modCommand('kick', memberID)
           }
         },
         muteMic: {
           configurable: true,
-          value: (memberID: number | string) => {
+          value: (memberID: string) => {
             _modCommand('tmute', memberID)
           }
         },
         muteVideo: {
           configurable: true,
-          value: (memberID: number | string) => {
+          value: (memberID: string) => {
             _videoRequired()
             _modCommand('tvmute', memberID)
           }
         },
         presenter: {
           configurable: true,
-          value: (memberID: number | string) => {
+          value: (memberID: string) => {
             _videoRequired()
             _modCommand('vid-res-id', memberID, 'presenter')
           }
         },
         videoFloor: {
           configurable: true,
-          value: (memberID: number | string) => {
+          value: (memberID: string) => {
             _videoRequired()
             _modCommand('vid-floor', memberID, 'force')
           }
         },
         banner: {
           configurable: true,
-          value: (memberID: number | string, text: string) => {
+          value: (memberID: string, text: string) => {
             _videoRequired()
             _modCommand('vid-banner', memberID, encodeURI(text))
           }
         },
         volumeDown: {
           configurable: true,
-          value: (memberID: number | string) => {
+          value: (memberID: string) => {
             _modCommand('volume_out', memberID, 'down')
           }
         },
         volumeUp: {
           configurable: true,
-          value: (memberID: number | string) => {
+          value: (memberID: string) => {
             _modCommand('volume_out', memberID, 'up')
           }
         },
         gainDown: {
           configurable: true,
-          value: (memberID: number | string) => {
+          value: (memberID: string) => {
             _modCommand('volume_in', memberID, 'down')
           }
         },
         gainUp: {
           configurable: true,
-          value: (memberID: number | string) => {
+          value: (memberID: string) => {
             _modCommand('volume_in', memberID, 'up')
           }
         },
         transfer: {
           configurable: true,
-          value: (memberID: number | string, exten: string) => {
+          value: (memberID: string, exten: string) => {
             _modCommand('transfer', memberID, exten)
           }
         },
         toggleNoiseBlocker: {
           configurable: true,
-          value: (memberID: number | string, value: string = null) => {
+          value: (memberID: string, value: string = null) => {
             _modCommand('denoise', memberID, value)
           }
         },
         toggleLowBitrateMode: {
           configurable: true,
-          value: (memberID: number | string, value: string = null) => {
+          value: (memberID: string, value: string = null) => {
             _modCommand('lowbr', memberID, value)
           }
         },
@@ -636,13 +635,13 @@ export default abstract class BaseCall implements IWebRTCCall {
         },
         toggleHandRaised: {
           configurable: true,
-          value: (memberID: number | string, value: string = null) => {
+          value: (memberID: string, value: string = null) => {
             _modCommand('handraise', memberID, value)
           }
         },
         confFullscreen: {
           configurable: true,
-          value: (memberID: number | string, value: string = null) => {
+          value: (memberID: string, value: string = null) => {
             _modCommand('full-screen', memberID, value)
           }
         },

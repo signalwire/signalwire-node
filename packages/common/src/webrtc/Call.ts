@@ -34,9 +34,9 @@ export default class Call extends BaseCall {
     const options: CallOptions = {
       screenShare: true,
       localStream: displayStream,
-      destinationNumber: `${this.extension}-screen`,
+      destinationNumber: `${this.extension};screen`,
       remoteCallerName,
-      remoteCallerNumber: `${remoteCallerNumber}-screen`,
+      remoteCallerNumber: `${remoteCallerNumber};screen`,
       callerName: `${callerName} (Screen)`,
       callerNumber: `${callerNumber} (Screen)`,
       ...opts
@@ -56,11 +56,11 @@ export default class Call extends BaseCall {
     const { remoteCallerName, remoteCallerNumber, callerName, callerNumber } = this.options
     const options: CallOptions = {
       altSource: true,
-      destinationNumber: `${this.extension}-screen`,
+      destinationNumber: `${this.extension};second-source`,
       remoteCallerName,
-      remoteCallerNumber: `${remoteCallerNumber}-screen`,
-      callerName: `${callerName} (Alt Source)`,
-      callerNumber: `${callerNumber} (Alt Source)`,
+      remoteCallerNumber: `${remoteCallerNumber};second-source`,
+      callerName: `${callerName} (Second Source)`,
+      callerNumber: `${callerNumber} (Second Source)`,
       localStream: null,
       ...opts,
     }

@@ -295,7 +295,7 @@ export default abstract class BaseCall implements IWebRTCCall {
         break
       }
       case VertoMethod.Prompt: {
-        const notification = { ...params, type: NOTIFICATION_TYPE.prompt, call: this }
+        const notification = { ...params, promptType: params.type, type: NOTIFICATION_TYPE.prompt, call: this }
         if (!trigger(SwEvent.Notification, notification, this.id)) {
           trigger(SwEvent.Notification, notification, this.session.uuid)
         }

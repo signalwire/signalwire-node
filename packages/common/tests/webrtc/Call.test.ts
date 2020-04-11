@@ -322,7 +322,7 @@ describe('Call', () => {
       call.extension = '3599'
       const ss = await call.startScreenShare()
       expect(ss).toEqual(call.screenShare)
-      expect(ss.options.destinationNumber).toEqual('3599-screen')
+      expect(ss.options.destinationNumber).toEqual('3599;screen')
       expect(ss.options.screenShare).toEqual(true)
       expect(ss.peer.type).toEqual('offer')
       expect(ss).toBeInstanceOf(Call)

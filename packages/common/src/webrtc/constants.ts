@@ -26,10 +26,12 @@ export enum VertoMethod {
   ClientReady = 'verto.clientReady',
   Modify = 'verto.modify',
   MediaParams = 'verto.mediaParams',
+  Prompt = 'verto.prompt',
 }
 
 export const NOTIFICATION_TYPE = {
   generic: 'event',
+  prompt: 'prompt',
   [VertoMethod.Display]: 'participantData',
   [VertoMethod.Attach]: 'participantData',
   conferenceUpdate: 'conferenceUpdate',

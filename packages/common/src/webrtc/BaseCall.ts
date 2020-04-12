@@ -82,6 +82,9 @@ export default abstract class BaseCall implements IWebRTCCall {
   }
 
   hangup(params: any = {}, execute: boolean = true) {
+    if (this._state >= State.Hangup) {
+      return logger.warn(`${this.id} already hungup`)
+    }
     this.cause = params.cause || 'NORMAL_CLEARING'
     this.causeCode = params.causeCode || 16
     this.setState(State.Hangup)

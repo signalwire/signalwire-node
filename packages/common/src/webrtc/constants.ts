@@ -66,9 +66,9 @@ export enum State {
   Early,
   Active,
   Held,
+  Purge,
   Hangup,
   Destroy,
-  Purge
 }
 
 export enum Role {

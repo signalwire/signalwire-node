@@ -40,8 +40,8 @@
   "homepage": "https://github.com/signalwire/signalwire-node",
   "license": "MIT",
   "dependencies": {
-    "loglevel": "^1.6.7",
-    "uuid": "^7.0.2"
+    "loglevel": "^1.6.8",
+    "uuid": "^7.0.3"
   },
   "devDependencies": {
     "@types/jest": "^25.2.1",

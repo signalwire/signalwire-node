@@ -44,6 +44,7 @@ export interface IWebRTCCall {
   extension: string
   localStream: MediaStream
   remoteStream: MediaStream
+  isMainCall: boolean
   invite: () => void
   answer: () => void
   hangup: (params: any, execute: boolean) => void
@@ -66,6 +67,7 @@ export interface IWebRTCCall {
   undeaf: () => void
   toggleDeaf: () => void
   setState: (state: any) => void
+  destroy: () => void
   // Privates
   handleMessage: (msg: any) => void
   _addChannel: (laChannel: any) => void

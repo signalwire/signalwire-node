@@ -849,7 +849,15 @@ export default abstract class BaseCall implements IWebRTCCall {
     }
     deRegister(SwEvent.MediaError, null, this.id)
     this.peer = null
-    this.session.calls[this.id] = null
-    delete this.session.calls[this.id]
+    if (!this.channels.length) {
+      this.destroy()
+    }
+  }
+
+  destroy() {
+    if (this._state >= State.Hangup) {
+      this.session.calls[this.id] = null
+      delete this.session.calls[this.id]
+    }
   }
 }

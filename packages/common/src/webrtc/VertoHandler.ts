@@ -166,30 +166,27 @@ class VertoHandler {
         // trigger Notification at a Call or Session level.
         // deregister Notification callback at the Call level.
         // Cleanup subscriptions for all channels
-        let call: IWebRTCCall = null
-        if (laChannel && session._existsSubscription(protocol, laChannel)) {
-          const { callId = null } = session.subscriptions[protocol][laChannel]
-          call = session.calls[callId] || null
-          if (callId !== null) {
-            const notification = { type: NOTIFICATION_TYPE.conferenceUpdate, action: ConferenceAction.Leave, conferenceName: laName, participantId: Number(conferenceMemberID), role }
-            if (!trigger(SwEvent.Notification, notification, callId, false)) {
-              trigger(SwEvent.Notification, notification, session.uuid)
-            }
-            if (call === null) {
-              deRegister(SwEvent.Notification, null, callId)
-            }
+        const call = session.calls[callID] || null
+        if (call) {
+          const notification = { type: NOTIFICATION_TYPE.conferenceUpdate, action: ConferenceAction.Leave, call, conferenceName: laName, participantId: Number(conferenceMemberID), role }
+          if (!trigger(SwEvent.Notification, notification, call.id, false)) {
+            trigger(SwEvent.Notification, notification, session.uuid)
+          }
+          deRegister(SwEvent.Notification, null, call.id)
+          // Prevent unsubscribe for screenShare or altSource
+          if (call.isMainCall === false) {
+            return call.destroy()
           }
         }
         const channels = [laChannel, chatChannel, infoChannel, modChannel]
-        session.vertoUnsubscribe({ nodeId: this.nodeId, channels })
-          .then(({ unsubscribedChannels = [] }) => {
-            if (call) {
-              call.channels = call.channels.filter(c => !unsubscribedChannels.includes(c))
-            }
-          })
+        const { unsubscribedChannels = [] } = await session.vertoUnsubscribe({ nodeId: this.nodeId, channels })
           .catch(error => {
             logger.error('liveArray unsubscribe error:', error)
           })
+        if (call) {
+          call.channels = call.channels.filter(c => !unsubscribedChannels.includes(c))
+          call.destroy()
+        }
         break
       }
     }

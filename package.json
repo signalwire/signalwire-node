@@ -8,7 +8,7 @@
     "setup": "node .scripts/setup.js"
   },
   "dependencies": {
-    "uuid": "^3.3.2"
+    "uuid": "^7.0.3"
   },
   "devDependencies": {
     "@types/jest": "^25.2.1",

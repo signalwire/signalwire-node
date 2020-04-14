@@ -44,11 +44,10 @@
     "uuid": "^7.0.3"
   },
   "devDependencies": {
+    "@babel/plugin-transform-runtime": "^7.9.0",
     "@types/jest": "^25.2.1",
     "@types/uuid": "^7.0.2",
-    "babel-core": "^6.26.3",
     "babel-loader": "^8.1.0",
-    "babel-plugin-transform-runtime": "^6.23.0",
     "babel-preset-env": "^1.7.0",
     "jest": "^25.3.0",
     "ts-jest": "^25.3.1",

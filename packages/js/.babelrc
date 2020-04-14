@@ -3,6 +3,6 @@
     "env"
   ],
   "plugins": [
-    "transform-runtime"
+    "@babel/transform-runtime"
   ]
 }

@@ -134,7 +134,7 @@
       // client.autoRecoverCalls = false;
       client.remoteElement = 'remoteVideo';
       client.localElement = 'localVideo';
-
+      client.iceServers = [{ urls: ['stun:stun.l.google.com:19302'] }];
       if (document.getElementById('audio').checked) {
         client.enableMicrophone()
       } else {

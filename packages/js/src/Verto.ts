@@ -20,6 +20,9 @@ export default class Verto extends BrowserSession {
   }
 
   newCall(options: CallOptions) {
+    if (this._idle || !this.connected) {
+      throw new Error('Client not connected')
+    }
     const { destinationNumber = null } = options
     if (!destinationNumber) {
       throw new Error('Verto.newCall() error: destinationNumber is required.')

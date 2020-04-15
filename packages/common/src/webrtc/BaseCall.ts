@@ -85,21 +85,16 @@ export default abstract class BaseCall implements IWebRTCCall {
     if (this._state >= State.Hangup) {
       return logger.warn(`${this.id} already hungup`)
     }
+    this.setState(State.Hangup)
     this.cause = params.cause || 'NORMAL_CLEARING'
     this.causeCode = params.causeCode || 16
-    this.setState(State.Hangup)
-    const _close = () => {
-      this.peer ? this.peer.instance.close() : null
-      this.setState(State.Destroy)
-    }
-
     if (execute) {
       const bye = new Bye({ sessid: this.session.sessionid, dialogParams: this.options })
       this._execute(bye)
         .catch(error => logger.error('verto.bye failed!', error))
-        .then(_close.bind(this))
+        .then(() => this.setState(State.Destroy))
     } else {
-      _close()
+      this.setState(State.Destroy)
     }
   }
 
@@ -224,9 +219,6 @@ export default abstract class BaseCall implements IWebRTCCall {
     this._dispatchNotification({ type: NOTIFICATION_TYPE.callUpdate, call: this })
 
     switch (state) {
-      case State.Purge:
-        this.hangup({ cause: 'PURGE', causeCode: '01' }, false)
-        break
       case State.Active: {
         setTimeout(() => {
           const { remoteElement, speakerId } = this.options
@@ -236,6 +228,7 @@ export default abstract class BaseCall implements IWebRTCCall {
         }, 0)
         break
       }
+      case State.Purge:
       case State.Destroy:
         this._finalize()
         break
@@ -738,16 +731,18 @@ export default abstract class BaseCall implements IWebRTCCall {
         logger.error(`${this.id} - Unknown local SDP type:`, data)
         return this.hangup({}, false)
     }
-    this._execute(msg)
-      .then(response => {
-        const { node_id = null } = response
-        this._targetNodeId = node_id
-        type === PeerType.Offer ? this.setState(State.Trying) : this.setState(State.Active)
-      })
-      .catch(error => {
-        logger.error(`${this.id} - Sending ${type} error:`, error)
-        this.hangup()
-      })
+    Promise.race([
+      new Promise((resolve, reject) => setTimeout(reject, 3000, 'timeout')),
+      this._execute(msg),
+    ]).then(response => {
+      const { node_id = null } = response
+      this._targetNodeId = node_id
+      type === PeerType.Offer ? this.setState(State.Trying) : this.setState(State.Active)
+    })
+    .catch(error => {
+      logger.error(`${this.id} - Sending ${type} error:`, error)
+      this.hangup()
+    })
   }
 
   private _registerPeerEvents() {
@@ -847,15 +842,18 @@ export default abstract class BaseCall implements IWebRTCCall {
       detachMediaStream(remoteElement)
       detachMediaStream(localElement)
     }
+    if (this.peer) {
+      this.peer.instance.close()
+      this.peer = null
+    }
     deRegister(SwEvent.MediaError, null, this.id)
-    this.peer = null
     if (!this.channels.length) {
       this.destroy()
     }
   }
 
   destroy() {
-    if (this._state >= State.Hangup) {
+    if (this._state >= State.Purge) {
       this.session.calls[this.id] = null
       delete this.session.calls[this.id]
     }

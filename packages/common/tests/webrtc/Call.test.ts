@@ -107,7 +107,7 @@ describe('Call', () => {
 
     it('set state to Purge', () => {
       call.setState(State.Purge)
-      expect(call.state).toEqual('destroy')
+      expect(call.state).toEqual('purge')
       expect(session.calls).not.toHaveProperty(call.id)
       expect(isQueued('signalwire.rtc.mediaError', call.id)).toEqual(false)
     })

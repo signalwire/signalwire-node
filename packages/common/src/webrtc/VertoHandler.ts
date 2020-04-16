@@ -51,7 +51,8 @@ class VertoHandler {
         callerName: params.callee_id_name,
         callerNumber: params.callee_id_number,
         attach,
-        altSource: /;second-source$/.test(params.callee_id_number),
+        secondSource: /;second-source$/.test(params.callee_id_number),
+        screenShare: /;screen$/.test(params.callee_id_number),
       })
       call.nodeId = this.nodeId
       return call
@@ -68,11 +69,6 @@ class VertoHandler {
       }
       case VertoMethod.Attach: {
         const call = _buildCall()
-        if (call.options.altSource) {
-          call.hangup()
-          const notification = { type: 'addSecondSource', options: { ...call.options } }
-          return trigger(SwEvent.Notification, notification, session.uuid)
-        }
         if (this.session.autoRecoverCalls) {
           call.answer()
         } else {

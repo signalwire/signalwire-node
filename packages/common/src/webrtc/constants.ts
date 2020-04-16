@@ -52,7 +52,7 @@ export const DEFAULT_CALL_OPTIONS: CallOptions = {
   useStereo: false,
   attach: false,
   screenShare: false,
-  altSource: false,
+  secondSource: false,
   userVariables: {},
 }
 

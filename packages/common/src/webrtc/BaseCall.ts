@@ -63,10 +63,10 @@ export default abstract class BaseCall implements IWebRTCCall {
     return `conference-member.${this.id}`
   }
 
-  // altSource and screenShare calls are not "main"
+  // secondSource and screenShare calls are not "main"
   get isMainCall() {
-    const { screenShare, altSource } = this.options
-    return !screenShare && !altSource
+    const { screenShare, secondSource } = this.options
+    return !screenShare && !secondSource
   }
 
   invite() {
@@ -731,10 +731,7 @@ export default abstract class BaseCall implements IWebRTCCall {
         logger.error(`${this.id} - Unknown local SDP type:`, data)
         return this.hangup({}, false)
     }
-    Promise.race([
-      new Promise((resolve, reject) => setTimeout(reject, 3000, 'timeout')),
-      this._execute(msg),
-    ]).then(response => {
+    this._execute(msg).then(response => {
       const { node_id = null } = response
       this._targetNodeId = node_id
       type === PeerType.Offer ? this.setState(State.Trying) : this.setState(State.Active)
@@ -805,7 +802,10 @@ export default abstract class BaseCall implements IWebRTCCall {
     if (this.nodeId) {
       msg.targetNodeId = this.nodeId
     }
-    return this.session.execute(msg)
+    return Promise.race([
+      new Promise((_resolve, reject) => setTimeout(reject, 3000, 'timeout')),
+      this.session.execute(msg),
+    ])
   }
 
   private _init() {
@@ -814,7 +814,9 @@ export default abstract class BaseCall implements IWebRTCCall {
       this.options.id = uuidv4()
     }
     this.id = this.options.id
-
+    if (!this.isMainCall) {
+      this.options.recoverCall = false
+    }
     if (!userVariables || objEmpty(userVariables)) {
       this.options.userVariables = this.session.options.userVariables || {}
     }
@@ -835,17 +837,19 @@ export default abstract class BaseCall implements IWebRTCCall {
   }
 
   protected _finalize() {
+    clearTimeout(this._iceTimeout)
     const { remoteStream, localStream, remoteElement, localElement } = this.options
-    stopStream(remoteStream)
-    stopStream(localStream)
+    if (this.peer) {
+      this.peer.instance.onicecandidate = null
+      this.peer.instance.close()
+      this.peer = null
+    }
     if (this.isMainCall) {
       detachMediaStream(remoteElement)
       detachMediaStream(localElement)
     }
-    if (this.peer) {
-      this.peer.instance.close()
-      this.peer = null
-    }
+    stopStream(remoteStream)
+    stopStream(localStream)
     deRegister(SwEvent.MediaError, null, this.id)
     if (!this.channels.length) {
       this.destroy()

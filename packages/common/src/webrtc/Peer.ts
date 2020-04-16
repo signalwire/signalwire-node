@@ -167,6 +167,7 @@ export default class Peer {
 
   /** Workaround for ReactNative: first time SDP has no candidates */
   private _sdpReady(): void {
+    logger.info('RTC connectionState:', this.instance.connectionState)
     if (isFunction(this.onSdpReadyTwice)) {
       this.onSdpReadyTwice(this.instance.localDescription)
     }

@@ -6,7 +6,7 @@ import { getDisplayMedia, setMediaElementSinkId } from '../util/webrtc'
 export default class Call extends BaseCall {
 
   public screenShare: Call
-  public altSource: Call
+  public secondSource: Call
 
   private _statsInterval: any = null
 
@@ -14,8 +14,8 @@ export default class Call extends BaseCall {
     if (this.screenShare instanceof Call) {
       this.screenShare.hangup(params, execute)
     }
-    if (this.altSource instanceof Call) {
-      this.altSource.hangup(params, execute)
+    if (this.secondSource instanceof Call) {
+      this.secondSource.hangup(params, execute)
     }
     super.hangup(params, execute)
   }
@@ -33,6 +33,7 @@ export default class Call extends BaseCall {
     const { remoteCallerName, remoteCallerNumber, callerName, callerNumber } = this.options
     const options: CallOptions = {
       screenShare: true,
+      recoverCall: false,
       localStream: displayStream,
       destinationNumber: `${this.extension};screen`,
       remoteCallerName,
@@ -52,10 +53,11 @@ export default class Call extends BaseCall {
     }
   }
 
-  async addAltSource(opts?: CallOptions) {
+  async addSecondSource(opts?: CallOptions) {
     const { remoteCallerName, remoteCallerNumber, callerName, callerNumber } = this.options
     const options: CallOptions = {
-      altSource: true,
+      secondSource: true,
+      recoverCall: false,
       destinationNumber: `${this.extension};second-source`,
       remoteCallerName,
       remoteCallerNumber: `${remoteCallerNumber};second-source`,
@@ -64,14 +66,14 @@ export default class Call extends BaseCall {
       localStream: null,
       ...opts,
     }
-    this.altSource = new Call(this.session, options)
-    this.altSource.invite()
-    return this.altSource
+    this.secondSource = new Call(this.session, options)
+    this.secondSource.invite()
+    return this.secondSource
   }
 
-  removeAltSource() {
-    if (this.altSource instanceof Call) {
-      this.altSource.hangup()
+  removeSecondSource() {
+    if (this.secondSource instanceof Call) {
+      this.secondSource.hangup()
     }
   }
 

@@ -64,8 +64,6 @@ export default abstract class BrowserSession extends BaseSession {
    */
   async disconnect() {
     Object.keys(this.calls).forEach(k => this.calls[k].setState(State.Purge))
-    this.calls = {}
-
     await super.disconnect()
   }
 

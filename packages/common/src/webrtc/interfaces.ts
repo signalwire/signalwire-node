@@ -1,5 +1,3 @@
-import WebRTCCall from './WebRTCCall'
-
 export interface CallOptions {
   // Required
   destinationNumber: string
@@ -24,7 +22,7 @@ export interface CallOptions {
   camId?: string
   camLabel?: string
   speakerId?: string
-  userVariables?: Object
+  userVariables?: { [key: string]: any }
   screenShare?: boolean
   onNotification?: Function
   googleMaxBitrate?: number

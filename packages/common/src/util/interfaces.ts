@@ -63,7 +63,7 @@ export interface ISignalWireOptions {
   login?: string
   passwd?: string
   password?: string
-  userVariables?: Object
+  userVariables?: { [key: string]: any }
 }
 
 export interface SubscribeParams {

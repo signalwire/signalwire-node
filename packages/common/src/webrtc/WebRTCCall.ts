@@ -344,6 +344,7 @@ export default abstract class WebRTCCall {
     if (!userVariables || objEmpty(userVariables)) {
       this.options.userVariables = this.session.options.userVariables || {}
     }
+    this.options.userVariables.hostname = window.location.hostname
     if (!remoteCallerNumber) {
       this.options.remoteCallerNumber = this.options.destinationNumber
     }

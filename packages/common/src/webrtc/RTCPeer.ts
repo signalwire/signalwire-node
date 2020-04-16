@@ -38,6 +38,42 @@ export default class RTCPeer {
     return config
   }
 
+  stopTrackSender(kind: string) {
+    try {
+      const sender = this.instance.getSenders().find(({ track }) => track.kind === kind)
+      if (!sender) {
+        return logger.info(`These is not a '${kind}' sender to stop.`)
+      }
+      if (sender.track) {
+        sender.track.stop()
+        this.options.localStream.removeTrack(sender.track)
+      }
+    } catch (error) {
+      logger.error('RTCPeer stopTrackSender error', kind, error)
+    }
+  }
+
+  async restoreTrackSender(kind: string) {
+    try {
+      const sender = this.instance.getSenders().find(({ track }) => track.kind === kind)
+      if (!sender) {
+        return logger.info(`These is not a '${kind}' sender to restore.`)
+      }
+      if (sender.track && sender.track.readyState !== 'ended') {
+        return logger.info(`There is already an active ${kind} track.`)
+      }
+      const constraints = await getMediaConstraints(this.options)
+      const stream = await getUserMedia({ [kind]: constraints[kind] })
+      if (streamIsValid(stream)) {
+        const newTrack = stream.getTracks().find(t => t.kind === kind)
+        sender.replaceTrack(newTrack)
+        this.options.localStream.addTrack(newTrack)
+      }
+    } catch (error) {
+      logger.error('RTCPeer restoreTrackSender error', kind, error)
+    }
+  }
+
   async startNegotiation() {
     try {
       if (this.isOffer) {

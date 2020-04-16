@@ -198,8 +198,20 @@ export default class Conference {
       }
       case 'add':
         return this._dispatchConferenceUpdate({ action: ConferenceAction.Add, callId, ...mutateLiveArrayData(data) })
-      case 'modify':
-        return this._dispatchConferenceUpdate({ action: ConferenceAction.Modify, callId, ...mutateLiveArrayData(data) })
+      case 'modify':{
+        const notification = { action: ConferenceAction.Modify, callId, ...mutateLiveArrayData(data) }
+        if (this.callId === callId) {
+          const { audio, video } = notification
+          const call = this.session.calls[this.callId]
+          if (audio && 'muted' in audio) {
+            Boolean(audio.muted) ? call.stopOutboundAudio() : call.restoreOutboundAudio()
+          }
+          if (video && 'muted' in video) {
+            Boolean(video.muted) ? call.stopOutboundVideo() : call.restoreOutboundVideo()
+          }
+        }
+        return this._dispatchConferenceUpdate(notification)
+      }
       case 'del':
         return this._dispatchConferenceUpdate({ action: ConferenceAction.Delete, callId, ...mutateLiveArrayData(data) })
       case 'clear':

@@ -190,6 +190,30 @@ export default abstract class WebRTCCall {
     toggleAudioTracks(this.options.remoteStream)
   }
 
+  stopOutboundAudio() {
+    if (this.peer) {
+      this.peer.stopTrackSender('audio')
+    }
+  }
+
+  restoreOutboundAudio() {
+    if (this.peer) {
+      this.peer.restoreTrackSender('audio')
+    }
+  }
+
+  stopOutboundVideo() {
+    if (this.peer) {
+      this.peer.stopTrackSender('video')
+    }
+  }
+
+  restoreOutboundVideo() {
+    if (this.peer) {
+      this.peer.restoreTrackSender('video')
+    }
+  }
+
   async upgrade() {
     // FIXME: Hack to prevent endless loop on modify vs attach
     this.doReinvite = true

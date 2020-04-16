@@ -47,11 +47,11 @@ export default (instance: any) => {
       const partialNotification = {
         type: Notification.ConferenceUpdate,
         callId: callID,
-        participantId: 843,
+        participantId: '0843',
         participantNumber: 'example@domain.com',
         participantName: 'Joe',
         codec: 'opus@48000',
-        media,
+        ...media,
         participantData: {
           email: 'example@domain.com'
         }
@@ -70,11 +70,11 @@ export default (instance: any) => {
         const participants = [
           {
             callId: callID,
-            participantId: 843,
+            participantId: '0843',
             participantNumber: 'example@domain.com',
             participantName: 'Joe',
             codec: 'opus@48000',
-            media,
+            ...media,
             participantData: {
               email: 'example@domain.com'
             }

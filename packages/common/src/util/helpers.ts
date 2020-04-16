@@ -10,13 +10,13 @@ export const mutateStorageKey = (key: string) => `${STORAGE_PREFIX}${key}`
 
 export const mutateLiveArrayData = (data: any) => {
   const [participantId, participantNumber, participantName, codec, mediaJson, participantData] = data
-  let media = {}
+  let media: { audio?: any, video?: any, connectionState?: any, variables?: any } = {}
   try {
-    media = JSON.parse(mediaJson.replace(/ID"/g, 'Id"'))
+    media = JSON.parse(mediaJson)
   } catch (error) {
     logger.warn('Verto LA invalid media JSON string:', mediaJson)
   }
-  return { participantId: Number(participantId), participantNumber, participantName, codec, media, participantData }
+  return { participantId, participantNumber, participantName, codec, participantData, ...media }
 }
 
 export const safeParseJson = (value: string): string | Object => {

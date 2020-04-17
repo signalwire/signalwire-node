@@ -37,6 +37,7 @@ export default abstract class WebRTCCall {
   stopScreenShare?(): void
   addSecondSource?(opts?: CallOptions): Promise<WebRTCCall>
   removeSecondSource?(): void
+  setAudioOutDevice?(deviceId: string): Promise<boolean>
   switchCamera?(): void
   setSpeakerPhone?(flag: boolean): void
 

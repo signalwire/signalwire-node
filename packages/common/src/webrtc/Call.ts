@@ -1,7 +1,7 @@
 import logger from '../util/logger'
 import WebRTCCall from './WebRTCCall'
 import { CallOptions } from './interfaces'
-import { getDisplayMedia } from '../util/webrtc'
+import { getDisplayMedia, setMediaElementSinkId } from '../util/webrtc'
 
 export default class Call extends WebRTCCall {
 
@@ -61,6 +61,15 @@ export default class Call extends WebRTCCall {
     if (this.secondSource instanceof Call) {
       this.secondSource.hangup()
     }
+  }
+
+  setAudioOutDevice(deviceId: string): Promise<boolean> {
+    this.options.speakerId = deviceId
+    const { remoteElement, speakerId } = this.options
+    if (remoteElement && speakerId) {
+      return setMediaElementSinkId(remoteElement, speakerId)
+    }
+    return Promise.resolve(false)
   }
 
   protected _finalize() {

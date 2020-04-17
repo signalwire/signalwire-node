@@ -73,7 +73,12 @@ const sdpToJsonHack = sdp => sdp
 
 const stopStream = (stream: MediaStream) => {
   if (streamIsValid(stream)) {
-    stream.getTracks().forEach(t => t.stop())
+    stream.getTracks().forEach(t => {
+      if (t.readyState === 'live') {
+        t.stop()
+        t.dispatchEvent(new Event('ended'))
+      }
+    })
   }
   stream = null
 }

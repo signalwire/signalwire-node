@@ -8,7 +8,8 @@ export default class Call extends WebRTCCall {
   private _statsInterval: any = null
 
   async startScreenShare(opts?: CallOptions) {
-    const displayStream: MediaStream = await getDisplayMedia({ video: true })
+    const video = opts ? (opts.video || true) : true
+    const displayStream: MediaStream = await getDisplayMedia({ video })
     displayStream.getTracks().forEach(t => {
       t.addEventListener('ended', () => {
         if (this.screenShare) {

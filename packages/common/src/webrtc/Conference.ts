@@ -15,6 +15,8 @@ export default class Conference {
 
   private pvtData: VertoPvtData
   private _lastSerno = 0
+  private _isVmuted = false
+  private _isMuted = false
 
   constructor(protected session: BrowserSession) {
     this.laChannelHandler = this.laChannelHandler.bind(this)
@@ -221,7 +223,13 @@ export default class Conference {
         this._lastSerno = 0
         const participants = []
         for (const i in data) {
-          participants.push({ callId: data[i][0], ...mutateLiveArrayData(data[i][1]) })
+          const participant = { callId: data[i][0], ...mutateLiveArrayData(data[i][1]) }
+          const { callId, audio, video } = participant
+          if (this.callId === callId && audio && video) {
+            this._isMuted = audio.muted
+            this._isVmuted = video.muted
+          }
+          participants.push(participant)
         }
         return this._dispatchConferenceUpdate({ action: ConferenceAction.Bootstrap, participants })
       }
@@ -232,11 +240,17 @@ export default class Conference {
         if (this.callId === callId) {
           const { audio, video } = notification
           const call = this.session.calls[this.callId]
-          if (audio && 'muted' in audio) {
-            Boolean(audio.muted) ? call.stopOutboundAudio() : call.restoreOutboundAudio()
+          if (audio) {
+            if (this._isMuted !== audio.muted) {
+              audio.muted ? call.stopOutboundAudio() : call.restoreOutboundAudio()
+            }
+            this._isMuted = audio.muted
           }
-          if (video && 'muted' in video) {
-            Boolean(video.muted) ? call.stopOutboundVideo() : call.restoreOutboundVideo()
+          if (video) {
+            if (this._isVmuted !== video.muted) {
+              video.muted ? call.stopOutboundVideo() : call.restoreOutboundVideo()
+            }
+            this._isVmuted = video.muted
           }
         }
         return this._dispatchConferenceUpdate(notification)

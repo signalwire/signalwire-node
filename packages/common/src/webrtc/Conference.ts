@@ -251,7 +251,7 @@ export default class Conference {
   }
 
   updateLayouts(params: any) {
-    const { contentType, canvasType, canvasInfo = null, currentLayerIdx = null } = params
+    const { contentType, callID, canvasType, canvasInfo = null, currentLayerIdx = null, ...rest } = params
     this.canvasType = canvasType
     // let changed = false
     if (currentLayerIdx !== null) {
@@ -265,7 +265,7 @@ export default class Conference {
     }
     // console.log('changed??', changed)
     // if (changed) {
-      this._dispatchConferenceUpdate({ action: ConferenceAction.LayoutInfo, participant: this.currentParticipant, canvasInfo: this.canvasInfo })
+      this._dispatchConferenceUpdate({ action: ConferenceAction.LayoutInfo, participant: this.currentParticipant, canvasInfo: this.canvasInfo, ...rest })
     // }
   }
 

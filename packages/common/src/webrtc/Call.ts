@@ -21,9 +21,9 @@ export default class Call extends WebRTCCall {
     const options: CallOptions = {
       screenShare: true,
       localStream: displayStream,
-      destinationNumber: `${this.extension}-screen`,
+      destinationNumber: `${this.extension};screen`,
       remoteCallerName,
-      remoteCallerNumber: `${remoteCallerNumber}-screen`,
+      remoteCallerNumber: `${remoteCallerNumber};screen`,
       callerName: `${callerName} (Screen)`,
       callerNumber: `${callerNumber} (Screen)`,
       ...opts

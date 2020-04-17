@@ -25,6 +25,7 @@ export enum VertoMethod {
   Unsubscribe = 'verto.unsubscribe',
   ClientReady = 'verto.clientReady',
   Modify = 'verto.modify',
+  MediaParams = 'verto.mediaParams',
 }
 
 export enum Notification {

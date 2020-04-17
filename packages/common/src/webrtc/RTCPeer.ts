@@ -74,6 +74,20 @@ export default class RTCPeer {
     }
   }
 
+  async applyMediaConstraints(kind: string, constraints: MediaTrackConstraints) {
+    try {
+      const sender = this.instance.getSenders().find(({ track }) => track.kind === kind)
+      if (!sender || !sender.track) {
+        return logger.info('No sender to apply constraints', kind, constraints)
+      }
+      if (sender.track.readyState === 'live') {
+        await sender.track.applyConstraints(constraints)
+      }
+    } catch (error) {
+      logger.error('Error applying constraints', kind, constraints)
+    }
+  }
+
   async startNegotiation() {
     try {
       if (this.isOffer) {

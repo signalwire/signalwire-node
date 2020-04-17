@@ -317,6 +317,15 @@ export default abstract class WebRTCCall {
     this.setState(State.Early)
   }
 
+  private _onVertoMediaParams(params: any) {
+    const { mediaParams } = params
+    if (this.peer && mediaParams) {
+      Object.keys(mediaParams).forEach(kind => {
+        this.peer.applyMediaConstraints(kind, mediaParams[kind])
+      })
+    }
+  }
+
   public _dispatchNotification(notification: any) {
     if (this.options.screenShare === true) {
       return
@@ -380,6 +389,7 @@ export default abstract class WebRTCCall {
     register(this.id, this._onMediaError, SwEvent.MediaError)
     register(this.id, this._onVertoAnswer, VertoMethod.Answer)
     register(this.id, this._onVertoMedia, VertoMethod.Media)
+    register(this.id, this._onVertoMediaParams, VertoMethod.MediaParams)
     register(this.id, this._hangup, VertoMethod.Bye)
     register(this.id, this._onParticipantData, VertoMethod.Display)
     register(this.id, this._onVertoAttach, VertoMethod.Attach)

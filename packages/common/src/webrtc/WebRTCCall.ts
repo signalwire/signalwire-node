@@ -231,7 +231,8 @@ export default abstract class WebRTCCall {
     }
   }
 
-  async upgrade() {
+  async _upgrade() {
+    logger.warn(`Untested upgrade method!`)
     // FIXME: Hack to prevent endless loop on modify vs attach
     this.doReinvite = true
     // TODO: force peer.type to an Offer

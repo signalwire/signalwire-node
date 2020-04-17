@@ -180,12 +180,13 @@ export default class RTCPeer {
     const tmpParams = { ...this.call.messagePayload, sdp }
     switch (type) {
       case PeerType.Offer:
-        if (this.call.active) {
-          msg = new Modify({ ...this.call.messagePayload, sdp, action: 'updateMedia' })
-        } else {
-          this.call.setState(State.Requesting)
-          msg = new Invite(tmpParams)
-        }
+        // TODO: reinvite logic commented for now
+        // if (this.call.active) {
+        //   msg = new Modify({ ...this.call.messagePayload, sdp, action: 'updateMedia' })
+        // } else {
+        this.call.setState(State.Requesting)
+        msg = new Invite(tmpParams)
+        // }
         break
       case PeerType.Answer:
         this.call.setState(State.Answering)
@@ -195,11 +196,11 @@ export default class RTCPeer {
         return logger.error(`Unknown SDP type: '${type}' on call ${this.options.id}`)
     }
     try {
-      const { node_id = null, sdp } = await this.call._execute(msg)
+      const { node_id = null, sdp = null } = await this.call._execute(msg)
       if (node_id) {
         this.call.nodeId = node_id
       }
-      if (this.call.active) {
+      if (sdp !== null) {
         await this._setRemoteDescription({ sdp, type: PeerType.Answer })
       } else {
         const state = type === PeerType.Offer ? State.Trying : State.Active

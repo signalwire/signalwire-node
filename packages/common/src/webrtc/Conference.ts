@@ -227,7 +227,7 @@ export default class Conference {
       }
       case 'add':
         return this._dispatchConferenceUpdate({ action: ConferenceAction.Add, callId, ...mutateLiveArrayData(data) })
-      case 'modify':{
+      case 'modify': {
         const notification = { action: ConferenceAction.Modify, callId, ...mutateLiveArrayData(data) }
         if (this.callId === callId) {
           const { audio, video } = notification

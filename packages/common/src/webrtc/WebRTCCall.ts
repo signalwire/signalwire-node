@@ -53,6 +53,13 @@ export default abstract class WebRTCCall {
   gainDown?(participantId?: string): void
   gainUp?(participantId?: string): void
   kick?(participantId?: string): void
+  toggleNoiseBlocker?(participantId: string, value: string): void
+  toggleLowBitrateMode?(participantId: string, value: string): void
+  addToCall?(value: string): void
+  toggleHandRaised?(participantId: string, value?: string): void
+  confQuality?(value: string): void
+  confFullscreen?(participantId: string, value?: string): void
+  modCommand?(command: string, participantId?: string, value?: string): void
 
   constructor(protected session: BrowserSession, opts?: CallOptions) {
     const { iceServers, speaker: speakerId, micId, micLabel, camId, camLabel, localElement, remoteElement, mediaConstraints: { audio, video } } = session

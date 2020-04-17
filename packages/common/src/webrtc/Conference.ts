@@ -180,6 +180,35 @@ export default class Conference {
     this._moderatorCommand({ command: 'transfer', id: participantId || this.participantId, value: destination })
   }
 
+  toggleNoiseBlocker(participantId: string, value: string) {
+    this._moderatorCommand({ command: 'denoise', id: participantId, value })
+  }
+
+  toggleLowBitrateMode(participantId: string, value: string) {
+    this._moderatorCommand({ command: 'lowbr', id: participantId, value })
+  }
+
+  addToCall(value: string) {
+    this._moderatorCommand({ command: 'xdial', value })
+  }
+
+  toggleHandRaised(participantId: string, value: string = null) {
+    // participantId passed as 'value' instead of 'id'
+    this._moderatorCommand({ command: 'handraise', id: participantId, value })
+  }
+
+  confQuality(value: string) {
+    this._moderatorCommand({ command: 'quality.lua', value })
+  }
+
+  confFullscreen(participantId: string, value: string = null) {
+    this._moderatorCommand({ command: 'full-screen', id: participantId, value })
+  }
+
+  modCommand(command: string, participantId: string = null, value: string = null) {
+    this._moderatorCommand({ command, id: participantId, value })
+  }
+
   laChannelHandler({ data: packet }: any) {
     // FIXME: 'reorder' - changepage' - 'heartbeat' methods not implemented
     if (!this._checkSerno(packet.wireSerno)) {

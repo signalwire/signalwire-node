@@ -5,7 +5,10 @@ import Conference from './Conference'
 export function InjectConferenceMethods() {
   return (klass: Function) => {
     const methods = [
-      'sendChatMessage', 'listVideoLayouts', 'playMedia', 'stopMedia', 'startRecord', 'stopRecord', 'snapshot', 'setVideoLayout', 'kick', 'presenter', 'videoFloor', 'banner', 'volumeDown', 'volumeUp', 'gainDown', 'gainUp'
+      'sendChatMessage', 'listVideoLayouts', 'playMedia', 'stopMedia', 'startRecord', 'stopRecord',
+      'snapshot', 'setVideoLayout', 'kick', 'presenter', 'videoFloor', 'banner',
+      'volumeDown', 'volumeUp', 'gainDown', 'gainUp', 'toggleNoiseBlocker', 'toggleLowBitrateMode',
+      'toggleHandRaised', 'confQuality', 'confFullscreen', 'modCommand'
     ]
     methods.forEach(method => {
       Object.defineProperty(klass.prototype, method, {

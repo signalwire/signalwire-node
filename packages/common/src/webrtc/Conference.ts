@@ -226,6 +226,9 @@ export default class Conference {
     switch (eventData.contentType) {
       case 'layout-info':
         return this.updateLayouts(eventData)
+      case 'conference-info':
+        const { contentType, ...rest } = eventData
+        return this._dispatchConferenceUpdate({ action: ConferenceAction.ConferenceInfo, ...rest })
       default:
         logger.error('Conference info unknown contentType', params)
     }

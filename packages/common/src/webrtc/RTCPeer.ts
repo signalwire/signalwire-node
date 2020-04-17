@@ -81,6 +81,7 @@ export default class RTCPeer {
         return logger.info('No sender to apply constraints', kind, constraints)
       }
       if (sender.track.readyState === 'live') {
+        logger.info(`Apply ${kind} constraints`, this.options.id, constraints)
         await sender.track.applyConstraints(constraints)
       }
     } catch (error) {

@@ -175,7 +175,7 @@ export default class RTCPeer {
       this.startNegotiation()
       return
     }
-    // this.instance.removeEventListener('icecandidate', this._onIce)
+    this.instance.removeEventListener('icecandidate', this._onIce)
     let msg = null
     const tmpParams = { ...this.call.messagePayload, sdp }
     switch (type) {
@@ -217,7 +217,7 @@ export default class RTCPeer {
       this._iceTimeout = setTimeout(() => this._sdpReady(), 1000)
     }
     if (event.candidate) {
-      logger.info('RTCPeer Candidate:', event.candidate)
+      logger.debug('RTCPeer Candidate:', event.candidate)
     } else {
       this._sdpReady()
     }

@@ -12,9 +12,15 @@ import { objEmpty, isFunction } from '../util/helpers'
 import { CallOptions, IHangupParams, ICallParticipant } from './interfaces'
 import { detachMediaStream, stopStream, setMediaElementSinkId, getUserMedia } from '../util/webrtc'
 import Conference from './Conference'
-import { InjectConferenceMethods, CheckConferenceMethod } from './decorators'
+import { CheckConferenceMethod } from './decorators'
 
-@InjectConferenceMethods()
+const confMethods = [
+  'sendChatMessage', 'listVideoLayouts', 'playMedia', 'stopMedia', 'startRecord', 'stopRecord',
+  'snapshot', 'setVideoLayout', 'kick', 'presenter', 'videoFloor', 'banner',
+  'volumeDown', 'volumeUp', 'gainDown', 'gainUp', 'toggleNoiseBlocker', 'toggleLowBitrateMode',
+  'toggleHandRaised', 'confQuality', 'confFullscreen', 'addToCall', 'modCommand'
+]
+
 export default abstract class WebRTCCall {
   public id: string = ''
   public nodeId: string
@@ -76,6 +82,18 @@ export default abstract class WebRTCCall {
     this._hangup = this._hangup.bind(this)
     this._onParticipantData = this._onParticipantData.bind(this)
     this._onGenericEvent = this._onGenericEvent.bind(this)
+
+    confMethods.forEach(method => {
+      Object.defineProperty(this, method, {
+        value: function () {
+          if (this.conference instanceof Conference) {
+            return this.conference[method](...arguments)
+          }
+          console.warn(`Invalid method: ${method}. This Call is not a Conference.`)
+        }
+      })
+    })
+
     this._init()
   }
 

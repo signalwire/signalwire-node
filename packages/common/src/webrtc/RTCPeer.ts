@@ -93,7 +93,7 @@ export default class RTCPeer {
     try {
       if (this.isOffer) {
         logger.info('Trying to generate offer')
-        const offer = await this.instance.createOffer()
+        const offer = await this.instance.createOffer({ voiceActivityDetection: false })
         await this._setLocalDescription(offer)
         return
       }
@@ -101,7 +101,7 @@ export default class RTCPeer {
       if (this.isAnswer) {
         logger.info('Trying to generate answer')
         await this._setRemoteDescription({ sdp: this.options.remoteSdp, type: PeerType.Offer })
-        const answer = await this.instance.createAnswer()
+        const answer = await this.instance.createAnswer({ voiceActivityDetection: false })
         await this._setLocalDescription(answer)
         return
       }

@@ -60,7 +60,9 @@ const _buildCall = (session: BrowserSession, params: any, attach: boolean, nodeI
     remoteCallerNumber: params.caller_id_number,
     callerName: params.callee_id_name,
     callerNumber: params.callee_id_number,
-    attach
+    attach,
+    audio: true,
+    video: true,
   })
   call.nodeId = nodeId
   return call

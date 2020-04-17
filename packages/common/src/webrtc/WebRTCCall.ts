@@ -326,6 +326,11 @@ export default abstract class WebRTCCall {
     }
   }
 
+  private _onVertoPrompt(params: any) {
+    const notification = { ...params, promptType: params.type, type: Notification.Prompt, call: this }
+    this._dispatchNotification(notification)
+  }
+
   public _dispatchNotification(notification: any) {
     if (this.options.screenShare === true) {
       return
@@ -390,6 +395,7 @@ export default abstract class WebRTCCall {
     register(this.id, this._onVertoAnswer, VertoMethod.Answer)
     register(this.id, this._onVertoMedia, VertoMethod.Media)
     register(this.id, this._onVertoMediaParams, VertoMethod.MediaParams)
+    register(this.id, this._onVertoPrompt, VertoMethod.Prompt)
     register(this.id, this._hangup, VertoMethod.Bye)
     register(this.id, this._onParticipantData, VertoMethod.Display)
     register(this.id, this._onVertoAttach, VertoMethod.Attach)

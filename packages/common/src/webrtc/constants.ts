@@ -26,6 +26,7 @@ export enum VertoMethod {
   ClientReady = 'verto.clientReady',
   Modify = 'verto.modify',
   MediaParams = 'verto.mediaParams',
+  Prompt = 'verto.prompt',
 }
 
 export enum Notification {
@@ -36,6 +37,7 @@ export enum Notification {
   VertoClientReady = 'vertoClientReady',
   UserMediaError = 'userMediaError',
   RefreshToken = 'refreshToken',
+  Prompt = 'prompt',
 }
 
 export const DEFAULT_CALL_OPTIONS: CallOptions = {

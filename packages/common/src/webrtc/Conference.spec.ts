@@ -145,8 +145,8 @@ export default (instance: any) => {
         expect(call.extension).toBe('3594')
       })
 
-      it('should dispatch a ConferenceUpdate join notification', () => {
-        call.conference.join(pvtData)
+      it('should dispatch a ConferenceUpdate join notification', async () => {
+        await call.conference.join(pvtData)
         expect(onNotification).toBeCalledWith({ type: Notification.ConferenceUpdate, action: ConferenceAction.Join, call, conferenceName: '3594', participantId: '455', role: 'moderator' })
       })
 

@@ -90,7 +90,7 @@ export default abstract class WebRTCCall {
             return this.conference[method](...arguments)
           }
           console.warn(`Invalid method: ${method}. This Call is not a Conference.`)
-        }
+        }.bind(this)
       })
     })
 

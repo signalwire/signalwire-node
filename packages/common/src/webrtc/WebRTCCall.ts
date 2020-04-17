@@ -27,6 +27,7 @@ export default abstract class WebRTCCall {
   public extension: string = null
   public gotEarly = false
   public screenShare?: WebRTCCall
+  public secondSource?: WebRTCCall
   public doReinvite = false
 
   private _state: State = State.New
@@ -34,6 +35,8 @@ export default abstract class WebRTCCall {
 
   startScreenShare?(opts?: CallOptions): Promise<WebRTCCall>
   stopScreenShare?(): void
+  addSecondSource?(opts?: CallOptions): Promise<WebRTCCall>
+  removeSecondSource?(): void
   switchCamera?(): void
   setSpeakerPhone?(flag: boolean): void
 
@@ -105,6 +108,12 @@ export default abstract class WebRTCCall {
 
   get role() {
     return this.conference ? this.conference.participantRole : Role.Participant
+  }
+
+  // secondSource and screenShare calls are not "main"
+  get isMainCall() {
+    const { screenShare, secondSource } = this.options
+    return !screenShare && !secondSource
   }
 
   invite() {
@@ -258,6 +267,9 @@ export default abstract class WebRTCCall {
         if (this.screenShare instanceof WebRTCCall) {
           this.screenShare.hangup()
         }
+        if (this.secondSource instanceof WebRTCCall) {
+          this.secondSource.hangup()
+        }
         this.setState(State.Destroy)
         break
       case State.Destroy:
@@ -339,7 +351,7 @@ export default abstract class WebRTCCall {
   }
 
   public _dispatchNotification(notification: any) {
-    if (this.options.screenShare === true) {
+    if (this.isMainCall === false) {
       return
     }
     notification.call = this
@@ -388,7 +400,9 @@ export default abstract class WebRTCCall {
       this.options.id = uuidv4()
     }
     this.id = this.options.id
-
+    if (!this.isMainCall) {
+      this.options.recoverCall = false
+    }
     if (!userVariables || objEmpty(userVariables)) {
       this.options.userVariables = this.session.options.userVariables || {}
     }
@@ -425,7 +439,7 @@ export default abstract class WebRTCCall {
     const { remoteStream, localStream, remoteElement, localElement } = this.options
     stopStream(remoteStream)
     stopStream(localStream)
-    if (this.options.screenShare !== true) {
+    if (this.isMainCall) {
       detachMediaStream(remoteElement)
       detachMediaStream(localElement)
     }

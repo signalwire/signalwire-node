@@ -39,6 +39,30 @@ export default class Call extends WebRTCCall {
     }
   }
 
+  async addSecondSource(opts?: CallOptions) {
+    const { remoteCallerName, remoteCallerNumber, callerName, callerNumber } = this.options
+    const options: CallOptions = {
+      secondSource: true,
+      recoverCall: false,
+      destinationNumber: `${this.extension};second-source`,
+      remoteCallerName,
+      remoteCallerNumber: `${remoteCallerNumber};second-source`,
+      callerName: `${callerName} (Second Source)`,
+      callerNumber: `${callerNumber} (Second Source)`,
+      localStream: null,
+      ...opts,
+    }
+    this.secondSource = new Call(this.session, options)
+    this.secondSource.invite()
+    return this.secondSource
+  }
+
+  removeSecondSource() {
+    if (this.secondSource instanceof Call) {
+      this.secondSource.hangup()
+    }
+  }
+
   protected _finalize() {
     this._stats(false)
 

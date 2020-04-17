@@ -345,7 +345,10 @@ export default abstract class WebRTCCall {
     if (this.nodeId) {
       msg.targetNodeId = this.nodeId
     }
-    return this.session.execute(msg)
+    return Promise.race([
+      new Promise((_resolve, reject) => setTimeout(reject, 3000, 'timeout')),
+      this.session.execute(msg),
+    ])
   }
 
   private async _onVertoAttach(params: any) {

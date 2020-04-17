@@ -8,7 +8,7 @@ import { findElementByType } from './util/helpers'
 import BaseMessage from './messages/BaseMessage'
 import BaseRequest from './messages/verto/BaseRequest'
 import { Execute } from './messages/Blade'
-import { Unsubscribe, Subscribe, Broadcast } from './messages/Verto'
+import { Unsubscribe, Subscribe, Broadcast, JSApi } from './messages/Verto'
 import { localStorage } from './util/storage/'
 import { stopStream } from './util/webrtc'
 import WebRTCCall from './webrtc/WebRTCCall'
@@ -238,6 +238,11 @@ export default abstract class BrowserSession extends BaseSession {
     if (nodeId) {
       msg.targetNodeId = nodeId
     }
+    return this.execute(msg)
+  }
+
+  _jsApi(params = {}) {
+    const msg = new JSApi({ ...params, sessid: this.sessionid })
     return this.execute(msg)
   }
 

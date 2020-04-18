@@ -61,6 +61,8 @@ export default abstract class BrowserSession extends BaseSession {
   purge() {
     Object.keys(this.calls).forEach(k => this.calls[k].setState(State.Purge))
     this.calls = {}
+    this._autoReconnect = false
+    return super.disconnect()
   }
 
   /**

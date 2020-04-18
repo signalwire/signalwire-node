@@ -1,7 +1,7 @@
 import logger from '../util/logger'
 import BrowserSession from '../BrowserSession'
 import { register, deRegisterAll } from '../services/Handler'
-import { checkSubscribeResponse, mutateCanvasInfoData } from './helpers'
+import { mutateCanvasInfoData, destructSubscribeResponse } from './helpers'
 import { ConferenceAction, Notification } from './constants'
 import { VertoPvtData, ICanvasInfo, ICallParticipant } from './interfaces'
 import { mutateLiveArrayData } from '../util/helpers'
@@ -348,17 +348,20 @@ export default class Conference {
     }
     try {
       const result = await this.session.vertoSubscribe(params)
-      if (checkSubscribeResponse(result, laChannel)) {
+      const { subscribed = [], alreadySubscribed = [] } = destructSubscribeResponse(result)
+      const all = subscribed.concat(alreadySubscribed)
+      this.channels.forEach(deRegisterAll)
+      if (all.includes(laChannel)) {
         register(laChannel, this.laChannelHandler)
         this._bootstrap()
       }
-      if (checkSubscribeResponse(result, chatChannel)) {
+      if (all.includes(chatChannel)) {
         register(chatChannel, this.chatChannelHandler)
       }
-      if (checkSubscribeResponse(result, infoChannel)) {
+      if (all.includes(infoChannel)) {
         register(infoChannel, this.infoChannelHandler)
       }
-      if (checkSubscribeResponse(result, modChannel)) {
+      if (all.includes(modChannel)) {
         register(modChannel, this.modChannelHandler)
       }
     } catch (error) {
@@ -367,6 +370,7 @@ export default class Conference {
   }
 
   private async _unsubscribe() {
+    this.channels.forEach(deRegisterAll)
     const params = {
       nodeId: this.nodeId,
       channels: this.channels
@@ -376,7 +380,6 @@ export default class Conference {
     } catch (error) {
       logger.error('Conference unsubscribe error:', error)
     }
-    this.channels.forEach(deRegisterAll)
     this._lastSerno = 0
   }
 

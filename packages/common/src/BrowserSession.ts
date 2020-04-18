@@ -233,7 +233,7 @@ export default abstract class BrowserSession extends BaseSession {
     return this.execute(msg)
   }
 
-  async vertoSubscribe({ nodeId, channels, handler }: SubscribeParams) {
+  async vertoSubscribe({ nodeId, channels }: SubscribeParams) {
     const msg = new Subscribe({ sessid: this.sessionid, eventChannel: channels })
     if (nodeId) {
       msg.targetNodeId = nodeId
@@ -267,5 +267,10 @@ export default abstract class BrowserSession extends BaseSession {
       message = this._wrapInExecute(message)
     }
     return super.execute(message)
+  }
+
+  protected _onSocketCloseOrError(event: any): void {
+    this.purge()
+    super._onSocketCloseOrError(event)
   }
 }

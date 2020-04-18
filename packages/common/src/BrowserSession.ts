@@ -56,13 +56,21 @@ export default abstract class BrowserSession extends BaseSession {
   }
 
   /**
+   * Purge calls means destroy local streams and remove
+   */
+  purge() {
+    Object.keys(this.calls).forEach(k => this.calls[k].setState(State.Purge))
+    this.calls = {}
+  }
+
+  /**
    * Disconnect all active calls
    */
   async disconnect() {
-    Object.keys(this.calls).forEach(k => this.calls[k].setState(State.Purge))
-    this.calls = {}
-
-    await super.disconnect()
+    const promises = Object.keys(this.calls).map(k => this.calls[k].hangup())
+    await Promise.all(promises)
+    this.purge()
+    return super.disconnect()
   }
 
   speedTest(bytes: number) {

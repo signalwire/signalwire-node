@@ -272,7 +272,13 @@ export default abstract class WebRTCCall {
 
     switch (state) {
       case State.Purge:
-        this._hangup({ cause: 'PURGE', code: '01' })
+        if (this.screenShare instanceof WebRTCCall) {
+          this.screenShare.setState(State.Purge)
+        }
+        if (this.secondSource instanceof WebRTCCall) {
+          this.secondSource.setState(State.Purge)
+        }
+        this._finalize()
         break
       case State.Active: {
         setTimeout(() => {

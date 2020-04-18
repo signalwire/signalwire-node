@@ -81,14 +81,17 @@ export default (session: BrowserSession, msg: any) => {
 
   if (callID && session.calls.hasOwnProperty(callID)) {
     trigger(callID, params, method)
-    const msg = new Result(id, method)
-    msg.targetNodeId = nodeId
-    return session.execute(msg)
+    if (method !== VertoMethod.Attach) {
+      const msg = new Result(id, method)
+      msg.targetNodeId = nodeId
+      session.execute(msg)
+    }
+    return
   }
   const attach = method === VertoMethod.Attach
   switch (method) {
     case VertoMethod.Punt:
-      return session.disconnect()
+      return session.purge()
     case VertoMethod.Invite: {
       const call = _buildCall(session, params, attach, nodeId)
       call.setState(State.Ringing)

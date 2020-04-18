@@ -79,6 +79,8 @@ export default abstract class WebRTCCall {
     this._onVertoAnswer = this._onVertoAnswer.bind(this)
     this._onVertoAttach = this._onVertoAttach.bind(this)
     this._onVertoMedia = this._onVertoMedia.bind(this)
+    this._onVertoMediaParams = this._onVertoMediaParams.bind(this)
+    this._onVertoPrompt = this._onVertoPrompt.bind(this)
     this._hangup = this._hangup.bind(this)
     this._onParticipantData = this._onParticipantData.bind(this)
     this._onGenericEvent = this._onGenericEvent.bind(this)

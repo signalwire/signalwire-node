@@ -91,6 +91,8 @@ export default class RTCPeer {
 
   async startNegotiation() {
     try {
+      this.instance.removeEventListener('icecandidate', this._onIce)
+      this.instance.addEventListener('icecandidate', this._onIce)
       if (this.isOffer) {
         logger.info('Trying to generate offer')
         const offer = await this.instance.createOffer({ voiceActivityDetection: false })
@@ -130,8 +132,6 @@ export default class RTCPeer {
       logger.info('Negotiation needed event')
       this.startNegotiation()
     }
-
-    this.instance.addEventListener('icecandidate', this._onIce)
 
     this.instance.addEventListener('track', (event: RTCTrackEvent) => {
       this.options.remoteStream = event.streams[0]

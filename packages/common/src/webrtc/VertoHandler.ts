@@ -13,7 +13,7 @@ const CONF_READY = 'CONF_READY'
 const _handlePvtEvent = async (session: BrowserSession, pvtData: any) => {
   const { action, callID } = pvtData
   if (!callID || !session.calls[callID]) {
-    return logger.warn('Verto pvtData with invalid or unknown callID.')
+    return logger.debug('Verto pvtData with invalid or unknown callID.', pvtData)
   }
   switch (action) {
     case 'conference-liveArray-join':
@@ -108,7 +108,7 @@ export default (session: BrowserSession, msg: any) => {
       if (eventChannel && trigger(eventChannel, params)) {
         return
       }
-      logger.warn('Unhandled verto event:', msg)
+      logger.debug('Unhandled verto event:', msg)
       break
     case VertoMethod.Info:
       params.type = Notification.Generic

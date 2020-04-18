@@ -194,14 +194,6 @@ const sdpMediaOrderHack = (answer: string, localOffer: string): string => {
   return [...beginLines, ...videoLines, ...audioLines, ''].join(endOfLine)
 }
 
-const checkSubscribeResponse = (response: any, channel: string): boolean => {
-  if (!response) {
-    return false
-  }
-  const { subscribed, alreadySubscribed } = destructSubscribeResponse(response)
-  return subscribed.includes(channel) || alreadySubscribed.includes(channel)
-}
-
 type DestructuredResult = { subscribed: string[], alreadySubscribed: string[], unauthorized: string[], unsubscribed: string[], notSubscribed: string[] }
 
 const destructSubscribeResponse = (response: any): DestructuredResult => {
@@ -331,7 +323,6 @@ export {
   sdpStereoHack,
   sdpMediaOrderHack,
   sdpBitrateHack,
-  checkSubscribeResponse,
   destructSubscribeResponse,
   enableAudioTracks,
   disableAudioTracks,

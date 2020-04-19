@@ -14,6 +14,9 @@ export default class Verto extends BrowserSession {
 
   public relayProtocol: string = VERTO_PROTOCOL
   public timeoutErrorCode = -329990 // fake verto timeout error code.
+  public loginResponse: any = {}
+  public moderator = false
+  public superuser = false
 
   validateOptions() {
     const { host, login, passwd, password } = this.options
@@ -53,6 +56,9 @@ export default class Verto extends BrowserSession {
     const response = await this.execute(msg).catch(this._handleLoginError)
     if (response) {
       this._autoReconnect = true
+      this.loginResponse = response
+      this.moderator = response.moderator || false
+      this.superuser = response.superuser || false
       this.sessionid = response.sessid
       if (!this.incognito) {
         localStorage.setItem(SESSION_ID, this.sessionid)

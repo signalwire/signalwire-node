@@ -61,8 +61,6 @@ export default abstract class BrowserSession extends BaseSession {
   purge() {
     Object.keys(this.calls).forEach(k => this.calls[k].setState(State.Purge))
     this.calls = {}
-    this._autoReconnect = false
-    return super.disconnect()
   }
 
   /**
@@ -167,6 +165,8 @@ export default abstract class BrowserSession extends BaseSession {
   }
 
   disableMicrophone() {
+    this.micId = null
+    this.micLabel = null
     this._audioConstraints = false
   }
 
@@ -184,6 +184,8 @@ export default abstract class BrowserSession extends BaseSession {
   }
 
   disableWebcam() {
+    this.camId = null
+    this.camLabel = null
     this._videoConstraints = false
   }
 

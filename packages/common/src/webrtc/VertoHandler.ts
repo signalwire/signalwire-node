@@ -91,7 +91,8 @@ export default (session: BrowserSession, msg: any) => {
   const attach = method === VertoMethod.Attach
   switch (method) {
     case VertoMethod.Punt:
-      return session.purge()
+      session.purge()
+      return session.disconnect()
     case VertoMethod.Invite: {
       const call = _buildCall(session, params, attach, nodeId)
       call.setState(State.Ringing)

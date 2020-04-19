@@ -29,9 +29,11 @@ export default (instance: any) => {
     describe('verto.punt', () => {
       it('should initiate the logout process', () => {
         instance.purge = jest.fn()
+        instance.disconnect = jest.fn()
         const msg = JSON.parse('{"jsonrpc":"2.0","id":38,"method":"verto.punt","params":{}}')
         VertoHandler(instance, msg)
         expect(instance.purge).toBeCalledTimes(1)
+        expect(instance.disconnect).toBeCalledTimes(1)
       })
     })
 

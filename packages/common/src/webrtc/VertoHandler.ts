@@ -105,12 +105,16 @@ export default (session: BrowserSession, msg: any) => {
       return trigger(call.id, params, method)
     }
     case VertoMethod.Event:
-    case 'webrtc.event':
+    case 'webrtc.event': {
+      const channelType = eventChannel.split('.')[0]
       if (eventChannel && trigger(eventChannel, params)) {
         return
+      } else if (channelType && trigger(channelType, params)) {
+        return
       }
-      logger.debug('Unhandled verto event:', msg)
-      break
+      params.type = Notification.Generic
+      return trigger(SwEvent.Notification, params, session.uuid)
+    }
     case VertoMethod.Info:
       params.type = Notification.Generic
       return trigger(SwEvent.Notification, params, session.uuid)

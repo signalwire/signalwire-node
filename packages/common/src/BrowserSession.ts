@@ -1,9 +1,9 @@
 import BaseSession from './BaseSession'
 import { IAudioSettings, IVideoSettings, BroadcastParams, SubscribeParams } from './util/interfaces'
-import { registerOnce, trigger } from './services/Handler'
+import { registerOnce, trigger, register, deRegister } from './services/Handler'
 import { SwEvent, SESSION_ID } from './util/constants'
 import { State, DeviceType } from './webrtc/constants'
-import { getDevices, scanResolutions, removeUnsupportedConstraints, checkDeviceIdConstraints, getUserMedia, assureDeviceId } from './webrtc/helpers'
+import { getDevices, scanResolutions, removeUnsupportedConstraints, checkDeviceIdConstraints, getUserMedia, assureDeviceId, destructSubscribeResponse } from './webrtc/helpers'
 import { findElementByType } from './util/helpers'
 import BaseMessage from './messages/BaseMessage'
 import BaseRequest from './messages/verto/BaseRequest'
@@ -237,20 +237,39 @@ export default abstract class BrowserSession extends BaseSession {
     return this.execute(msg)
   }
 
-  async vertoSubscribe({ nodeId, channels }: SubscribeParams) {
+  async vertoSubscribe({ nodeId, channels, handler = null }: SubscribeParams) {
     const msg = new Subscribe({ sessid: this.sessionid, eventChannel: channels })
     if (nodeId) {
       msg.targetNodeId = nodeId
     }
-    return this.execute(msg)
+    try {
+      const response = await this.execute(msg)
+      if (handler) {
+        const { subscribed = [] } = destructSubscribeResponse(response)
+        subscribed.forEach(channel => register(channel, handler))
+      }
+      return response
+    } catch (error) {
+      throw error
+    }
   }
 
-  vertoUnsubscribe({ nodeId, channels }: SubscribeParams) {
+  async vertoUnsubscribe({ nodeId, channels, handler = null }: SubscribeParams) {
     const msg = new Unsubscribe({ sessid: this.sessionid, eventChannel: channels })
     if (nodeId) {
       msg.targetNodeId = nodeId
     }
-    return this.execute(msg)
+    try {
+      const response = await this.execute(msg)
+      if (handler) {
+        const { unsubscribed = [], notSubscribed = [] } = destructSubscribeResponse(response)
+        unsubscribed.forEach(channel => deRegister(channel, handler))
+        notSubscribed.forEach(channel => deRegister(channel, handler))
+      }
+      return response
+    } catch (error) {
+      throw error
+    }
   }
 
   _jsApi(params = {}) {

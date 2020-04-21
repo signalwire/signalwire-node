@@ -375,7 +375,10 @@ export default class Conference {
   }
 
   private _dispatchConferenceUpdate(params: any) {
-    this.session.calls[this.callId]._dispatchNotification({ type: Notification.ConferenceUpdate, ...params })
+    const call = this.session.calls[this.callId]
+    if (call) {
+      call._dispatchNotification({ type: Notification.ConferenceUpdate, ...params })
+    }
   }
 
   private _checkSerno = (serno: number) => {

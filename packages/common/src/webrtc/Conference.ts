@@ -265,7 +265,10 @@ export default class Conference {
   }
 
   infoChannelHandler(params: any) {
-    const { eventData } = params
+    const { eventData = null } = params
+    if (!eventData) {
+      logger.warn('Unknown conference info event', params)
+    }
     switch (eventData.contentType) {
       case 'layout-info':
         return this.updateLayouts(eventData)
@@ -273,7 +276,7 @@ export default class Conference {
         const { contentType, ...rest } = eventData
         return this._dispatchConferenceUpdate({ action: ConferenceAction.ConferenceInfo, ...rest })
       default:
-        logger.error('Conference info unknown contentType', params)
+        logger.warn('Unknown conference info event', params)
     }
   }
 

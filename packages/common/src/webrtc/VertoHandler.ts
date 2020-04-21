@@ -34,7 +34,7 @@ const _handlePvtEvent = async (session: BrowserSession, pvtData: any) => {
 const _handleSessionEvent = (session: BrowserSession, eventData: any) => {
   const { contentType, callID } = eventData
   if (!callID || !session.calls.hasOwnProperty(callID)) {
-    return logger.warn('Unhandled session event:', eventData)
+    return logger.debug('Unhandled session event:', eventData)
   }
   const call = session.calls[callID]
   if (!call.conference) {

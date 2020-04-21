@@ -267,7 +267,7 @@ export default class Conference {
   infoChannelHandler(params: any) {
     const { eventData = null } = params
     if (!eventData) {
-      logger.warn('Unknown conference info event', params)
+      return logger.warn('Unknown conference info event', params)
     }
     switch (eventData.contentType) {
       case 'layout-info':

@@ -297,22 +297,13 @@ export default class Conference {
   }
 
   updateLayouts(params: any) {
-    const { contentType, callID, canvasType, canvasInfo = null, currentLayerIdx = null, ...rest } = params
+    const { contentType, callID, canvasType, canvasInfo = null, currentLayerIdx = -1, ...rest } = params
     this.canvasType = canvasType
-    // let changed = false
-    if (currentLayerIdx !== null) {
-      // changed = this.participantLayerIndex !== currentLayerIdx
-      this.participantLayerIndex = currentLayerIdx
-    }
+    this.participantLayerIndex = currentLayerIdx
     if (canvasInfo !== null) {
-      // const old = JSON.stringify(this.canvasInfo)
       this.canvasInfo = mutateCanvasInfoData(canvasInfo)
-      // changed = changed || old !== JSON.stringify(this.canvasInfo)
     }
-    // console.log('changed??', changed)
-    // if (changed) {
-      this._dispatchConferenceUpdate({ action: ConferenceAction.LayoutInfo, participant: this.currentParticipant, canvasInfo: this.canvasInfo, ...rest })
-    // }
+    this._dispatchConferenceUpdate({ action: ConferenceAction.LayoutInfo, participant: this.currentParticipant, canvasInfo: this.canvasInfo, ...rest })
   }
 
   updateLogo(params: any) {

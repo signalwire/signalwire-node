@@ -351,12 +351,12 @@ export default abstract class WebRTCCall {
     this.setState(State.Active)
   }
 
-  private _onVertoMedia(params: any) {
+  private async _onVertoMedia(params: any) {
     if (this._state >= State.Early) {
       return
     }
     this.gotEarly = true
-    this.peer.onRemoteSdp(params.sdp)
+    await this.peer.onRemoteSdp(params.sdp)
     this.setState(State.Early)
   }
 

@@ -180,13 +180,12 @@ export default class RTCPeer {
     const tmpParams = { ...this.call.messagePayload, sdp }
     switch (type) {
       case PeerType.Offer:
-        // TODO: reinvite logic commented for now
-        // if (this.call.active) {
-        //   msg = new Modify({ ...this.call.messagePayload, sdp, action: 'updateMedia' })
-        // } else {
-        this.call.setState(State.Requesting)
-        msg = new Invite(tmpParams)
-        // }
+        if (this.call.active) {
+          msg = new Modify({ ...this.call.messagePayload, sdp, action: 'updateMedia' })
+        } else {
+          this.call.setState(State.Requesting)
+          msg = new Invite(tmpParams)
+        }
         break
       case PeerType.Answer:
         this.call.setState(State.Answering)

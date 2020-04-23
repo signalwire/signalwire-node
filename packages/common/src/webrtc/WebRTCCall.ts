@@ -10,7 +10,7 @@ import { trigger, register, deRegisterAll } from '../services/Handler'
 import { enableAudioTracks, disableAudioTracks, toggleAudioTracks, enableVideoTracks, disableVideoTracks, toggleVideoTracks } from './helpers'
 import { objEmpty, isFunction } from '../util/helpers'
 import { CallOptions, IHangupParams, ICallParticipant } from './interfaces'
-import { detachMediaStream, stopStream, setMediaElementSinkId, getUserMedia } from '../util/webrtc'
+import { detachMediaStream, stopStream, setMediaElementSinkId, getUserMedia, attachMediaStream } from '../util/webrtc'
 import Conference from './Conference'
 import { CheckConferenceMethod } from './decorators'
 
@@ -137,6 +137,97 @@ export default abstract class WebRTCCall {
     return !screenShare && !secondSource
   }
 
+  async _upgrade() {
+    logger.warn(`Untested upgrade method!`)
+    // FIXME: Hack to prevent endless loop on modify vs attach
+    this.doReinvite = true
+    // TODO: force peer.type to an Offer
+    this.peer.type = PeerType.Offer
+
+    const stream = await getUserMedia({ video: true })
+    stream.getTracks().forEach(t => {
+      this.options.localStream.addTrack(t)
+      this.peer.instance.addTrack(t, this.options.localStream)
+    })
+  }
+
+  async updateDevices(constraints: MediaStreamConstraints): Promise<void> {
+    try {
+      console.debug('updateDevices trying constraints', constraints)
+      const newStream = await getUserMedia(constraints)
+      console.debug('updateDevices got stream', newStream)
+      const { instance } = this.peer
+      const tracks = newStream.getTracks()
+      console.debug('updateDevices with tracks', tracks)
+      for (let i = 0; i < tracks.length; i++) {
+        const newTrack = tracks[i]
+        console.debug('updateDevices trying =>', newTrack)
+        const sender = instance.getSenders().find(({ track }) => track.kind === newTrack.kind)
+        if (sender) {
+          console.debug('updateDevices FOUND - replaceTrack on it and on localStream')
+          await sender.replaceTrack(newTrack)
+          console.debug('updateDevices replaceTrack SUCCESS')
+          this.options.localStream.getTracks().forEach(track => {
+            if (track.kind === newTrack.kind && track.id !== newTrack.id) {
+              console.debug('updateDevices stop old track and apply new one - ')
+              track.stop()
+              track.dispatchEvent(new Event('ended'))
+              this.options.localStream.addTrack(newTrack)
+            }
+          })
+        } else {
+          console.debug('updateDevices NOT FOUND - addTrack and start dancing!')
+          this.peer.type = PeerType.Offer
+          this.doReinvite = true
+          this.options.localStream.addTrack(newTrack)
+          instance.addTrack(newTrack, this.options.localStream)
+        }
+        console.debug('updateDevices Simply update mic/cam')
+        if (newTrack.kind === 'audio') {
+          this.options.micId = newTrack.getSettings().deviceId
+        } else if (newTrack.kind === 'video') {
+          this.options.camId = newTrack.getSettings().deviceId
+        }
+        console.debug('updateDevices done =>', newTrack)
+      }
+    } catch (error) {
+      console.error('updateDevices', error)
+    }
+  }
+
+  // async setMicrophone(deviceId: string): Promise<void> {
+  //   const { instance } = this.peer
+  //   const sender = instance.getSenders().find(({ track: { kind } }: RTCRtpSender) => kind === 'audio')
+  //   if (sender) {
+  //     const newStream = await getUserMedia({ audio: { deviceId: { exact: deviceId } } })
+  //     const audioTrack = newStream.getAudioTracks()[0]
+  //     sender.replaceTrack(audioTrack)
+  //     this.options.micId = deviceId
+
+  //     const { localStream } = this.options
+  //     localStream.getAudioTracks().forEach(t => t.stop())
+  //     localStream.getVideoTracks().forEach(t => newStream.addTrack(t))
+  //     this.options.localStream = newStream
+  //   }
+  // }
+
+  // async setCamera(deviceId: string): Promise<void> {
+  //   const { instance } = this.peer
+  //   const sender = instance.getSenders().find(({ track: { kind } }: RTCRtpSender) => kind === 'video')
+  //   if (sender) {
+  //     const newStream = await getUserMedia({ video: { deviceId: { exact: deviceId } } })
+  //     const videoTrack = newStream.getVideoTracks()[0]
+  //     sender.replaceTrack(videoTrack)
+  //     const { localElement, localStream } = this.options
+  //     attachMediaStream(localElement, newStream)
+  //     this.options.camId = deviceId
+
+  //     localStream.getAudioTracks().forEach(t => newStream.addTrack(t))
+  //     localStream.getVideoTracks().forEach(t => t.stop())
+  //     this.options.localStream = newStream
+  //   }
+  // }
+
   invite() {
     this.direction = Direction.Outbound
     this.peer = new RTCPeer(this, PeerType.Offer, this.options)
@@ -249,20 +340,6 @@ export default abstract class WebRTCCall {
     if (this.peer) {
       this.peer.restoreTrackSender('video')
     }
-  }
-
-  async _upgrade() {
-    logger.warn(`Untested upgrade method!`)
-    // FIXME: Hack to prevent endless loop on modify vs attach
-    this.doReinvite = true
-    // TODO: force peer.type to an Offer
-    this.peer.type = PeerType.Offer
-
-    const stream = await getUserMedia({ video: true })
-    stream.getTracks().forEach(t => {
-      this.options.localStream.addTrack(t)
-      this.peer.instance.addTrack(t, this.options.localStream)
-    })
   }
 
   setState(state: State) {
@@ -402,6 +479,7 @@ export default abstract class WebRTCCall {
         break
       case State.Active: {
         if (this.doReinvite) {
+          console.debug('doReinvite IS ACTIVE!', params)
           return logger.warn('>>>> This leg alreay sent a reinvite??')
         }
         // TODO: force peer.type to an Answer

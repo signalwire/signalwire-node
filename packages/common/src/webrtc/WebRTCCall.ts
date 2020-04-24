@@ -162,7 +162,7 @@ export default abstract class WebRTCCall {
       for (let i = 0; i < tracks.length; i++) {
         const newTrack = tracks[i]
         console.debug('updateDevices trying =>', newTrack)
-        const sender = instance.getSenders().find(({ track }) => track.kind === newTrack.kind)
+        const sender = instance.getSenders().find(({ track }) => (track && track.kind === newTrack.kind))
         if (sender) {
           console.debug('updateDevices FOUND - replaceTrack on it and on localStream')
           await sender.replaceTrack(newTrack)
@@ -172,6 +172,7 @@ export default abstract class WebRTCCall {
               console.debug('updateDevices stop old track and apply new one - ')
               track.stop()
               track.dispatchEvent(new Event('ended'))
+              this.options.localStream.removeTrack(track)
               this.options.localStream.addTrack(newTrack)
             }
           })

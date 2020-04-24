@@ -40,7 +40,7 @@ export default class RTCPeer {
 
   stopTrackSender(kind: string) {
     try {
-      const sender = this.instance.getSenders().find(({ track }) => track.kind === kind)
+      const sender = this._getSenderByKind(kind)
       if (!sender) {
         return logger.info(`These is not a '${kind}' sender to stop.`)
       }
@@ -55,7 +55,7 @@ export default class RTCPeer {
 
   async restoreTrackSender(kind: string) {
     try {
-      const sender = this.instance.getSenders().find(({ track }) => track.kind === kind)
+      const sender = this._getSenderByKind(kind)
       if (!sender) {
         return logger.info(`These is not a '${kind}' sender to restore.`)
       }
@@ -76,7 +76,7 @@ export default class RTCPeer {
 
   getDeviceId(kind: string) {
     try {
-      const sender = this.instance.getSenders().find(({ track }) => track.kind === kind)
+      const sender = this._getSenderByKind(kind)
       if (!sender || !sender.track) {
         return null
       }
@@ -89,7 +89,7 @@ export default class RTCPeer {
 
   async applyMediaConstraints(kind: string, constraints: MediaTrackConstraints) {
     try {
-      const sender = this.instance.getSenders().find(({ track }) => track.kind === kind)
+      const sender = this._getSenderByKind(kind)
       if (!sender || !sender.track) {
         return logger.info('No sender to apply constraints', kind, constraints)
       }
@@ -100,6 +100,10 @@ export default class RTCPeer {
     } catch (error) {
       logger.error('Error applying constraints', kind, constraints)
     }
+  }
+
+  private _getSenderByKind(kind: string) {
+    return this.instance.getSenders().find(({ track }) => (track && track.kind === kind))
   }
 
   async startNegotiation() {

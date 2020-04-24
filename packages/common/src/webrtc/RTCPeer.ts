@@ -74,6 +74,19 @@ export default class RTCPeer {
     }
   }
 
+  getDeviceId(kind: string) {
+    try {
+      const sender = this.instance.getSenders().find(({ track }) => track.kind === kind)
+      if (!sender || !sender.track) {
+        return null
+      }
+      const { deviceId = null } = sender.track.getSettings()
+      return deviceId
+    } catch (error) {
+      logger.error('RTCPeer getDeviceId error', kind, error)
+    }
+  }
+
   async applyMediaConstraints(kind: string, constraints: MediaTrackConstraints) {
     try {
       const sender = this.instance.getSenders().find(({ track }) => track.kind === kind)

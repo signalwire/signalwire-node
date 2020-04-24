@@ -137,6 +137,14 @@ export default abstract class WebRTCCall {
     return !screenShare && !secondSource
   }
 
+  get cameraId() {
+    return this.peer ? this.peer.getDeviceId('video') : null
+  }
+
+  get microphoneId() {
+    return this.peer ? this.peer.getDeviceId('audio') : null
+  }
+
   async _upgrade() {
     logger.warn(`Untested upgrade method!`)
     // FIXME: Hack to prevent endless loop on modify vs attach
@@ -189,8 +197,8 @@ export default abstract class WebRTCCall {
         } else if (newTrack.kind === 'video') {
           this.options.camId = newTrack.getSettings().deviceId
         }
-        console.debug('updateDevices done =>', newTrack)
       }
+      console.debug('updateDevices done!')
     } catch (error) {
       console.error('updateDevices', error)
     }

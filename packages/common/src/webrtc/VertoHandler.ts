@@ -7,6 +7,7 @@ import { SwEvent } from '../util/constants'
 import { VertoMethod, Notification } from './constants'
 import { trigger, registerOnce } from '../services/Handler'
 import { State } from './constants'
+import { checkIsDirectCall } from './helpers'
 
 const CONF_READY = 'CONF_READY'
 
@@ -65,6 +66,7 @@ const _buildCall = (session: BrowserSession, params: any, attach: boolean, nodeI
     screenShare: /;screen$/.test(params.callee_id_number),
   })
   call.nodeId = nodeId
+  call.isDirect = checkIsDirectCall(params)
   return call
 }
 

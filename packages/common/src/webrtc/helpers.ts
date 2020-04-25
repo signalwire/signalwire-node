@@ -312,6 +312,10 @@ const mutateCanvasInfoData = (canvasInfo: IVertoCanvasInfo): ICanvasInfo => {
   }
 }
 
+const checkIsDirectCall = ({ variables }) => {
+  return typeof variables === 'object' && 'verto_svar_direct_call' in variables
+}
+
 export {
   getUserMedia,
   getDevices,
@@ -331,4 +335,5 @@ export {
   disableVideoTracks,
   toggleVideoTracks,
   mutateCanvasInfoData,
+  checkIsDirectCall,
 }

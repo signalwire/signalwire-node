@@ -7,7 +7,7 @@ import { Bye, Info, Modify } from '../messages/Verto'
 import { SwEvent } from '../util/constants'
 import { State, DEFAULT_CALL_OPTIONS, Role, PeerType, VertoMethod, Notification, Direction } from './constants'
 import { trigger, register, deRegisterAll } from '../services/Handler'
-import { enableAudioTracks, disableAudioTracks, toggleAudioTracks, enableVideoTracks, disableVideoTracks, toggleVideoTracks } from './helpers'
+import { enableAudioTracks, disableAudioTracks, toggleAudioTracks, enableVideoTracks, disableVideoTracks, toggleVideoTracks, checkIsDirectCall } from './helpers'
 import { objEmpty, isFunction } from '../util/helpers'
 import { CallOptions, IHangupParams, ICallParticipant } from './interfaces'
 import { detachMediaStream, stopStream, setMediaElementSinkId, getUserMedia, attachMediaStream } from '../util/webrtc'
@@ -35,6 +35,7 @@ export default abstract class WebRTCCall {
   public screenShare?: WebRTCCall
   public secondSource?: WebRTCCall
   public doReinvite = false
+  public isDirect = false
 
   private _state: State = State.New
   private _prevState: State = State.New
@@ -434,6 +435,7 @@ export default abstract class WebRTCCall {
     if (!this.gotEarly) {
       await this.peer.onRemoteSdp(params.sdp)
     }
+    this.isDirect = checkIsDirectCall(params)
     this.setState(State.Active)
   }
 
@@ -443,6 +445,7 @@ export default abstract class WebRTCCall {
     }
     this.gotEarly = true
     await this.peer.onRemoteSdp(params.sdp)
+    this.isDirect = checkIsDirectCall(params)
     this.setState(State.Early)
   }
 

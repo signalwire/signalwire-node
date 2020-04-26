@@ -394,6 +394,9 @@ export default abstract class WebRTCCall {
   }
 
   private async _changeHold(action: string) {
+    if (this._state >= State.Hangup) {
+      return logger.warn('This call is not active', this.id, this.state)
+    }
     const msg = new Modify({ ...this.messagePayload, action })
     try {
       const { holdState } = await this._execute(msg)

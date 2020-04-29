@@ -108,11 +108,13 @@ export default (session: BrowserSession, msg: any) => {
     }
     case VertoMethod.Event:
     case 'webrtc.event': {
-      const channelType = eventChannel.split('.')[0]
-      if (eventChannel && trigger(eventChannel, params)) {
-        return
-      } else if (channelType && trigger(channelType, params)) {
-        return
+      if (eventChannel) {
+        const channelType = eventChannel.split('.')[0]
+        const global = trigger(channelType, params)
+        const specific = trigger(eventChannel, params)
+        if (global || specific) {
+          return
+        }
       }
       params.type = Notification.Generic
       return trigger(SwEvent.Notification, params, session.uuid)

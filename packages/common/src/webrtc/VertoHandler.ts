@@ -65,6 +65,18 @@ const _buildCall = (session: BrowserSession, params: any, attach: boolean, nodeI
     secondSource: /;second-source$/.test(params.callee_id_number),
     screenShare: /;screen$/.test(params.callee_id_number),
   })
+  const hasAudioLine = params.sdp.indexOf('m=audio') !== -1
+  if (!hasAudioLine) {
+    call.options.audio = false
+    call.options.micId = null
+    call.options.micLabel = null
+  }
+  const hasVideoLine = params.sdp.indexOf('m=video') !== -1
+  if (!hasVideoLine) {
+    call.options.video = false
+    call.options.camId = null
+    call.options.camLabel = null
+  }
   call.nodeId = nodeId
   call.isDirect = checkIsDirectCall(params)
   return call

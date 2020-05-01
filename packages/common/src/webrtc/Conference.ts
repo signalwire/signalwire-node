@@ -214,6 +214,9 @@ export default class Conference {
   laChannelHandler({ data: packet }: any) {
     // FIXME: 'reorder' - changepage' - 'heartbeat' methods not implemented
     if (!this._checkSerno(packet.wireSerno)) {
+      if (packet.wireSerno === this._lastSerno) {
+        return logger.debug('Skip event:', packet.wireSerno, 'last was:', this._lastSerno)
+      }
       logger.error('Invalid conference wireSerno:', packet)
       return this._bootstrap()
     }

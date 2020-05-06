@@ -27,6 +27,8 @@ export enum VertoMethod {
   Modify = 'verto.modify',
   MediaParams = 'verto.mediaParams',
   Prompt = 'verto.prompt',
+  JsApi = 'jsapi',
+  Stats = 'verto.stats',
 }
 
 export enum Notification {

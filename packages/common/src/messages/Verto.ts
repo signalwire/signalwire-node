@@ -50,7 +50,12 @@ class Unsubscribe extends BaseRequest {
 }
 class JSApi extends BaseRequest {
   toString() {
-    return 'jsapi'
+    return VertoMethod.JsApi
+  }
+}
+class Stats extends BaseRequest {
+  toString() {
+    return VertoMethod.Stats
   }
 }
 
@@ -67,4 +72,5 @@ export {
   Unsubscribe,
   Result,
   JSApi,
+  Stats,
 }

@@ -92,6 +92,7 @@ export enum ConferenceAction {
   LayoutList = 'layoutList',
   ModCmdResponse = 'modCommandResponse',
   ConferenceInfo = 'conferenceInfo',
+  CaptionInfo = 'captionInfo',
 }
 
 export enum DeviceType {

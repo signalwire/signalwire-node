@@ -285,6 +285,8 @@ export default class Conference {
       case 'conference-info':
         const { contentType, ...rest } = eventData
         return this._dispatchConferenceUpdate({ action: ConferenceAction.ConferenceInfo, ...rest })
+      case 'caption-info':
+        return this.handleCaptionInfo(eventData)
       default:
         logger.warn('Unknown conference info event', params)
     }
@@ -323,6 +325,11 @@ export default class Conference {
     const { logoURL: logo } = params
     this.participantLogo = logo
     this._dispatchConferenceUpdate({ action: ConferenceAction.LogoInfo, logo })
+  }
+
+  handleCaptionInfo(params: any) {
+    const { contentType, ...rest } = params
+    this._dispatchConferenceUpdate({ action: ConferenceAction.CaptionInfo, ...rest })
   }
 
   private _bootstrap() {

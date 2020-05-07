@@ -229,8 +229,15 @@ export default class Conference {
           const participant = { callId: data[i][0], ...mutateLiveArrayData(data[i][1]) }
           const { callId, audio, video } = participant
           if (this.callId === callId && audio && video) {
+            const call = this.session.calls[this.callId]
             this._isMuted = audio.muted
+            if (call && this._isMuted === true) {
+              call.stopOutboundAudio()
+            }
             this._isVmuted = video.muted
+            if (call && this._isVmuted === true) {
+              call.stopOutboundVideo()
+            }
           }
           participants.push(participant)
         }

@@ -58,6 +58,11 @@ class Stats extends BaseRequest {
     return VertoMethod.Stats
   }
 }
+class Ping extends BaseRequest {
+  toString() {
+    return VertoMethod.Ping
+  }
+}
 
 export {
   Login,
@@ -73,4 +78,5 @@ export {
   Result,
   JSApi,
   Stats,
+  Ping,
 }

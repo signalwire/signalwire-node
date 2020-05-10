@@ -1,7 +1,7 @@
 import BrowserSession from '../../common/src/BrowserSession'
 import { SubscribeParams, BroadcastParams } from '../../common/src/util/interfaces'
 import { CallOptions } from '../../common/src/webrtc/interfaces'
-import { Login } from '../../common/src/messages/Verto'
+import { Login, Ping } from '../../common/src/messages/Verto'
 import Call from '../../common/src/webrtc/Call'
 import { SwEvent, SESSION_ID } from '../../common/src/util/constants'
 import { trigger } from '../../common/src/services/Handler'
@@ -43,6 +43,11 @@ export default class Verto extends BrowserSession {
 
   unsubscribe(params: SubscribeParams) {
     return this.vertoUnsubscribe(params)
+  }
+
+  ping() {
+    const msg = new Ping({ serno: Date.now() })
+    return this.execute(msg)
   }
 
   _wrapInExecute(message: BaseMessage): BaseMessage {

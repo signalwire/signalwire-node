@@ -29,6 +29,7 @@ export enum VertoMethod {
   Prompt = 'verto.prompt',
   JsApi = 'jsapi',
   Stats = 'verto.stats',
+  Ping = 'verto.ping',
 }
 
 export enum Notification {

@@ -107,6 +107,10 @@ export default (session: BrowserSession, msg: any) => {
   }
   const attach = method === VertoMethod.Attach
   switch (method) {
+    case VertoMethod.Ping:
+      const msg = new Result(id, method)
+      msg.targetNodeId = nodeId
+      return session.execute(msg)
     case VertoMethod.Punt:
       session.purge()
       return session.disconnect()

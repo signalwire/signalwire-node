@@ -1,8 +1,8 @@
 import { ICantinaAuthParams, ICantinaUser } from './interfaces'
 import logger from '../util/logger'
 
-type RefreshResponse = { project: string, jwt_token: string }
-type CheckInviteTokenResponse = { valid: boolean, name: string, config: object }
+type BootstrapResponse = { project_id: string }
+type RefreshResponse = { jwt_token: string }
 
 const FETCH_OPTIONS: RequestInit = {
   method: 'POST',
@@ -36,21 +36,23 @@ class CantinaAuth {
     })
   }
 
-  async userLogin(username: string, password: string): Promise<ICantinaUser> {
-    const response = await this._fetch(`${this.baseUrl}/login/user`, {
+  async bootstrap(): Promise<BootstrapResponse> {
+    const url = new URL(`${this.baseUrl}/configuration`)
+    url.search = new URLSearchParams({ hostname: this.hostname }).toString()
+    const response = await this._fetch(url.href, {
       ...FETCH_OPTIONS,
-      body: JSON.stringify({ username, password, hostname: this.hostname })
+      method: 'GET',
     })
-    logger.info('userLogin response', response)
+    logger.info('bootstrap response', response)
     return response
   }
 
-  async guestLogin(name: string, email: string, token: string): Promise<ICantinaUser> {
-    const response = await this._fetch(`${this.baseUrl}/login/guest`, {
+  async login(username: string, project_id: string): Promise<ICantinaUser> {
+    const response = await this._fetch(`${this.baseUrl}/login`, {
       ...FETCH_OPTIONS,
-      body: JSON.stringify({ name, email, token, hostname: this.hostname })
+      body: JSON.stringify({ username, project_id })
     })
-    logger.info('guestLogin response', response)
+    logger.info('userLogin response', response)
     return response
   }
 
@@ -58,18 +60,8 @@ class CantinaAuth {
     const response = await this._fetch(`${this.baseUrl}/refresh`, {
       ...FETCH_OPTIONS,
       method: 'PUT',
-      body: JSON.stringify({ hostname: this.hostname })
     })
     logger.info('refresh response', response)
-    return response
-  }
-
-  async checkInviteToken(token: string): Promise<CheckInviteTokenResponse> {
-    const response = await this._fetch(`${this.baseUrl}/check-token`, {
-      ...FETCH_OPTIONS,
-      body: JSON.stringify({ token, hostname: this.hostname })
-    })
-    logger.info('checkInviteToken response', response)
     return response
   }
 

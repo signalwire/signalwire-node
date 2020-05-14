@@ -272,6 +272,16 @@ export default abstract class BrowserSession extends BaseSession {
     }
   }
 
+  listConf() {
+    const msg = new Execute({
+      protocol: this.relayProtocol,
+      method: 'conference.list',
+      params: {}
+    })
+    console.debug('Send confList', msg)
+    return this.execute(msg)
+  }
+
   _jsApi(params = {}) {
     const msg = new JSApi({ ...params, sessid: this.sessionid })
     return this.execute(msg)

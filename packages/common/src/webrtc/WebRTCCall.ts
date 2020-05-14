@@ -121,6 +121,10 @@ export default abstract class WebRTCCall {
   }
 
   get messagePayload() {
+    if (this.nodeId) {
+      const { secondSource, ...rest } = this.options
+      return { sessid: this.session.sessionid, dialogParams: rest }
+    }
     return { sessid: this.session.sessionid, dialogParams: this.options }
   }
 

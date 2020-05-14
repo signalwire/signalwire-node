@@ -37,7 +37,7 @@ class CantinaAuth {
   }
 
   async bootstrap(): Promise<BootstrapResponse> {
-    const url = new URL(`${this.baseUrl}/configuration`)
+    const url = new URL(`${this.baseUrl}/api/configuration`)
     url.search = new URLSearchParams({ hostname: this.hostname }).toString()
     const response = await this._fetch(url.href, {
       ...FETCH_OPTIONS,
@@ -48,7 +48,7 @@ class CantinaAuth {
   }
 
   async login(username: string, project_id: string): Promise<ICantinaUser> {
-    const response = await this._fetch(`${this.baseUrl}/login`, {
+    const response = await this._fetch(`${this.baseUrl}/api/login`, {
       ...FETCH_OPTIONS,
       body: JSON.stringify({ username, project_id })
     })
@@ -57,7 +57,7 @@ class CantinaAuth {
   }
 
   async refresh(): Promise<RefreshResponse> {
-    const response = await this._fetch(`${this.baseUrl}/refresh`, {
+    const response = await this._fetch(`${this.baseUrl}/api/refresh`, {
       ...FETCH_OPTIONS,
       method: 'PUT',
     })
@@ -66,7 +66,7 @@ class CantinaAuth {
   }
 
   async logout(): Promise<void> {
-    const response = await this._fetch(`${this.baseUrl}/logout`, {
+    const response = await this._fetch(`${this.baseUrl}/api/logout`, {
       ...FETCH_OPTIONS,
       method: 'PUT'
     })

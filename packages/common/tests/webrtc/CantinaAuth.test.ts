@@ -53,7 +53,7 @@ describe('CantinaAuth', () => {
 
       expect(response.project_id).toEqual('uuid')
       expect(global.fetch).toHaveBeenCalledTimes(1)
-      expect(global.fetch).toHaveBeenCalledWith(`${auth.baseUrl}/configuration?hostname=jest.relay.com`, {
+      expect(global.fetch).toHaveBeenCalledWith(`${auth.baseUrl}/api/configuration?hostname=jest.relay.com`, {
         ...DEFAULT_FETCH_OPTIONS,
         method: 'GET',
       })
@@ -66,7 +66,7 @@ describe('CantinaAuth', () => {
       const response = await auth.bootstrap()
       expect(response.project_id).toEqual('uuid')
       expect(global.fetch).toHaveBeenCalledTimes(1)
-      expect(global.fetch).toHaveBeenCalledWith(`${auth.baseUrl}/configuration?${clear}`, {
+      expect(global.fetch).toHaveBeenCalledWith(`${auth.baseUrl}/api/configuration?${clear}`, {
         ...DEFAULT_FETCH_OPTIONS,
         method: 'GET',
       })
@@ -88,7 +88,7 @@ describe('CantinaAuth', () => {
 
       expect(response.jwt_token).toEqual('user-jwt')
       expect(global.fetch).toHaveBeenCalledTimes(1)
-      expect(global.fetch).toHaveBeenCalledWith(`${auth.baseUrl}/login`, {
+      expect(global.fetch).toHaveBeenCalledWith(`${auth.baseUrl}/api/login`, {
         ...DEFAULT_FETCH_OPTIONS,
         body: '{"username":"username","project_id":"project-id"}'
       })
@@ -111,7 +111,7 @@ describe('CantinaAuth', () => {
   //     expect(response.jwt_token).toEqual('guest-jwt')
   //     expect(response.scopes).toEqual(['scope3'])
   //     expect(global.fetch).toHaveBeenCalledTimes(1)
-  //     expect(global.fetch).toHaveBeenCalledWith(`${auth.baseUrl}/login/guest`, {
+  //     expect(global.fetch).toHaveBeenCalledWith(`${auth.baseUrl}/api/login/guest`, {
   //       ...DEFAULT_FETCH_OPTIONS,
   //       body: '{"name":"name","email":"email","token":"uuid","hostname":"jest.relay.com"}'
   //     })
@@ -133,7 +133,7 @@ describe('CantinaAuth', () => {
       const response = await auth.refresh()
       expect(response.jwt_token).toEqual('new-jwt')
       expect(global.fetch).toHaveBeenCalledTimes(1)
-      expect(global.fetch).toHaveBeenCalledWith(`${auth.baseUrl}/refresh`, {
+      expect(global.fetch).toHaveBeenCalledWith(`${auth.baseUrl}/api/refresh`, {
         ...DEFAULT_FETCH_OPTIONS,
         method: 'PUT',
       })
@@ -157,7 +157,7 @@ describe('CantinaAuth', () => {
   //     expect(response.valid).toEqual(true)
   //     expect(response.name).toEqual('room name')
   //     expect(global.fetch).toHaveBeenCalledTimes(1)
-  //     expect(global.fetch).toHaveBeenCalledWith(`${auth.baseUrl}/check-token`, {
+  //     expect(global.fetch).toHaveBeenCalledWith(`${auth.baseUrl}/api/check-token`, {
   //       ...DEFAULT_FETCH_OPTIONS,
   //       body: '{"token":"uuid","hostname":"jest.relay.com"}'
   //     })
@@ -177,7 +177,7 @@ describe('CantinaAuth', () => {
       global.fetch = mockFetchSuccess()
       await auth.logout()
       expect(global.fetch).toHaveBeenCalledTimes(1)
-      expect(global.fetch).toHaveBeenCalledWith(`${auth.baseUrl}/logout`, {
+      expect(global.fetch).toHaveBeenCalledWith(`${auth.baseUrl}/api/logout`, {
         ...DEFAULT_FETCH_OPTIONS,
         method: 'PUT'
       })

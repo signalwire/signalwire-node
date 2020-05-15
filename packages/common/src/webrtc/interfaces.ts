@@ -32,10 +32,6 @@ export interface CallOptions {
   googleStartBitrate?: number
 }
 
-export interface ICantinaAuthParams {
-  hostname?: string
-}
-
 export interface ICantinaUser {
   first_name: string
   last_name: string

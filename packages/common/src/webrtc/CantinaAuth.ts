@@ -1,4 +1,4 @@
-import { ICantinaAuthParams, ICantinaUser } from './interfaces'
+import { ICantinaUser } from './interfaces'
 import logger from '../util/logger'
 
 type BootstrapResponse = { project_id: string }
@@ -15,11 +15,6 @@ const FETCH_OPTIONS: RequestInit = {
 class CantinaAuth {
   public baseUrl = 'https://cantina-backend.signalwire.com' // TODO: change me
   public hostname: string
-
-  constructor(private params: ICantinaAuthParams = {}) {
-    const { hostname = location.hostname } = params
-    this.hostname = hostname
-  }
 
   private _fetch = (url: RequestInfo, options: RequestInit) => {
     return fetch(url, options).then(async (response: Response) => {
@@ -39,9 +34,9 @@ class CantinaAuth {
     })
   }
 
-  async bootstrap(): Promise<BootstrapResponse> {
+  async bootstrap(hostname: string): Promise<BootstrapResponse> {
     const url = new URL(`${this.baseUrl}/api/configuration`)
-    url.search = new URLSearchParams({ hostname: this.hostname }).toString()
+    url.search = new URLSearchParams({ hostname }).toString()
     const response = await this._fetch(url.href, {
       ...FETCH_OPTIONS,
       method: 'GET',
@@ -59,11 +54,15 @@ class CantinaAuth {
     return response
   }
 
-  async refresh(): Promise<RefreshResponse> {
-    const response = await this._fetch(`${this.baseUrl}/api/refresh`, {
+  async refresh(refreshToken = null): Promise<RefreshResponse> {
+    const options: RequestInit = {
       ...FETCH_OPTIONS,
       method: 'PUT',
-    })
+    }
+    if (refreshToken) {
+      options.body = JSON.stringify({ refresh_token: refreshToken })
+    }
+    const response = await this._fetch(`${this.baseUrl}/api/refresh`, options)
     logger.info('refresh response', response)
     return response
   }

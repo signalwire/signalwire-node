@@ -34,22 +34,13 @@ describe('CantinaAuth', () => {
 
   let auth: CantinaAuth = null
   beforeEach(() => {
-    auth = new CantinaAuth({ hostname })
-  })
-
-  it('should default the hostname from global location if not provided', () => {
-    const authDef = new CantinaAuth()
-    expect(authDef.hostname).toEqual('localhost')
-
-    const authCustom = new CantinaAuth({ hostname })
-    expect(authCustom.hostname).toEqual(hostname)
-
+    auth = new CantinaAuth()
   })
 
   describe('bootstrap', () => {
     it('should expose bootstrap to get jwt for a user', async () => {
       global.fetch = mockFetchSuccess({ project_id: 'uuid' })
-      const response = await auth.bootstrap()
+      const response = await auth.bootstrap(hostname)
 
       expect(response.project_id).toEqual('uuid')
       expect(global.fetch).toHaveBeenCalledTimes(1)
@@ -63,7 +54,7 @@ describe('CantinaAuth', () => {
       global.fetch = mockFetchSuccess({ project_id: 'uuid' })
       auth.hostname = 'some weird \' hostname . com'
       const clear = new URLSearchParams({ hostname: auth.hostname }).toString()
-      const response = await auth.bootstrap()
+      const response = await auth.bootstrap(auth.hostname)
       expect(response.project_id).toEqual('uuid')
       expect(global.fetch).toHaveBeenCalledTimes(1)
       expect(global.fetch).toHaveBeenCalledWith(`${auth.baseUrl}/api/configuration?${clear}`, {
@@ -76,7 +67,7 @@ describe('CantinaAuth', () => {
       global.fetch = mockFetchFailure(errorResponse)
 
       expect.assertions(2)
-      await expect(auth.bootstrap()).rejects.toEqual(expect.any(Error))
+      await expect(auth.bootstrap(hostname)).rejects.toEqual(expect.any(Error))
       expect(global.fetch).toHaveBeenCalledTimes(1)
     })
   })
@@ -136,6 +127,19 @@ describe('CantinaAuth', () => {
       expect(global.fetch).toHaveBeenCalledWith(`${auth.baseUrl}/api/refresh`, {
         ...DEFAULT_FETCH_OPTIONS,
         method: 'PUT',
+      })
+    })
+
+    it('should request to refresh the JWT with body', async () => {
+      global.fetch = mockFetchSuccess({ jwt_token: 'new-jwt' })
+      const refresh_token = 'refresh-token'
+      const response = await auth.refresh(refresh_token)
+      expect(response.jwt_token).toEqual('new-jwt')
+      expect(global.fetch).toHaveBeenCalledTimes(1)
+      expect(global.fetch).toHaveBeenCalledWith(`${auth.baseUrl}/api/refresh`, {
+        ...DEFAULT_FETCH_OPTIONS,
+        method: 'PUT',
+        body: JSON.stringify({ refresh_token })
       })
     })
 

@@ -4,7 +4,7 @@ import BrowserSession from '../BrowserSession'
 import BaseMessage from '../messages/BaseMessage'
 import RTCPeer from './RTCPeer'
 import { Bye, Info, Modify } from '../messages/Verto'
-import { SwEvent } from '../util/constants'
+import { SwEvent, VERTO_PROTOCOL } from '../util/constants'
 import { State, DEFAULT_CALL_OPTIONS, Role, PeerType, VertoMethod, Notification, Direction } from './constants'
 import { trigger, register, deRegisterAll } from '../services/Handler'
 import { enableAudioTracks, disableAudioTracks, toggleAudioTracks, enableVideoTracks, disableVideoTracks, toggleVideoTracks, checkIsDirectCall } from './helpers'
@@ -121,11 +121,12 @@ export default abstract class WebRTCCall {
   }
 
   get messagePayload() {
-    if (this.nodeId) {
-      const { secondSource, ...rest } = this.options
-      return { sessid: this.session.sessionid, dialogParams: rest }
+    if (this.session.relayProtocol === VERTO_PROTOCOL) {
+      return { sessid: this.session.sessionid, dialogParams: this.options }
     }
-    return { sessid: this.session.sessionid, dialogParams: this.options }
+    // FIXME: secondSource not accepted by Relay
+    const { secondSource, ...rest } = this.options
+    return { sessid: this.session.sessionid, dialogParams: rest }
   }
 
   get currentParticipant(): Partial<ICallParticipant> {

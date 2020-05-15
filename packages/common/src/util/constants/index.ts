@@ -2,6 +2,7 @@ export const STORAGE_PREFIX = '@signalwire:'
 export const ADD = 'add'
 export const REMOVE = 'remove'
 export const SESSION_ID = 'sessId'
+export const VERTO_PROTOCOL = 'verto-protocol'
 
 export enum SwEvent {
   // Socket Events

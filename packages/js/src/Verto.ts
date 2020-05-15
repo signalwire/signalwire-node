@@ -3,13 +3,12 @@ import { SubscribeParams, BroadcastParams } from '../../common/src/util/interfac
 import { CallOptions } from '../../common/src/webrtc/interfaces'
 import { Login, Ping } from '../../common/src/messages/Verto'
 import Call from '../../common/src/webrtc/Call'
-import { SwEvent, SESSION_ID } from '../../common/src/util/constants'
+import { SwEvent, SESSION_ID, VERTO_PROTOCOL } from '../../common/src/util/constants'
 import { trigger } from '../../common/src/services/Handler'
 import { localStorage } from '../../common/src/util/storage/'
 import VertoHandler from '../../common/src/webrtc/VertoHandler'
 import BaseMessage from '../../common/src/messages/BaseMessage'
 
-export const VERTO_PROTOCOL = 'verto-protocol'
 export default class Verto extends BrowserSession {
 
   public relayProtocol: string = VERTO_PROTOCOL

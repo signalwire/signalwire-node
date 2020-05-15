@@ -52,12 +52,12 @@ describe('CantinaAuth', () => {
 
     it('should clear the hostname', async () => {
       global.fetch = mockFetchSuccess({ project_id: 'uuid' })
-      auth.hostname = 'some weird \' hostname . com'
-      const clear = new URLSearchParams({ hostname: auth.hostname }).toString()
-      const response = await auth.bootstrap(auth.hostname)
+      const hostname = 'some weird \' hostname . com'
+      const clear = encodeURIComponent(hostname)
+      const response = await auth.bootstrap(hostname)
       expect(response.project_id).toEqual('uuid')
       expect(global.fetch).toHaveBeenCalledTimes(1)
-      expect(global.fetch).toHaveBeenCalledWith(`${auth.baseUrl}/api/configuration?${clear}`, {
+      expect(global.fetch).toHaveBeenCalledWith(`${auth.baseUrl}/api/configuration?hostname=${clear}`, {
         ...DEFAULT_FETCH_OPTIONS,
         method: 'GET',
       })

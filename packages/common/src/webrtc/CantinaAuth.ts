@@ -35,9 +35,9 @@ class CantinaAuth {
   }
 
   async bootstrap(hostname: string): Promise<BootstrapResponse> {
-    const url = new URL(`${this.baseUrl}/api/configuration`)
-    url.search = new URLSearchParams({ hostname }).toString()
-    const response = await this._fetch(url.href, {
+    const clear = encodeURIComponent(hostname)
+    const url = `${this.baseUrl}/api/configuration?hostname=${clear}`
+    const response = await this._fetch(url, {
       ...FETCH_OPTIONS,
       method: 'GET',
     })

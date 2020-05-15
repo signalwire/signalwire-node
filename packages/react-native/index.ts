@@ -1,12 +1,15 @@
 import Relay from './src/Relay'
 import Verto from '../js/src/Verto'
 import { setAgentName } from '../common/src/messages/blade/Connect'
+import CantinaAuth from '../common/src/webrtc/CantinaAuth'
 
-export const VERSION = '1.0.2'
+export const VERSION = '1.1.0-alpha.1'
 setAgentName(`ReactNative SDK/${VERSION}`)
 
 export {
-  Relay, Verto
+  Relay,
+  Verto,
+  CantinaAuth,
 }
 
 export * from '../common/src/util/interfaces'

@@ -23,14 +23,17 @@ class CantinaAuth {
 
   private _fetch = (url: RequestInfo, options: RequestInit) => {
     return fetch(url, options).then(async (response: Response) => {
-      const payload = await response.json()
       if (response.status >= 200 && response.status < 300) {
+        if (response.status === 204) {
+          return response
+        }
+        const payload = await response.json()
         return payload
       } else {
         const errorMessage = `HTTP Request failed with status ${response.status}`
         const error = new Error(errorMessage)
         // @ts-ignore
-        error.payload = payload
+        error.response = response
         return Promise.reject(error)
       }
     })

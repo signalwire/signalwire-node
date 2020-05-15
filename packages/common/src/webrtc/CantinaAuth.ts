@@ -13,7 +13,7 @@ const FETCH_OPTIONS: RequestInit = {
 }
 
 class CantinaAuth {
-  public baseUrl = 'https://cantina-backend.signalwire.com' // TODO: change me
+  public baseUrl = ''
   public hostname: string
 
   private _fetch = (url: RequestInfo, options: RequestInit) => {

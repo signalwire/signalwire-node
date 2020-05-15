@@ -145,6 +145,6 @@ export default (session: BrowserSession, msg: any) => {
       params.type = Notification.VertoClientReady
       return trigger(SwEvent.Notification, params, session.uuid)
     default:
-      logger.warn('Unknown Verto method:', msg)
+      logger.warn('Unknown Verto method:', method, params)
   }
 }

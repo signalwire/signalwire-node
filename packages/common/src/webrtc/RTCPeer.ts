@@ -155,6 +155,15 @@ export default class RTCPeer {
     }
 
     this.instance.addEventListener('track', (event: RTCTrackEvent) => {
+      // This check is valid for simulcast calls AND the legs attached from FS (with verto.attach)
+      if (this.isSimulcast && this.options.attach) {
+        logger.debug('++++++ ontrack event ++++++')
+        logger.debug('Track:', event.track.id, event.track)
+        logger.debug('Stream:', event.streams[0].id, event.streams[0])
+        const notification = { type: 'trackAdd', event }
+        this.call._dispatchNotification(notification)
+        logger.debug('++++++ ontrack event ends ++++++')
+      }
       this.options.remoteStream = event.streams[0]
       const { remoteElement, remoteStream, screenShare } = this.options
       if (screenShare === false) {
@@ -256,7 +265,8 @@ export default class RTCPeer {
     if (googleMaxBitrate && googleMinBitrate && googleStartBitrate) {
       localDescription.sdp = sdpBitrateHack(localDescription.sdp, googleMaxBitrate, googleMinBitrate, googleStartBitrate)
     }
-    if (this.isSimulcast) {
+    // CHECK: Hack SDP only for offer ?
+    if (this.isSimulcast /* && localDescription.type === PeerType.Offer */) {
       localDescription.sdp = sdpSimulcastHack(localDescription.sdp)
     }
     logger.info('>>>> _setLocalDescription', localDescription)

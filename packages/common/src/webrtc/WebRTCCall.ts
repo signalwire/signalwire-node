@@ -492,6 +492,11 @@ export default abstract class WebRTCCall {
   }
 
   private async _onVertoAttach(params: any) {
+
+    if (this.options.simulcast === true) {
+      console.debug('Handle verto.attach for a simulcast call?', params)
+    }
+
     // FIXME: need to dispatch a participantData notification??
     switch (this._state) {
       case State.New:

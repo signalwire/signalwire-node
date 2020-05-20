@@ -1,5 +1,5 @@
 import logger from '../util/logger'
-import { getUserMedia, getMediaConstraints, sdpStereoHack, sdpBitrateHack } from './helpers'
+import { getUserMedia, getMediaConstraints, sdpStereoHack, sdpBitrateHack, sdpSimulcastHack } from './helpers'
 import { SwEvent } from '../util/constants'
 import { PeerType, State } from './constants'
 import WebRTCCall from './WebRTCCall'
@@ -29,6 +29,10 @@ export default class RTCPeer {
 
   get isAnswer() {
     return this.type === PeerType.Answer
+  }
+
+  get isSimulcast() {
+    return this.options.simulcast === true
   }
 
   get config(): RTCConfiguration {
@@ -192,6 +196,11 @@ export default class RTCPeer {
       this.startNegotiation()
       return
     }
+
+    if (this.isSimulcast) {
+      this._forceSimulcast()
+    }
+
     this.instance.removeEventListener('icecandidate', this._onIce)
     let msg = null
     const tmpParams = { ...this.call.messagePayload, sdp }
@@ -247,6 +256,9 @@ export default class RTCPeer {
     if (googleMaxBitrate && googleMinBitrate && googleStartBitrate) {
       localDescription.sdp = sdpBitrateHack(localDescription.sdp, googleMaxBitrate, googleMinBitrate, googleStartBitrate)
     }
+    if (this.isSimulcast) {
+      localDescription.sdp = sdpSimulcastHack(localDescription.sdp)
+    }
     logger.info('>>>> _setLocalDescription', localDescription)
     return this.instance.setLocalDescription(localDescription)
   }
@@ -267,5 +279,45 @@ export default class RTCPeer {
     }
     const constraints = await getMediaConstraints(this.options)
     return getUserMedia(constraints)
+  }
+
+  private async _forceSimulcast() {
+    try {
+      const sender = this._getSenderByKind('video')
+      if (!sender) {
+        logger.debug('Sender video not found!')
+        return
+      }
+      const sendersParams = sender.getParameters()
+      if (!sendersParams) {
+        logger.debug('No sender parameters!')
+        return
+      }
+
+      logger.debug('sendersParams', sendersParams)
+
+      /* OK
+      p.encodings[0].maxBitrate = 5*1000;
+      p.encodings[0].minBitrate = 0;
+      p.encodings[1].maxBitrate = 500*1000;
+      p.encodings[2].maxBitrate = 0; */
+      //debug(p);
+      //p.encodings[0].maxBitrate = 20*1000;
+
+      // @ts-ignore
+      sendersParams.encodings[0].scaleResolutionDownBy = 8
+      //p.encodings[1].maxBitrate = 5*1000;
+      //p.encodings[2].maxBitrate = 275*1000;
+      //p.encodings[0].minBitrate = 1;
+      //p.encodings[1].minBitrate = 1;
+      //p.encodings[2].minBitrate = 1;
+      /*p.encodings[0].targetBitrate = 1000*1000;
+      p.encodings[1].targetBitrate = 1000*1000;
+      p.encodings[2].targetBitrate = 1000*1000;*/
+      await sender.setParameters(sendersParams)
+
+    } catch (error) {
+      logger.error('_forceSimulcast error:', error)
+    }
   }
 }

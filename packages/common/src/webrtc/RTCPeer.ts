@@ -169,8 +169,14 @@ export default class RTCPeer {
     const { localElement, localStream = null, screenShare } = this.options
     if (streamIsValid(localStream)) {
       if (typeof this.instance.addTrack === 'function') {
-        localStream.getAudioTracks().forEach(t => this.instance.addTrack(t, localStream))
-        localStream.getVideoTracks().forEach(t => this.instance.addTrack(t, localStream))
+        localStream.getAudioTracks().forEach(t => {
+          this.options.userVariables.microphoneLabel = t.label
+          this.instance.addTrack(t, localStream)
+        })
+        localStream.getVideoTracks().forEach(t => {
+          this.options.userVariables.cameraLabel = t.label
+          this.instance.addTrack(t, localStream)
+        })
       } else {
         // @ts-ignore
         this.instance.addStream(localStream)

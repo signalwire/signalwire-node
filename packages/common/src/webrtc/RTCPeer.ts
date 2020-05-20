@@ -311,19 +311,19 @@ export default class RTCPeer {
       p.encodings[0].minBitrate = 0;
       p.encodings[1].maxBitrate = 500*1000;
       p.encodings[2].maxBitrate = 0; */
-      //debug(p);
-      //p.encodings[0].maxBitrate = 20*1000;
+      // debug(p);
+      // p.encodings[0].maxBitrate = 20*1000;
 
       // @ts-ignore
       sendersParams.encodings[0].scaleResolutionDownBy = 8
-      //p.encodings[1].maxBitrate = 5*1000;
-      //p.encodings[2].maxBitrate = 275*1000;
-      //p.encodings[0].minBitrate = 1;
-      //p.encodings[1].minBitrate = 1;
-      //p.encodings[2].minBitrate = 1;
-      /*p.encodings[0].targetBitrate = 1000*1000;
+      // p.encodings[1].maxBitrate = 5*1000;
+      // p.encodings[2].maxBitrate = 275*1000;
+      // p.encodings[0].minBitrate = 1;
+      // p.encodings[1].minBitrate = 1;
+      // p.encodings[2].minBitrate = 1;
+      /* p.encodings[0].targetBitrate = 1000*1000;
       p.encodings[1].targetBitrate = 1000*1000;
-      p.encodings[2].targetBitrate = 1000*1000;*/
+      p.encodings[2].targetBitrate = 1000*1000; */
       await sender.setParameters(sendersParams)
 
     } catch (error) {

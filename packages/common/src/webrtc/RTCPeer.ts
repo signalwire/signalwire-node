@@ -181,12 +181,26 @@ export default class RTCPeer {
         // @ts-ignore
         this.instance.addStream(localStream)
       }
+      if (this.options.negotiateAudio) {
+        this._checkMediaToNegotiate('audio')
+      }
+      if (this.options.negotiateVideo) {
+        this._checkMediaToNegotiate('video')
+      }
       if (screenShare === false) {
         muteMediaElement(localElement)
         attachMediaStream(localElement, localStream)
       }
     } else if (localStream === null) {
       this.startNegotiation()
+    }
+  }
+
+  private _checkMediaToNegotiate(kind: string) {
+    const sender = this._getSenderByKind(kind)
+    if (!sender) {
+      const transceiver = this.instance.addTransceiver(kind)
+      console.debug('Add transceiver', kind, transceiver)
     }
   }
 

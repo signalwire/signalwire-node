@@ -30,6 +30,8 @@ export interface CallOptions {
   googleMaxBitrate?: number
   googleMinBitrate?: number
   googleStartBitrate?: number
+  negotiateAudio?: boolean
+  negotiateVideo?: boolean
 }
 
 export interface ICantinaUser {

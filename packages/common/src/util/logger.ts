@@ -18,7 +18,7 @@ logger.methodFactory = (methodName, logLevel, loggerName) => {
             let stack = err.stack
             if (stack) {
                 let stacksp = stack.split("at ")
-                if (stacksp.length > 3) {
+                if (stacksp.length > 2) {
                     let logLineDetails = stacksp[2].trim()
                     messages.push(logLineDetails)
                 }

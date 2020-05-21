@@ -8,6 +8,8 @@ import { CallOptions } from './interfaces'
 import { trigger } from '../services/Handler'
 import { Invite, Attach, Answer, Modify } from '../messages/Verto'
 
+logger.enableAll()
+
 export default class RTCPeer {
   public instance: RTCPeerConnection
   private _iceTimeout = null
@@ -179,6 +181,52 @@ export default class RTCPeer {
       trigger(this.options.id, error, SwEvent.MediaError)
       return null
     })
+
+    if (this.isSimulcast) {
+
+        let pc = this.instance;
+        console.log("Before addTransciver")
+        var t = pc.getTransceivers()
+        console.log(t)
+   
+        if (t.length > 0) { 
+            var sender = t[0].sender
+            var params = sender.getParameters()
+            console.log("Sender parameters")
+            console.log(params)
+        }
+
+        const rids = ['h', 'm', 'l']
+        let stream = this.options.localStream
+
+        this.instance.addTransceiver(stream.getVideoTracks()[0], {
+            streams: [stream],
+            //sendEncodings: rids.map(rid => {rid}),
+            sendEncodings: [
+                {
+                    rid: rids[0],
+                },
+                {
+                    rid: rids[1],
+                    scaleResolutionDownBy: 2.0
+                },
+                {
+                    rid: rids[2],
+                    scaleResolutionDownBy: 6.0
+                }
+            ]
+        })
+
+        console.log("After addTransciver")
+        t = pc.getTransceivers()
+        console.log(t)
+    
+        sender = t[0].sender
+        params = sender.getParameters()
+        console.log("Sender parameters")
+        console.log(params)
+    }
+
     const { localElement, localStream = null, screenShare } = this.options
     if (streamIsValid(localStream)) {
       if (typeof this.instance.addTrack === 'function') {
@@ -265,9 +313,12 @@ export default class RTCPeer {
     if (googleMaxBitrate && googleMinBitrate && googleStartBitrate) {
       localDescription.sdp = sdpBitrateHack(localDescription.sdp, googleMaxBitrate, googleMinBitrate, googleStartBitrate)
     }
+    
     // CHECK: Hack SDP only for offer ?
-    if (this.isSimulcast /* && localDescription.type === PeerType.Offer */) {
-      localDescription.sdp = sdpSimulcastHack(localDescription.sdp)
+    if (this.isSimulcast  && localDescription.type === PeerType.Offer) {
+        //localDescription.sdp = sdpSimulcastHack(localDescription.sdp)
+        
+        // SIMULCAST Skip simulcast hack when setting local description, nothing to be done here, instead Transceiver is added for media from getUserMedia
     }
     logger.info('>>>> _setLocalDescription', localDescription)
     return this.instance.setLocalDescription(localDescription)

@@ -206,6 +206,7 @@ export default class RTCPeer {
 
   private async _sdpReady() {
     clearTimeout(this._iceTimeout)
+    this._iceTimeout = null
     const { sdp, type } = this.instance.localDescription
     logger.info('LOCAL SDP \n', `Type: ${type}`, '\n\n', sdp)
     if (sdp.indexOf('candidate') === -1) {

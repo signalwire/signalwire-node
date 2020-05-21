@@ -87,6 +87,18 @@ export default class RTCPeer {
     }
   }
 
+  getDeviceLabel(kind: string) {
+    try {
+      const sender = this._getSenderByKind(kind)
+      if (!sender || !sender.track) {
+        return null
+      }
+      return sender.track.label
+    } catch (error) {
+      logger.error('RTCPeer getDeviceLabel error', kind, error)
+    }
+  }
+
   async applyMediaConstraints(kind: string, constraints: MediaTrackConstraints) {
     try {
       const sender = this._getSenderByKind(kind)

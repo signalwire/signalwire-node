@@ -147,8 +147,24 @@ export default abstract class WebRTCCall {
     return this.peer ? this.peer.getDeviceId('video') : null
   }
 
+  get cameraLabel() {
+    return this.peer ? this.peer.getDeviceLabel('video') : null
+  }
+
   get microphoneId() {
     return this.peer ? this.peer.getDeviceId('audio') : null
+  }
+
+  get microphoneLabel() {
+    return this.peer ? this.peer.getDeviceLabel('video') : null
+  }
+
+  get withAudio() {
+    return this.remoteStream ? this.remoteStream.getAudioTracks().length > 0 : false
+  }
+
+  get withVideo() {
+    return this.remoteStream ? this.remoteStream.getVideoTracks().length > 0 : false
   }
 
   async _upgrade() {

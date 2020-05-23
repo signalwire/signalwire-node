@@ -1,5 +1,5 @@
 import logger from '../util/logger'
-import { getUserMedia, getMediaConstraints, sdpStereoHack, sdpBitrateHack, sdpSimulcastHack } from './helpers'
+import { getUserMedia, getMediaConstraints, sdpStereoHack, sdpBitrateHack, sdpSimulcastHack, sdpAudioVideoOrderHack } from './helpers'
 import { SwEvent } from '../util/constants'
 import { PeerType, State } from './constants'
 import WebRTCCall from './WebRTCCall'
@@ -184,13 +184,13 @@ export default class RTCPeer {
 
     if (this.isSimulcast) {
 
-        let pc = this.instance;
+        let pc = this.instance
         console.log("Before addTransciver")
         var t = pc.getTransceivers()
         console.log(t)
    
-        if (t.length > 0) { 
-            var sender = t[0].sender
+        if (t.length > 1) { 
+            var sender = t[1].sender
             var params = sender.getParameters()
             console.log("Sender parameters")
             console.log(params)
@@ -199,6 +199,10 @@ export default class RTCPeer {
         const rids = ['h', 'm', 'l']
         let stream = this.options.localStream
 
+        // Audio trabsceiver
+        this.instance.addTransceiver(stream.getAudioTracks()[0], { streams: [stream] })
+
+        // Video transceiver
         this.instance.addTransceiver(stream.getVideoTracks()[0], {
             streams: [stream],
             //sendEncodings: rids.map(rid => {rid}),
@@ -221,7 +225,7 @@ export default class RTCPeer {
         t = pc.getTransceivers()
         console.log(t)
     
-        sender = t[0].sender
+        sender = t[1].sender
         params = sender.getParameters()
         console.log("Sender parameters")
         console.log(params)
@@ -231,7 +235,9 @@ export default class RTCPeer {
     if (streamIsValid(localStream)) {
       if (typeof this.instance.addTrack === 'function') {
         localStream.getAudioTracks().forEach(t => this.instance.addTrack(t, localStream))
-        localStream.getVideoTracks().forEach(t => this.instance.addTrack(t, localStream))
+        let vtracks = localStream.getVideoTracks()
+        logger.info('Local video tracks: ', vtracks)
+        vtracks.forEach(t => this.instance.addTrack(t, localStream))
       } else {
         // @ts-ignore
         this.instance.addStream(localStream)
@@ -255,7 +261,8 @@ export default class RTCPeer {
     }
 
     if (this.isSimulcast) {
-      this._forceSimulcast()
+        //this._forceSimulcast()
+        // SIMULCAST Skip forcing
     }
 
     this.instance.removeEventListener('icecandidate', this._onIce)
@@ -316,7 +323,10 @@ export default class RTCPeer {
     
     // CHECK: Hack SDP only for offer ?
     if (this.isSimulcast  && localDescription.type === PeerType.Offer) {
-        //localDescription.sdp = sdpSimulcastHack(localDescription.sdp)
+
+        logger.info("Exec sdpAudioVideoOrderHack") 
+        localDescription.sdp = sdpAudioVideoOrderHack(localDescription.sdp)
+        logger.info("After sdpAudioVideoOrderHack: ", localDescription.sdp) 
         
         // SIMULCAST Skip simulcast hack when setting local description, nothing to be done here, instead Transceiver is added for media from getUserMedia
     }

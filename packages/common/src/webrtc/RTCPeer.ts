@@ -196,39 +196,48 @@ export default class RTCPeer {
             console.log(params)
         }
 
-        const rids = ['h', 'm', 'l']
+        const rids = ['0', '1', '2']
         let stream = this.options.localStream
 
-        // Audio trabsceiver
-        this.instance.addTransceiver(stream.getAudioTracks()[0], { streams: [stream] })
+        if (stream) {
+        
+            // Audio transceiver
+            if (stream.getAudioTracks()[0]) {
+                this.instance.addTransceiver(stream.getAudioTracks()[0], { streams: [stream] })
+            }
 
-        // Video transceiver
-        this.instance.addTransceiver(stream.getVideoTracks()[0], {
-            streams: [stream],
-            //sendEncodings: rids.map(rid => {rid}),
-            sendEncodings: [
-                {
-                    rid: rids[0],
-                },
-                {
-                    rid: rids[1],
-                    scaleResolutionDownBy: 2.0
-                },
-                {
-                    rid: rids[2],
-                    scaleResolutionDownBy: 6.0
-                }
-            ]
-        })
+            // Video transceiver
+            this.instance.addTransceiver(stream.getVideoTracks()[0], {
+                streams: [stream],
+                //sendEncodings: rids.map(rid => {rid}),
+                sendEncodings: [
+                    {
+                        rid: rids[0],
+                        scaleResolutionDownBy: 16.0
+                    },
+                    {
+                        rid: rids[1],
+                        scaleResolutionDownBy: 14.0
+                    },
+                    {
+                        rid: rids[2],
+                    }
+                ]
+            })
 
-        console.log("After addTransciver")
-        t = pc.getTransceivers()
-        console.log(t)
+            console.log("After addTransciver")
+            t = pc.getTransceivers()
+            console.log(t)
     
-        sender = t[1].sender
-        params = sender.getParameters()
-        console.log("Sender parameters")
-        console.log(params)
+            if (t.length > 1)
+                sender = t[1].sender
+            else
+                sender = t[0].sender
+
+            params = sender.getParameters()
+            console.log("Sender parameters")
+            console.log(params)
+        }
     }
 
     const { localElement, localStream = null, screenShare } = this.options

@@ -296,7 +296,7 @@
       const params = {
         destinationNumber: destinationNumber, // required!
         audio: document.getElementById('audio').checked,
-        video: document.getElementById('video').checked ? { aspectRatio: 16/9 } : false,
+        video: document.getElementById('video').checked ? { width: {ideal: 1280}, height: {ideal: 720} } : false,
         simulcast: document.getElementById('simulcast').checked, // true/false - force this call to be "simulcast"
       };
 

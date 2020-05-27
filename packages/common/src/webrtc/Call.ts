@@ -3,6 +3,8 @@ import WebRTCCall from './WebRTCCall'
 import { CallOptions } from './interfaces'
 import { getDisplayMedia, setMediaElementSinkId } from '../util/webrtc'
 
+logger.enableAll()
+
 export default class Call extends WebRTCCall {
 
   private _statsInterval: any = null

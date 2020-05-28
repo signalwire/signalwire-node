@@ -231,9 +231,6 @@ export default class Conference {
           if (this.callId === callId && audio && video) {
             const call = this.session.calls[this.callId]
             this._isMuted = audio.muted
-            if (call && this._isMuted === true) {
-              call.stopOutboundAudio()
-            }
             this._isVmuted = video.muted
             if (call && this._isVmuted === true) {
               call.stopOutboundVideo()
@@ -251,9 +248,6 @@ export default class Conference {
           const { audio, video } = notification
           const call = this.session.calls[this.callId]
           if (audio) {
-            if (this._isMuted !== audio.muted) {
-              audio.muted ? call.stopOutboundAudio() : call.restoreOutboundAudio()
-            }
             this._isMuted = audio.muted
           }
           if (video) {

@@ -208,31 +208,39 @@ export default class RTCPeer {
 
             // Video transceiver
             this.instance.addTransceiver(stream.getVideoTracks()[0], {
+            
                 streams: [stream],
+
                 //sendEncodings: rids.map(rid => {rid}),
                 sendEncodings: [
                     {
                         rid: rids[0],
-                        scaleResolutionDownBy: 16.0
+                        scaleResolutionDownBy: 6.0
                     },
                     {
                         rid: rids[1],
-                        scaleResolutionDownBy: 14.0
+                        scaleResolutionDownBy: 2.0
                     },
                     {
                         rid: rids[2],
+                        scaleResolutionDownBy: 1.0
                     }
                 ]
             })
+        }
 
-            console.log("After addTransciver")
-            t = pc.getTransceivers()
-            console.log(t)
+        console.log("After addTransciver")
+        t = pc.getTransceivers()
+        console.log(t)
     
-            if (t.length > 1)
-                sender = t[1].sender
-            else
+        if (t.length === 0)
+            logger.error("Cannot get sender params, no transceivers")
+        else {
+            if (t.length === 1) {
                 sender = t[0].sender
+            } else {
+                sender = t[1].sender
+            }
 
             params = sender.getParameters()
             console.log("Sender parameters")
@@ -243,10 +251,20 @@ export default class RTCPeer {
     const { localElement, localStream = null, screenShare } = this.options
     if (streamIsValid(localStream)) {
       if (typeof this.instance.addTrack === 'function') {
-        localStream.getAudioTracks().forEach(t => this.instance.addTrack(t, localStream))
+      
+        let atracks = localStream.getAudioTracks()
+        logger.info('Local audio tracks: ', atracks)
+        if (!this.isSimulcast) {
+            atracks.forEach(t => this.instance.addTrack(t, localStream))
+            //this.instance.addTrack(atracks[0], localStream)
+        }
+
         let vtracks = localStream.getVideoTracks()
         logger.info('Local video tracks: ', vtracks)
-        vtracks.forEach(t => this.instance.addTrack(t, localStream))
+        if (!this.isSimulcast) {
+            vtracks.forEach(t => this.instance.addTrack(t, localStream))
+        }
+
       } else {
         // @ts-ignore
         this.instance.addStream(localStream)

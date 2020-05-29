@@ -7,6 +7,7 @@ import { attachMediaStream, muteMediaElement, sdpToJsonHack, RTCPeerConnection, 
 import { CallOptions } from './interfaces'
 import { trigger } from '../services/Handler'
 import { Invite, Attach, Answer, Modify } from '../messages/Verto'
+import { findElementByType } from '../util/helpers'
 
 logger.enableAll()
 
@@ -167,7 +168,30 @@ export default class RTCPeer {
         logger.debug('++++++ ontrack event ends ++++++')
       }
       this.options.remoteStream = event.streams[0]
-      const { remoteElement, remoteStream, screenShare } = this.options
+      const { remoteStream, screenShare } = this.options
+      let remoteElement = this.options.remoteElement
+
+      if (this.isSimulcast) {
+      
+        remoteElement = findElementByType(remoteStream.id)
+        
+        if (!remoteElement) {
+        
+            remoteElement = document.createElement('video')
+            remoteElement.id = remoteStream.id
+            remoteElement.autoplay = true
+            remoteElement.className = "w-100"
+            //remoteElement.playsInline = true
+            remoteElement.style.cssText = 'background-color: #000; border: 1px solid #ccc; border-radius: 5px;'
+
+            const boxes = findElementByType('remoteVideos')
+            if (!boxes)
+                return
+            
+            boxes.appendChild(remoteElement)
+        }
+      }
+
       if (screenShare === false) {
         attachMediaStream(remoteElement, remoteStream)
       }

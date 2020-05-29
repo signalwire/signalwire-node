@@ -1,6 +1,6 @@
 {
   "name": "@signalwire/js",
-  "version": "1.3.0-alpha.8.6",
+  "version": "1.3.0-alpha.8.7",
   "description": "Relay SDK for JavaScript to connect to SignalWire.",
   "author": "SignalWire Team <open.source@signalwire.com>",
   "main": "dist/index.min.js",

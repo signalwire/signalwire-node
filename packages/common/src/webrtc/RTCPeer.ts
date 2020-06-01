@@ -1,5 +1,5 @@
 import logger from '../util/logger'
-import { getUserMedia, getMediaConstraints, sdpStereoHack, sdpBitrateHack, sdpSimulcastHack, sdpAudioVideoOrderHack } from './helpers'
+import { getUserMedia, getMediaConstraints, sdpStereoHack, sdpBitrateHack, sdpSimulcastHack, sdpAudioVideoOrderHack, sdpAudioSimulcastRemoveRidMidExtHack } from './helpers'
 import { SwEvent } from '../util/constants'
 import { PeerType, State } from './constants'
 import WebRTCCall from './WebRTCCall'
@@ -378,10 +378,18 @@ export default class RTCPeer {
         logger.info("Exec sdpAudioVideoOrderHack") 
         localDescription.sdp = sdpAudioVideoOrderHack(localDescription.sdp)
         logger.info("After sdpAudioVideoOrderHack: ", localDescription.sdp) 
+
+        // SIMULCAST Seem right to remove MID/RID from audio, though apparently this is not the main reason behind zero RTP extensions...
+
+        logger.info("Exec sdpAudioSimulcastRemoveRidMidExtHack") 
+        localDescription.sdp = sdpAudioSimulcastRemoveRidMidExtHack(localDescription.sdp)
+        logger.info("After sdpAudioSimulcastRemoveRidMidExtHack: ", localDescription.sdp) 
         
         // SIMULCAST Skip simulcast hack when setting local description, nothing to be done here, instead Transceiver is added for media from getUserMedia
     }
+
     logger.info('>>>> _setLocalDescription', localDescription)
+    logger.info(">>>> sdp: ", localDescription.sdp)
     return this.instance.setLocalDescription(localDescription)
   }
 

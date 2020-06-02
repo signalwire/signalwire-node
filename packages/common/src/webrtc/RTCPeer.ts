@@ -118,7 +118,7 @@ export default class RTCPeer {
     return this.instance.getSenders().find(({ track }) => (track && track.kind === kind))
   }
 
-  async startNegotiation() {
+  async startNegotiation(force = false) {
     try {
       this.instance.removeEventListener('icecandidate', this._onIce)
       this.instance.addEventListener('icecandidate', this._onIce)
@@ -126,7 +126,6 @@ export default class RTCPeer {
         logger.info('Trying to generate offer')
         const offer = await this.instance.createOffer({ voiceActivityDetection: false })
         await this._setLocalDescription(offer)
-        return
       }
 
       if (this.isAnswer) {
@@ -134,7 +133,10 @@ export default class RTCPeer {
         await this._setRemoteDescription({ sdp: this.options.remoteSdp, type: PeerType.Offer })
         const answer = await this.instance.createAnswer({ voiceActivityDetection: false })
         await this._setLocalDescription(answer)
-        return
+      }
+      if (force) {
+        // RN workaroud
+        this._sdpReady()
       }
     } catch (error) {
       logger.error(`Error creating ${this.type}:`, error)
@@ -220,11 +222,12 @@ export default class RTCPeer {
     clearTimeout(this._iceTimeout)
     this._iceTimeout = null
     const { sdp, type } = this.instance.localDescription
-    logger.info('LOCAL SDP \n', `Type: ${type}`, '\n\n', sdp)
     if (sdp.indexOf('candidate') === -1) {
-      this.startNegotiation()
+      logger.info('No candidate - retry \n')
+      this.startNegotiation(true)
       return
     }
+    logger.info('LOCAL SDP \n', `Type: ${type}`, '\n\n', sdp)
     this.instance.removeEventListener('icecandidate', this._onIce)
     let msg = null
     const tmpParams = { ...this.call.messagePayload, sdp }

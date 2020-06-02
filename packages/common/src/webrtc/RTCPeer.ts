@@ -373,19 +373,25 @@ export default class RTCPeer {
     }
     
     // CHECK: Hack SDP only for offer ?
-    if (this.isSimulcast  && localDescription.type === PeerType.Offer) {
+    if (this.isSimulcast) {
 
-        logger.info("Exec sdpAudioVideoOrderHack") 
-        localDescription.sdp = sdpAudioVideoOrderHack(localDescription.sdp)
-        logger.info("After sdpAudioVideoOrderHack: ", localDescription.sdp) 
+        if (localDescription.type === PeerType.Offer) {
 
-        // SIMULCAST Seem right to remove MID/RID from audio, though apparently this is not the main reason behind zero RTP extensions...
+            logger.info("Exec sdpAudioVideoOrderHack") 
+            localDescription.sdp = sdpAudioVideoOrderHack(localDescription.sdp)
+            logger.info("After sdpAudioVideoOrderHack:\n", localDescription.sdp) 
 
-        logger.info("Exec sdpAudioSimulcastRemoveRidMidExtHack") 
-        localDescription.sdp = sdpAudioSimulcastRemoveRidMidExtHack(localDescription.sdp)
-        logger.info("After sdpAudioSimulcastRemoveRidMidExtHack: ", localDescription.sdp) 
+            // SIMULCAST Seem right to remove MID/RID from audio, though apparently this is not the main reason behind zero RTP extensions...
+
+            logger.info("Exec sdpAudioSimulcastRemoveRidMidExtHack") 
+            localDescription.sdp = sdpAudioSimulcastRemoveRidMidExtHack(localDescription.sdp)
+            logger.info("After sdpAudioSimulcastRemoveRidMidExtHack:\n", localDescription.sdp) 
         
-        // SIMULCAST Skip simulcast hack when setting local description, nothing to be done here, instead Transceiver is added for media from getUserMedia
+        } else {
+            // SIMULCAST Skip simulcast hack when setting local description, nothing to be done here, instead Transceiver is added for media from getUserMedia
+            logger.info("SIMULCAST answer, skip _setLocalDescription")
+            return 
+        }
     }
 
     logger.info('>>>> _setLocalDescription', localDescription)

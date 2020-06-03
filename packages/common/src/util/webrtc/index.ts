@@ -83,6 +83,8 @@ const stopStream = (stream: MediaStream) => {
   stream = null
 }
 
+const getHostname = () => window.location.hostname
+
 export {
   RTCPeerConnection,
   getUserMedia,
@@ -97,5 +99,6 @@ export {
   muteMediaElement,
   unmuteMediaElement,
   toggleMuteMediaElement,
-  setMediaElementSinkId
+  setMediaElementSinkId,
+  getHostname,
 }

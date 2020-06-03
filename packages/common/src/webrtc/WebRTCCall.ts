@@ -10,7 +10,7 @@ import { trigger, register, deRegisterAll } from '../services/Handler'
 import { enableAudioTracks, disableAudioTracks, toggleAudioTracks, enableVideoTracks, disableVideoTracks, toggleVideoTracks, checkIsDirectCall } from './helpers'
 import { objEmpty, isFunction } from '../util/helpers'
 import { CallOptions, IHangupParams, ICallParticipant } from './interfaces'
-import { detachMediaStream, stopStream, setMediaElementSinkId, getUserMedia, attachMediaStream } from '../util/webrtc'
+import { detachMediaStream, stopStream, setMediaElementSinkId, getUserMedia, getHostname } from '../util/webrtc'
 import Conference from './Conference'
 import { CheckConferenceMethod } from './decorators'
 
@@ -544,7 +544,7 @@ export default abstract class WebRTCCall {
     if (!userVariables || objEmpty(userVariables)) {
       this.options.userVariables = this.session.options.userVariables || {}
     }
-    this.options.userVariables.hostname = window.location.hostname
+    this.options.userVariables.hostname = getHostname()
     if (!remoteCallerNumber) {
       this.options.remoteCallerNumber = this.options.destinationNumber
     }

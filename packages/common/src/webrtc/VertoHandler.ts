@@ -127,6 +127,10 @@ export default (session: BrowserSession, msg: any) => {
     }
     case VertoMethod.Event:
     case 'webrtc.event': {
+      const { subscribedChannel } = params
+      if (subscribedChannel && trigger(subscribedChannel, params)) {
+        return
+      }
       if (eventChannel) {
         const channelType = eventChannel.split('.')[0]
         const global = trigger(channelType, params)

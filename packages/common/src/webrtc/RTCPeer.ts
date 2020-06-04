@@ -175,7 +175,9 @@ export default class RTCPeer {
       
         remoteElement = findElementByType(remoteStream.id)
         
-        if (!remoteElement) {
+        if (remoteElement) {
+            console.error('SIMULCAST remote element for stream ' + remoteStream.id + ' ALREADY IN PAGE. Skip adding video box')
+        } else {
         
             remoteElement = document.createElement('video')
             remoteElement.id = remoteStream.id
@@ -209,7 +211,7 @@ export default class RTCPeer {
     if (this.isSimulcast) {
 
         let pc = this.instance
-        console.log("Before addTransciver")
+        console.log("Before addTransceiver")
         var t = pc.getTransceivers()
         console.log(t)
    
@@ -253,23 +255,21 @@ export default class RTCPeer {
             })
         }
 
-        console.log("After addTransciver")
+        console.log("After addTransceiver")
         t = pc.getTransceivers()
         console.log(t)
-    
-        if (t.length === 0)
-            logger.error("Cannot get sender params, no transceivers")
-        else {
-            if (t.length === 1) {
-                sender = t[0].sender
-            } else {
-                sender = t[1].sender
-            }
 
-            params = sender.getParameters()
-            console.log("Sender parameters")
-            console.log(params)
-        }
+        let i = 0
+        t.forEach( t => {
+            let sender = t.sender
+            if (sender) {
+                console.log("Sender[" + i + "]:")
+                console.log(sender)
+                console.log("Sender[" + i + "] parameters:")
+                console.log(sender.getParameters())
+                i++
+            }
+        })
     }
 
     const { localElement, localStream = null, screenShare } = this.options
@@ -279,6 +279,7 @@ export default class RTCPeer {
         let atracks = localStream.getAudioTracks()
         logger.info('Local audio tracks: ', atracks)
         if (!this.isSimulcast) {
+            //this.stopTrackSender('audio')
             atracks.forEach(t => this.instance.addTrack(t, localStream))
             //this.instance.addTrack(atracks[0], localStream)
         }

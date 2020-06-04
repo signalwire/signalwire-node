@@ -239,15 +239,15 @@ export default class RTCPeer {
                 sendEncodings: [
                     {
                         rid: rids[0],
-                        scaleResolutionDownBy: 6.0
+                        scaleResolutionDownBy: 1.0
                     },
                     {
                         rid: rids[1],
-                        scaleResolutionDownBy: 2.0
+                        scaleResolutionDownBy: 6.0
                     },
                     {
                         rid: rids[2],
-                        scaleResolutionDownBy: 1.0
+                        scaleResolutionDownBy: 12.0
                     }
                 ]
             })

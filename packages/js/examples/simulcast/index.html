@@ -69,8 +69,7 @@
             <video id="localVideo" autoplay="true" class="w-100" style="background-color: #000; border: 1px solid #ccc; border-radius: 5px;"></video>
           </div>
           <div id="remoteVideos" class="col-6">
-            <h5>Remote Video</h5>
-            <video id="remoteVideo" autoplay="true" class="w-100" playsinline style="background-color: #000; border: 1px solid #ccc; border-radius: 5px;"></video>
+            <h5>Remote Videos</h5>
           </div>
         </div>
 
@@ -206,6 +205,10 @@
           // Handle new peer track
           handleTrackAdd(notification);
           break;
+        case 'alternativeTrackAdd':
+          // Handle new peer track (alternative version)
+          handleAlternativeTrackAdd(notification);
+          break;
       }
     }
 
@@ -232,7 +235,7 @@
       hTitle.innerText = 'Dynamic: ' + (withAudio ? 'AUDIO' : 'VIDEO')
 
       var pDescr = document.createElement('p')
-      pDescr.innerText = 'Track: ' + track.id
+      pDescr.innerText = 'Track: ' + track.id + '\nStream: ' + stream.id
 
       var sfuVideo = document.createElement('video')
       // sfuVideo.muted = true
@@ -244,6 +247,42 @@
       col6.appendChild(sfuVideo)
       col6.appendChild(pDescr)
       videoWrapper.appendChild(col6)
+    }
+
+    if( typeof Element.prototype.clearChildren === 'undefined' ) {
+        Object.defineProperty(Element.prototype, 'clearChildren', {
+            configurable: true,
+            enumerable: false,
+            value: function() {
+                while(this.firstChild) this.removeChild(this.lastChild);
+            }
+        });
+    }
+    
+    function handleAlternativeTrackAdd(notification) {
+        
+        var event = notification.event
+        var remoteStream = event.streams[0]
+        var remoteElement = document.getElementById(remoteStream.id)
+        
+        if (remoteElement) {
+            console.error('SIMULCAST remote element for stream ' + remoteStream.id + ' ALREADY IN PAGE. Skip adding video box')
+        } else {
+        
+            remoteElement = document.createElement('video')
+            remoteElement.id = remoteStream.id
+            remoteElement.autoplay = true
+            remoteElement.className = "w-100"
+            //remoteElement.playsInline = true
+            remoteElement.style.cssText = 'background-color: #000; border: 1px solid #ccc; border-radius: 5px;'
+            remoteElement.src = remoteStream
+
+            var boxes = document.getElementById('remoteVideos')
+            if (!boxes)
+                return
+            
+            boxes.appendChild(remoteElement)
+        }
     }
 
     /**
@@ -283,6 +322,9 @@
           break;
         case 'destroy': // Call has been destroyed
           currentCall = null;
+          var e = document.getElementById('remoteVideos')
+            if (e)
+                e.clearChildren()
           document.querySelectorAll('#videoWrapper .dynamic').forEach(el => el.parentNode.removeChild(el))
           break;
       }

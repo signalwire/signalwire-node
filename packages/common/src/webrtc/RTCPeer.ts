@@ -159,7 +159,7 @@ export default class RTCPeer {
 
     this.instance.addEventListener('track', (event: RTCTrackEvent) => {
       // This check is valid for simulcast calls AND the legs attached from FS (with verto.attach)
-      if (this.isSimulcast && this.options.attach) {
+      if (this.isSimulcast) {
         logger.debug('++++++ ontrack event ++++++')
         logger.debug('Track:', event.track.id, event.track)
         logger.debug('Stream:', event.streams[0].id, event.streams[0])
@@ -171,28 +171,17 @@ export default class RTCPeer {
       const { remoteStream, screenShare } = this.options
       let remoteElement = this.options.remoteElement
 
+      /**
+      // Alternative version
       if (this.isSimulcast) {
-      
-        remoteElement = findElementByType(remoteStream.id)
-        
-        if (remoteElement) {
-            console.error('SIMULCAST remote element for stream ' + remoteStream.id + ' ALREADY IN PAGE. Skip adding video box')
-        } else {
-        
-            remoteElement = document.createElement('video')
-            remoteElement.id = remoteStream.id
-            remoteElement.autoplay = true
-            remoteElement.className = "w-100"
-            //remoteElement.playsInline = true
-            remoteElement.style.cssText = 'background-color: #000; border: 1px solid #ccc; border-radius: 5px;'
-
-            const boxes = findElementByType('remoteVideos')
-            if (!boxes)
-                return
-            
-            boxes.appendChild(remoteElement)
-        }
+        logger.debug('++++++ ontrack alt event ++++++')
+        logger.debug('Track:', event.track.id, event.track)
+        logger.debug('Stream:', event.streams[0].id, event.streams[0])
+        const notification = { type: 'alternativeTrackAdd', event }
+        this.call._dispatchNotification(notification)
+        logger.debug('++++++ ontrack alt event ends ++++++')
       }
+      **/
 
       if (screenShare === false) {
         attachMediaStream(remoteElement, remoteStream)

@@ -218,12 +218,31 @@
 
       var stream = event.streams[0]
       var track = event.track
-      if (sIds.indexOf(stream.id) >= 0) {
-        console.error('STREAM ALREADY IN PAGE. RETURN')
-        return
+      if (track.kind === 'audio') {
+          
+          // create new audio
+          var audio = new Audio()
+          window.__testAudio = audio
+
+          // create new stream with audio track
+          var stream = new MediaStream()
+          
+          stream.addTrack(track)
+          audio.srcObject = stream
+
+          // play
+          audio.play().then(() => {
+              console.log('AUDIO IS PLAYING')
+          }).catch(error => {
+              console.error('AUDIO IS NOT PLAYING', error)
+          })
+
+          return
       }
+
       sIds.push(stream.id)
       var col6 = document.createElement('div')
+      col6.id = stream.id
       col6.className = 'col-6 dynamic'
 
       var withAudio = stream.getAudioTracks().length > 0
@@ -238,7 +257,7 @@
       pDescr.innerText = 'Track: ' + track.id + '\nStream: ' + stream.id
 
       var sfuVideo = document.createElement('video')
-      // sfuVideo.muted = true
+      sfuVideo.muted = false
       sfuVideo.playsInline = true
       sfuVideo.autoplay = true
       sfuVideo.className = 'w-100'

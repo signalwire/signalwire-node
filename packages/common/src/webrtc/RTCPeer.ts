@@ -1,5 +1,5 @@
 import logger from '../util/logger'
-import { getUserMedia, getMediaConstraints, sdpStereoHack, sdpBitrateHack, sdpSimulcastHack, sdpAudioVideoOrderHack, sdpAudioSimulcastRemoveRidMidExtHack } from './helpers'
+import { getUserMedia, getMediaConstraints, sdpStereoHack, sdpBitrateHack, sdpSimulcastHack, sdpAudioVideoOrderHack, sdpAudioRemoveRidMidExtHack } from './helpers'
 import { SwEvent } from '../util/constants'
 import { PeerType, State } from './constants'
 import WebRTCCall from './WebRTCCall'
@@ -374,7 +374,7 @@ export default class RTCPeer {
             // SIMULCAST Seem right to remove MID/RID from audio, though apparently this is not the main reason behind zero RTP extensions...
 
             logger.info("Exec sdpAudioSimulcastRemoveRidMidExtHack") 
-            localDescription.sdp = sdpAudioSimulcastRemoveRidMidExtHack(localDescription.sdp)
+            localDescription.sdp = sdpAudioRemoveRidMidExtHack(localDescription.sdp)
             logger.info("After sdpAudioSimulcastRemoveRidMidExtHack:\n", localDescription.sdp) 
         
         } else {

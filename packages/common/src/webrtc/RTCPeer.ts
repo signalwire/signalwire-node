@@ -400,11 +400,11 @@ export default class RTCPeer {
             // SIMULCAST Skip simulcast hack when setting local description, nothing to be done here, instead Transceiver is added for media from getUserMedia
             logger.info("SIMULCAST answer, skip _setLocalDescription ?")
 
-            const endOfLine = '\r\n'
-            const sdp = localDescription.sdp.split(endOfLine)
-            let i = sdp.findIndex(element => element.includes("a=group:BUNDLE"))
-            sdp[i] = "a=group:BUNDLE 0 1"
-            localDescription.sdp = sdp.join(endOfLine)
+            // const endOfLine = '\r\n'
+            // const sdp = localDescription.sdp.split(endOfLine)
+            // let i = sdp.findIndex(element => element.includes("a=group:BUNDLE"))
+            // sdp[i] = "a=group:BUNDLE 0 1"
+            // localDescription.sdp = sdp.join(endOfLine)
             //return
         }
     }

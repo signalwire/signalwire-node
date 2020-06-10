@@ -122,12 +122,77 @@ export default class RTCPeer {
     try {
       this.instance.removeEventListener('icecandidate', this._onIce)
       this.instance.addEventListener('icecandidate', this._onIce)
-      if (this.isOffer) {
-        logger.info('Trying to generate offer')
-        const offer = await this.instance.createOffer({ voiceActivityDetection: false })
-        await this._setLocalDescription(offer)
-        return
-      }
+
+    if (this.isSimulcast) {
+
+        let pc = this.instance
+        console.log("Before addTransceiver")
+        var t = pc.getTransceivers()
+        console.log(t)
+
+        if (t.length > 1) {
+            var sender = t[1].sender
+            var params = sender.getParameters()
+            console.log("Sender parameters")
+            console.log(params)
+        }
+
+        const rids = ['0', '1', '2']
+        let stream = this.options.localStream
+
+        if (stream) {
+
+            // Audio transceiver
+            if (stream.getAudioTracks()[0]) {
+                this.instance.addTransceiver(stream.getAudioTracks()[0], { streams: [stream] })
+            }
+
+            // Video transceiver
+            this.instance.addTransceiver(stream.getVideoTracks()[0], {
+
+                streams: [stream],
+
+                //sendEncodings: rids.map(rid => {rid}),
+                sendEncodings: [
+                    {
+                        rid: rids[0],
+                        scaleResolutionDownBy: 1.0
+                    },
+                    {
+                        rid: rids[1],
+                        scaleResolutionDownBy: 6.0
+                    },
+                    {
+                        rid: rids[2],
+                        scaleResolutionDownBy: 12.0
+                    }
+                ]
+            })
+        }
+
+        console.log("After addTransceiver")
+        t = pc.getTransceivers()
+        console.log(t)
+
+        let i = 0
+        t.forEach( t => {
+            let sender = t.sender
+            if (sender) {
+                console.log("Sender[" + i + "]:")
+                console.log(sender)
+                console.log("Sender[" + i + "] parameters:")
+                console.log(sender.getParameters())
+                i++
+            }
+        })
+    }
+    
+        if (this.isOffer) {
+            logger.info('Trying to generate offer')
+            const offer = await this.instance.createOffer({ voiceActivityDetection: false })
+            await this._setLocalDescription(offer)
+            return
+        }
 
       if (this.isAnswer) {
         logger.info('Trying to generate answer')
@@ -219,52 +284,8 @@ export default class RTCPeer {
     if (this.isSimulcast) {
 
         let pc = this.instance
-        console.log("Before addTransceiver")
+        console.log("Transceivers")
         var t = pc.getTransceivers()
-        console.log(t)
-
-        if (t.length > 1) {
-            var sender = t[1].sender
-            var params = sender.getParameters()
-            console.log("Sender parameters")
-            console.log(params)
-        }
-
-        const rids = ['0', '1', '2']
-        let stream = this.options.localStream
-
-        if (stream) {
-
-            // Audio transceiver
-            if (stream.getAudioTracks()[0]) {
-                this.instance.addTransceiver(stream.getAudioTracks()[0], { streams: [stream] })
-            }
-
-            // Video transceiver
-            this.instance.addTransceiver(stream.getVideoTracks()[0], {
-
-                streams: [stream],
-
-                //sendEncodings: rids.map(rid => {rid}),
-                sendEncodings: [
-                    {
-                        rid: rids[0],
-                        scaleResolutionDownBy: 1.0
-                    },
-                    {
-                        rid: rids[1],
-                        scaleResolutionDownBy: 6.0
-                    },
-                    {
-                        rid: rids[2],
-                        scaleResolutionDownBy: 12.0
-                    }
-                ]
-            })
-        }
-
-        console.log("After addTransceiver")
-        t = pc.getTransceivers()
         console.log(t)
 
         let i = 0
@@ -305,6 +326,7 @@ export default class RTCPeer {
       if (screenShare === false) {
         muteMediaElement(localElement)
         attachMediaStream(localElement, localStream)
+      this.startNegotiation()
       }
     } else if (localStream === null) {
       this.startNegotiation()

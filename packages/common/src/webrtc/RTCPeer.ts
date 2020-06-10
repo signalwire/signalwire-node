@@ -14,6 +14,7 @@ logger.enableAll()
 export default class RTCPeer {
   public instance: RTCPeerConnection
   private _iceTimeout = null
+  private _negotiating = false
 
   constructor(
     public call: WebRTCCall,
@@ -114,6 +115,10 @@ export default class RTCPeer {
   }
 
   async startNegotiation() {
+    if (this._negotiating) {
+      return logger.warn('Skip twice onnegotiationneeded!')
+    }
+    this._negotiating = true
     try {
       this.instance.removeEventListener('icecandidate', this._onIce)
       this.instance.addEventListener('icecandidate', this._onIce)
@@ -150,6 +155,20 @@ export default class RTCPeer {
 
     this.instance.onsignalingstatechange = event => {
       logger.info('signalingState:', this.instance.signalingState)
+
+      switch (this.instance.signalingState) {
+        case 'stable':
+          // Workaround to skip nested negotiations
+          // Chrome bug: https://bugs.chromium.org/p/chromium/issues/detail?id=740501
+          this._negotiating = false
+          break
+        case 'closed':
+          this.instance = null
+          break
+        default:
+          this._negotiating = true
+      }
+
     }
 
     this.instance.onnegotiationneeded = event => {
@@ -203,8 +222,8 @@ export default class RTCPeer {
         console.log("Before addTransceiver")
         var t = pc.getTransceivers()
         console.log(t)
-   
-        if (t.length > 1) { 
+
+        if (t.length > 1) {
             var sender = t[1].sender
             var params = sender.getParameters()
             console.log("Sender parameters")
@@ -215,7 +234,7 @@ export default class RTCPeer {
         let stream = this.options.localStream
 
         if (stream) {
-        
+
             // Audio transceiver
             if (stream.getAudioTracks()[0]) {
                 this.instance.addTransceiver(stream.getAudioTracks()[0], { streams: [stream] })
@@ -223,7 +242,7 @@ export default class RTCPeer {
 
             // Video transceiver
             this.instance.addTransceiver(stream.getVideoTracks()[0], {
-            
+
                 streams: [stream],
 
                 //sendEncodings: rids.map(rid => {rid}),
@@ -264,7 +283,7 @@ export default class RTCPeer {
     const { localElement, localStream = null, screenShare } = this.options
     if (streamIsValid(localStream)) {
       if (typeof this.instance.addTrack === 'function') {
-      
+
         let atracks = localStream.getAudioTracks()
         logger.info('Local audio tracks: ', atracks)
         if (!this.isSimulcast) {
@@ -361,32 +380,32 @@ export default class RTCPeer {
     if (googleMaxBitrate && googleMinBitrate && googleStartBitrate) {
       localDescription.sdp = sdpBitrateHack(localDescription.sdp, googleMaxBitrate, googleMinBitrate, googleStartBitrate)
     }
-    
+
     // CHECK: Hack SDP only for offer ?
     if (this.isSimulcast) {
 
         if (localDescription.type === PeerType.Offer) {
 
-            logger.info("Exec sdpAudioVideoOrderHack") 
+            logger.info("Exec sdpAudioVideoOrderHack")
             localDescription.sdp = sdpAudioVideoOrderHack(localDescription.sdp)
-            logger.info("After sdpAudioVideoOrderHack:\n", localDescription.sdp) 
+            logger.info("After sdpAudioVideoOrderHack:\n", localDescription.sdp)
 
             // SIMULCAST Seem right to remove MID/RID from audio, though apparently this is not the main reason behind zero RTP extensions...
 
-            logger.info("Exec sdpAudioSimulcastRemoveRidMidExtHack") 
+            logger.info("Exec sdpAudioSimulcastRemoveRidMidExtHack")
             //localDescription.sdp = sdpAudioRemoveRidMidExtHack(localDescription.sdp)
-            logger.info("After sdpAudioSimulcastRemoveRidMidExtHack:\n", localDescription.sdp) 
-        
+            logger.info("After sdpAudioSimulcastRemoveRidMidExtHack:\n", localDescription.sdp)
+
         } else {
             // SIMULCAST Skip simulcast hack when setting local description, nothing to be done here, instead Transceiver is added for media from getUserMedia
             logger.info("SIMULCAST answer, skip _setLocalDescription ?")
-            
+
             const endOfLine = '\r\n'
             const sdp = localDescription.sdp.split(endOfLine)
             let i = sdp.findIndex(element => element.includes("a=group:BUNDLE"))
             sdp[i] = "a=group:BUNDLE 0 1"
             localDescription.sdp = sdp.join(endOfLine)
-            //return 
+            //return
         }
     }
 

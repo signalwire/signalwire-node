@@ -177,33 +177,47 @@ export default class RTCPeer {
 
     if (stream) {
 
-        // Audio transceiver
-        if (stream.getAudioTracks()[0]) {
-            this.instance.addTransceiver(stream.getAudioTracks()[0], { streams: [stream] })
-        }
+            let t = this.instance.getTransceivers()
+            
+            if (t.length == 0) {
+            
+                console.log("ADDING TRANSCEIVERS")
 
-        // Video transceiver
-        this.instance.addTransceiver(stream.getVideoTracks()[0], {
-
-            streams: [stream],
-
-            //sendEncodings: rids.map(rid => {rid}),
-            sendEncodings: [
-                {
-                    rid: rids[0],
-                    scaleResolutionDownBy: 1.0
-                },
-                {
-                    rid: rids[1],
-                    scaleResolutionDownBy: 6.0
-                },
-                {
-                    rid: rids[2],
-                    scaleResolutionDownBy: 12.0
+                // Audio transceiver
+                if (stream.getAudioTracks()[0]) {
+                
+                    console.log("ADDING AUDIO TRANSCEIVER")
+                    this.instance.addTransceiver(stream.getAudioTracks()[0], { streams: [stream] })
                 }
-            ]
-        })
-    }
+
+                console.log("ADDING VIDEO TRANSCEIVER")
+                
+                // Video transceiver
+                this.instance.addTransceiver(stream.getVideoTracks()[0], {
+
+                    streams: [stream],
+
+                    //sendEncodings: rids.map(rid => {rid}),
+                    sendEncodings: [
+                        {
+                            rid: rids[0],
+                            scaleResolutionDownBy: 1.0
+                        },
+                        {
+                            rid: rids[1],
+                            scaleResolutionDownBy: 6.0
+                        },
+                        {
+                            rid: rids[2],
+                            scaleResolutionDownBy: 12.0
+                        }
+                    ]
+                })
+            } else {
+                // There are some transceivers
+                console.log("SKIP ADDING TRANSCEIVERS")
+            }
+        }
 
     console.log("After addTransceiver")
     t = pc.getTransceivers()

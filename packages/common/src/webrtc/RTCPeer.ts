@@ -374,13 +374,19 @@ export default class RTCPeer {
             // SIMULCAST Seem right to remove MID/RID from audio, though apparently this is not the main reason behind zero RTP extensions...
 
             logger.info("Exec sdpAudioSimulcastRemoveRidMidExtHack") 
-            localDescription.sdp = sdpAudioRemoveRidMidExtHack(localDescription.sdp)
+            //localDescription.sdp = sdpAudioRemoveRidMidExtHack(localDescription.sdp)
             logger.info("After sdpAudioSimulcastRemoveRidMidExtHack:\n", localDescription.sdp) 
         
         } else {
             // SIMULCAST Skip simulcast hack when setting local description, nothing to be done here, instead Transceiver is added for media from getUserMedia
-            logger.info("SIMULCAST answer, skip _setLocalDescription")
-            return 
+            logger.info("SIMULCAST answer, skip _setLocalDescription ?")
+            
+            const endOfLine = '\r\n'
+            const sdp = localDescription.sdp.split(endOfLine)
+            let i = sdp.findIndex(element => element.includes("a=group:BUNDLE"))
+            sdp[i] = "a=group:BUNDLE 0 1"
+            localDescription.sdp = sdp.join(endOfLine)
+            //return 
         }
     }
 

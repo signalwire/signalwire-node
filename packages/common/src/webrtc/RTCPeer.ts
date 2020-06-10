@@ -123,82 +123,22 @@ export default class RTCPeer {
       this.instance.removeEventListener('icecandidate', this._onIce)
       this.instance.addEventListener('icecandidate', this._onIce)
 
-    if (this.isSimulcast) {
+      // this._simulcastAddTransceiver()
 
-        let pc = this.instance
-        console.log("Before addTransceiver")
-        var t = pc.getTransceivers()
-        console.log(t)
-
-        if (t.length > 1) {
-            var sender = t[1].sender
-            var params = sender.getParameters()
-            console.log("Sender parameters")
-            console.log(params)
-        }
-
-        const rids = ['0', '1', '2']
-        let stream = this.options.localStream
-
-        if (stream) {
-
-            // Audio transceiver
-            if (stream.getAudioTracks()[0]) {
-                this.instance.addTransceiver(stream.getAudioTracks()[0], { streams: [stream] })
-            }
-
-            // Video transceiver
-            this.instance.addTransceiver(stream.getVideoTracks()[0], {
-
-                streams: [stream],
-
-                //sendEncodings: rids.map(rid => {rid}),
-                sendEncodings: [
-                    {
-                        rid: rids[0],
-                        scaleResolutionDownBy: 1.0
-                    },
-                    {
-                        rid: rids[1],
-                        scaleResolutionDownBy: 6.0
-                    },
-                    {
-                        rid: rids[2],
-                        scaleResolutionDownBy: 12.0
-                    }
-                ]
-            })
-        }
-
-        console.log("After addTransceiver")
-        t = pc.getTransceivers()
-        console.log(t)
-
-        let i = 0
-        t.forEach( t => {
-            let sender = t.sender
-            if (sender) {
-                console.log("Sender[" + i + "]:")
-                console.log(sender)
-                console.log("Sender[" + i + "] parameters:")
-                console.log(sender.getParameters())
-                i++
-            }
-        })
-    }
-    
-        if (this.isOffer) {
-            logger.info('Trying to generate offer')
-            const offer = await this.instance.createOffer({ voiceActivityDetection: false })
-            await this._setLocalDescription(offer)
-            return
-        }
+      if (this.isOffer) {
+          logger.info('Trying to generate offer')
+          const offer = await this.instance.createOffer({ voiceActivityDetection: false })
+          await this._setLocalDescription(offer)
+          logger.info('LOCAL SDP 2 \n', `Type: ${this.instance.localDescription.type}`, '\n\n', this.instance.localDescription.sdp)
+          return
+      }
 
       if (this.isAnswer) {
         logger.info('Trying to generate answer')
         await this._setRemoteDescription({ sdp: this.options.remoteSdp, type: PeerType.Offer })
         const answer = await this.instance.createAnswer({ voiceActivityDetection: false })
         await this._setLocalDescription(answer)
+        logger.info('LOCAL SDP 2 \n', `Type: ${this.instance.localDescription.type}`, '\n\n', this.instance.localDescription.sdp)
         return
       }
     } catch (error) {
@@ -213,6 +153,73 @@ export default class RTCPeer {
       logger.error(`Error handling remote SDP on call ${this.options.id}:`, error)
       this.call.hangup()
     }
+  }
+
+  public _simulcastAddTransceiver() {
+    if (!this.isSimulcast) {
+      return logger.warn('Not a simulcast call')
+    }
+
+    let pc = this.instance
+    console.log("Before addTransceiver")
+    var t = pc.getTransceivers()
+    console.log(t)
+
+    if (t.length > 1) {
+        var sender = t[1].sender
+        var params = sender.getParameters()
+        console.log("Sender parameters")
+        console.log(params)
+    }
+
+    const rids = ['0', '1', '2']
+    let stream = this.options.localStream
+
+    if (stream) {
+
+        // Audio transceiver
+        if (stream.getAudioTracks()[0]) {
+            this.instance.addTransceiver(stream.getAudioTracks()[0], { streams: [stream] })
+        }
+
+        // Video transceiver
+        this.instance.addTransceiver(stream.getVideoTracks()[0], {
+
+            streams: [stream],
+
+            //sendEncodings: rids.map(rid => {rid}),
+            sendEncodings: [
+                {
+                    rid: rids[0],
+                    scaleResolutionDownBy: 1.0
+                },
+                {
+                    rid: rids[1],
+                    scaleResolutionDownBy: 6.0
+                },
+                {
+                    rid: rids[2],
+                    scaleResolutionDownBy: 12.0
+                }
+            ]
+        })
+    }
+
+    console.log("After addTransceiver")
+    t = pc.getTransceivers()
+    console.log(t)
+
+    let i = 0
+    t.forEach( t => {
+        let sender = t.sender
+        if (sender) {
+            console.log("Sender[" + i + "]:")
+            console.log(sender)
+            console.log("Sender[" + i + "] parameters:")
+            console.log(sender.getParameters())
+            i++
+        }
+    })
   }
 
   private async _init() {
@@ -281,25 +288,27 @@ export default class RTCPeer {
       return null
     })
 
-    if (this.isSimulcast) {
+    this._simulcastAddTransceiver()
 
-        let pc = this.instance
-        console.log("Transceivers")
-        var t = pc.getTransceivers()
-        console.log(t)
+    // if (this.isSimulcast) {
 
-        let i = 0
-        t.forEach( t => {
-            let sender = t.sender
-            if (sender) {
-                console.log("Sender[" + i + "]:")
-                console.log(sender)
-                console.log("Sender[" + i + "] parameters:")
-                console.log(sender.getParameters())
-                i++
-            }
-        })
-    }
+    //     let pc = this.instance
+    //     console.log("Transceivers")
+    //     var t = pc.getTransceivers()
+    //     console.log(t)
+
+    //     let i = 0
+    //     t.forEach( t => {
+    //         let sender = t.sender
+    //         if (sender) {
+    //             console.log("Sender[" + i + "]:")
+    //             console.log(sender)
+    //             console.log("Sender[" + i + "] parameters:")
+    //             console.log(sender.getParameters())
+    //             i++
+    //         }
+    //     })
+    // }
 
     const { localElement, localStream = null, screenShare } = this.options
     if (streamIsValid(localStream)) {
@@ -326,7 +335,7 @@ export default class RTCPeer {
       if (screenShare === false) {
         muteMediaElement(localElement)
         attachMediaStream(localElement, localStream)
-      this.startNegotiation()
+        // this.startNegotiation()
       }
     } else if (localStream === null) {
       this.startNegotiation()
@@ -431,8 +440,9 @@ export default class RTCPeer {
         }
     }
 
-    logger.info('>>>> _setLocalDescription', localDescription)
-    logger.info(">>>> sdp: ", localDescription.sdp)
+    // logger.info('>>>> _setLocalDescription', localDescription)
+    // logger.info(">>>> sdp: ", localDescription.sdp)
+    logger.info('LOCAL SDP \n', `Type: ${localDescription.type}`, '\n\n', localDescription.sdp)
     return this.instance.setLocalDescription(localDescription)
   }
 

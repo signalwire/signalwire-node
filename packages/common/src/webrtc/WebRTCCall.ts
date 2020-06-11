@@ -196,6 +196,7 @@ export default abstract class WebRTCCall {
         if (sender) {
           console.debug('updateDevices FOUND - replaceTrack on it and on localStream')
           await sender.replaceTrack(newTrack)
+          this.options.localStream.addTrack(newTrack)
           console.debug('updateDevices replaceTrack SUCCESS')
           this.options.localStream.getTracks().forEach(track => {
             if (track.kind === newTrack.kind && track.id !== newTrack.id) {
@@ -203,7 +204,6 @@ export default abstract class WebRTCCall {
               track.stop()
               track.dispatchEvent(new Event('ended'))
               this.options.localStream.removeTrack(track)
-              this.options.localStream.addTrack(newTrack)
             }
           })
         } else {

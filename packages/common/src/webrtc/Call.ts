@@ -66,10 +66,7 @@ export default class Call extends WebRTCCall {
   setAudioOutDevice(deviceId: string): Promise<boolean> {
     this.options.speakerId = deviceId
     const { remoteElement, speakerId } = this.options
-    if (remoteElement && speakerId) {
-      return setMediaElementSinkId(remoteElement, speakerId)
-    }
-    return Promise.resolve(false)
+    return setMediaElementSinkId(remoteElement, speakerId)
   }
 
   protected _finalize() {

@@ -393,9 +393,7 @@ export default abstract class WebRTCCall {
       case State.Active: {
         setTimeout(() => {
           const { remoteElement, speakerId } = this.options
-          if (remoteElement && speakerId) {
-            setMediaElementSinkId(remoteElement, speakerId)
-          }
+          setMediaElementSinkId(remoteElement, speakerId)
         }, 0)
         break
       }

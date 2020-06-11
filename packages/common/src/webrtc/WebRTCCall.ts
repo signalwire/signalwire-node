@@ -510,10 +510,11 @@ export default abstract class WebRTCCall {
           return logger.warn('>>>> This leg alreay sent a reinvite??')
         }
         logger.warn('DOING REINVITE??')
-        // TODO: force peer.type to an Answer
+        // TODO: force peer.type to be an Answer
         this.peer.type = PeerType.Answer
         this.options.remoteSdp = params.sdp
-        this.peer._simulcastAddTransceiver()
+        // await this.peer.onRemoteSdp(params.sdp)
+        // this.peer._simulcastAddTransceiver()
         await this.peer.startNegotiation()
         logger.warn('>>> DID REINVITE??')
         // const stream = await getUserMedia({ video: true })

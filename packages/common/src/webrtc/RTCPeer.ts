@@ -187,9 +187,9 @@ export default class RTCPeer {
     logger.info(`>> Params Sender:`, '\n', params)
     // @ts-ignore
     params.encodings  = [
-      { rid: rids[0], active: true },
-      { rid: rids[1], active: true },
-      { rid: rids[2], active: true },
+      { rid: rids[0], active: true, scaleResolutionDownBy: 1.0 },
+      { rid: rids[1], active: true, scaleResolutionDownBy: 6.0 },
+      { rid: rids[2], active: true, scaleResolutionDownBy: 12.0 },
     ]
     logger.info(`>> Munge Sender With:`, '\n', params)
     // @ts-ignore

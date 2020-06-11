@@ -114,6 +114,11 @@ export default class RTCPeer {
     return this.instance.getSenders().find(({ track }) => (track && track.kind === kind))
   }
 
+  private _logMSSenderParams(index: string) {
+    const transceiver = this.instance.getTransceivers().find(tr => tr.mid === '1')
+    console.debug('Sender Params', index, '\n', JSON.stringify(transceiver.sender.getParameters(), null, 2), '\n')
+  }
+
   async startNegotiation() {
     if (this._negotiating) {
       return logger.warn('Skip twice onnegotiationneeded!')
@@ -135,14 +140,16 @@ export default class RTCPeer {
 
       if (this.isAnswer) {
         logger.info('Trying to generate answer')
+        this._logMSSenderParams('1')
         await this._setRemoteDescription({ sdp: this.options.remoteSdp, type: PeerType.Offer })
-
-        this._setVideoSenderEncodings()
         this._logTransceivers()
-        // return
-
+        this._logMSSenderParams('2')
+        this._setVideoSenderEncodings()
+        this._logMSSenderParams('3')
         const answer = await this.instance.createAnswer({ voiceActivityDetection: false })
+        this._logMSSenderParams('4')
         await this._setLocalDescription(answer)
+        this._logMSSenderParams('5')
         logger.info('LOCAL SDP 2 \n', `Type: ${this.instance.localDescription.type}`, '\n\n', this.instance.localDescription.sdp)
         return
       }
@@ -170,13 +177,14 @@ export default class RTCPeer {
     })
   }
 
-  private _setVideoSenderEncodings() {
+  private async _setVideoSenderEncodings() {
     const sender = this._getSenderByKind('video')
     if (!sender) {
       return logger.info('No video sender..')
     }
     const rids = ['0', '1', '2']
     const params = sender.getParameters();
+    logger.info(`>> Params Sender:`, '\n', params)
     // @ts-ignore
     params.encodings  = [
       { rid: rids[0], active: true },
@@ -185,12 +193,12 @@ export default class RTCPeer {
     ]
     logger.info(`>> Munge Sender With:`, '\n', params)
     // @ts-ignore
-    sender.setParameters(params);
+    await sender.setParameters(params);
 
     logger.info(`>> Munge Video Sender:`, '\n', sender, sender.getParameters())
   }
 
-  public _simulcastAddTransceiver() {
+  private _simulcastAddTransceiver() {
     if (!this.isSimulcast) {
       return logger.warn('Not a simulcast call')
     }
@@ -391,11 +399,11 @@ export default class RTCPeer {
     if (streamIsValid(localStream)) {
       if (typeof this.instance.addTrack === 'function') {
 
-        if (this.isSimulcast) {
+        // if (this.isSimulcast) {
 
-          this._simulcastAddTransceiver()
+        //   this._simulcastAddTransceiver()
 
-        } else {
+        // } else {
 
           const audioTracks = localStream.getAudioTracks()
           logger.info('Local audio tracks: ', audioTracks)
@@ -404,7 +412,7 @@ export default class RTCPeer {
           const videoTracks = localStream.getVideoTracks()
           logger.info('Local video tracks: ', videoTracks)
           videoTracks.forEach(t => this.instance.addTrack(t, localStream))
-        }
+        // }
 
 
       } else {

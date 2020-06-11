@@ -143,13 +143,13 @@ export default class RTCPeer {
         this._logMSSenderParams('1')
         await this._setRemoteDescription({ sdp: this.options.remoteSdp, type: PeerType.Offer })
         this._logTransceivers()
-        this._logMSSenderParams('2')
-        this._setVideoSenderEncodings()
-        this._logMSSenderParams('3')
+        // this._logMSSenderParams('2')
+        // await this._setVideoSenderEncodings()
+        // this._logMSSenderParams('3')
         const answer = await this.instance.createAnswer({ voiceActivityDetection: false })
-        this._logMSSenderParams('4')
+        // this._logMSSenderParams('4')
         await this._setLocalDescription(answer)
-        this._logMSSenderParams('5')
+        // this._logMSSenderParams('5')
         logger.info('LOCAL SDP 2 \n', `Type: ${this.instance.localDescription.type}`, '\n\n', this.instance.localDescription.sdp)
         return
       }
@@ -171,29 +171,69 @@ export default class RTCPeer {
   private _logTransceivers() {
     logger.info('Number of transceivers:', this.instance.getTransceivers().length)
     this.instance.getTransceivers().forEach((tr, index) => {
-      logger.info(`>> Transceiver ${index}:`, tr.mid, tr.direction, tr.stopped)
+      logger.info(`>> Transceiver [${index}]:`, tr.mid, tr.direction, tr.stopped)
       // logger.info(`>> Sender ${index}:`, 'Send:', tr.sender.track.kind, 'Recv:', tr.receiver.track.kind)
-      logger.info(`>> Sender Params ${index}:`, '\n', tr.sender.getParameters())
+      logger.info(`>> Sender Params [${index}]:`, JSON.stringify(tr.sender.getParameters(), null, 2))
     })
   }
 
   private async _setVideoSenderEncodings() {
-    const sender = this._getSenderByKind('video')
+    const rids = ['0', '1', '2']
+    // const videoTrack = this.options.localStream.getVideoTracks()[0]
+    // const newTr = this.instance.addTransceiver(videoTrack, {
+    //   direction: 'sendrecv',
+    //   streams: [ this.options.localStream ],
+    //   sendEncodings: [
+    //     {
+    //       rid: rids[0],
+    //       active: true,
+    //       scaleResolutionDownBy: 1.0,
+    //     },
+    //     {
+    //       rid: rids[1],
+    //       active: true,
+    //       // scaleResolutionDownBy: 2,
+    //       scaleResolutionDownBy: 6.0,
+    //     },
+    //     {
+    //       rid: rids[2],
+    //       active: true,
+    //       // scaleResolutionDownBy: 4,
+    //       scaleResolutionDownBy: 12.0,
+    //     }
+    //   ]
+    // })
+    // console.debug('New Sender Params', JSON.stringify(newTr.sender.getParameters(), null, 2), '\n')
+
+    const tr = this.instance.getTransceivers().find(t => t.mid === '1')
+    logger.info(`>> Got Transceiver:`, tr)
+    // logger.info(`>> Got transceiver:`, tr)
+    // logger.info(`>> Got sender:`, tr.sender)
+    // console.debug('Sender Params', JSON.stringify(tr.sender.getParameters(), null, 2), '\n')
+
+
+    // const sender = this._getSenderByKind('video')
+    const sender = tr.sender
     if (!sender) {
       return logger.info('No video sender..')
     }
-    const rids = ['0', '1', '2']
+    // const rids = ['0', '1', '2']
     const params = sender.getParameters();
     logger.info(`>> Params Sender:`, '\n', params)
     // @ts-ignore
-    params.encodings  = [
-      { rid: rids[0], active: true },
-      { rid: rids[1], active: true },
-      { rid: rids[2], active: true },
-    ]
-    logger.info(`>> Munge Sender With:`, '\n', params)
+    params.encodings.push({ rid: rids[0], active: true, scaleResolutionDownBy: 1 })
     // @ts-ignore
-    await sender.setParameters(params);
+    params.encodings.push({ rid: rids[1], active: true, scaleResolutionDownBy: 6.0 })
+    // @ts-ignore
+    params.encodings.push({ rid: rids[2], active: true, scaleResolutionDownBy: 12.0 })
+    // logger.info(`>> Munge Sender With:`, '\n', params)
+
+    try {
+      // @ts-ignore
+      await sender.setParameters(params);
+    } catch (error) {
+      logger.error(`>> setParameters Error:`, error)
+    }
 
     logger.info(`>> Munge Video Sender:`, '\n', sender, sender.getParameters())
   }
@@ -399,11 +439,11 @@ export default class RTCPeer {
     if (streamIsValid(localStream)) {
       if (typeof this.instance.addTrack === 'function') {
 
-        // if (this.isSimulcast) {
+        if (this.isSimulcast) {
 
-        //   this._simulcastAddTransceiver()
+          this._simulcastAddTransceiver()
 
-        // } else {
+        } else {
 
           const audioTracks = localStream.getAudioTracks()
           logger.info('Local audio tracks: ', audioTracks)
@@ -412,7 +452,7 @@ export default class RTCPeer {
           const videoTracks = localStream.getVideoTracks()
           logger.info('Local video tracks: ', videoTracks)
           videoTracks.forEach(t => this.instance.addTrack(t, localStream))
-        // }
+        }
 
 
       } else {

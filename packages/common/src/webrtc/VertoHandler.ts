@@ -152,6 +152,8 @@ export default (session: BrowserSession, msg: any) => {
       params.type = Notification.Announce
       return trigger(SwEvent.Notification, params, session.uuid)
     default:
-      logger.warn('Unknown Verto method:', method, params)
+      logger.debug('Unknown Verto method:', method, params)
+      params.type = method
+      return trigger(SwEvent.Notification, params, session.uuid)
   }
 }

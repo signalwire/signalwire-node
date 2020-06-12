@@ -11,10 +11,70 @@ import { findElementByType } from '../util/helpers'
 
 logger.enableAll()
 
+function simulcast_create_local_sdp_from_answer(sdp, init_local_sdp)
+{
+    console.log("simulcast_create_local_sdp_from_answer: Processing sdp");
+    console.log(sdp);
+
+    var lines = sdp.split("\n");
+    var lines_length = lines.length;
+    var first_video_line = -1;
+
+    for (var i = 0; i < lines_length; i++) {
+
+        if (lines[i].indexOf("a=simulcast") === 0) {
+
+            if (first_video_line === -1) {
+
+                first_video_line = i + 1;
+                console.log("simulcast_create_local_sdp_from_answer: Found first remote video line at " + first_video_line);
+                break;
+            }
+        }
+    }
+
+    if (first_video_line === -1) return sdp;
+
+    // Prepare SDP
+
+    for (var i = first_video_line; i < lines.length; i++) {
+
+        if (lines[i].indexOf("a=candidate") === 0) {
+
+            console.log("simulcast_create_local_sdp_from_answer: Remove a=candidate at " + i);
+            lines.splice(i, 1);
+            --i;
+        }
+    }
+
+    // horrible hack to transplant audio m line from proper sdp, to temporary substitute sdp.
+    // We should be able to munge the sdp we were given to be proper but for now we are reusing the one we munged on the offer instead.
+    var x = sdp.match(/(m=audio.*?)m=/s);
+    var y = init_local_sdp.match(/(m=audio.*?)m=/s);
+    init_local_sdp = init_local_sdp.replace(y[0], x[0]);
+
+    var newLines = init_local_sdp.split("\n");
+    newLines = newLines.slice(0, newLines.length - 1);
+    newLines = newLines.concat(lines.slice(first_video_line, lines_length));
+
+    for (var i = 0; i < newLines.length; i++) {
+
+        if (newLines[i].indexOf("a=setup:actpass") === 0) {
+
+            console.log("simulcast_create_local_sdp_from_answer: Replace a=setup:actpass at " + i);
+            newLines[i] = "a=setup:passive";
+        }
+    }
+
+    return newLines.join("\n");
+}
+
 export default class RTCPeer {
   public instance: RTCPeerConnection
   private _iceTimeout = null
   private _negotiating = false
+  private _initial_simulcast_local_sdp = null
+  private _initial_simulcast_local_sdp_fake_with_ice = null
 
   constructor(
     public call: WebRTCCall,
@@ -133,7 +193,17 @@ export default class RTCPeer {
       if (this.isOffer) {
         logger.info('Trying to generate offer')
         const offer = await this.instance.createOffer({ voiceActivityDetection: false })
-        await this._setLocalDescription(offer)
+        await this._setLocalDescription(offer).then(
+        
+            /**
+                () => {
+                logger.info("SETTING INITIAL SDP OFFER TO")
+                logger.info(offer)
+                this._initial_simulcast_local_sdp = offer
+            }
+            **/
+
+            )
         logger.info('LOCAL SDP 2 \n', `Type: ${this.instance.localDescription.type}`, '\n\n', this.instance.localDescription.sdp)
         return
       }
@@ -473,6 +543,14 @@ export default class RTCPeer {
     clearTimeout(this._iceTimeout)
     const { sdp, type } = this.instance.localDescription
     logger.info('LOCAL SDP WITH ICE \n', `Type: ${type}`, '\n\n', sdp)
+
+/**
+    if (this._initial_simulcast_local_sdp_fake_with_ice) {
+        logger.info("Cheating again")
+        this.instance.localDescription.sdp = this._initial_simulcast_local_sdp_fake_with_ice
+        }
+**/
+
     if (sdp.indexOf('candidate') === -1) {
       this.startNegotiation()
       return
@@ -481,6 +559,11 @@ export default class RTCPeer {
     if (this.isSimulcast) {
         //this._forceSimulcast()
         // SIMULCAST Skip forcing
+        if (this._initial_simulcast_local_sdp === null) {
+            logger.info("SETTING INITIAL SDP OFFER TO")
+            logger.info(sdp)
+            this._initial_simulcast_local_sdp = sdp
+        }
     }
 
     this.instance.removeEventListener('icecandidate', this._onIce)
@@ -570,6 +653,16 @@ export default class RTCPeer {
     // logger.info('>>>> _setLocalDescription', localDescription)
     // logger.info(">>>> sdp: ", localDescription.sdp)
     logger.info('LOCAL SDP \n', `Type: ${localDescription.type}`, '\n\n', localDescription.sdp)
+
+    if (localDescription.type === PeerType.Answer) {
+
+        logger.info("Nah, nah, today we create Fake Local SDP from original Local SDP")
+        localDescription.sdp = simulcast_create_local_sdp_from_answer(localDescription.sdp, this._initial_simulcast_local_sdp)
+        logger.info("And we set local description with this:")
+        logger.error(localDescription.sdp)
+        this._initial_simulcast_local_sdp_fake_with_ice = localDescription.sdp
+    }
+
     return this.instance.setLocalDescription(localDescription)
   }
 

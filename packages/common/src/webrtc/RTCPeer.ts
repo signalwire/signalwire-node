@@ -176,7 +176,9 @@ export default class RTCPeer {
 
   private _logMSSenderParams(index: string) {
     const transceiver = this.instance.getTransceivers().find(tr => tr.mid === '1')
-    console.debug('Sender Params', index, '\n', JSON.stringify(transceiver.sender.getParameters(), null, 2), '\n')
+    if (transceiver && transceiver.sender) {
+        console.debug('Sender Params', index, '\n', JSON.stringify(transceiver.sender.getParameters(), null, 2), '\n')
+    }
   }
 
   async startNegotiation() {
@@ -322,10 +324,10 @@ export default class RTCPeer {
         this.instance.addTrack(track, localStream)
 
       } else if (track.kind === 'video') {
-
-        logger.info('Add Video Transceivers!')
+      
+        logger.info('Add sendonly Video Transceiver!')
         this.instance.addTransceiver(track, {
-          direction: 'sendrecv',
+          direction: 'sendonly',
           streams: [
             localStream
           ],
@@ -348,7 +350,39 @@ export default class RTCPeer {
               scaleResolutionDownBy: 12.0,
             }
           ]
-        })
+          })
+
+        let i = 0
+
+          while (i < 5) {
+            logger.info('Add recvonly Video Transceiver!')
+            this.instance.addTransceiver(track, {
+              direction: 'recvonly',
+              streams: [
+                localStream
+              ],
+              sendEncodings: [
+                {
+                  rid: rids[0],
+                  active: true,
+                  // scaleResolutionDownBy: 1.0,
+                },
+                {
+                  rid: rids[1],
+                  active: true,
+                  // scaleResolutionDownBy: 2,
+                  scaleResolutionDownBy: 6.0,
+                },
+                {
+                  rid: rids[2],
+                  active: true,
+                  // scaleResolutionDownBy: 4,
+                  scaleResolutionDownBy: 12.0,
+                }
+              ]
+            })
+            ++i
+        }
 
       }
     })

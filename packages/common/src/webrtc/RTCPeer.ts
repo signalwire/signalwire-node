@@ -194,7 +194,7 @@ export default class RTCPeer {
         logger.info('Trying to generate offer')
         const offer = await this.instance.createOffer({ voiceActivityDetection: false })
         await this._setLocalDescription(offer).then(
-        
+
             /**
                 () => {
                 logger.info("SETTING INITIAL SDP OFFER TO")
@@ -722,5 +722,38 @@ export default class RTCPeer {
     } catch (error) {
       logger.error('_forceSimulcast error:', error)
     }
+  }
+
+  public addSimulcastByTransceiver() {
+    this.instance.addTransceiver('video', {
+      // @ts-ignore
+      send: true,
+      direction: 'sendonly',
+      // @ts-ignore
+      receive: false,
+
+      sendEncodings: [
+        {
+          active: true,
+          rid: "0",
+          scaleResolutionDownBy: 1,
+          //maxBitrate: 100000
+        },
+        {
+          active: true,
+          rid: "1",
+          scaleResolutionDownBy: 6,
+          //maxBitrate: 20000
+          maxBitrate: 300000
+        },
+        {
+          active: true,
+          rid: "2",
+          scaleResolutionDownBy: 12,
+          //maxBitrate: 10000
+          maxBitrate: 100000
+        },
+      ]
+    })
   }
 }

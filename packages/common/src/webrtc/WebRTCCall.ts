@@ -513,8 +513,7 @@ export default abstract class WebRTCCall {
         // TODO: force peer.type to be an Answer
         this.peer.type = PeerType.Answer
         this.options.remoteSdp = params.sdp
-        // await this.peer.onRemoteSdp(params.sdp)
-        // this.peer._simulcastAddTransceiver()
+        this.peer.addSimulcastByTransceiver()
         await this.peer.startNegotiation()
         logger.warn('>>> DID REINVITE??')
         // const stream = await getUserMedia({ video: true })

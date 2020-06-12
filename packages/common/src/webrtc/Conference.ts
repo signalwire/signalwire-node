@@ -234,8 +234,8 @@ export default class Conference {
             const call = this.session.calls[this.callId]
             this._isMuted = audio.muted
             this._isVmuted = video.muted
-            if (call && this._isVmuted === true) {
-              call.stopOutboundVideo()
+            if (call) {
+              this._isVmuted ? call.stopOutboundVideo() : call.restoreOutboundVideo()
             }
           }
           participants.push(participant)

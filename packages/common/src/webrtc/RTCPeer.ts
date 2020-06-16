@@ -9,65 +9,65 @@ import { trigger } from '../services/Handler'
 import { Invite, Attach, Answer, Modify } from '../messages/Verto'
 import { findElementByType } from '../util/helpers'
 
-logger.enableAll()
+// logger.enableAll()
 
-function simulcast_create_local_sdp_from_answer(sdp, init_local_sdp)
-{
-    console.log("simulcast_create_local_sdp_from_answer: Processing sdp");
-    console.log(sdp);
+// function simulcast_create_local_sdp_from_answer(sdp, init_local_sdp)
+// {
+//     console.log("simulcast_create_local_sdp_from_answer: Processing sdp");
+//     console.log(sdp);
 
-    var lines = sdp.split("\n");
-    var lines_length = lines.length;
-    var first_video_line = -1;
+//     var lines = sdp.split("\n");
+//     var lines_length = lines.length;
+//     var first_video_line = -1;
 
-    for (var i = 0; i < lines_length; i++) {
+//     for (var i = 0; i < lines_length; i++) {
 
-        if (lines[i].indexOf("a=simulcast") === 0) {
+//         if (lines[i].indexOf("a=simulcast") === 0) {
 
-            if (first_video_line === -1) {
+//             if (first_video_line === -1) {
 
-                first_video_line = i + 1;
-                console.log("simulcast_create_local_sdp_from_answer: Found first remote video line at " + first_video_line);
-                break;
-            }
-        }
-    }
+//                 first_video_line = i + 1;
+//                 console.log("simulcast_create_local_sdp_from_answer: Found first remote video line at " + first_video_line);
+//                 break;
+//             }
+//         }
+//     }
 
-    if (first_video_line === -1) return sdp;
+//     if (first_video_line === -1) return sdp;
 
-    // Prepare SDP
+//     // Prepare SDP
 
-    for (var i = first_video_line; i < lines.length; i++) {
+//     for (var i = first_video_line; i < lines.length; i++) {
 
-        if (lines[i].indexOf("a=candidate") === 0) {
+//         if (lines[i].indexOf("a=candidate") === 0) {
 
-            console.log("simulcast_create_local_sdp_from_answer: Remove a=candidate at " + i);
-            lines.splice(i, 1);
-            --i;
-        }
-    }
+//             console.log("simulcast_create_local_sdp_from_answer: Remove a=candidate at " + i);
+//             lines.splice(i, 1);
+//             --i;
+//         }
+//     }
 
-    // horrible hack to transplant audio m line from proper sdp, to temporary substitute sdp.
-    // We should be able to munge the sdp we were given to be proper but for now we are reusing the one we munged on the offer instead.
-    var x = sdp.match(/(m=audio.*?)m=/s);
-    var y = init_local_sdp.match(/(m=audio.*?)m=/s);
-    init_local_sdp = init_local_sdp.replace(y[0], x[0]);
+//     // horrible hack to transplant audio m line from proper sdp, to temporary substitute sdp.
+//     // We should be able to munge the sdp we were given to be proper but for now we are reusing the one we munged on the offer instead.
+//     var x = sdp.match(/(m=audio.*?)m=/s);
+//     var y = init_local_sdp.match(/(m=audio.*?)m=/s);
+//     init_local_sdp = init_local_sdp.replace(y[0], x[0]);
 
-    var newLines = init_local_sdp.split("\n");
-    newLines = newLines.slice(0, newLines.length - 1);
-    newLines = newLines.concat(lines.slice(first_video_line, lines_length));
+//     var newLines = init_local_sdp.split("\n");
+//     newLines = newLines.slice(0, newLines.length - 1);
+//     newLines = newLines.concat(lines.slice(first_video_line, lines_length));
 
-    for (var i = 0; i < newLines.length; i++) {
+//     for (var i = 0; i < newLines.length; i++) {
 
-        if (newLines[i].indexOf("a=setup:actpass") === 0) {
+//         if (newLines[i].indexOf("a=setup:actpass") === 0) {
 
-            console.log("simulcast_create_local_sdp_from_answer: Replace a=setup:actpass at " + i);
-            newLines[i] = "a=setup:passive";
-        }
-    }
+//             console.log("simulcast_create_local_sdp_from_answer: Replace a=setup:actpass at " + i);
+//             newLines[i] = "a=setup:passive";
+//         }
+//     }
 
-    return newLines.join("\n");
-}
+//     return newLines.join("\n");
+// }
 
 export default class RTCPeer {
   public instance: RTCPeerConnection
@@ -190,22 +190,10 @@ export default class RTCPeer {
       this.instance.removeEventListener('icecandidate', this._onIce)
       this.instance.addEventListener('icecandidate', this._onIce)
 
-      // this._simulcastAddTransceiver()
-
       if (this.isOffer) {
         logger.info('Trying to generate offer')
         const offer = await this.instance.createOffer({ voiceActivityDetection: false })
-        await this._setLocalDescription(offer).then(
-
-            /**
-                () => {
-                logger.info("SETTING INITIAL SDP OFFER TO")
-                logger.info(offer)
-                this._initial_simulcast_local_sdp = offer
-            }
-            **/
-
-            )
+        await this._setLocalDescription(offer)
         logger.info('LOCAL SDP 2 \n', `Type: ${this.instance.localDescription.type}`, '\n\n', this.instance.localDescription.sdp)
         return
       }
@@ -215,13 +203,8 @@ export default class RTCPeer {
         this._logMSSenderParams('1')
         await this._setRemoteDescription({ sdp: this.options.remoteSdp, type: PeerType.Offer })
         this._logTransceivers()
-        // this._logMSSenderParams('2')
-        // await this._setVideoSenderEncodings()
-        // this._logMSSenderParams('3')
         const answer = await this.instance.createAnswer({ voiceActivityDetection: false })
-        // this._logMSSenderParams('4')
         await this._setLocalDescription(answer)
-        // this._logMSSenderParams('5')
         logger.info('LOCAL SDP 2 \n', `Type: ${this.instance.localDescription.type}`, '\n\n', this.instance.localDescription.sdp)
         return
       }
@@ -244,213 +227,8 @@ export default class RTCPeer {
     logger.info('Number of transceivers:', this.instance.getTransceivers().length)
     this.instance.getTransceivers().forEach((tr, index) => {
       logger.info(`>> Transceiver [${index}]:`, tr.mid, tr.direction, tr.stopped)
-      // logger.info(`>> Sender ${index}:`, 'Send:', tr.sender.track.kind, 'Recv:', tr.receiver.track.kind)
       logger.info(`>> Sender Params [${index}]:`, JSON.stringify(tr.sender.getParameters(), null, 2))
     })
-  }
-
-  private async _setVideoSenderEncodings() {
-    const rids = ['0', '1', '2']
-    // const videoTrack = this.options.localStream.getVideoTracks()[0]
-    // const newTr = this.instance.addTransceiver(videoTrack, {
-    //   direction: 'sendrecv',
-    //   streams: [ this.options.localStream ],
-    //   sendEncodings: [
-    //     {
-    //       rid: rids[0],
-    //       active: true,
-    //       scaleResolutionDownBy: 1.0,
-    //     },
-    //     {
-    //       rid: rids[1],
-    //       active: true,
-    //       // scaleResolutionDownBy: 2,
-    //       scaleResolutionDownBy: 6.0,
-    //     },
-    //     {
-    //       rid: rids[2],
-    //       active: true,
-    //       // scaleResolutionDownBy: 4,
-    //       scaleResolutionDownBy: 12.0,
-    //     }
-    //   ]
-    // })
-    // console.debug('New Sender Params', JSON.stringify(newTr.sender.getParameters(), null, 2), '\n')
-
-    const tr = this.instance.getTransceivers().find(t => t.mid === '1')
-    logger.info(`>> Got Transceiver:`, tr)
-    // logger.info(`>> Got transceiver:`, tr)
-    // logger.info(`>> Got sender:`, tr.sender)
-    // console.debug('Sender Params', JSON.stringify(tr.sender.getParameters(), null, 2), '\n')
-
-
-    // const sender = this._getSenderByKind('video')
-    const sender = tr.sender
-    if (!sender) {
-      return logger.info('No video sender..')
-    }
-    // const rids = ['0', '1', '2']
-    const params = sender.getParameters();
-    logger.info(`>> Params Sender:`, '\n', params)
-    // @ts-ignore
-    params.encodings.push({ rid: rids[0], active: true, scaleResolutionDownBy: 1 })
-    // @ts-ignore
-    params.encodings.push({ rid: rids[1], active: true, scaleResolutionDownBy: 6.0 })
-    // @ts-ignore
-    params.encodings.push({ rid: rids[2], active: true, scaleResolutionDownBy: 12.0 })
-    // logger.info(`>> Munge Sender With:`, '\n', params)
-
-    try {
-      // @ts-ignore
-      await sender.setParameters(params);
-    } catch (error) {
-      logger.error(`>> setParameters Error:`, error)
-    }
-
-    logger.info(`>> Munge Video Sender:`, '\n', sender, sender.getParameters())
-  }
-
-  private _simulcastAddTransceiver() {
-    if (!this.isSimulcast) {
-      return logger.warn('Not a simulcast call')
-    }
-
-    const rids = ['0', '1', '2']
-    const { localStream } = this.options
-    localStream.getTracks().forEach(track => {
-      if (track.kind === 'audio') {
-
-        logger.info('Add Audio Track')
-        this.instance.addTrack(track, localStream)
-
-      } else if (track.kind === 'video') {
-      
-        logger.info('Add sendonly Video Transceiver!')
-        this.instance.addTransceiver(track, {
-          direction: 'sendonly',
-          streams: [
-            localStream
-          ],
-          sendEncodings: [
-            {
-              rid: rids[0],
-              active: true,
-              // scaleResolutionDownBy: 1.0,
-            },
-            {
-              rid: rids[1],
-              active: true,
-              // scaleResolutionDownBy: 2,
-              scaleResolutionDownBy: 6.0,
-            },
-            {
-              rid: rids[2],
-              active: true,
-              // scaleResolutionDownBy: 4,
-              scaleResolutionDownBy: 12.0,
-            }
-          ]
-          })
-
-        let i = 0
-
-          while (i < 5) {
-            logger.info('Add recvonly Video Transceiver!')
-            this.instance.addTransceiver(track, {
-              direction: 'recvonly',
-              streams: [
-                localStream
-              ],
-              sendEncodings: [
-                {
-                  rid: rids[0],
-                  active: true,
-                  // scaleResolutionDownBy: 1.0,
-                },
-                {
-                  rid: rids[1],
-                  active: true,
-                  // scaleResolutionDownBy: 2,
-                  scaleResolutionDownBy: 6.0,
-                },
-                {
-                  rid: rids[2],
-                  active: true,
-                  // scaleResolutionDownBy: 4,
-                  scaleResolutionDownBy: 12.0,
-                }
-              ]
-            })
-            ++i
-        }
-
-      }
-    })
-
-    this._logTransceivers()
-
-
-    // let stream = this.options.localStream
-
-    // if (stream) {
-
-    //         let t = this.instance.getTransceivers()
-
-    //         if (t.length == 0) {
-
-    //             console.log("ADDING TRANSCEIVERS")
-
-    //             // Audio transceiver
-    //             if (stream.getAudioTracks()[0]) {
-
-    //                 console.log("ADDING AUDIO TRANSCEIVER")
-    //                 this.instance.addTransceiver(stream.getAudioTracks()[0], { streams: [stream] })
-    //             }
-
-    //             console.log("ADDING VIDEO TRANSCEIVER")
-
-    //             // Video transceiver
-    //             this.instance.addTransceiver(stream.getVideoTracks()[0], {
-
-    //                 streams: [stream],
-
-    //                 //sendEncodings: rids.map(rid => {rid}),
-    //                 sendEncodings: [
-    //                     {
-    //                         rid: rids[0],
-    //                         scaleResolutionDownBy: 1.0
-    //                     },
-    //                     {
-    //                         rid: rids[1],
-    //                         scaleResolutionDownBy: 6.0
-    //                     },
-    //                     {
-    //                         rid: rids[2],
-    //                         scaleResolutionDownBy: 12.0
-    //                     }
-    //                 ]
-    //             })
-    //         } else {
-    //             // There are some transceivers
-    //             console.log("SKIP ADDING TRANSCEIVERS")
-    //         }
-    //     }
-
-    // console.log("After addTransceiver")
-    // t = pc.getTransceivers()
-    // console.log(t)
-
-    // let i = 0
-    // t.forEach( t => {
-    //     let sender = t.sender
-    //     if (sender) {
-    //         console.log("Sender[" + i + "]:")
-    //         console.log(sender)
-    //         console.log("Sender[" + i + "] parameters:")
-    //         console.log(sender.getParameters())
-    //         i++
-    //     }
-    // })
   }
 
   private async _init() {
@@ -480,31 +258,13 @@ export default class RTCPeer {
     }
 
     this.instance.addEventListener('track', (event: RTCTrackEvent) => {
-      // This check is valid for simulcast calls AND the legs attached from FS (with verto.attach)
       if (this.isSimulcast) {
-        // logger.debug('++++++ ontrack event ++++++')
-        // logger.debug('Track:', event.track.id, event.track)
-        // logger.debug('Stream:', event.streams[0].id, event.streams[0])
         const notification = { type: 'trackAdd', event }
         this.call._dispatchNotification(notification)
-        // logger.debug('++++++ ontrack event ends ++++++')
       }
       this.options.remoteStream = event.streams[0]
       const { remoteStream, screenShare } = this.options
       let remoteElement = this.options.remoteElement
-
-      /**
-      // Alternative version
-      if (this.isSimulcast) {
-        logger.debug('++++++ ontrack alt event ++++++')
-        logger.debug('Track:', event.track.id, event.track)
-        logger.debug('Stream:', event.streams[0].id, event.streams[0])
-        const notification = { type: 'alternativeTrackAdd', event }
-        this.call._dispatchNotification(notification)
-        logger.debug('++++++ ontrack alt event ends ++++++')
-      }
-      **/
-
       if (screenShare === false) {
         attachMediaStream(remoteElement, remoteStream)
       }
@@ -519,55 +279,78 @@ export default class RTCPeer {
       return null
     })
 
-    // if (this.isSimulcast) {
-
-    //     let pc = this.instance
-    //     console.log("Transceivers")
-    //     var t = pc.getTransceivers()
-    //     console.log(t)
-
-    //     let i = 0
-    //     t.forEach( t => {
-    //         let sender = t.sender
-    //         if (sender) {
-    //             console.log("Sender[" + i + "]:")
-    //             console.log(sender)
-    //             console.log("Sender[" + i + "] parameters:")
-    //             console.log(sender.getParameters())
-    //             i++
-    //         }
-    //     })
-    // }
-
     const { localElement, localStream = null, screenShare } = this.options
     if (streamIsValid(localStream)) {
-      if (typeof this.instance.addTrack === 'function') {
+      const audioTracks = localStream.getAudioTracks()
+      logger.info('Local audio tracks: ', audioTracks)
+      const videoTracks = localStream.getVideoTracks()
+      logger.info('Local video tracks: ', videoTracks)
+
+      if (typeof this.instance.addTransceiver === 'function') {
+        // Use addTransceiver
+
+        audioTracks.forEach(track => {
+          this.instance.addTransceiver(track, {
+            direction: 'sendrecv',
+            streams: [ localStream ]
+          })
+        })
+
+        const transceiverParams: RTCRtpTransceiverInit = {
+          direction: 'sendonly',
+          streams: [ localStream ]
+        }
+        const rids = ['0', '1', '2']
+        if (this.isSimulcast) {
+          transceiverParams.sendEncodings = rids.map(rid => ({
+            active: true,
+            rid: rid,
+            scaleResolutionDownBy: (Number(rid) * 6 || 1.0),
+          }))
+        }
+        console.debug('Applying video transceiverParams', transceiverParams)
+        videoTracks.forEach(track => {
+          this.instance.addTransceiver(track, transceiverParams)
+        })
 
         if (this.isSimulcast) {
-
-          this._simulcastAddTransceiver()
-
-        } else {
-
-          const audioTracks = localStream.getAudioTracks()
-          logger.info('Local audio tracks: ', audioTracks)
-          audioTracks.forEach(t => this.instance.addTrack(t, localStream))
-
-          const videoTracks = localStream.getVideoTracks()
-          logger.info('Local video tracks: ', videoTracks)
-          videoTracks.forEach(t => this.instance.addTrack(t, localStream))
+          console.debug('Adding recvonly transceivers for video...')
+          for (let i = 0; i < 5; i++) {
+            this.instance.addTransceiver('video', {
+              direction: 'recvonly',
+              streams: [ localStream ],
+              sendEncodings: rids.map(rid => ({
+                active: true,
+                rid: rid,
+                scaleResolutionDownBy: (Number(rid) * 6 || 1.0),
+              }))
+            })
+          }
         }
 
+        this._logTransceivers()
+      } else if (typeof this.instance.addTrack === 'function') {
+        // Use addTrack
+
+        audioTracks.forEach(track => {
+          this.instance.addTrack(track, localStream)
+        })
+
+        videoTracks.forEach(track => {
+          this.instance.addTrack(track, localStream)
+        })
 
       } else {
+        // Fallback to legacy addStream ..
         // @ts-ignore
         this.instance.addStream(localStream)
       }
+
       if (screenShare === false) {
         muteMediaElement(localElement)
         attachMediaStream(localElement, localStream)
-        // this.startNegotiation()
       }
+
     } else if (localStream === null) {
       this.startNegotiation()
     }
@@ -576,7 +359,7 @@ export default class RTCPeer {
   private async _sdpReady() {
     clearTimeout(this._iceTimeout)
     const { sdp, type } = this.instance.localDescription
-    logger.info('LOCAL SDP WITH ICE \n', `Type: ${type}`, '\n\n', sdp)
+    console.debug('LOCAL SDP WITH ICE \n', `Type: ${type}`, '\n\n', sdp)
 
 /**
     if (this._initial_simulcast_local_sdp_fake_with_ice) {
@@ -590,15 +373,15 @@ export default class RTCPeer {
       return
     }
 
-    if (this.isSimulcast) {
-        //this._forceSimulcast()
-        // SIMULCAST Skip forcing
-        if (this._initial_simulcast_local_sdp === null) {
-            logger.info("SETTING INITIAL SDP OFFER TO")
-            logger.info(sdp)
-            this._initial_simulcast_local_sdp = sdp
-        }
-    }
+    // if (this.isSimulcast) {
+    //     //this._forceSimulcast()
+    //     // SIMULCAST Skip forcing
+    //     if (this._initial_simulcast_local_sdp === null) {
+    //         logger.info("SETTING INITIAL SDP OFFER TO")
+    //         logger.info(sdp)
+    //         this._initial_simulcast_local_sdp = sdp
+    //     }
+    // }
 
     this.instance.removeEventListener('icecandidate', this._onIce)
     let msg = null
@@ -688,14 +471,14 @@ export default class RTCPeer {
     // logger.info(">>>> sdp: ", localDescription.sdp)
     logger.info('LOCAL SDP \n', `Type: ${localDescription.type}`, '\n\n', localDescription.sdp)
 
-    if (localDescription.type === PeerType.Answer) {
+    // if (localDescription.type === PeerType.Answer) {
 
-        logger.info("Nah, nah, today we create Fake Local SDP from original Local SDP")
-        localDescription.sdp = simulcast_create_local_sdp_from_answer(localDescription.sdp, this._initial_simulcast_local_sdp)
-        logger.info("And we set local description with this:")
-        logger.error(localDescription.sdp)
-        this._initial_simulcast_local_sdp_fake_with_ice = localDescription.sdp
-    }
+    //     logger.info("Nah, nah, today we create Fake Local SDP from original Local SDP")
+    //     localDescription.sdp = simulcast_create_local_sdp_from_answer(localDescription.sdp, this._initial_simulcast_local_sdp)
+    //     logger.info("And we set local description with this:")
+    //     logger.error(localDescription.sdp)
+    //     this._initial_simulcast_local_sdp_fake_with_ice = localDescription.sdp
+    // }
 
     return this.instance.setLocalDescription(localDescription)
   }
@@ -716,46 +499,6 @@ export default class RTCPeer {
     }
     const constraints = await getMediaConstraints(this.options)
     return getUserMedia(constraints)
-  }
-
-  private async _forceSimulcast() {
-    try {
-      const sender = this._getSenderByKind('video')
-      if (!sender) {
-        logger.debug('Sender video not found!')
-        return
-      }
-      const sendersParams = sender.getParameters()
-      if (!sendersParams) {
-        logger.debug('No sender parameters!')
-        return
-      }
-
-      logger.debug('sendersParams', sendersParams)
-
-      /* OK
-      p.encodings[0].maxBitrate = 5*1000;
-      p.encodings[0].minBitrate = 0;
-      p.encodings[1].maxBitrate = 500*1000;
-      p.encodings[2].maxBitrate = 0; */
-      // debug(p);
-      // p.encodings[0].maxBitrate = 20*1000;
-
-      // @ts-ignore
-      sendersParams.encodings[0].scaleResolutionDownBy = 8
-      // p.encodings[1].maxBitrate = 5*1000;
-      // p.encodings[2].maxBitrate = 275*1000;
-      // p.encodings[0].minBitrate = 1;
-      // p.encodings[1].minBitrate = 1;
-      // p.encodings[2].minBitrate = 1;
-      /* p.encodings[0].targetBitrate = 1000*1000;
-      p.encodings[1].targetBitrate = 1000*1000;
-      p.encodings[2].targetBitrate = 1000*1000; */
-      await sender.setParameters(sendersParams)
-
-    } catch (error) {
-      logger.error('_forceSimulcast error:', error)
-    }
   }
 
   public addSimulcastByTransceiver() {

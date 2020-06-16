@@ -297,7 +297,7 @@ export default class RTCPeer {
         })
 
         const transceiverParams: RTCRtpTransceiverInit = {
-          direction: 'sendonly',
+          // direction: 'sendonly',
           streams: [ localStream ]
         }
         const rids = ['0', '1', '2']

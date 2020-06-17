@@ -7,74 +7,11 @@ import { attachMediaStream, muteMediaElement, sdpToJsonHack, RTCPeerConnection, 
 import { CallOptions } from './interfaces'
 import { trigger } from '../services/Handler'
 import { Invite, Attach, Answer, Modify } from '../messages/Verto'
-import { findElementByType } from '../util/helpers'
-
-// logger.enableAll()
-
-// function simulcast_create_local_sdp_from_answer(sdp, init_local_sdp)
-// {
-//     console.log("simulcast_create_local_sdp_from_answer: Processing sdp");
-//     console.log(sdp);
-
-//     var lines = sdp.split("\n");
-//     var lines_length = lines.length;
-//     var first_video_line = -1;
-
-//     for (var i = 0; i < lines_length; i++) {
-
-//         if (lines[i].indexOf("a=simulcast") === 0) {
-
-//             if (first_video_line === -1) {
-
-//                 first_video_line = i + 1;
-//                 console.log("simulcast_create_local_sdp_from_answer: Found first remote video line at " + first_video_line);
-//                 break;
-//             }
-//         }
-//     }
-
-//     if (first_video_line === -1) return sdp;
-
-//     // Prepare SDP
-
-//     for (var i = first_video_line; i < lines.length; i++) {
-
-//         if (lines[i].indexOf("a=candidate") === 0) {
-
-//             console.log("simulcast_create_local_sdp_from_answer: Remove a=candidate at " + i);
-//             lines.splice(i, 1);
-//             --i;
-//         }
-//     }
-
-//     // horrible hack to transplant audio m line from proper sdp, to temporary substitute sdp.
-//     // We should be able to munge the sdp we were given to be proper but for now we are reusing the one we munged on the offer instead.
-//     var x = sdp.match(/(m=audio.*?)m=/s);
-//     var y = init_local_sdp.match(/(m=audio.*?)m=/s);
-//     init_local_sdp = init_local_sdp.replace(y[0], x[0]);
-
-//     var newLines = init_local_sdp.split("\n");
-//     newLines = newLines.slice(0, newLines.length - 1);
-//     newLines = newLines.concat(lines.slice(first_video_line, lines_length));
-
-//     for (var i = 0; i < newLines.length; i++) {
-
-//         if (newLines[i].indexOf("a=setup:actpass") === 0) {
-
-//             console.log("simulcast_create_local_sdp_from_answer: Replace a=setup:actpass at " + i);
-//             newLines[i] = "a=setup:passive";
-//         }
-//     }
-
-//     return newLines.join("\n");
-// }
 
 export default class RTCPeer {
   public instance: RTCPeerConnection
   private _iceTimeout = null
   private _negotiating = false
-  private _initial_simulcast_local_sdp = null
-  private _initial_simulcast_local_sdp_fake_with_ice = null
 
   constructor(
     public call: WebRTCCall,
@@ -360,29 +297,12 @@ export default class RTCPeer {
   private async _sdpReady() {
     clearTimeout(this._iceTimeout)
     const { sdp, type } = this.instance.localDescription
-    console.debug('LOCAL SDP WITH ICE \n', `Type: ${type}`, '\n\n', sdp)
-
-/**
-    if (this._initial_simulcast_local_sdp_fake_with_ice) {
-        logger.info("Cheating again")
-        this.instance.localDescription.sdp = this._initial_simulcast_local_sdp_fake_with_ice
-        }
-**/
+    console.debug('ICE SDP \n', `Type: ${type}`, '\n\n', sdp)
 
     if (sdp.indexOf('candidate') === -1) {
       this.startNegotiation()
       return
     }
-
-    // if (this.isSimulcast) {
-    //     //this._forceSimulcast()
-    //     // SIMULCAST Skip forcing
-    //     if (this._initial_simulcast_local_sdp === null) {
-    //         logger.info("SETTING INITIAL SDP OFFER TO")
-    //         logger.info(sdp)
-    //         this._initial_simulcast_local_sdp = sdp
-    //     }
-    // }
 
     this.instance.removeEventListener('icecandidate', this._onIce)
     let msg = null
@@ -432,65 +352,24 @@ export default class RTCPeer {
   }
 
   private _setLocalDescription(localDescription: RTCSessionDescriptionInit) {
-    // const { useStereo, googleMaxBitrate, googleMinBitrate, googleStartBitrate } = this.options
-    // if (useStereo) {
-    //   localDescription.sdp = sdpStereoHack(localDescription.sdp)
-    // }
-    // if (googleMaxBitrate && googleMinBitrate && googleStartBitrate) {
-    //   localDescription.sdp = sdpBitrateHack(localDescription.sdp, googleMaxBitrate, googleMinBitrate, googleStartBitrate)
-    // }
+    const { useStereo, googleMaxBitrate, googleMinBitrate, googleStartBitrate } = this.options
+    if (useStereo) {
+      localDescription.sdp = sdpStereoHack(localDescription.sdp)
+    }
+    if (googleMaxBitrate && googleMinBitrate && googleStartBitrate) {
+      localDescription.sdp = sdpBitrateHack(localDescription.sdp, googleMaxBitrate, googleMinBitrate, googleStartBitrate)
+    }
 
-    // // CHECK: Hack SDP only for offer ?
-    // if (this.isSimulcast) {
-
-    //     if (localDescription.type === PeerType.Offer) {
-
-    //         logger.info("Exec sdpAudioVideoOrderHack")
-    //         localDescription.sdp = sdpAudioVideoOrderHack(localDescription.sdp)
-    //         logger.info("After sdpAudioVideoOrderHack:\n", localDescription.sdp)
-
-    //         // SIMULCAST Seem right to remove MID/RID from audio, though apparently this is not the main reason behind zero RTP extensions...
-
-    //         logger.info("Exec sdpAudioSimulcastRemoveRidMidExtHack")
-    //         //localDescription.sdp = sdpAudioRemoveRidMidExtHack(localDescription.sdp)
-    //         logger.info("After sdpAudioSimulcastRemoveRidMidExtHack:\n", localDescription.sdp)
-
-    //     } else {
-    //         // SIMULCAST Skip simulcast hack when setting local description, nothing to be done here, instead Transceiver is added for media from getUserMedia
-    //         logger.info("SIMULCAST answer, skip _setLocalDescription ?")
-
-    //         // const endOfLine = '\r\n'
-    //         // const sdp = localDescription.sdp.split(endOfLine)
-    //         // let i = sdp.findIndex(element => element.includes("a=group:BUNDLE"))
-    //         // sdp[i] = "a=group:BUNDLE 0 1"
-    //         // localDescription.sdp = sdp.join(endOfLine)
-    //         //return
-    //     }
-    // }
-
-    // logger.info('>>>> _setLocalDescription', localDescription)
-    // logger.info(">>>> sdp: ", localDescription.sdp)
     logger.info('LOCAL SDP \n', `Type: ${localDescription.type}`, '\n\n', localDescription.sdp)
-
-    // if (localDescription.type === PeerType.Answer) {
-
-    //     logger.info("Nah, nah, today we create Fake Local SDP from original Local SDP")
-    //     localDescription.sdp = simulcast_create_local_sdp_from_answer(localDescription.sdp, this._initial_simulcast_local_sdp)
-    //     logger.info("And we set local description with this:")
-    //     logger.error(localDescription.sdp)
-    //     this._initial_simulcast_local_sdp_fake_with_ice = localDescription.sdp
-    // }
-
     return this.instance.setLocalDescription(localDescription)
   }
 
   private _setRemoteDescription(remoteDescription: RTCSessionDescriptionInit) {
-    logger.info('REMOTE SDP \n', `Type: ${remoteDescription.type}`, '\n\n', remoteDescription.sdp)
-    // if (this.options.useStereo) {
-    //   remoteDescription.sdp = sdpStereoHack(remoteDescription.sdp)
-    // }
+    if (this.options.useStereo) {
+      remoteDescription.sdp = sdpStereoHack(remoteDescription.sdp)
+    }
     const sessionDescr: RTCSessionDescription = sdpToJsonHack(remoteDescription)
-    // logger.info('>>>> _setRemoteDescription', remoteDescription)
+    logger.info('REMOTE SDP \n', `Type: ${remoteDescription.type}`, '\n\n', remoteDescription.sdp)
     return this.instance.setRemoteDescription(sessionDescr)
   }
 
@@ -500,38 +379,5 @@ export default class RTCPeer {
     }
     const constraints = await getMediaConstraints(this.options)
     return getUserMedia(constraints)
-  }
-
-  public addSimulcastByTransceiver() {
-    this.instance.addTransceiver('video', {
-      // @ts-ignore
-      send: true,
-      direction: 'sendonly',
-      // @ts-ignore
-      receive: false,
-
-      sendEncodings: [
-        {
-          active: true,
-          rid: "0",
-          scaleResolutionDownBy: 1,
-          //maxBitrate: 100000
-        },
-        {
-          active: true,
-          rid: "1",
-          scaleResolutionDownBy: 6,
-          //maxBitrate: 20000
-          maxBitrate: 300000
-        },
-        {
-          active: true,
-          rid: "2",
-          scaleResolutionDownBy: 12,
-          //maxBitrate: 10000
-          maxBitrate: 100000
-        },
-      ]
-    })
   }
 }

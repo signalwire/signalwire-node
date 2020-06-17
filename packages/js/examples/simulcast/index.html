@@ -19,19 +19,7 @@
   <div class="container">
     <div class="row pt-5">
       <div class="col-12 pb-3">
-        <h1>SignalWire Relay JavaScript Call Demo</h1>
-        <p>
-          This demo allows you to make calls to other browsers, SIP Endpoints or Phone Numbers from your SignalWire project in your browser.
-          <br />
-          Visit <a href="https://docs.signalwire.com/topics/relay-sdk-js">Relay SDK for JavaScript Documentation</a> for more information and documentation.
-        </p>
-
-        <h3 class="mb-3">Instructions</h3>
-        <ol>
-          <li>Follow the <a href="https://docs.signalwire.com/topics/relay-sdk-js#relay-sdk-for-javascript-using-the-sdk">Getting Started</a> steps in the JavaScript SDK Documentation to generate a JSON Web Token for your project.</li>
-          <li>Load the index.html file in your browser. You don't need to setup or run any HTTP servers, just double clicking the file or open it directly in your browser.</li>
-          <li>Fill in your Project ID and JWT. Click Connect and thats it! You'll now be able to dial other web browsers and SIP endpoints from your SignalWire project, as well as dial out to phone numbers.</li>
-        </ol>
+        <h1>SFU Demo</h1>
       </div>
     </div>
     <hr />
@@ -63,19 +51,13 @@
       </div>
 
       <div class="col-12 col-md-8 mt-4 mt-md-1">
-        <div id="videoWrapper" class="row">
-          <div class="col-6">
-            <h5>Local Video</h5>
-            <video id="localVideo" autoplay="true" class="w-100" style="background-color: #000; border: 1px solid #ccc; border-radius: 5px;"></video>
-          </div>
-          <div id="remoteVideos" class="col-6">
-            <h5>Remote Videos</h5>
-          </div>
-        </div>
-
         <div class="form-group">
           <label for="number">Call To:</label>
           <input type="text" class="form-control" id="number" placeholder="Enter Resource or Number to Dial" onchange="saveInLocalStorage(event)">
+        </div>
+        <div class="form-group">
+          <label for="number">Number of Streams:</label>
+          <select class="form-control" id="msStreamsNumber" onchange="saveInLocalStorage(event)"></select>
         </div>
         <div>Call Options:</div>
         <div class="form-check">
@@ -100,13 +82,37 @@
         <button id="hangupCall" class="btn btn-danger px-5 mt-4 d-none" onClick="hangup()" disabled="true">Hang up</button>
       </div>
     </div>
-    <hr />
-    <div class="row pt-3 pb-5">
-      <div class="col-12">
-        <h4>Troubleshooting</h4>
-        <p>If you notice any JavaScript errors in the console relating to <code>localStorage</code>, try unblocking 3rd Party Cookies. Some browsers mark localStorage Cookies as 3rd Party when being run from <code>file://</code>.</p>
+    <div id="videoWrapper" class="row py-3">
+      <!-- <div class="col-12">
+        <h5>Local Video</h5>
+        <video id="localVideo" autoplay="true" class="w-100" style="background-color: #000; border: 1px solid #ccc; border-radius: 5px;"></video>
       </div>
+      <div class="col-2">
+        <video autoplay="true" class="w-100" style="background-color: #000; border: 1px solid #ccc; border-radius: 5px;"></video>
+      </div>
+      <div class="col-2">
+        <video autoplay="true" class="w-100" style="background-color: #000; border: 1px solid #ccc; border-radius: 5px;"></video>
+      </div>
+      <div class="col-2">
+        <video autoplay="true" class="w-100" style="background-color: #000; border: 1px solid #ccc; border-radius: 5px;"></video>
+      </div>
+      <div class="col-2">
+        <video autoplay="true" class="w-100" style="background-color: #000; border: 1px solid #ccc; border-radius: 5px;"></video>
+      </div>
+      <div class="col-2">
+        <video autoplay="true" class="w-100" style="background-color: #000; border: 1px solid #ccc; border-radius: 5px;"></video>
+      </div>
+      <div class="col-2">
+        <video autoplay="true" class="w-100" style="background-color: #000; border: 1px solid #ccc; border-radius: 5px;"></video>
+      </div>
+      <div class="col-2">
+        <video autoplay="true" class="w-100" style="background-color: #000; border: 1px solid #ccc; border-radius: 5px;"></video>
+      </div>
+      <div class="col-2">
+        <video autoplay="true" class="w-100" style="background-color: #000; border: 1px solid #ccc; border-radius: 5px;"></video>
+      </div> -->
     </div>
+    <hr />
 
   <script type="text/javascript">
     var client;
@@ -119,6 +125,7 @@
     var audio = localStorage.getItem('relay.example.audio') || '1';
     var video = localStorage.getItem('relay.example.video') || '1';
     var simulcast = localStorage.getItem('relay.example.simulcast') || '1';
+    var msStreamsNumber = localStorage.getItem('relay.example.msStreamsNumber') || 5;
 
     /**
      * On document ready auto-fill the input values from the localStorage.
@@ -131,6 +138,15 @@
       document.getElementById('audio').checked = audio === '1';
       document.getElementById('video').checked = video === '1';
       document.getElementById('simulcast').checked = simulcast === '1';
+
+      var select = document.getElementById('msStreamsNumber');
+      for (var i = 0; i < 10; i++){
+        var opt = document.createElement('option');
+        opt.value = i;
+        opt.innerHTML = i;
+        opt.selected = i === Number(msStreamsNumber);
+        select.appendChild(opt);
+      }
     });
 
     /**
@@ -218,64 +234,77 @@
 
       var stream = event.streams[0]
       var track = event.track
-      if (track.kind === 'audio') {
-          
-          // create new audio
-          var audio = new Audio()
-          window.__testAudio = audio
+
+      switch (track.kind) {
+        case 'audio': {
+          const audio = new Audio()
+          window.__confAudio = audio
 
           // create new stream with audio track
-          var stream = new MediaStream()
-          
-          stream.addTrack(track)
+          // var stream = new MediaStream()
+
+          // stream.addTrack(track)
           audio.srcObject = stream
 
           // play
           audio.play().then(() => {
-              console.log('AUDIO IS PLAYING')
+            console.log('Conference audio is playing..')
           }).catch(error => {
-              console.error('AUDIO IS NOT PLAYING', error)
+            console.error('Conference audio cannot play?', error)
           })
+          break
+        }
+        case 'video': {
+          console.debug('New video track', track.id, 'in stream', stream.id)
+          var wrapper = document.createElement('div')
+          wrapper.id = stream.id
+          wrapper.className = 'col-2 dynamic'
 
-          return
-      }
+          var hTitle = document.createElement('h5')
+          var withAudio = stream.getAudioTracks().length > 0
+          hTitle.innerText = 'Dynamic: ' + (withAudio ? 'AUDIO/VIDEO' : 'VIDEO')
+          wrapper.appendChild(hTitle)
 
-      if (stream.id.indexOf("ms") != 0) {
-            console.info("NOT MULTISTREAM VIDEO => SKIPPING VIDEO MEDIA STREAM (stream: " + stream.id + ", track: " + track.id + ")")
-            return
-      }
+          var pDescr = document.createElement('p')
+          pDescr.innerText = 'Track: ' + track.id + '\nStream: ' + stream.id
+          wrapper.appendChild(pDescr)
 
-      sIds.push(stream.id)
-      var col6 = document.createElement('div')
-      col6.id = stream.id
-      col6.className = 'col-6 dynamic'
+          var sfuVideo = document.createElement('video')
+          sfuVideo.muted = false
+          sfuVideo.playsInline = true
+          sfuVideo.autoplay = true
+          sfuVideo.className = 'w-100'
+          sfuVideo.srcObject = stream
 
-      var hTitle = document.createElement('h5')
-      var withAudio = stream.getAudioTracks().length > 0
-      hTitle.innerText = 'Dynamic: ' + (withAudio ? 'AUDIO/VIDEO' : 'VIDEO')
-
-      var pDescr = document.createElement('p')
-      pDescr.innerText = 'Track: ' + track.id + '\nStream: ' + stream.id
-
-      var sfuVideo = document.createElement('video')
-      sfuVideo.muted = false
-      sfuVideo.playsInline = true
-      sfuVideo.autoplay = true
-      sfuVideo.className = 'w-100'
-      sfuVideo.srcObject = stream
-
-      sfuVideo.onloadedmetadata = function() {
-          let tracks = stream.getVideoTracks()
-
-          for (let i = 0; i < tracks.length; ++i) {
-                tracks[i].enabled = true
+          track.onended = (event) => {
+            console.log(`>> ${track.id} onended event`)
           }
-      }
+          track.onmute = (event) => {
+            console.log(`>> ${track.id} onmute event`)
+          }
+          track.onunmute = (event) => {
+            console.log(`>> ${track.id} onunmute event`)
+          }
+          // sfuVideo.onloadedmetadata = function() {
+          //   let tracks = stream.getVideoTracks()
 
-      col6.appendChild(hTitle)
-      col6.appendChild(sfuVideo)
-      col6.appendChild(pDescr)
-      videoWrapper.appendChild(col6)
+          //   for (let i = 0; i < tracks.length; ++i) {
+          //     tracks[i].enabled = true
+          //   }
+          // }
+          wrapper.appendChild(sfuVideo)
+          videoWrapper.appendChild(wrapper)
+          break
+        }
+        default:
+          return console.error('Unknown track kind', track)
+      }
+      // if (stream.id.indexOf("ms") != 0) {
+      //   console.info("NOT MULTISTREAM VIDEO => SKIPPING VIDEO MEDIA STREAM (stream: " + stream.id + ", track: " + track.id + ")")
+      //   return
+      // }
+
+      // sIds.push(stream.id)
     }
 
     if( typeof Element.prototype.clearChildren === 'undefined' ) {
@@ -287,17 +316,17 @@
             }
         });
     }
-    
+
     function handleAlternativeTrackAdd(notification) {
-        
+
         var event = notification.event
         var remoteStream = event.streams[0]
         var remoteElement = document.getElementById(remoteStream.id)
-        
+
         if (remoteElement) {
             console.error('SIMULCAST remote element for stream ' + remoteStream.id + ' ALREADY IN PAGE. Skip adding video box')
         } else {
-        
+
             remoteElement = document.createElement('video')
             remoteElement.id = remoteStream.id
             remoteElement.autoplay = true
@@ -309,7 +338,7 @@
             var boxes = document.getElementById('remoteVideos')
             if (!boxes)
                 return
-            
+
             boxes.appendChild(remoteElement)
         }
     }
@@ -369,6 +398,7 @@
         audio: document.getElementById('audio').checked,
         video: document.getElementById('video').checked ? { width: {ideal: 1280}, height: {ideal: 720} } : false,
         simulcast: document.getElementById('simulcast').checked, // true/false - force this call to be "simulcast"
+        msStreamsNumber: document.getElementById('msStreamsNumber').value,
       };
 
       currentCall = client.newCall(params);

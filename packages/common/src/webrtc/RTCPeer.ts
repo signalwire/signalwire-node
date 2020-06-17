@@ -1,5 +1,5 @@
 import logger from '../util/logger'
-import { getUserMedia, getMediaConstraints, sdpStereoHack, sdpBitrateHack, sdpSimulcastHack, sdpAudioVideoOrderHack, sdpAudioRemoveRidMidExtHack } from './helpers'
+import { getUserMedia, getMediaConstraints, sdpStereoHack, sdpBitrateHack } from './helpers'
 import { SwEvent } from '../util/constants'
 import { PeerType, State } from './constants'
 import WebRTCCall from './WebRTCCall'

@@ -279,15 +279,15 @@
           // sfuVideo.style.display = 'none'
 
           track.onended = (event) => {
-            console.log(`>> ${track.id} onended event`)
+            console.log(`>> ${stream.id} ${track.id} ended`)
             wrapper.style.display = 'none'
           }
           track.onmute = (event) => {
-            console.log(`>> ${track.id} onmute event`)
+            console.log(`>> ${stream.id} ${track.id} onmute`)
             wrapper.style.display = 'none'
           }
           track.onunmute = (event) => {
-            console.log(`>> ${track.id} onunmute event`)
+            console.log(`>> ${stream.id} ${track.id} onunmute`)
             wrapper.style.display = 'block'
           }
           // sfuVideo.onloadedmetadata = function() {

@@ -96,6 +96,26 @@
         </div>
       </div>
     </div>
+
+
+    <div class="row py-3">
+      <div class="col-12 pb-3 text-center">
+        <h5>Resolution</h5>
+        <div class="form-check form-check-inline">
+          <input class="form-check-input" type="radio" name="inlineRadioOptions" id="resDefault" value="" checked onchange="handleResolutionChange(event)">
+          <label class="form-check-label" for="resDefault">Default</label>
+        </div>
+        <div class="form-check form-check-inline">
+          <input class="form-check-input" type="radio" name="inlineRadioOptions" id="resHigh" value="high" onchange="handleResolutionChange(event)">
+          <label class="form-check-label" for="resHigh">High</label>
+        </div>
+        <div class="form-check form-check-inline">
+          <input class="form-check-input" type="radio" name="inlineRadioOptions" id="resLow" value="low" onchange="handleResolutionChange(event)">
+          <label class="form-check-label" for="resLow">Low</label>
+        </div>
+      </div>
+    </div>
+
     <div id="videoWrapper" class="row py-3">
       <!-- Dynamic Content -->
     </div>
@@ -139,6 +159,18 @@
     /**
      * Connect with Relay creating a client and attaching all the event handler.
     */
+    function handleResolutionChange(event) {
+      console.log('handleResolutionChange', event.target.value)
+      switch (event.target.value) {
+        case 'high':
+          return currentCall.sfuHighResolution()
+        case 'low':
+          return currentCall.sfuLowResolution()
+        default:
+          return currentCall.sfuDefaultResolution()
+      }
+    }
+
     function connect() {
       client = new Verto({
         host: document.getElementById('host').value,

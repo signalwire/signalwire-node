@@ -343,7 +343,7 @@ export default abstract class WebRTCCall {
 
   sfuHighResolution() {
     console.debug('Set video res to high')
-    const msg = new Modify({ ...this.messagePayload, action: 'set-sfu-low-res' })
+    const msg = new Modify({ ...this.messagePayload, action: 'set-sfu-high-res' })
     return this._execute(msg)
   }
 

@@ -31,6 +31,7 @@ export interface CallOptions {
   googleMinBitrate?: number
   googleStartBitrate?: number
   simulcast?: boolean
+  msStreamsNumber?: number
 }
 
 export interface ICantinaUser {

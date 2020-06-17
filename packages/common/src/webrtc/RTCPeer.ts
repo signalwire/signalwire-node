@@ -314,8 +314,9 @@ export default class RTCPeer {
         })
 
         if (this.isSimulcast) {
-          console.debug('Adding recvonly transceivers for video...')
-          for (let i = 0; i < 5; i++) {
+          const { msStreamsNumber = 5 } = this.options
+          console.debug('Add ', msStreamsNumber, 'recvonly MS Streams')
+          for (let i = 0; i < Number(msStreamsNumber); i++) {
             this.instance.addTransceiver('video', {
               direction: 'recvonly',
               streams: [ localStream ],

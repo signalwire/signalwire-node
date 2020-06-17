@@ -195,10 +195,10 @@ export default class RTCPeer {
     }
 
     this.instance.addEventListener('track', (event: RTCTrackEvent) => {
-      if (this.isSimulcast) {
+      // if (this.isSimulcast) {
         const notification = { type: 'trackAdd', event }
         this.call._dispatchNotification(notification)
-      }
+      // }
       this.options.remoteStream = event.streams[0]
       const { remoteStream, screenShare } = this.options
       let remoteElement = this.options.remoteElement

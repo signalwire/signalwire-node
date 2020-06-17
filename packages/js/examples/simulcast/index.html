@@ -257,8 +257,9 @@
         case 'video': {
           console.debug('New video track', track.id, 'in stream', stream.id)
           var wrapper = document.createElement('div')
-          wrapper.id = stream.id
-          wrapper.className = 'col-2 dynamic'
+          wrapper.id = track.id
+          const className = /^ms1-/.test(stream.id) ? 'col-12' : 'col-2'
+          wrapper.className = `${className} dynamic`
 
           var hTitle = document.createElement('h5')
           var withAudio = stream.getAudioTracks().length > 0
@@ -275,15 +276,19 @@
           sfuVideo.autoplay = true
           sfuVideo.className = 'w-100'
           sfuVideo.srcObject = stream
+          // sfuVideo.style.display = 'none'
 
           track.onended = (event) => {
             console.log(`>> ${track.id} onended event`)
+            wrapper.style.display = 'none'
           }
           track.onmute = (event) => {
             console.log(`>> ${track.id} onmute event`)
+            wrapper.style.display = 'none'
           }
           track.onunmute = (event) => {
             console.log(`>> ${track.id} onunmute event`)
+            wrapper.style.display = 'block'
           }
           // sfuVideo.onloadedmetadata = function() {
           //   let tracks = stream.getVideoTracks()
@@ -308,13 +313,13 @@
     }
 
     if( typeof Element.prototype.clearChildren === 'undefined' ) {
-        Object.defineProperty(Element.prototype, 'clearChildren', {
-            configurable: true,
-            enumerable: false,
-            value: function() {
-                while(this.firstChild) this.removeChild(this.lastChild);
-            }
-        });
+      Object.defineProperty(Element.prototype, 'clearChildren', {
+        configurable: true,
+        enumerable: false,
+        value: function() {
+          while(this.firstChild) this.removeChild(this.lastChild);
+        }
+      });
     }
 
     function handleAlternativeTrackAdd(notification) {
@@ -380,10 +385,10 @@
           break;
         case 'destroy': // Call has been destroyed
           currentCall = null;
-          var e = document.getElementById('remoteVideos')
-            if (e)
-                e.clearChildren()
-          document.querySelectorAll('#videoWrapper .dynamic').forEach(el => el.parentNode.removeChild(el))
+          // var e = document.getElementById('remoteVideos')
+          //   if (e)
+          //       e.clearChildren()
+          // document.querySelectorAll('#videoWrapper .dynamic').forEach(el => el.parentNode.removeChild(el))
           break;
       }
     }

@@ -87,6 +87,18 @@ export default class RTCPeer {
     }
   }
 
+  getTrackSettings(kind: string) {
+    try {
+      const sender = this._getSenderByKind(kind)
+      if (!sender || !sender.track) {
+        return null
+      }
+      return sender.track.getSettings()
+    } catch (error) {
+      logger.error('RTCPeer getTrackSettings error', kind, error)
+    }
+  }
+
   getDeviceLabel(kind: string) {
     try {
       const sender = this._getSenderByKind(kind)

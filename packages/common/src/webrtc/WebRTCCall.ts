@@ -281,6 +281,23 @@ export default abstract class WebRTCCall {
     this._execute(msg)
   }
 
+  sendCurrentMediaSettings() {
+    const params = {
+      type: 'mediaSettings',
+      audioinput: this.peer.getTrackSettings('audio'),
+      videoinput: this.peer.getTrackSettings('video'),
+      audiooutput: {
+        deviceId: this.options.speakerId
+      },
+    }
+    return this._sendVertoInfo(params)
+  }
+
+  private _sendVertoInfo(params: object) {
+    const msg = new Info({ ...this.messagePayload, ...params })
+    return this._execute(msg)
+  }
+
   @CheckConferenceMethod
   transfer(destination: string, id?: string) {
     const msg = new Modify({ ...this.messagePayload, action: 'transfer', destination })

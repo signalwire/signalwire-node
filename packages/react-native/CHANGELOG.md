@@ -3,7 +3,7 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.3] - 2020-06-27
+## [1.0.3] - 2020-06-29
 ### Fixed
 - Add `react-native-get-random-values` to solve [this issue](https://github.com/uuidjs/uuid#getrandomvalues-not-supported).
 

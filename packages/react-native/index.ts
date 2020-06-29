@@ -3,7 +3,7 @@ import Relay from './src/Relay'
 import Verto from '../js/src/Verto'
 import { setAgentName } from '../common/src/messages/blade/Connect'
 
-export const VERSION = '1.0.3-rc.1'
+export const VERSION = '1.0.3-rc.2'
 setAgentName(`ReactNative SDK/${VERSION}`)
 
 export {

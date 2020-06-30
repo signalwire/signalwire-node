@@ -418,11 +418,20 @@
     function makeCall() {
       const destinationNumber = document.getElementById('number').value
       const params = {
-        destinationNumber: destinationNumber, // required!
-        audio: document.getElementById('audio').checked,
-        video: document.getElementById('video').checked ? { width: {ideal: 1280}, height: {ideal: 720} } : false,
-        simulcast: document.getElementById('simulcast').checked, // true/false - force this call to be "simulcast"
-        msStreamsNumber: document.getElementById('msStreamsNumber').value,
+
+          destinationNumber: destinationNumber, // required!
+          audio: document.getElementById('audio').checked,
+
+          // Ideally we would request resolution as high as this, but this may result in broken video for highest simulcast layer (maybe adjusting the allowed max bitrate allocation can fix this)
+          //video: document.getElementById('video').checked ? { width: {ideal: 1280}, height: {ideal: 720} } : false,
+
+          // so, for now start from bit worse resolution, but resulting in smooth stream
+          video: document.getElementById('video').checked ? { width: {ideal: 640}, height: {ideal: 360} } : false,
+
+          simulcast: document.getElementById('simulcast').checked, // true/false - force this call to be "simulcast"
+
+          // max number of video streams this app wants to receive
+          msStreamsNumber: document.getElementById('msStreamsNumber').value,
       };
 
       currentCall = client.newCall(params);

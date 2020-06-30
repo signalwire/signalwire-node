@@ -132,6 +132,13 @@ export default class RTCPeer {
 
   async startNegotiation(force = false) {
     try {
+
+      if (this.options.secondSource === true) {
+        this.instance.getTransceivers().forEach(tr => {
+          tr.direction = 'sendonly'
+        })
+      }
+
       this.instance.removeEventListener('icecandidate', this._onIce)
       this.instance.addEventListener('icecandidate', this._onIce)
       if (this.isOffer) {

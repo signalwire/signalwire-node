@@ -268,6 +268,12 @@
           hTitle.innerText = 'Dynamic: ' + (withAudio ? 'AUDIO/VIDEO' : 'VIDEO')
           wrapper.appendChild(hTitle)
 
+          let receiver = event.receiver;
+          receiver.getStats().then( (stats) => {
+              stats.forEach(stat => console.log(JSON.stringify(stat)))
+              //sfuVideo.ssrc = ssrc;
+          });
+
           var pDescr = document.createElement('p')
           pDescr.innerText = 'Track: ' + track.id + '\nStream: ' + stream.id
           wrapper.appendChild(pDescr)

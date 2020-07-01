@@ -335,21 +335,21 @@ export default abstract class WebRTCCall {
     toggleAudioTracks(this.options.remoteStream)
   }
 
-  sfuLowResolution() {
+  sfuLowResolution(streamId: string, trackId: string) {
     console.debug('Set video res to low')
-    const msg = new Modify({ ...this.messagePayload, action: 'set-sfu-low-res' })
+    const msg = new Modify({ ...this.messagePayload, action: 'set-sfu-low-res', streamId, trackId })
     return this._execute(msg)
   }
 
-  sfuHighResolution() {
+  sfuHighResolution(streamId: string, trackId: string) {
     console.debug('Set video res to high')
-    const msg = new Modify({ ...this.messagePayload, action: 'set-sfu-high-res' })
+    const msg = new Modify({ ...this.messagePayload, action: 'set-sfu-high-res', streamId, trackId })
     return this._execute(msg)
   }
 
-  sfuDefaultResolution() {
+  sfuDefaultResolution(streamId: string, trackId: string) {
     console.debug('Set video res to default')
-    const msg = new Modify({ ...this.messagePayload, action: 'set-sfu-default-res' })
+    const msg = new Modify({ ...this.messagePayload, action: 'set-sfu-default-res', streamId, trackId })
     return this._execute(msg)
   }
 

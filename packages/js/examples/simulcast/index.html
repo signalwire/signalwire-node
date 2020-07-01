@@ -297,17 +297,23 @@
           sfuVideo.srcObject = stream
           // sfuVideo.style.display = 'none'
 
+          var timer = null
           track.onended = (event) => {
             console.log(`>> ${stream.id} ${track.id} ended`)
             wrapper.style.display = 'none'
+            clearTimeout(timer)
           }
           track.onmute = (event) => {
             console.log(`>> ${stream.id} ${track.id} onmute`)
-            wrapper.style.display = 'none'
+            // Wait for 10s before hide the box
+            timer = setTimeout(() => {
+              wrapper.style.display = 'none'
+            }, 10 * 1000)
           }
           track.onunmute = (event) => {
             console.log(`>> ${stream.id} ${track.id} onunmute`)
             wrapper.style.display = 'block'
+            clearTimeout(timer)
           }
           // sfuVideo.onloadedmetadata = function() {
           //   let tracks = stream.getVideoTracks()

@@ -105,6 +105,7 @@
   <script type="text/javascript">
     var client;
     var currentCall = null;
+    var RES_SEPARATOR = '|';
 
     var host = localStorage.getItem('relay.example.host') || '';
     var project = localStorage.getItem('relay.example.project') || '';
@@ -141,7 +142,7 @@
      * Connect with Relay creating a client and attaching all the event handler.
     */
     function handleResolutionChange(event) {
-      const [streamId, trackId, value] = event.target.value.split('-')
+      const [streamId, trackId, value] = event.target.value.split(RES_SEPARATOR)
       console.log('handleResolutionChange', streamId, trackId, value)
       switch (value) {
         case 'high':
@@ -341,9 +342,9 @@
         var radioInput = document.createElement('input')
         radioInput.className = 'form-check-input'
         radioInput.type = 'radio'
-        radioInput.id = `res-${streamId}-${trackId}-${value}`
-        radioInput.name = `res-${streamId}-${trackId}`
-        radioInput.value = `${streamId}-${trackId}-${value}`
+        radioInput.id = `${streamId}${RES_SEPARATOR}${trackId}${RES_SEPARATOR}${value}`
+        radioInput.name = `res-${streamId}${RES_SEPARATOR}${trackId}`
+        radioInput.value = radioInput.id
         radioInput.checked = value === ''
         radioInput.onchange = handleResolutionChange
         wrapper.appendChild(radioInput)

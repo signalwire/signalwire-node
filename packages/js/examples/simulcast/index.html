@@ -473,8 +473,18 @@
     }
 
     function saveInLocalStorage(e) {
-      var key = e.target.name || e.target.id
-      localStorage.setItem('relay.example.' + key, e.target.value);
+        var key = e.target.name || e.target.id
+        localStorage.setItem('relay.example.' + key, e.target.value);
+
+        // Can't use simulcast without video
+        let v = document.getElementById('video')
+        let s = document.getElementById('simulcast')
+        if (!v.checked) {
+            s.checked = false
+            s.disabled = true
+        } else {
+            s.disabled = false
+        }
     }
 
     // jQuery document.ready equivalent

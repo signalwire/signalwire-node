@@ -8,15 +8,9 @@ function cwd() {
 async function main() {
   const mainTasks = [
     {
-      title: 'Checking react-native..',
-      task: async () =>
-        await execa('react-native', [ '--version' ], { cwd: cwd() }).catch(error => {
-          throw new Error('\n\n\treact-native CLI not available.\n\n')
-        }),
-    },
-    {
       title: 'Installing WebRTC engine..',
       task: async () => {
+        await execa('npm', [ 'install', 'react-native-get-random-values' ], { cwd: cwd() })
         await execa('npm', [ 'install', 'react-native-webrtc' ], { cwd: cwd() })
       },
     },

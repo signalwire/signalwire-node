@@ -334,7 +334,12 @@
         radioInput.id = `${streamId}${RES_SEPARATOR}${trackId}${RES_SEPARATOR}${value}`
         radioInput.name = `res-${streamId}${RES_SEPARATOR}${trackId}`
         radioInput.value = radioInput.id
-        radioInput.checked = value === 'low'
+
+        if (!radioInput.id.includes('ms-stream-1-')) {
+            radioInput.checked = value === 'low'
+        } else {
+            radioInput.checked = value === 'high'
+        }
         radioInput.onchange = handleResolutionChange
         wrapper.appendChild(radioInput)
         var label = document.createElement('label')

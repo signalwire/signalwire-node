@@ -34,11 +34,11 @@ export default class RTCPeer {
 
   get isSimulcast() {
     return this.options.simulcast === true
-    }
+  }
 
-    get isSfu() {
-        return this.options.sfu === true
-    }
+  get isSfu() {
+    return this.options.sfu === true
+  }
 
   get config(): RTCConfiguration {
     const { iceServers = [] } = this.options
@@ -278,14 +278,13 @@ export default class RTCPeer {
           direction: 'sendrecv',
           streams: [ localStream ]
         }
-        const rids = ['0', '1', '2']
-        const sendEncodings = rids.map(rid => ({
-          active: true,
-          rid: rid,
-          scaleResolutionDownBy: (Number(rid) * 6 || 1.0),
-        }))
         if (this.isSimulcast) {
-          transceiverParams.sendEncodings = sendEncodings
+          const rids = ['0', '1', '2']
+          transceiverParams.sendEncodings = rids.map(rid => ({
+            active: true,
+            rid: rid,
+            scaleResolutionDownBy: (Number(rid) * 6 || 1.0),
+          }))
         }
         console.debug('Applying video transceiverParams', transceiverParams)
         videoTracks.forEach(track => {
@@ -293,14 +292,14 @@ export default class RTCPeer {
           this.instance.addTransceiver(track, transceiverParams)
         })
 
-        // if (this.isSfu) {
+        if (this.isSfu) {
           const { msStreamsNumber = 5 } = this.options
           console.debug('Add ', msStreamsNumber, 'recvonly MS Streams')
           transceiverParams.direction = 'recvonly'
           for (let i = 0; i < Number(msStreamsNumber); i++) {
             this.instance.addTransceiver('video', transceiverParams)
           }
-        // }
+        }
 
         this._logTransceivers()
       } else if (typeof this.instance.addTrack === 'function') {

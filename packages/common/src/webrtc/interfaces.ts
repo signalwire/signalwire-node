@@ -32,6 +32,7 @@ export interface CallOptions {
   googleStartBitrate?: number
   negotiateAudio?: boolean
   negotiateVideo?: boolean
+  sfu?: boolean
   simulcast?: boolean
   msStreamsNumber?: number
 }

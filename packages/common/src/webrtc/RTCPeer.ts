@@ -34,7 +34,11 @@ export default class RTCPeer {
 
   get isSimulcast() {
     return this.options.simulcast === true
-  }
+    }
+
+    get isSfu() {
+        return this.options.sfu === true
+    }
 
   get config(): RTCConfiguration {
     const { iceServers = [] } = this.options
@@ -289,7 +293,7 @@ export default class RTCPeer {
           this.instance.addTransceiver(track, transceiverParams)
         })
 
-        // if (this.isSimulcast) {
+        // if (this.isSfu) {
           const { msStreamsNumber = 5 } = this.options
           console.debug('Add ', msStreamsNumber, 'recvonly MS Streams')
           transceiverParams.direction = 'recvonly'

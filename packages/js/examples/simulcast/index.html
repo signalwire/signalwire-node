@@ -404,7 +404,9 @@
         // so, for now start from bit worse resolution, but resulting in smooth stream
         video: document.getElementById('video').checked ? { width: {ideal: 640}, height: {ideal: 360} } : false,
 
-        simulcast: document.getElementById('simulcast').checked, // true/false - force this call to be "simulcast"
+        sfu: true,  // want MS streams displayed
+
+        simulcast: document.getElementById('simulcast').checked, // send multiple resolutions (simulcast layers)
 
         // max number of video streams this app wants to receive
         msStreamsNumber: document.getElementById('msStreamsNumber').value,

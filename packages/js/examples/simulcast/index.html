@@ -248,7 +248,7 @@
           console.debug('New video track', track.id, 'in stream', stream.id)
           var wrapper = document.createElement('div')
           wrapper.id = track.id
-          const className = /^ms1-/.test(stream.id) ? 'col-12' : 'col-2'
+          const className = /^ms1-/.test(stream.id) ? 'col-12' : 'col-3'
           wrapper.className = `${className} dynamic`
 
           var hTitle = document.createElement('h5')
@@ -272,6 +272,7 @@
           sfuVideo.autoplay = true
           sfuVideo.className = 'w-100'
           sfuVideo.srcObject = stream
+          sfuVideo.controls = true
           // sfuVideo.style.display = 'none'
 
           var timer = null
@@ -283,14 +284,14 @@
           track.onmute = (event) => {
             console.log(`>> ${stream.id} ${track.id} onmute`)
             // Wait for 10s before hide the box
-            timer = setTimeout(() => {
-              wrapper.style.display = 'none'
-            }, 10 * 1000)
+            // timer = setTimeout(() => {
+            //   wrapper.style.display = 'none'
+            // }, 10 * 1000)
           }
           track.onunmute = (event) => {
             console.log(`>> ${stream.id} ${track.id} onunmute`)
             wrapper.style.display = 'block'
-            clearTimeout(timer)
+            // clearTimeout(timer)
           }
 
           var resRow = buildResolutionChangeRadios(stream.id, track.id)

@@ -271,16 +271,17 @@ export default class RTCPeer {
         })
 
         const transceiverParams: RTCRtpTransceiverInit = {
-          // direction: 'sendonly',
+          direction: 'sendrecv',
           streams: [ localStream ]
         }
         const rids = ['0', '1', '2']
+        const sendEncodings = rids.map(rid => ({
+          active: true,
+          rid: rid,
+          scaleResolutionDownBy: (Number(rid) * 6 || 1.0),
+        }))
         if (this.isSimulcast) {
-          transceiverParams.sendEncodings = rids.map(rid => ({
-            active: true,
-            rid: rid,
-            scaleResolutionDownBy: (Number(rid) * 6 || 1.0),
-          }))
+          transceiverParams.sendEncodings = sendEncodings
         }
         console.debug('Applying video transceiverParams', transceiverParams)
         videoTracks.forEach(track => {
@@ -288,21 +289,14 @@ export default class RTCPeer {
           this.instance.addTransceiver(track, transceiverParams)
         })
 
-        if (this.isSimulcast) {
+        // if (this.isSimulcast) {
           const { msStreamsNumber = 5 } = this.options
           console.debug('Add ', msStreamsNumber, 'recvonly MS Streams')
+          transceiverParams.direction = 'recvonly'
           for (let i = 0; i < Number(msStreamsNumber); i++) {
-            this.instance.addTransceiver('video', {
-              direction: 'recvonly',
-              streams: [ localStream ],
-              sendEncodings: rids.map(rid => ({
-                active: true,
-                rid: rid,
-                scaleResolutionDownBy: (Number(rid) * 6 || 1.0),
-              }))
-            })
+            this.instance.addTransceiver('video', transceiverParams)
           }
-        }
+        // }
 
         this._logTransceivers()
       } else if (typeof this.instance.addTrack === 'function') {

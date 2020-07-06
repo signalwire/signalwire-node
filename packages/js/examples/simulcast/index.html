@@ -223,14 +223,9 @@
           // Handle new peer track
           handleTrackAdd(notification);
           break;
-        case 'alternativeTrackAdd':
-          // Handle new peer track (alternative version)
-          handleAlternativeTrackAdd(notification);
-          break;
       }
     }
 
-    var sIds = []
     function handleTrackAdd(notification) {
       var event = notification.event
 
@@ -241,14 +236,7 @@
         case 'audio': {
           const audio = new Audio()
           window.__confAudio = audio
-
-          // create new stream with audio track
-          // var stream = new MediaStream()
-
-          // stream.addTrack(track)
           audio.srcObject = stream
-
-          // play
           audio.play().then(() => {
             console.log('Conference audio is playing..')
           }).catch(error => {
@@ -274,9 +262,9 @@
               //sfuVideo.ssrc = ssrc;
           });
 
-          var pDescr = document.createElement('p')
-          pDescr.innerText = 'Track: ' + track.id + '\nStream: ' + stream.id
-          wrapper.appendChild(pDescr)
+          var descr = document.createElement('small')
+          descr.innerText = 'Track: ' + track.id + '\nStream: ' + stream.id
+          wrapper.appendChild(descr)
 
           var sfuVideo = document.createElement('video')
           sfuVideo.muted = false
@@ -304,13 +292,7 @@
             wrapper.style.display = 'block'
             clearTimeout(timer)
           }
-          // sfuVideo.onloadedmetadata = function() {
-          //   let tracks = stream.getVideoTracks()
 
-          //   for (let i = 0; i < tracks.length; ++i) {
-          //     tracks[i].enabled = true
-          //   }
-          // }
           var resRow = buildResolutionChangeRadios(stream.id, track.id)
           wrapper.appendChild(resRow)
           wrapper.appendChild(sfuVideo)
@@ -320,12 +302,6 @@
         default:
           return console.error('Unknown track kind', track)
       }
-      // if (stream.id.indexOf("ms") != 0) {
-      //   console.info("NOT MULTISTREAM VIDEO => SKIPPING VIDEO MEDIA STREAM (stream: " + stream.id + ", track: " + track.id + ")")
-      //   return
-      // }
-
-      // sIds.push(stream.id)
     }
 
     if( typeof Element.prototype.clearChildren === 'undefined' ) {
@@ -341,7 +317,7 @@
     function buildResolutionChangeRadios(streamId, trackId) {
       var row = document.createElement('div')
       row.className = 'col-12'
-      const values = ['', 'high', 'low']
+      const values = ['high', 'low']
       values.forEach(value => {
         var wrapper = document.createElement('div')
         wrapper.className = 'form-check'
@@ -351,13 +327,13 @@
         radioInput.id = `${streamId}${RES_SEPARATOR}${trackId}${RES_SEPARATOR}${value}`
         radioInput.name = `res-${streamId}${RES_SEPARATOR}${trackId}`
         radioInput.value = radioInput.id
-        radioInput.checked = value === ''
+        radioInput.checked = value === 'low'
         radioInput.onchange = handleResolutionChange
         wrapper.appendChild(radioInput)
         var label = document.createElement('label')
         label.className = 'form-check-label'
         label.setAttribute('for', radioInput.id)
-        label.innerText = value || 'Default'
+        label.innerText = value
         label.style.textTransform = 'capitalize'
         wrapper.appendChild(label)
 
@@ -365,32 +341,6 @@
       })
 
       return row
-    }
-
-    function handleAlternativeTrackAdd(notification) {
-
-        var event = notification.event
-        var remoteStream = event.streams[0]
-        var remoteElement = document.getElementById(remoteStream.id)
-
-        if (remoteElement) {
-            console.error('SIMULCAST remote element for stream ' + remoteStream.id + ' ALREADY IN PAGE. Skip adding video box')
-        } else {
-
-            remoteElement = document.createElement('video')
-            remoteElement.id = remoteStream.id
-            remoteElement.autoplay = true
-            remoteElement.className = "w-100"
-            //remoteElement.playsInline = true
-            remoteElement.style.cssText = 'background-color: #000; border: 1px solid #ccc; border-radius: 5px;'
-            remoteElement.src = remoteStream
-
-            var boxes = document.getElementById('remoteVideos')
-            if (!boxes)
-                return
-
-            boxes.appendChild(remoteElement)
-        }
     }
 
     /**
@@ -444,20 +394,19 @@
     function makeCall() {
       const destinationNumber = document.getElementById('number').value
       const params = {
+        destinationNumber: destinationNumber, // required!
+        audio: document.getElementById('audio').checked,
 
-          destinationNumber: destinationNumber, // required!
-          audio: document.getElementById('audio').checked,
+        // Ideally we would request resolution as high as this, but this may result in broken video for highest simulcast layer (maybe adjusting the allowed max bitrate allocation can fix this)
+        //video: document.getElementById('video').checked ? { width: {ideal: 1280}, height: {ideal: 720} } : false,
 
-          // Ideally we would request resolution as high as this, but this may result in broken video for highest simulcast layer (maybe adjusting the allowed max bitrate allocation can fix this)
-          //video: document.getElementById('video').checked ? { width: {ideal: 1280}, height: {ideal: 720} } : false,
+        // so, for now start from bit worse resolution, but resulting in smooth stream
+        video: document.getElementById('video').checked ? { width: {ideal: 640}, height: {ideal: 360} } : false,
 
-          // so, for now start from bit worse resolution, but resulting in smooth stream
-          video: document.getElementById('video').checked ? { width: {ideal: 640}, height: {ideal: 360} } : false,
+        simulcast: document.getElementById('simulcast').checked, // true/false - force this call to be "simulcast"
 
-          simulcast: document.getElementById('simulcast').checked, // true/false - force this call to be "simulcast"
-
-          // max number of video streams this app wants to receive
-          msStreamsNumber: document.getElementById('msStreamsNumber').value,
+        // max number of video streams this app wants to receive
+        msStreamsNumber: document.getElementById('msStreamsNumber').value,
       };
 
       currentCall = client.newCall(params);
@@ -473,18 +422,18 @@
     }
 
     function saveInLocalStorage(e) {
-        var key = e.target.name || e.target.id
-        localStorage.setItem('relay.example.' + key, e.target.value);
+      var key = e.target.name || e.target.id
+      localStorage.setItem('relay.example.' + key, e.target.value);
 
-        // Can't use simulcast without video
-        let v = document.getElementById('video')
-        let s = document.getElementById('simulcast')
-        if (!v.checked) {
-            s.checked = false
-            s.disabled = true
-        } else {
-            s.disabled = false
-        }
+      // Can't use simulcast without video
+      let v = document.getElementById('video')
+      let s = document.getElementById('simulcast')
+      if (!v.checked) {
+        s.checked = false
+        s.disabled = true
+      } else {
+        s.disabled = false
+      }
     }
 
     // jQuery document.ready equivalent

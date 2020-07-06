@@ -246,6 +246,12 @@
         }
         case 'video': {
           console.debug('New video track', track.id, 'in stream', stream.id)
+
+              if (!stream.id.includes('ms-stream-')) {
+                console.debug('Skip displaying this stream, cause it is non MS stream')
+                return
+              }
+
           var wrapper = document.createElement('div')
           wrapper.id = track.id
           const className = /^ms1-/.test(stream.id) ? 'col-12' : 'col-3'

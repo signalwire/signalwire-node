@@ -30,6 +30,7 @@ export enum VertoMethod {
   JsApi = 'jsapi',
   Stats = 'verto.stats',
   Ping = 'verto.ping',
+  Announce = 'verto.announce',
 }
 
 export enum Notification {
@@ -41,6 +42,7 @@ export enum Notification {
   UserMediaError = 'userMediaError',
   RefreshToken = 'refreshToken',
   Prompt = 'prompt',
+  Announce = 'announce',
 }
 
 export const DEFAULT_CALL_OPTIONS: CallOptions = {

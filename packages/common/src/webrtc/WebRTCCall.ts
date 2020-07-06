@@ -10,7 +10,7 @@ import { trigger, register, deRegisterAll } from '../services/Handler'
 import { enableAudioTracks, disableAudioTracks, toggleAudioTracks, enableVideoTracks, disableVideoTracks, toggleVideoTracks, checkIsDirectCall } from './helpers'
 import { objEmpty, isFunction } from '../util/helpers'
 import { CallOptions, IHangupParams, ICallParticipant } from './interfaces'
-import { detachMediaStream, stopStream, setMediaElementSinkId, getUserMedia, attachMediaStream } from '../util/webrtc'
+import { detachMediaStream, stopStream, setMediaElementSinkId, getUserMedia, getHostname } from '../util/webrtc'
 import Conference from './Conference'
 import { CheckConferenceMethod } from './decorators'
 
@@ -149,8 +149,24 @@ export default abstract class WebRTCCall {
     return this.peer ? this.peer.getDeviceId('video') : null
   }
 
+  get cameraLabel() {
+    return this.peer ? this.peer.getDeviceLabel('video') : null
+  }
+
   get microphoneId() {
     return this.peer ? this.peer.getDeviceId('audio') : null
+  }
+
+  get microphoneLabel() {
+    return this.peer ? this.peer.getDeviceLabel('video') : null
+  }
+
+  get withAudio() {
+    return this.remoteStream ? this.remoteStream.getAudioTracks().length > 0 : false
+  }
+
+  get withVideo() {
+    return this.remoteStream ? this.remoteStream.getVideoTracks().length > 0 : false
   }
 
   async _upgrade() {
@@ -182,6 +198,7 @@ export default abstract class WebRTCCall {
         if (sender) {
           console.debug('updateDevices FOUND - replaceTrack on it and on localStream')
           await sender.replaceTrack(newTrack)
+          this.options.localStream.addTrack(newTrack)
           console.debug('updateDevices replaceTrack SUCCESS')
           this.options.localStream.getTracks().forEach(track => {
             if (track.kind === newTrack.kind && track.id !== newTrack.id) {
@@ -189,7 +206,6 @@ export default abstract class WebRTCCall {
               track.stop()
               track.dispatchEvent(new Event('ended'))
               this.options.localStream.removeTrack(track)
-              this.options.localStream.addTrack(newTrack)
             }
           })
         } else {
@@ -265,6 +281,23 @@ export default abstract class WebRTCCall {
   dtmf(dtmf: string) {
     const msg = new Info({ ...this.messagePayload, dtmf })
     this._execute(msg)
+  }
+
+  sendCurrentMediaSettings() {
+    const params = {
+      type: 'mediaSettings',
+      audioinput: this.peer.getTrackSettings('audio'),
+      videoinput: this.peer.getTrackSettings('video'),
+      audiooutput: {
+        deviceId: this.options.speakerId
+      },
+    }
+    return this._sendVertoInfo(params)
+  }
+
+  private _sendVertoInfo(params: object) {
+    const msg = new Info({ ...this.messagePayload, ...params })
+    return this._execute(msg)
   }
 
   @CheckConferenceMethod
@@ -397,9 +430,7 @@ export default abstract class WebRTCCall {
       case State.Active: {
         setTimeout(() => {
           const { remoteElement, speakerId } = this.options
-          if (remoteElement && speakerId) {
-            setMediaElementSinkId(remoteElement, speakerId)
-          }
+          setMediaElementSinkId(remoteElement, speakerId)
         }, 0)
         break
       }
@@ -555,7 +586,7 @@ export default abstract class WebRTCCall {
     if (!userVariables || objEmpty(userVariables)) {
       this.options.userVariables = this.session.options.userVariables || {}
     }
-    this.options.userVariables.hostname = window.location.hostname
+    this.options.userVariables.hostname = getHostname()
     if (!remoteCallerNumber) {
       this.options.remoteCallerNumber = this.options.destinationNumber
     }

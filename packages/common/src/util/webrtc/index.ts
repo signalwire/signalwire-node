@@ -1,4 +1,5 @@
 import { findElementByType } from '../helpers'
+import logger from '../logger'
 
 const RTCPeerConnection = (config: RTCPeerConnectionConfig) => new window.RTCPeerConnection(config)
 
@@ -58,6 +59,11 @@ const toggleMuteMediaElement = (tag: any) => {
 const setMediaElementSinkId = async (tag: any, deviceId: string): Promise<boolean> => {
   const element: HTMLMediaElement = findElementByType(tag)
   if (element === null) {
+    logger.info('No HTMLMediaElement to attach the speakerId')
+    return false
+  }
+  if (typeof deviceId !== 'string') {
+    logger.info(`Invalid speaker deviceId: '${deviceId}'`)
     return false
   }
   try {
@@ -83,6 +89,8 @@ const stopStream = (stream: MediaStream) => {
   stream = null
 }
 
+const getHostname = () => window.location.hostname
+
 export {
   RTCPeerConnection,
   getUserMedia,
@@ -97,5 +105,6 @@ export {
   muteMediaElement,
   unmuteMediaElement,
   toggleMuteMediaElement,
-  setMediaElementSinkId
+  setMediaElementSinkId,
+  getHostname,
 }

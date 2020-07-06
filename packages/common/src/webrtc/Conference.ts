@@ -15,6 +15,8 @@ export default class Conference {
 
   private pvtData: VertoPvtData
   private _lastSerno = 0
+  private _lastInfoSerno = -1
+  private _lastModSerno = -1
   private _isVmuted = false
   private _isMuted = false
 
@@ -215,7 +217,7 @@ export default class Conference {
     // FIXME: 'reorder' - changepage' - 'heartbeat' methods not implemented
     if (!this._checkSerno(packet.wireSerno)) {
       if (packet.wireSerno === this._lastSerno) {
-        return logger.debug('Skip event:', packet.wireSerno, 'last was:', this._lastSerno)
+        return logger.debug('Skip liveArray event:', packet.wireSerno, 'last was:', this._lastSerno)
       }
       logger.error('Invalid conference wireSerno:', packet)
       return this._bootstrap()
@@ -231,12 +233,9 @@ export default class Conference {
           if (this.callId === callId && audio && video) {
             const call = this.session.calls[this.callId]
             this._isMuted = audio.muted
-            if (call && this._isMuted === true) {
-              call.stopOutboundAudio()
-            }
             this._isVmuted = video.muted
-            if (call && this._isVmuted === true) {
-              call.stopOutboundVideo()
+            if (call) {
+              this._isVmuted ? call.stopOutboundVideo() : call.restoreOutboundVideo()
             }
           }
           participants.push(participant)
@@ -251,9 +250,6 @@ export default class Conference {
           const { audio, video } = notification
           const call = this.session.calls[this.callId]
           if (audio) {
-            if (this._isMuted !== audio.muted) {
-              audio.muted ? call.stopOutboundAudio() : call.restoreOutboundAudio()
-            }
             this._isMuted = audio.muted
           }
           if (video) {
@@ -275,10 +271,14 @@ export default class Conference {
   }
 
   infoChannelHandler(params: any) {
-    const { eventData = null } = params
+    const { eventData = null, eventSerno = null } = params
     if (!eventData) {
       return logger.warn('Unknown conference info event', params)
     }
+    if (eventSerno !== null && eventSerno === this._lastInfoSerno) {
+      return logger.debug('Skip Info event:', eventSerno, 'last was:', this._lastInfoSerno)
+    }
+    this._lastInfoSerno = eventSerno
     switch (eventData.contentType) {
       case 'layout-info':
         return this.updateLayouts(eventData)
@@ -298,7 +298,11 @@ export default class Conference {
   }
 
   modChannelHandler(params: any) {
-    const { data } = params
+    const { data, eventSerno = null } = params
+    if (eventSerno !== null && eventSerno === this._lastModSerno) {
+      return logger.debug('Skip Mod event:', eventSerno, 'last was:', this._lastModSerno)
+    }
+    this._lastModSerno = eventSerno
     switch (data['conf-command']) {
       case 'list-videoLayouts':
         if (data.responseData) {
@@ -362,6 +366,7 @@ export default class Conference {
       const { subscribed = [], alreadySubscribed = [] } = destructSubscribeResponse(result)
       const all = subscribed.concat(alreadySubscribed)
       this.channels.forEach(deRegisterAll)
+      this._clearAllSerno()
       if (all.includes(laChannel)) {
         register(laChannel, this.laChannelHandler)
         this._bootstrap()
@@ -391,7 +396,7 @@ export default class Conference {
     } catch (error) {
       logger.error('Conference unsubscribe error:', error)
     }
-    this._lastSerno = 0
+    this._clearAllSerno()
   }
 
   private _dispatchConferenceUpdate(params: any) {
@@ -407,5 +412,11 @@ export default class Conference {
       this._lastSerno = serno
     }
     return check
+  }
+
+  private _clearAllSerno = () => {
+    this._lastSerno = 0
+    this._lastInfoSerno = -1
+    this._lastModSerno = -1
   }
 }

@@ -23,8 +23,8 @@ export default abstract class BrowserSession extends BaseSession {
   public incognito = false
 
   private _iceServers: RTCIceServer[] = []
-  private _localElement: HTMLMediaElement = null
-  private _remoteElement: HTMLMediaElement = null
+  private _localElement: HTMLMediaElement | string | Function = null
+  private _remoteElement: HTMLMediaElement | string | Function = null
 
   protected _jwtAuth: boolean = true
   protected _audioConstraints: boolean | MediaTrackConstraints = true
@@ -214,7 +214,7 @@ export default abstract class BrowserSession extends BaseSession {
   }
 
   set localElement(tag: HTMLMediaElement | string | Function) {
-    this._localElement = findElementByType(tag)
+    this._localElement = tag
   }
 
   get localElement() {
@@ -222,7 +222,7 @@ export default abstract class BrowserSession extends BaseSession {
   }
 
   set remoteElement(tag: HTMLMediaElement | string | Function) {
-    this._remoteElement = findElementByType(tag)
+    this._remoteElement = tag
   }
 
   get remoteElement() {

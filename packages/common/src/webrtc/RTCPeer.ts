@@ -92,6 +92,30 @@ export default class RTCPeer {
     }
   }
 
+  getTrackSettings(kind: string) {
+    try {
+      const sender = this._getSenderByKind(kind)
+      if (!sender || !sender.track) {
+        return null
+      }
+      return sender.track.getSettings()
+    } catch (error) {
+      logger.error('RTCPeer getTrackSettings error', kind, error)
+    }
+  }
+
+  getDeviceLabel(kind: string) {
+    try {
+      const sender = this._getSenderByKind(kind)
+      if (!sender || !sender.track) {
+        return null
+      }
+      return sender.track.label
+    } catch (error) {
+      logger.error('RTCPeer getDeviceLabel error', kind, error)
+    }
+  }
+
   async applyMediaConstraints(kind: string, constraints: MediaTrackConstraints) {
     try {
       const sender = this._getSenderByKind(kind)
@@ -118,12 +142,19 @@ export default class RTCPeer {
     }
   }
 
-  async startNegotiation() {
+  async startNegotiation(force = false) {
     if (this._negotiating) {
       return logger.warn('Skip twice onnegotiationneeded!')
     }
     this._negotiating = true
     try {
+
+      if (this.options.secondSource === true) {
+        this.instance.getTransceivers().forEach(tr => {
+          tr.direction = 'sendonly'
+        })
+      }
+
       this.instance.removeEventListener('icecandidate', this._onIce)
       this.instance.addEventListener('icecandidate', this._onIce)
 
@@ -144,6 +175,10 @@ export default class RTCPeer {
         await this._setLocalDescription(answer)
         logger.info('LOCAL SDP 2 \n', `Type: ${this.instance.localDescription.type}`, '\n\n', this.instance.localDescription.sdp)
         return
+      }
+      if (force) {
+        // RN workaroud
+        this._sdpReady()
       }
     } catch (error) {
       logger.error(`Error creating ${this.type}:`, error)
@@ -218,6 +253,7 @@ export default class RTCPeer {
 
     const { localElement, localStream = null, screenShare } = this.options
     if (streamIsValid(localStream)) {
+
       const audioTracks = localStream.getAudioTracks()
       logger.info('Local audio tracks: ', audioTracks)
       const videoTracks = localStream.getVideoTracks()
@@ -227,6 +263,7 @@ export default class RTCPeer {
         // Use addTransceiver
 
         audioTracks.forEach(track => {
+          this.options.userVariables.microphoneLabel = track.label
           this.instance.addTransceiver(track, {
             direction: 'sendrecv',
             streams: [ localStream ]
@@ -247,6 +284,7 @@ export default class RTCPeer {
         }
         console.debug('Applying video transceiverParams', transceiverParams)
         videoTracks.forEach(track => {
+          this.options.userVariables.cameraLabel = track.label
           this.instance.addTransceiver(track, transceiverParams)
         })
 
@@ -271,17 +309,25 @@ export default class RTCPeer {
         // Use addTrack
 
         audioTracks.forEach(track => {
+          this.options.userVariables.microphoneLabel = track.label
           this.instance.addTrack(track, localStream)
         })
 
         videoTracks.forEach(track => {
+          this.options.userVariables.cameraLabel = track.label
           this.instance.addTrack(track, localStream)
         })
-
       } else {
         // Fallback to legacy addStream ..
         // @ts-ignore
         this.instance.addStream(localStream)
+      }
+
+      if (this.options.negotiateAudio) {
+        this._checkMediaToNegotiate('audio')
+      }
+      if (this.options.negotiateVideo) {
+        this._checkMediaToNegotiate('video')
       }
 
       if (screenShare === false) {
@@ -294,16 +340,26 @@ export default class RTCPeer {
     }
   }
 
+  private _checkMediaToNegotiate(kind: string) {
+    // addTransceiver of 'kind' if not present
+    const sender = this._getSenderByKind(kind)
+    if (!sender) {
+      const transceiver = this.instance.addTransceiver(kind)
+      console.debug('Add transceiver', kind, transceiver)
+    }
+  }
+
   private async _sdpReady() {
     clearTimeout(this._iceTimeout)
+    this._iceTimeout = null
     const { sdp, type } = this.instance.localDescription
     console.debug('ICE SDP \n', `Type: ${type}`, '\n\n', sdp)
-
     if (sdp.indexOf('candidate') === -1) {
-      this.startNegotiation()
+      logger.info('No candidate - retry \n')
+      this.startNegotiation(true)
       return
     }
-
+    logger.info('LOCAL SDP \n', `Type: ${type}`, '\n\n', sdp)
     this.instance.removeEventListener('icecandidate', this._onIce)
     let msg = null
     const tmpParams = { ...this.call.messagePayload, sdp }

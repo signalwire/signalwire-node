@@ -127,6 +127,10 @@ export default (session: BrowserSession, msg: any) => {
     }
     case VertoMethod.Event:
     case 'webrtc.event': {
+      const { subscribedChannel } = params
+      if (subscribedChannel && trigger(subscribedChannel, params)) {
+        return
+      }
       if (eventChannel) {
         const channelType = eventChannel.split('.')[0]
         const global = trigger(channelType, params)
@@ -144,7 +148,12 @@ export default (session: BrowserSession, msg: any) => {
     case VertoMethod.ClientReady:
       params.type = Notification.VertoClientReady
       return trigger(SwEvent.Notification, params, session.uuid)
+    case VertoMethod.Announce:
+      params.type = Notification.Announce
+      return trigger(SwEvent.Notification, params, session.uuid)
     default:
-      logger.warn('Unknown Verto method:', method, params)
+      logger.debug('Unknown Verto method:', method, params)
+      params.type = method
+      return trigger(SwEvent.Notification, params, session.uuid)
   }
 }

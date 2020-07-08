@@ -1,5 +1,5 @@
 import logger from '../util/logger'
-import { getMediaSections, matchPrefix } from 'sdp'
+import { getMediaSections } from 'sdp'
 import * as WebRTC from '../util/webrtc'
 import { isDefined, roundToFixed } from '../util/helpers'
 import { DeviceType } from './constants'

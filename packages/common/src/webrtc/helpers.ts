@@ -212,43 +212,40 @@ const sdpAudioVideoOrderHack = (offerLines: string): string => {
 }
 
 const sdpAudioRemoveRTPExtensions = (sdp: string, extensionsToFilter: string[]): string => {
+  const endOfLine = '\r\n'
 
-    const endOfLine = '\r\n'
+  let beginLines: string[] = []
+  let audioLines: string[] = []
+  let videoLines: string[] = []
+  const newLines = sdp.split(endOfLine)
 
-    let beginLines = null
-    let audioLines = null
-    let videoLines = null
-    let newLines = sdp.split(endOfLine)
-    
-    const offerAudioIndex = newLines.findIndex(_isAudioLine)
-    const offerVideoIndex = newLines.findIndex(_isVideoLine)
-    
-    if (offerAudioIndex < offerVideoIndex) {
-        beginLines = newLines.slice(0, offerAudioIndex)
-        audioLines = newLines.slice(offerAudioIndex, offerVideoIndex)
-        videoLines = newLines.slice(offerVideoIndex, (newLines.length - 1))
-    } else {
-        beginLines = newLines.slice(0, offerVideoIndex)
-        audioLines = newLines.slice(offerAudioIndex, (newLines.length - 1))
-        videoLines = newLines.slice(offerVideoIndex, offerAudioIndex)
-    }
+  const offerAudioIndex = newLines.findIndex(_isAudioLine)
+  const offerVideoIndex = newLines.findIndex(_isVideoLine)
 
-    var newAudioLines = audioLines.filter(function (line) {
-        return !(line.includes(extensionsToFilter[0]) || line.includes(extensionsToFilter[1]) || line.includes(extensionsToFilter[2]))
-    })
+  if (offerAudioIndex < offerVideoIndex) {
+    beginLines = newLines.slice(0, offerAudioIndex)
+    audioLines = newLines.slice(offerAudioIndex, offerVideoIndex)
+    videoLines = newLines.slice(offerVideoIndex, (newLines.length - 1))
+  } else {
+    beginLines = newLines.slice(0, offerVideoIndex)
+    audioLines = newLines.slice(offerAudioIndex, (newLines.length - 1))
+    videoLines = newLines.slice(offerVideoIndex, offerAudioIndex)
+  }
 
-    return [...beginLines, ...newAudioLines, ...videoLines, ''].join(endOfLine)
+  const newAudioLines = audioLines.filter((line: string) => {
+    return !(line.includes(extensionsToFilter[0]) || line.includes(extensionsToFilter[1]) || line.includes(extensionsToFilter[2]))
+  })
+
+  return [...beginLines, ...newAudioLines, ...videoLines, ''].join(endOfLine)
 }
 
 const sdpAudioRemoveRidMidExtHack = (sdp: string): string => {
-
-    const extensionsToFilter = [
-        'urn:ietf:params:rtp-hdrext:sdes:mid',
-        'urn:ietf:params:rtp-hdrext:sdes:rtp-stream-id',
-        'urn:ietf:params:rtp-hdrext:sdes:repaired-rtp-stream-id',
-        ]
-
-    return sdpAudioRemoveRTPExtensions(sdp, extensionsToFilter)
+  const extensionsToFilter = [
+    'urn:ietf:params:rtp-hdrext:sdes:mid',
+    'urn:ietf:params:rtp-hdrext:sdes:rtp-stream-id',
+    'urn:ietf:params:rtp-hdrext:sdes:repaired-rtp-stream-id',
+  ]
+  return sdpAudioRemoveRTPExtensions(sdp, extensionsToFilter)
 }
 
 type DestructuredResult = { subscribed: string[], alreadySubscribed: string[], unauthorized: string[], unsubscribed: string[], notSubscribed: string[] }

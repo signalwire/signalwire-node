@@ -240,9 +240,8 @@ export default class RTCPeer {
       // }
       this.options.remoteStream = event.streams[0]
       const { remoteStream, screenShare } = this.options
-      let remoteElement = this.options.remoteElement
       if (screenShare === false) {
-        attachMediaStream(remoteElement, remoteStream)
+        attachMediaStream(this.options.remoteElement, remoteStream)
       }
     })
 

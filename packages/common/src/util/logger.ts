@@ -11,19 +11,15 @@ logger.methodFactory = (methodName, logLevel, loggerName) => {
 
     const messages = [datetime(), ' : ']
 
-    {
-        let err = new Error()
-    
-        if (err) {
-            let stack = err.stack
-            if (stack) {
-                let stacksp = stack.split("at ")
-                if (stacksp.length > 2) {
-                    let logLineDetails = stacksp[2].trim()
-                    messages.push(logLineDetails)
-                }
-            }
+    const err = new Error()
+    if (err) {
+      const stack = err.stack
+      if (stack) {
+        const stacksp = stack.split('at ')
+        if (stacksp.length > 2) {
+          messages.push(stacksp[2].trim())
         }
+      }
     }
 
     messages.push('\n')

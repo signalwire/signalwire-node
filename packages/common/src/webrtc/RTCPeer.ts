@@ -139,13 +139,6 @@ export default class RTCPeer {
     return this.instance.getSenders().find(({ track }) => (track && track.kind === kind))
   }
 
-  private _logMSSenderParams(index: string) {
-    const transceiver = this.instance.getTransceivers().find(tr => tr.mid === '1')
-    if (transceiver && transceiver.sender) {
-        console.debug('Sender Params', index, '\n', JSON.stringify(transceiver.sender.getParameters(), null, 2), '\n')
-    }
-  }
-
   async startNegotiation(force = false) {
     if (this._negotiating) {
       return logger.warn('Skip twice onnegotiationneeded!')
@@ -166,19 +159,14 @@ export default class RTCPeer {
         logger.info('Trying to generate offer')
         const offer = await this.instance.createOffer({ voiceActivityDetection: false })
         await this._setLocalDescription(offer)
-        logger.info('LOCAL SDP 2 \n', `Type: ${this.instance.localDescription.type}`, '\n\n', this.instance.localDescription.sdp)
-        return
       }
 
       if (this.isAnswer) {
         logger.info('Trying to generate answer')
-        this._logMSSenderParams('1')
         await this._setRemoteDescription({ sdp: this.options.remoteSdp, type: PeerType.Offer })
         this._logTransceivers()
         const answer = await this.instance.createAnswer({ voiceActivityDetection: false })
         await this._setLocalDescription(answer)
-        logger.info('LOCAL SDP 2 \n', `Type: ${this.instance.localDescription.type}`, '\n\n', this.instance.localDescription.sdp)
-        return
       }
       if (force) {
         // RN workaroud
@@ -239,9 +227,9 @@ export default class RTCPeer {
         this.call._dispatchNotification(notification)
       // }
       this.options.remoteStream = event.streams[0]
-      const { remoteStream, screenShare } = this.options
+      const { remoteElement, remoteStream, screenShare } = this.options
       if (screenShare === false) {
-        attachMediaStream(this.options.remoteElement, remoteStream)
+        attachMediaStream(remoteElement, remoteStream)
       }
     })
 
@@ -269,13 +257,13 @@ export default class RTCPeer {
           this.options.userVariables.microphoneLabel = track.label
           this.instance.addTransceiver(track, {
             direction: 'sendrecv',
-            streams: [ localStream ]
+            streams: [ localStream ],
           })
         })
 
         const transceiverParams: RTCRtpTransceiverInit = {
           direction: 'sendrecv',
-          streams: [ localStream ]
+          streams: [ localStream ],
         }
         if (this.isSimulcast) {
           const rids = ['0', '1', '2']
@@ -349,7 +337,6 @@ export default class RTCPeer {
     clearTimeout(this._iceTimeout)
     this._iceTimeout = null
     const { sdp, type } = this.instance.localDescription
-    console.debug('ICE SDP \n', `Type: ${type}`, '\n\n', sdp)
     if (sdp.indexOf('candidate') === -1) {
       logger.info('No candidate - retry \n')
       this.startNegotiation(true)

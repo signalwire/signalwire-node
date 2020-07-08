@@ -14,8 +14,6 @@ import { detachMediaStream, stopStream, setMediaElementSinkId, getUserMedia, get
 import Conference from './Conference'
 import { CheckConferenceMethod } from './decorators'
 
-// logger.enableAll()
-
 const confMethods = [
   'sendChatMessage', 'listVideoLayouts', 'playMedia', 'stopMedia', 'startRecord', 'stopRecord',
   'snapshot', 'setVideoLayout', 'kick', 'presenter', 'videoFloor', 'banner',

@@ -126,10 +126,9 @@
      * Connect with Relay creating a client and attaching all the event handler.
     */
     function connect() {
-      client = new Verto({
-        login: '1008',
-        host: "wss://sfu.jazzchat.pl:8084",
-        passwd: '7777'
+      client = new Relay({
+        project: document.getElementById('project').value,
+        token: document.getElementById('token').value
       });
 
       // client.autoRecoverCalls = false;

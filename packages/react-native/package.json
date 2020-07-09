@@ -42,7 +42,6 @@
     "fs-extra": "^7.0.1",
     "listr": "^0.14.3",
     "loglevel": "^1.6.7",
-    "sdp": "^3.0.2",
     "uuid": "^7.0.2"
   },
   "devDependencies": {

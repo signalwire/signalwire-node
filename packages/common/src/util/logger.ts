@@ -9,20 +9,10 @@ logger.methodFactory = (methodName, logLevel, loggerName) => {
   // tslint:disable-next-line
   return function () {
 
-    const messages = [datetime(), ' : ']
-
-    const err = new Error()
-    if (err) {
-      const stack = err.stack
-      if (stack) {
-        const stacksp = stack.split('at ')
-        if (stacksp.length > 2) {
-          messages.push(stacksp[2].trim())
-        }
-      }
+    const messages = []
+    if (typeof window === 'undefined') {
+      messages.push(datetime() + ' - ')
     }
-
-    messages.push('\n')
 
     for (let i = 0; i < arguments.length; i++) {
       messages.push(arguments[i])

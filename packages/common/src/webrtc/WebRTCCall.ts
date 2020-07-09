@@ -479,10 +479,10 @@ export default abstract class WebRTCCall {
 
   private _onParticipantData(params: any) {
     // TODO: manage caller_id_name, caller_id_number, callee_id_name, callee_id_number
-    const { display_name: displayName, display_number: displayNumber, display_direction } = params
+    const { display_name: displayName, display_number: displayNumber, display_direction, ...rest } = params
     this.extension = displayNumber
     const displayDirection = display_direction === Direction.Inbound ? Direction.Outbound : Direction.Inbound
-    this._dispatchNotification({ type: Notification.ParticipantData, displayName, displayNumber, displayDirection })
+    this._dispatchNotification({ type: Notification.ParticipantData, displayName, displayNumber, displayDirection, ...rest })
   }
 
   private async _onVertoAnswer(params: any) {

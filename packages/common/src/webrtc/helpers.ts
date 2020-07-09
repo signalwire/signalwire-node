@@ -1,5 +1,4 @@
 import logger from '../util/logger'
-import { getMediaSections } from 'sdp'
 import * as WebRTC from '../util/webrtc'
 import { isDefined, roundToFixed } from '../util/helpers'
 import { DeviceType } from './constants'
@@ -370,45 +369,6 @@ const checkIsDirectCall = ({ variables }) => {
   return typeof variables === 'object' && 'verto_svar_direct_call' in variables
 }
 
-const sdpSimulcastHack = (sdp: string): string => {
-  logger.debug('\n sdpSimulcastHack BEFORE \n', sdp, '\n')
-  try {
-    const endOfLine = '\r\n'
-    const videoPart = getMediaSections(sdp)[1]
-    const match = videoPart.match(/a=ssrc:(\d+) cname:(.*)\r\n/)
-    const msid = videoPart.match(/a=ssrc:(\d+) msid:(.*)\r\n/)
-    const lines = sdp.trim().split(endOfLine)
-    const removed = lines.splice(lines.length - 4, 4)
-    const videoSSRC1 = parseInt(match[1])
-
-    // var rtxSSRC1 = matchPrefix(videoPart, 'a=ssrc-group:FID ')[0].split(' ')[2]
-    const videoSSRC2 = videoSSRC1 + 1
-    const rtxSSRC2 = videoSSRC1 + 2
-    lines.push(removed[0])
-    lines.push(removed[1])
-
-    lines.push('a=ssrc:' + videoSSRC2 + ' cname:' + match[2])
-    lines.push('a=ssrc:' + videoSSRC2 + ' msid:' + msid[2])
-    lines.push('a=ssrc:' + rtxSSRC2 + ' cname:' + match[2])
-    lines.push('a=ssrc:' + rtxSSRC2 + ' msid:' + msid[2])
-
-    lines.push(`a=ssrc-group:FID ${videoSSRC2} ${rtxSSRC2}`)
-    // lines.push('a=ssrc-group:FID ' + videoSSRC2)
-    // lines.push('a=ssrc-group:FID ' + videoSSRC3)
-    // lines.push('a=ssrc-group:FID ' + videoSSRC4)
-    lines.push(`a=ssrc-group:SIM ${videoSSRC1} ${videoSSRC2}`)
-    // lines.push("a=x-google-flag:conference")
-    // lines.push('b=AS:1000')
-    // lines.push('a=fmtp:96 x-google-start-bitrate=90000')
-    sdp = lines.join(endOfLine) + endOfLine
-    logger.warn('\n AFTER SIMULCAST \n', sdp, '\n')
-    logger.debug('\n sdpSimulcastHack AFTER \n', sdp, '\n')
-  } catch (error) {
-    logger.error('\n ERROR \n', error, '\n')
-  }
-  return sdp
-}
-
 export {
   getUserMedia,
   getDevices,
@@ -429,7 +389,6 @@ export {
   toggleVideoTracks,
   mutateCanvasInfoData,
   checkIsDirectCall,
-  sdpSimulcastHack,
   sdpAudioVideoOrderHack,
   sdpAudioRemoveRTPExtensions,
   sdpAudioRemoveRidMidExtHack

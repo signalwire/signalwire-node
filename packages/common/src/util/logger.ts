@@ -11,7 +11,7 @@ logger.methodFactory = (methodName, logLevel, loggerName) => {
 
     const messages = []
     if (typeof window === 'undefined') {
-      messages.push(datetime() + ' - ')
+      messages.push(datetime() + ' -')
     }
 
     for (let i = 0; i < arguments.length; i++) {

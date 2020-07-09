@@ -31,7 +31,7 @@ module.exports = (env, argv) => {
       ]
     },
     devServer: {
-      contentBase: [outputDir, __dirname + '/examples/vanilla-calling'],
+      contentBase: [outputDir, __dirname + '/examples/simulcast'],
       compress: true,
       port: 9000,
       https: true

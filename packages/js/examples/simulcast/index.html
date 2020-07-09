@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Signalwire Call Demo</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <!-- Cross Browser WebRTC Adapter -->
+  <script type="text/javascript" src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
+
+  <!-- Include the SignalWire Relay JS SDK -->
+  <script type="text/javascript" src="index.min.js"></script>
+
+  <!-- To style up the demo a little -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" />
+  <link rel="shortcut icon" href="https://signalwire.com/assets/images/favicon.ico" />
+</head>
+<body class="bg-light">
+  <div class="container">
+    <div class="row pt-5">
+      <div class="col-12 pb-3">
+        <h1>SFU Demo</h1>
+      </div>
+    </div>
+    <hr />
+    <div class="row py-3">
+      <div class="col-12 col-md-4">
+        <div class="card">
+          <div class="card-body">
+            <h5>Connect</h5>
+            <div class="form-group">
+              <label for="host">Host</label>
+              <input type="text" class="form-control" id="host" placeholder="Host to use" onchange="saveInLocalStorage(event)">
+            </div>
+            <div class="form-group">
+              <label for="project">Login</label>
+              <input type="text" class="form-control" id="project" placeholder="Enter loign" onchange="saveInLocalStorage(event)">
+            </div>
+            <div class="form-group">
+              <label for="token">Password</label>
+              <input type="text" class="form-control" id="token" placeholder="Enter passwd" onchange="saveInLocalStorage(event)">
+            </div>
+            <button id="btnConnect" class="btn btn-block btn-success" onclick="connect()">Connect</button>
+            <button id="btnDisconnect" class="btn btn-block btn-danger d-none" onclick="disconnect()">Disconnect</button>
+
+            <div class="text-center mt-3 text-muted">
+              <small>Status: <span id='connectStatus'>Not Connected</span></small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 col-md-8 mt-4 mt-md-1">
+        <div class="row py-3">
+          <div class="col-12">
+            <div class="form-group">
+              <label for="number">Call To:</label>
+              <input type="text" class="form-control" id="number" placeholder="Enter Resource or Number to Dial" onchange="saveInLocalStorage(event)">
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="form-group">
+              <label for="number">Max Number of Remote Videos To Display:</label>
+              <select class="form-control" id="msStreamsNumber" onchange="saveInLocalStorage(event)"></select>
+            </div>
+          </div>
+        </div>
+        <div class="row py-3">
+          <div class="col-8">
+            <div>Call Options:</div>
+            <div class="form-check">
+              <input type="checkbox" id="audio" value="1" onchange="saveInLocalStorage(event)">
+              <label class="form-check-label" for="audio">
+                Include Audio
+              </label>
+            </div>
+            <div class="form-check">
+              <input type="checkbox" id="video" value="1" onchange="saveInLocalStorage(event)">
+              <label class="form-check-label" for="video">
+                Include Video
+              </label>
+            </div>
+            <div class="form-check">
+              <input type="checkbox" id="simulcast" value="1" onchange="saveInLocalStorage(event)">
+              <label class="form-check-label" for="simulcast">
+                Simulcast
+              </label>
+            </div>
+            <button id="startCall" class="btn btn-primary px-5 mt-4" onClick="makeCall()" disabled="true">Call</button>
+            <button id="hangupCall" class="btn btn-danger px-5 mt-4 d-none" onClick="hangup()" disabled="true">Hang up</button>
+          </div>
+          <div class="col-4">
+            <h5>Local Video</h5>
+            <video id="localVideo" autoplay="true" class="w-100" style="background-color: #000; border: 1px solid #ccc; border-radius: 5px;"></video>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="videoWrapper" class="row py-3">
+      <!-- Dynamic Content -->
+    </div>
+    <hr />
+  </div>
+  <script type="text/javascript">
+    var client;
+    var currentCall = null;
+    var RES_SEPARATOR = '|';
+
+    var host = localStorage.getItem('relay.example.host') || '';
+    var project = localStorage.getItem('relay.example.project') || '';
+    var token = localStorage.getItem('relay.example.token') || '';
+    var number = localStorage.getItem('relay.example.number') || '';
+    var audio = localStorage.getItem('relay.example.audio') || '1';
+    var video = localStorage.getItem('relay.example.video') || '1';
+    var simulcast = localStorage.getItem('relay.example.simulcast') || '1';
+    var msStreamsNumber = localStorage.getItem('relay.example.msStreamsNumber') || 5;
+
+    /**
+     * On document ready auto-fill the input values from the localStorage.
+    */
+    ready(function() {
+      document.getElementById('host').value = host;
+      document.getElementById('project').value = project;
+      document.getElementById('token').value = token;
+      document.getElementById('number').value = number;
+      document.getElementById('audio').checked = audio === '1';
+      document.getElementById('video').checked = video === '1';
+      document.getElementById('simulcast').checked = simulcast === '1';
+
+      var select = document.getElementById('msStreamsNumber');
+      for (var i = 0; i < 10; i++){
+        var opt = document.createElement('option');
+        opt.value = i;
+        opt.innerHTML = i;
+        opt.selected = i === Number(msStreamsNumber);
+        select.appendChild(opt);
+      }
+    });
+
+    /**
+     * Connect with Relay creating a client and attaching all the event handler.
+    */
+    function handleResolutionChange(event) {
+      const [streamId, trackId, value] = event.target.value.split(RES_SEPARATOR)
+      console.log('handleResolutionChange', streamId, trackId, value)
+      switch (value) {
+        case 'high':
+          return currentCall.sfuHighResolution(streamId, trackId)
+        case 'low':
+          return currentCall.sfuLowResolution(streamId, trackId)
+        default:
+          return currentCall.sfuDefaultResolution(streamId, trackId)
+      }
+    }
+
+    function connect() {
+      client = new Verto({
+        host: document.getElementById('host').value,
+        login: document.getElementById('project').value,
+        passwd: document.getElementById('token').value
+      });
+
+      // client.autoRecoverCalls = false;
+      client.remoteElement = 'remoteVideo';
+      client.localElement = 'localVideo';
+      client.iceServers = [{ urls: ['stun:stun.l.google.com:19302'] }];
+      if (document.getElementById('audio').checked) {
+        client.enableMicrophone()
+      } else {
+        client.disableMicrophone()
+      }
+      if (document.getElementById('video').checked) {
+        client.enableWebcam()
+      } else {
+        client.disableWebcam()
+      }
+
+      client.on('signalwire.ready', function() {
+        btnConnect.classList.add('d-none');
+        btnDisconnect.classList.remove('d-none');
+        connectStatus.innerHTML = 'Connected';
+
+        startCall.disabled = false;
+      });
+
+      // Update UI on socket close
+      client.on('signalwire.socket.close', function() {
+        btnConnect.classList.remove('d-none');
+        btnDisconnect.classList.add('d-none');
+        connectStatus.innerHTML = 'Disconnected';
+      });
+
+      // Handle error...
+      client.on('signalwire.error', function(error){
+        console.error("SignalWire error:", error);
+      });
+
+      client.on('signalwire.notification', handleNotification);
+
+      connectStatus.innerHTML = 'Connecting...';
+      client.connect();
+    }
+
+    function disconnect() {
+      connectStatus.innerHTML = 'Disconnecting...';
+      client.disconnect();
+    }
+
+    /**
+     * Handle notification from the client.
+    */
+    function handleNotification(notification) {
+      console.log("notification", notification.type, notification);
+      switch (notification.type) {
+        case 'callUpdate':
+          handleCallUpdate(notification.call);
+          break;
+        case 'userMediaError':
+          // Permission denied or invalid audio/video params on `getUserMedia`
+          break;
+        case 'trackAdd':
+          // Handle new peer track
+          handleTrackAdd(notification);
+          break;
+      }
+    }
+
+    function handleTrackAdd(notification) {
+      var event = notification.event
+
+      var stream = event.streams[0]
+      var track = event.track
+
+      switch (track.kind) {
+        case 'audio': {
+          const audio = new Audio()
+          window.__confAudio = audio
+          audio.srcObject = stream
+          audio.play().then(() => {
+            console.log('Conference audio is playing..')
+          }).catch(error => {
+            console.error('Conference audio cannot play?', error)
+          })
+          break
+        }
+        case 'video': {
+          console.debug('New video track', track.id, 'in stream', stream.id)
+
+              if (!stream.id.includes('ms-stream-')) {
+                console.debug('Skip displaying this stream, cause it is non MS stream')
+                return
+              }
+
+          var wrapper = document.createElement('div')
+          wrapper.id = track.id
+          const className = /^ms1-/.test(stream.id) ? 'col-12' : 'col-3'
+          wrapper.className = `${className} dynamic`
+
+          var hTitle = document.createElement('h5')
+          var withAudio = stream.getAudioTracks().length > 0
+          hTitle.innerText = 'Dynamic: ' + (withAudio ? 'AUDIO/VIDEO' : 'VIDEO')
+          wrapper.appendChild(hTitle)
+
+          let receiver = event.receiver;
+          receiver.getStats().then( (stats) => {
+              stats.forEach(stat => console.log(JSON.stringify(stat)))
+              //sfuVideo.ssrc = ssrc;
+          });
+
+          var descr = document.createElement('small')
+          descr.innerText = 'Track: ' + track.id + '\nStream: ' + stream.id
+          wrapper.appendChild(descr)
+
+          var sfuVideo = document.createElement('video')
+          sfuVideo.muted = false
+          sfuVideo.playsInline = true
+          sfuVideo.autoplay = true
+          sfuVideo.className = 'w-100'
+          sfuVideo.srcObject = stream
+          sfuVideo.controls = true
+          // sfuVideo.style.display = 'none'
+
+          var timer = null
+          track.onended = (event) => {
+            console.log(`>> ${stream.id} ${track.id} ended`)
+            wrapper.style.display = 'none'
+            clearTimeout(timer)
+          }
+          track.onmute = (event) => {
+            console.log(`>> ${stream.id} ${track.id} onmute`)
+            // Wait for 10s before hide the box
+            // timer = setTimeout(() => {
+            //   wrapper.style.display = 'none'
+            // }, 10 * 1000)
+          }
+          track.onunmute = (event) => {
+            console.log(`>> ${stream.id} ${track.id} onunmute`)
+            wrapper.style.display = 'block'
+            // clearTimeout(timer)
+          }
+
+          var resRow = buildResolutionChangeRadios(stream.id, track.id)
+          wrapper.appendChild(resRow)
+          wrapper.appendChild(sfuVideo)
+          videoWrapper.appendChild(wrapper)
+          break
+        }
+        default:
+          return console.error('Unknown track kind', track)
+      }
+    }
+
+    if( typeof Element.prototype.clearChildren === 'undefined' ) {
+      Object.defineProperty(Element.prototype, 'clearChildren', {
+        configurable: true,
+        enumerable: false,
+        value: function() {
+          while(this.firstChild) this.removeChild(this.lastChild);
+        }
+      });
+    }
+
+    function buildResolutionChangeRadios(streamId, trackId) {
+      var row = document.createElement('div')
+      row.className = 'col-12'
+      const values = ['high', 'low']
+      values.forEach(value => {
+        var wrapper = document.createElement('div')
+        wrapper.className = 'form-check'
+        var radioInput = document.createElement('input')
+        radioInput.className = 'form-check-input'
+        radioInput.type = 'radio'
+        radioInput.id = `${streamId}${RES_SEPARATOR}${trackId}${RES_SEPARATOR}${value}`
+        radioInput.name = `res-${streamId}${RES_SEPARATOR}${trackId}`
+        radioInput.value = radioInput.id
+
+        if (!radioInput.id.includes('ms-stream-1-')) {
+            radioInput.checked = value === 'low'
+        } else {
+            radioInput.checked = value === 'high'
+        }
+        radioInput.onchange = handleResolutionChange
+        wrapper.appendChild(radioInput)
+        var label = document.createElement('label')
+        label.className = 'form-check-label'
+        label.setAttribute('for', radioInput.id)
+        label.innerText = value
+        label.style.textTransform = 'capitalize'
+        wrapper.appendChild(label)
+
+        row.appendChild(wrapper)
+      })
+
+      return row
+    }
+
+    /**
+     * Update the UI when the call's state change
+    */
+    function handleCallUpdate(call) {
+      currentCall = call;
+
+      switch (call.state) {
+        case 'new': // Setup the UI
+          break;
+        case 'trying': // You are trying to call someone and he's ringing now
+          break;
+        case 'recovering': // Call is recovering from a previous session
+          if (confirm('Recover the previous call?')) {
+            currentCall.answer();
+          } else {
+            currentCall.hangup();
+          }
+          break;
+        case 'ringing': // Someone is calling you
+          if (confirm('Pick up the call?')) {
+            currentCall.answer();
+          } else {
+            currentCall.hangup();
+          }
+          break;
+        case 'active': // Call has become active
+          startCall.classList.add('d-none');
+          hangupCall.classList.remove('d-none');
+          hangupCall.disabled = false;
+          break;
+        case 'hangup': // Call is over
+          startCall.classList.remove('d-none');
+          hangupCall.classList.add('d-none');
+          hangupCall.disabled = true;
+          break;
+        case 'destroy': // Call has been destroyed
+          currentCall = null;
+          // var e = document.getElementById('remoteVideos')
+          //   if (e)
+          //       e.clearChildren()
+          // document.querySelectorAll('#videoWrapper .dynamic').forEach(el => el.parentNode.removeChild(el))
+          break;
+      }
+    }
+
+    /**
+     * Make a new outbound call
+    */
+    function makeCall() {
+      const destinationNumber = document.getElementById('number').value
+      const params = {
+        destinationNumber: destinationNumber, // required!
+        audio: document.getElementById('audio').checked,
+
+        // Ideally we would request resolution as high as this, but this may result in broken video for highest simulcast layer (maybe adjusting the allowed max bitrate allocation can fix this)
+        //video: document.getElementById('video').checked ? { width: {ideal: 1280}, height: {ideal: 720} } : false,
+
+        // so, for now start from bit worse resolution, but resulting in smooth stream
+        video: document.getElementById('video').checked ? { width: {ideal: 640}, height: {ideal: 360} } : false,
+
+        sfu: true,  // want MS streams displayed
+
+        simulcast: document.getElementById('simulcast').checked, // send multiple resolutions (simulcast layers)
+
+        // max number of video streams this app wants to receive
+        msStreamsNumber: document.getElementById('msStreamsNumber').value,
+      };
+
+      currentCall = client.newCall(params);
+    }
+
+    /**
+     * Hangup the currentCall if present
+    */
+    function hangup() {
+      if (currentCall) {
+        currentCall.hangup()
+      }
+    }
+
+    function saveInLocalStorage(e) {
+      var key = e.target.name || e.target.id
+      localStorage.setItem('relay.example.' + key, e.target.value);
+
+      // Can't use simulcast without video
+      let v = document.getElementById('video')
+      let s = document.getElementById('simulcast')
+      if (!v.checked) {
+        s.checked = false
+        s.disabled = true
+      } else {
+        s.disabled = false
+      }
+    }
+
+    // jQuery document.ready equivalent
+    function ready(callback) {
+      if (document.readyState != 'loading') {
+        callback();
+      } else if (document.addEventListener) {
+        document.addEventListener('DOMContentLoaded', callback);
+      } else {
+        document.attachEvent('onreadystatechange', function() {
+          if (document.readyState != 'loading') {
+            callback();
+          }
+        });
+      }
+    }
+  </script>
+</body>
+</html>

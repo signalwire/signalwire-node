@@ -194,6 +194,59 @@ const sdpMediaOrderHack = (answer: string, localOffer: string): string => {
   return [...beginLines, ...videoLines, ...audioLines, ''].join(endOfLine)
 }
 
+const sdpAudioVideoOrderHack = (offerLines: string): string => {
+  const endOfLine = '\r\n'
+  const sdp = offerLines.split(endOfLine)
+  const offerAudioIndex = sdp.findIndex(_isAudioLine)
+  const offerVideoIndex = sdp.findIndex(_isVideoLine)
+  if (offerAudioIndex < offerVideoIndex) {
+    return offerLines
+  }
+
+  const newLines = offerLines.split(endOfLine)
+  const beginLines = newLines.slice(0, offerVideoIndex)
+  const videoLines = newLines.slice(offerVideoIndex, offerAudioIndex)
+  const audioLines = newLines.slice(offerAudioIndex, (newLines.length - 1))
+  return [...beginLines, ...audioLines, ...videoLines, ''].join(endOfLine)
+}
+
+const sdpAudioRemoveRTPExtensions = (sdp: string, extensionsToFilter: string[]): string => {
+  const endOfLine = '\r\n'
+
+  let beginLines: string[] = []
+  let audioLines: string[] = []
+  let videoLines: string[] = []
+  const newLines = sdp.split(endOfLine)
+
+  const offerAudioIndex = newLines.findIndex(_isAudioLine)
+  const offerVideoIndex = newLines.findIndex(_isVideoLine)
+
+  if (offerAudioIndex < offerVideoIndex) {
+    beginLines = newLines.slice(0, offerAudioIndex)
+    audioLines = newLines.slice(offerAudioIndex, offerVideoIndex)
+    videoLines = newLines.slice(offerVideoIndex, (newLines.length - 1))
+  } else {
+    beginLines = newLines.slice(0, offerVideoIndex)
+    audioLines = newLines.slice(offerAudioIndex, (newLines.length - 1))
+    videoLines = newLines.slice(offerVideoIndex, offerAudioIndex)
+  }
+
+  const newAudioLines = audioLines.filter((line: string) => {
+    return !(line.includes(extensionsToFilter[0]) || line.includes(extensionsToFilter[1]) || line.includes(extensionsToFilter[2]))
+  })
+
+  return [...beginLines, ...newAudioLines, ...videoLines, ''].join(endOfLine)
+}
+
+const sdpAudioRemoveRidMidExtHack = (sdp: string): string => {
+  const extensionsToFilter = [
+    'urn:ietf:params:rtp-hdrext:sdes:mid',
+    'urn:ietf:params:rtp-hdrext:sdes:rtp-stream-id',
+    'urn:ietf:params:rtp-hdrext:sdes:repaired-rtp-stream-id',
+  ]
+  return sdpAudioRemoveRTPExtensions(sdp, extensionsToFilter)
+}
+
 type DestructuredResult = { subscribed: string[], alreadySubscribed: string[], unauthorized: string[], unsubscribed: string[], notSubscribed: string[] }
 
 const destructSubscribeResponse = (response: any): DestructuredResult => {
@@ -336,4 +389,7 @@ export {
   toggleVideoTracks,
   mutateCanvasInfoData,
   checkIsDirectCall,
+  sdpAudioVideoOrderHack,
+  sdpAudioRemoveRTPExtensions,
+  sdpAudioRemoveRidMidExtHack
 }

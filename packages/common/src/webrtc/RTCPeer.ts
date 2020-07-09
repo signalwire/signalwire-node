@@ -11,6 +11,7 @@ import { Invite, Attach, Answer, Modify } from '../messages/Verto'
 export default class RTCPeer {
   public instance: RTCPeerConnection
   private _iceTimeout = null
+  private _negotiating = false
 
   constructor(
     public call: WebRTCCall,
@@ -29,6 +30,14 @@ export default class RTCPeer {
 
   get isAnswer() {
     return this.type === PeerType.Answer
+  }
+
+  get isSimulcast() {
+    return this.options.simulcast === true
+  }
+
+  get isSfu() {
+    return this.options.sfu === true
   }
 
   get config(): RTCConfiguration {
@@ -131,6 +140,10 @@ export default class RTCPeer {
   }
 
   async startNegotiation(force = false) {
+    if (this._negotiating) {
+      return logger.warn('Skip twice onnegotiationneeded!')
+    }
+    this._negotiating = true
     try {
 
       if (this.options.secondSource === true) {
@@ -141,6 +154,7 @@ export default class RTCPeer {
 
       this.instance.removeEventListener('icecandidate', this._onIce)
       this.instance.addEventListener('icecandidate', this._onIce)
+
       if (this.isOffer) {
         logger.info('Trying to generate offer')
         const offer = await this.instance.createOffer({ voiceActivityDetection: false })
@@ -150,6 +164,7 @@ export default class RTCPeer {
       if (this.isAnswer) {
         logger.info('Trying to generate answer')
         await this._setRemoteDescription({ sdp: this.options.remoteSdp, type: PeerType.Offer })
+        this._logTransceivers()
         const answer = await this.instance.createAnswer({ voiceActivityDetection: false })
         await this._setLocalDescription(answer)
       }
@@ -164,11 +179,20 @@ export default class RTCPeer {
 
   async onRemoteSdp(sdp: string) {
     try {
-      await this._setRemoteDescription({ sdp, type: PeerType.Answer })
+      const type = this.isOffer ? PeerType.Answer : PeerType.Offer
+      await this._setRemoteDescription({ sdp, type })
     } catch (error) {
       logger.error(`Error handling remote SDP on call ${this.options.id}:`, error)
       this.call.hangup()
     }
+  }
+
+  private _logTransceivers() {
+    logger.info('Number of transceivers:', this.instance.getTransceivers().length)
+    this.instance.getTransceivers().forEach((tr, index) => {
+      logger.info(`>> Transceiver [${index}]:`, tr.mid, tr.direction, tr.stopped)
+      logger.info(`>> Sender Params [${index}]:`, JSON.stringify(tr.sender.getParameters(), null, 2))
+    })
   }
 
   private async _init() {
@@ -176,6 +200,20 @@ export default class RTCPeer {
 
     this.instance.onsignalingstatechange = event => {
       logger.info('signalingState:', this.instance.signalingState)
+
+      switch (this.instance.signalingState) {
+        case 'stable':
+          // Workaround to skip nested negotiations
+          // Chrome bug: https://bugs.chromium.org/p/chromium/issues/detail?id=740501
+          this._negotiating = false
+          break
+        case 'closed':
+          this.instance = null
+          break
+        default:
+          this._negotiating = true
+      }
+
     }
 
     this.instance.onnegotiationneeded = event => {
@@ -184,6 +222,10 @@ export default class RTCPeer {
     }
 
     this.instance.addEventListener('track', (event: RTCTrackEvent) => {
+      // if (this.isSimulcast) {
+        const notification = { type: 'trackAdd', event }
+        this.call._dispatchNotification(notification)
+      // }
       this.options.remoteStream = event.streams[0]
       const { remoteElement, remoteStream, screenShare } = this.options
       if (screenShare === false) {
@@ -199,37 +241,91 @@ export default class RTCPeer {
       trigger(this.options.id, error, SwEvent.MediaError)
       return null
     })
+
     const { localElement, localStream = null, screenShare } = this.options
     if (streamIsValid(localStream)) {
-      if (typeof this.instance.addTrack === 'function') {
-        localStream.getAudioTracks().forEach(t => {
-          this.options.userVariables.microphoneLabel = t.label
-          this.instance.addTrack(t, localStream)
+
+      const audioTracks = localStream.getAudioTracks()
+      logger.info('Local audio tracks: ', audioTracks)
+      const videoTracks = localStream.getVideoTracks()
+      logger.info('Local video tracks: ', videoTracks)
+
+      if (typeof this.instance.addTransceiver === 'function') {
+        // Use addTransceiver
+
+        audioTracks.forEach(track => {
+          this.options.userVariables.microphoneLabel = track.label
+          this.instance.addTransceiver(track, {
+            direction: 'sendrecv',
+            streams: [ localStream ],
+          })
         })
-        localStream.getVideoTracks().forEach(t => {
-          this.options.userVariables.cameraLabel = t.label
-          this.instance.addTrack(t, localStream)
+
+        const transceiverParams: RTCRtpTransceiverInit = {
+          direction: 'sendrecv',
+          streams: [ localStream ],
+        }
+        if (this.isSimulcast) {
+          const rids = ['0', '1', '2']
+          transceiverParams.sendEncodings = rids.map(rid => ({
+            active: true,
+            rid: rid,
+            scaleResolutionDownBy: (Number(rid) * 6 || 1.0),
+          }))
+        }
+        console.debug('Applying video transceiverParams', transceiverParams)
+        videoTracks.forEach(track => {
+          this.options.userVariables.cameraLabel = track.label
+          this.instance.addTransceiver(track, transceiverParams)
+        })
+
+        if (this.isSfu) {
+          const { msStreamsNumber = 5 } = this.options
+          console.debug('Add ', msStreamsNumber, 'recvonly MS Streams')
+          transceiverParams.direction = 'recvonly'
+          for (let i = 0; i < Number(msStreamsNumber); i++) {
+            this.instance.addTransceiver('video', transceiverParams)
+          }
+        }
+
+        this._logTransceivers()
+      } else if (typeof this.instance.addTrack === 'function') {
+        // Use addTrack
+
+        audioTracks.forEach(track => {
+          this.options.userVariables.microphoneLabel = track.label
+          this.instance.addTrack(track, localStream)
+        })
+
+        videoTracks.forEach(track => {
+          this.options.userVariables.cameraLabel = track.label
+          this.instance.addTrack(track, localStream)
         })
       } else {
+        // Fallback to legacy addStream ..
         // @ts-ignore
         this.instance.addStream(localStream)
       }
+
       if (this.options.negotiateAudio) {
         this._checkMediaToNegotiate('audio')
       }
       if (this.options.negotiateVideo) {
         this._checkMediaToNegotiate('video')
       }
+
       if (screenShare === false) {
         muteMediaElement(localElement)
         attachMediaStream(localElement, localStream)
       }
+
     } else if (localStream === null) {
       this.startNegotiation()
     }
   }
 
   private _checkMediaToNegotiate(kind: string) {
+    // addTransceiver of 'kind' if not present
     const sender = this._getSenderByKind(kind)
     if (!sender) {
       const transceiver = this.instance.addTransceiver(kind)
@@ -302,17 +398,17 @@ export default class RTCPeer {
     if (googleMaxBitrate && googleMinBitrate && googleStartBitrate) {
       localDescription.sdp = sdpBitrateHack(localDescription.sdp, googleMaxBitrate, googleMinBitrate, googleStartBitrate)
     }
-    logger.info('>>>> _setLocalDescription', localDescription)
+
+    logger.info('LOCAL SDP \n', `Type: ${localDescription.type}`, '\n\n', localDescription.sdp)
     return this.instance.setLocalDescription(localDescription)
   }
 
   private _setRemoteDescription(remoteDescription: RTCSessionDescriptionInit) {
-    logger.info('REMOTE SDP \n', `Type: ${remoteDescription.type}`, '\n\n', remoteDescription.sdp)
     if (this.options.useStereo) {
       remoteDescription.sdp = sdpStereoHack(remoteDescription.sdp)
     }
     const sessionDescr: RTCSessionDescription = sdpToJsonHack(remoteDescription)
-    logger.info('>>>> _setRemoteDescription', remoteDescription)
+    logger.info('REMOTE SDP \n', `Type: ${remoteDescription.type}`, '\n\n', remoteDescription.sdp)
     return this.instance.setRemoteDescription(sessionDescr)
   }
 

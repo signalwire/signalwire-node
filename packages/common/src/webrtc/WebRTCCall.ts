@@ -366,6 +366,24 @@ export default abstract class WebRTCCall {
     toggleAudioTracks(this.options.remoteStream)
   }
 
+  sfuLowResolution(streamId: string, trackId: string) {
+    console.debug('Set video res to low')
+    const msg = new Modify({ ...this.messagePayload, action: 'set-sfu-low-res', streamId, trackId })
+    return this._execute(msg)
+  }
+
+  sfuHighResolution(streamId: string, trackId: string) {
+    console.debug('Set video res to high')
+    const msg = new Modify({ ...this.messagePayload, action: 'set-sfu-high-res', streamId, trackId })
+    return this._execute(msg)
+  }
+
+  sfuDefaultResolution(streamId: string, trackId: string) {
+    console.debug('Set video res to default')
+    const msg = new Modify({ ...this.messagePayload, action: 'set-sfu-default-res', streamId, trackId })
+    return this._execute(msg)
+  }
+
   stopOutboundAudio() {
     if (this.peer) {
       this.peer.stopTrackSender('audio')
@@ -523,6 +541,11 @@ export default abstract class WebRTCCall {
   }
 
   private async _onVertoAttach(params: any) {
+
+    if (this.options.simulcast === true) {
+      console.debug('Handle verto.attach for a simulcast call?', params)
+    }
+
     // FIXME: need to dispatch a participantData notification??
     switch (this._state) {
       case State.New:
@@ -533,10 +556,9 @@ export default abstract class WebRTCCall {
           console.debug('doReinvite IS ACTIVE!', params)
           return logger.warn('>>>> This leg alreay sent a reinvite??')
         }
-        // TODO: force peer.type to an Answer
+        // TODO: force peer.type to be an Answer
         this.peer.type = PeerType.Answer
         this.options.remoteSdp = params.sdp
-
         const stream = await getUserMedia({ video: true })
         stream.getVideoTracks().forEach(t => {
           this.options.localStream.addTrack(t)

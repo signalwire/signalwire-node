@@ -249,8 +249,8 @@ export default class RTCPeer {
       logger.info('Local audio tracks: ', audioTracks)
       const videoTracks = localStream.getVideoTracks()
       logger.info('Local video tracks: ', videoTracks)
-
-      if (this.isSimulcast && typeof this.instance.addTransceiver === 'function') {
+      // FIXME: use transceivers way only for offer - when answer gotta match mid from the ones from SRD
+      if (this.isOffer && typeof this.instance.addTransceiver === 'function') {
         // Use addTransceiver
 
         audioTracks.forEach(track => {

@@ -222,10 +222,10 @@ export default class RTCPeer {
     }
 
     this.instance.addEventListener('track', (event: RTCTrackEvent) => {
-      // if (this.isSimulcast) {
+      if (this.isSimulcast) {
         const notification = { type: 'trackAdd', event }
         this.call._dispatchNotification(notification)
-      // }
+      }
       this.options.remoteStream = event.streams[0]
       const { remoteElement, remoteStream, screenShare } = this.options
       if (screenShare === false) {
@@ -250,7 +250,7 @@ export default class RTCPeer {
       const videoTracks = localStream.getVideoTracks()
       logger.info('Local video tracks: ', videoTracks)
 
-      if (typeof this.instance.addTransceiver === 'function') {
+      if (this.isSimulcast && typeof this.instance.addTransceiver === 'function') {
         // Use addTransceiver
 
         audioTracks.forEach(track => {

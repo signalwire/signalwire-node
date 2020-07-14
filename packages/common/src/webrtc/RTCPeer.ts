@@ -288,7 +288,6 @@ export default class RTCPeer {
           }
         }
 
-        this._logTransceivers()
       } else if (typeof this.instance.addTrack === 'function') {
         // Use addTrack
 
@@ -307,21 +306,24 @@ export default class RTCPeer {
         this.instance.addStream(localStream)
       }
 
-      if (this.options.negotiateAudio) {
-        this._checkMediaToNegotiate('audio')
-      }
-      if (this.options.negotiateVideo) {
-        this._checkMediaToNegotiate('video')
-      }
-
       if (screenShare === false) {
         muteMediaElement(localElement)
         attachMediaStream(localElement, localStream)
       }
 
-    } else if (localStream === null) {
-      this.startNegotiation()
     }
+    // else if (localStream === null) {
+    //   this.startNegotiation()
+    // }
+
+    if (this.options.negotiateAudio) {
+      this._checkMediaToNegotiate('audio')
+    }
+    if (this.options.negotiateVideo) {
+      this._checkMediaToNegotiate('video')
+    }
+
+    this._logTransceivers()
   }
 
   private _checkMediaToNegotiate(kind: string) {

@@ -312,17 +312,17 @@ export default class RTCPeer {
       }
 
     }
-    // else if (localStream === null) {
-    //   this.startNegotiation()
-    // }
 
-    if (this.options.negotiateAudio) {
-      this._checkMediaToNegotiate('audio')
+    if (this.isOffer) {
+      if (this.options.negotiateAudio) {
+        this._checkMediaToNegotiate('audio')
+      }
+      if (this.options.negotiateVideo) {
+        this._checkMediaToNegotiate('video')
+      }
+    } else {
+      this.startNegotiation()
     }
-    if (this.options.negotiateVideo) {
-      this._checkMediaToNegotiate('video')
-    }
-
     this._logTransceivers()
   }
 
@@ -409,7 +409,9 @@ export default class RTCPeer {
     if (this.options.useStereo) {
       remoteDescription.sdp = sdpStereoHack(remoteDescription.sdp)
     }
-    remoteDescription.sdp = sdpMediaOrderHack(remoteDescription.sdp, this.instance.localDescription.sdp)
+    if (this.instance.localDescription) {
+      remoteDescription.sdp = sdpMediaOrderHack(remoteDescription.sdp, this.instance.localDescription.sdp)
+    }
     const sessionDescr: RTCSessionDescription = sdpToJsonHack(remoteDescription)
     logger.info('REMOTE SDP \n', `Type: ${remoteDescription.type}`, '\n\n', remoteDescription.sdp)
     return this.instance.setRemoteDescription(sessionDescr)

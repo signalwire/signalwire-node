@@ -187,7 +187,7 @@ export default abstract class WebRTCCall {
       const newStream = await getUserMedia(constraints)
       console.debug('updateDevices got stream', newStream)
       if (!this.options.localStream) {
-        this.options.localStream = new MediaStream();
+        this.options.localStream = new MediaStream()
       }
       const { instance } = this.peer
       const tracks = newStream.getTracks()

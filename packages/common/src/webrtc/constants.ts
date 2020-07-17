@@ -43,6 +43,7 @@ export enum Notification {
   RefreshToken = 'refreshToken',
   Prompt = 'prompt',
   Announce = 'announce',
+  DeviceUpdated = 'deviceUpdated',
 }
 
 export const DEFAULT_CALL_OPTIONS: CallOptions = {

@@ -240,6 +240,7 @@ export default abstract class WebRTCCall {
         }
       }
       console.debug('updateDevices done!')
+      this._dispatchNotification({ type: Notification.DeviceUpdated })
     } catch (error) {
       console.error('updateDevices', error)
     }

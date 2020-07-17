@@ -186,16 +186,35 @@ export default abstract class WebRTCCall {
       console.debug('updateDevices trying constraints', constraints)
       const newStream = await getUserMedia(constraints)
       console.debug('updateDevices got stream', newStream)
+      if (!this.options.localStream) {
+        this.options.localStream = new MediaStream();
+      }
       const { instance } = this.peer
       const tracks = newStream.getTracks()
-      console.debug('updateDevices with tracks', tracks)
       for (let i = 0; i < tracks.length; i++) {
         const newTrack = tracks[i]
-        console.debug('updateDevices trying =>', newTrack)
-        const sender = instance.getSenders().find(({ track }) => (track && track.kind === newTrack.kind))
-        if (sender) {
+        console.debug('updateDevices apply track: ', newTrack)
+        const transceiver = instance.getTransceivers().find(({ mid, sender, receiver }) => {
+          if (sender.track && sender.track.kind === newTrack.kind) {
+            console.debug('Found transceiver by sender')
+            return true
+          }
+          if (receiver.track && receiver.track.kind === newTrack.kind) {
+            console.debug('Found transceiver by receiver')
+            return true
+          }
+          if (mid === null) {
+            console.debug('Found disassociated transceiver')
+            return true
+          }
+          return false
+          // mid: 0 is audio / mid: 1 is video
+          // return (mid === '0' && newTrack.kind === 'audio') || (mid === '1' && newTrack.kind === 'video')
+        })
+        // const sender = instance.getSenders().find(({ track }) => (track && track.kind === newTrack.kind))
+        if (transceiver && transceiver.sender) {
           console.debug('updateDevices FOUND - replaceTrack on it and on localStream')
-          await sender.replaceTrack(newTrack)
+          await transceiver.sender.replaceTrack(newTrack)
           this.options.localStream.addTrack(newTrack)
           console.debug('updateDevices replaceTrack SUCCESS')
           this.options.localStream.getTracks().forEach(track => {

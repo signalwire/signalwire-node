@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Signalwire Call Demo</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <!-- Cross Browser WebRTC Adapter -->
+  <script type="text/javascript" src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
+
+  <!-- Include the SignalWire Relay JS SDK -->
+  <script type="text/javascript" src="index.min.js"></script>
+
+  <!-- To style up the demo a little -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" />
+  <link rel="shortcut icon" href="https://signalwire.com/assets/images/favicon.ico" />
+</head>
+<body class="bg-light">
+  <div class="container">
+    <div class="row pt-5">
+      <div class="col-12 pb-3">
+        <h1>SignalWire Relay JavaScript Call Demo</h1>
+        <p>
+          This demo allows you to make calls to other browsers, SIP Endpoints or Phone Numbers from your SignalWire project in your browser.
+          <br />
+          Visit <a href="https://docs.signalwire.com/topics/relay-sdk-js">Relay SDK for JavaScript Documentation</a> for more information and documentation.
+        </p>
+
+        <h3 class="mb-3">Instructions</h3>
+        <ol>
+          <li>Follow the <a href="https://docs.signalwire.com/topics/relay-sdk-js#relay-sdk-for-javascript-using-the-sdk">Getting Started</a> steps in the JavaScript SDK Documentation to generate a JSON Web Token for your project.</li>
+          <li>Load the index.html file in your browser. You don't need to setup or run any HTTP servers, just double clicking the file or open it directly in your browser.</li>
+          <li>Fill in your Project ID and JWT. Click Connect and thats it! You'll now be able to dial other web browsers and SIP endpoints from your SignalWire project, as well as dial out to phone numbers.</li>
+        </ol>
+      </div>
+    </div>
+    <hr />
+    <div class="row py-3">
+      <div class="col-12 col-md-4">
+        <div class="card">
+          <div class="card-body">
+            <h5>Connect</h5>
+            <div class="form-group">
+              <label for="project">Project</label>
+              <input type="text" class="form-control" id="project" placeholder="Enter Project ID" onchange="saveInLocalStorage(event)">
+              <small id="projectHelp" class="form-text text-muted">Enter the Project ID found on your SignalWire Project Dashboard.</small>
+            </div>
+            <div class="form-group">
+              <label for="token">Token</label>
+              <input type="text" class="form-control" id="token" placeholder="Enter your JWT" onchange="saveInLocalStorage(event)">
+              <small id="tokenHelp" class="form-text text-muted">Generate a JWT and enter it here. For more information, visit <a href="/topics/relay-sdk-js#relay-sdk-for-javascript-using-the-sdk">Using the JavaScript SDK Documentation</a></small>
+            </div>
+            <button id="btnConnect" class="btn btn-block btn-success" onclick="connect()">Connect</button>
+            <button id="btnDisconnect" class="btn btn-block btn-danger d-none" onclick="disconnect()">Disconnect</button>
+
+            <div class="text-center mt-3 text-muted">
+              <small>Status: <span id='connectStatus'>Not Connected</span></small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 col-md-8 mt-4 mt-md-1">
+        <div class="row">
+          <div class="col-6">
+            <h5>Local Video</h5>
+            <video id="localVideo" autoplay="true" class="w-100" style="background-color: #000; border: 1px solid #ccc; border-radius: 5px;"></video>
+          </div>
+          <div class="col-6">
+            <h5>Remote Video</h5>
+            <video id="remoteVideo" autoplay="true" class="w-100" playsinline style="background-color: #000; border: 1px solid #ccc; border-radius: 5px;"></video>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="number">Call To:</label>
+          <input type="text" class="form-control" id="number" placeholder="Enter Resource or Number to Dial" onchange="saveInLocalStorage(event)">
+        </div>
+        <div>Call Options:</div>
+        <div class="form-check">
+          <input type="checkbox" id="audio" value="1" onchange="saveInLocalStorage(event)">
+          <label class="form-check-label" for="audio">
+            Use Microphone
+          </label>
+        </div>
+        <div class="form-check">
+          <input type="checkbox" id="negotiateAudio" value="1" onchange="saveInLocalStorage(event)">
+          <label class="form-check-label" for="negotiateAudio">
+            Negotiate Audio
+          </label>
+        </div>
+        <hr/>
+        <div class="form-check">
+          <input type="checkbox" id="video" value="1" onchange="saveInLocalStorage(event)">
+          <label class="form-check-label" for="video">
+            Use Camera
+          </label>
+        </div>
+        <div class="form-check">
+          <input type="checkbox" id="negotiateVideo" value="1" onchange="saveInLocalStorage(event)">
+          <label class="form-check-label" for="negotiateVideo">
+            Negotiate Video
+          </label>
+        </div>
+        <button id="startCall" class="btn btn-primary px-5 mt-4" onClick="makeCall()" disabled="true">Call</button>
+        <button id="hangupCall" class="btn btn-danger px-5 mt-4 d-none" onClick="hangup()" disabled="true">Hang up</button>
+        <br/>
+        <button id="reinviteAudio" class="btn btn-warning px-5 mt-4 d-none" onClick="fnReinviteAudio()" disabled="true">Reinvite Audio</button>
+        <button id="reinviteVideo" class="btn btn-warning px-5 mt-4 d-none" onClick="fnReinviteVideo()" disabled="true">Reinvite Video</button>
+        <button id="reinviteBoth" class="btn btn-warning px-5 mt-4 d-none" onClick="fnReinviteAudioAndVideo()" disabled="true">Reinvite Both</button>
+      </div>
+    </div>
+    <hr />
+    <div class="row pt-3 pb-5">
+      <div class="col-12">
+        <h4>Troubleshooting</h4>
+        <p>If you notice any JavaScript errors in the console relating to <code>localStorage</code>, try unblocking 3rd Party Cookies. Some browsers mark localStorage Cookies as 3rd Party when being run from <code>file://</code>.</p>
+      </div>
+    </div>
+
+  <script type="text/javascript">
+    var client;
+    var currentCall = null;
+
+    var project = localStorage.getItem('relay.example.project') || '';
+    var token = localStorage.getItem('relay.example.token') || '';
+    var number = localStorage.getItem('relay.example.number') || '';
+    var audio = localStorage.getItem('relay.example.audio') || 0;
+    var video = localStorage.getItem('relay.example.video') || 0;
+    var negotiateAudio = localStorage.getItem('relay.example.negotiateAudio') || 1;
+    var negotiateVideo = localStorage.getItem('relay.example.negotiateVideo') || 1;
+
+    /**
+     * On document ready auto-fill the input values from the localStorage.
+    */
+    ready(function() {
+      document.getElementById('project').value = project;
+      document.getElementById('token').value = token;
+      document.getElementById('number').value = number;
+      document.getElementById('audio').checked = audio === 1;
+      document.getElementById('video').checked = video === 1;
+      document.getElementById('negotiateAudio').checked = negotiateAudio === 1;
+      document.getElementById('negotiateVideo').checked = negotiateVideo === 1;
+    });
+
+    /**
+     * Connect with Relay creating a client and attaching all the event handler.
+    */
+    function connect() {
+      client = new Verto({
+        host: document.getElementById('host').value,
+        login: document.getElementById('project').value,
+        passwd: document.getElementById('token').value,
+      });
+
+      // client.autoRecoverCalls = false;
+      client.remoteElement = 'remoteVideo';
+      client.localElement = 'localVideo';
+      client.iceServers = [{ urls: ['stun:stun.l.google.com:19302'] }];
+      if (document.getElementById('audio').checked) {
+        client.enableMicrophone()
+      } else {
+        client.disableMicrophone()
+      }
+      if (document.getElementById('video').checked) {
+        client.enableWebcam()
+      } else {
+        client.disableWebcam()
+      }
+
+      client.on('signalwire.ready', function() {
+        btnConnect.classList.add('d-none');
+        btnDisconnect.classList.remove('d-none');
+        connectStatus.innerHTML = 'Connected';
+
+        startCall.disabled = false;
+      });
+
+      // Update UI on socket close
+      client.on('signalwire.socket.close', function() {
+        btnConnect.classList.remove('d-none');
+        btnDisconnect.classList.add('d-none');
+        connectStatus.innerHTML = 'Disconnected';
+      });
+
+      // Handle error...
+      client.on('signalwire.error', function(error){
+        console.error("SignalWire error:", error);
+      });
+
+      client.on('signalwire.notification', handleNotification);
+
+      connectStatus.innerHTML = 'Connecting...';
+      client.__logger.setLevel(client.__logger.levels.INFO);
+      client.connect();
+    }
+
+    function disconnect() {
+      connectStatus.innerHTML = 'Disconnecting...';
+      client.disconnect();
+    }
+
+    /**
+     * Handle notification from the client.
+    */
+    function handleNotification(notification) {
+      console.log("notification", notification.type, notification);
+      switch (notification.type) {
+        case 'callUpdate':
+          handleCallUpdate(notification.call);
+          break;
+        case 'userMediaError':
+          // Permission denied or invalid audio/video params on `getUserMedia`
+          break;
+      }
+    }
+
+    /**
+     * Update the UI when the call's state change
+    */
+    function handleCallUpdate(call) {
+      currentCall = call;
+
+      switch (call.state) {
+        case 'new': // Setup the UI
+          break;
+        case 'trying': // You are trying to call someone and he's ringing now
+          break;
+        case 'recovering': // Call is recovering from a previous session
+          if (confirm('Recover the previous call?')) {
+            currentCall.answer();
+          } else {
+            currentCall.hangup();
+          }
+          break;
+        case 'ringing': // Someone is calling you
+          if (confirm('Pick up the call?')) {
+            currentCall.answer();
+          } else {
+            currentCall.hangup();
+          }
+          break;
+        case 'active': // Call has become active
+          startCall.classList.add('d-none');
+          hangupCall.classList.remove('d-none');
+          hangupCall.disabled = false;
+          reinviteAudio.classList.remove('d-none');
+          reinviteAudio.disabled = false;
+          reinviteVideo.classList.remove('d-none');
+          reinviteVideo.disabled = false;
+          reinviteBoth.classList.remove('d-none');
+          reinviteBoth.disabled = false;
+          break;
+        case 'hangup': // Call is over
+          startCall.classList.remove('d-none');
+          hangupCall.classList.add('d-none');
+          hangupCall.disabled = true;
+          reinviteAudio.classList.add('d-none');
+          reinviteAudio.disabled = true;
+          reinviteVideo.classList.add('d-none');
+          reinviteVideo.disabled = true;
+          reinviteBoth.classList.add('d-none');
+          reinviteBoth.disabled = true;
+          break;
+        case 'destroy': // Call has been destroyed
+          currentCall = null;
+          break;
+      }
+    }
+
+    /**
+     * Make a new outbound call
+    */
+    function makeCall() {
+      const params = {
+        destinationNumber: document.getElementById('number').value, // required!
+        audio: document.getElementById('audio').checked,
+        video: document.getElementById('video').checked ? { aspectRatio: 16/9 } : false,
+        negotiateAudio: document.getElementById('negotiateAudio').checked,
+        negotiateVideo: document.getElementById('negotiateVideo').checked,
+      };
+
+      currentCall = client.newCall(params);
+    }
+
+    function fnReinviteAudio() {
+      currentCall.updateDevices({ audio: true })
+    }
+
+    function fnReinviteVideo() {
+      currentCall.updateDevices({ video: true })
+    }
+
+    function fnReinviteAudioAndVideo() {
+      currentCall.updateDevices({ audio: true, video: true })
+    }
+
+    /**
+     * Hangup the currentCall if present
+    */
+    function hangup() {
+      if (currentCall) {
+        currentCall.hangup()
+      }
+    }
+
+    function saveInLocalStorage(e) {
+      var key = e.target.name || e.target.id
+      localStorage.setItem('relay.example.' + key, e.target.value);
+    }
+
+    // jQuery document.ready equivalent
+    function ready(callback) {
+      if (document.readyState != 'loading') {
+        callback();
+      } else if (document.addEventListener) {
+        document.addEventListener('DOMContentLoaded', callback);
+      } else {
+        document.attachEvent('onreadystatechange', function() {
+          if (document.readyState != 'loading') {
+            callback();
+          }
+        });
+      }
+    }
+  </script>
+</body>
+</html>

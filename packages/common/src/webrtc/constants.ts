@@ -59,6 +59,7 @@ export const DEFAULT_CALL_OPTIONS: CallOptions = {
   screenShare: false,
   secondSource: false,
   userVariables: {},
+  requestTimeout: 10 * 1000,
 }
 
 export enum State {

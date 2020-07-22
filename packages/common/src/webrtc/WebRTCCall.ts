@@ -554,8 +554,9 @@ export default abstract class WebRTCCall {
     if (this.nodeId) {
       msg.targetNodeId = this.nodeId
     }
+    const { requestTimeout = 10000 } = this.options
     return Promise.race([
-      new Promise((_resolve, reject) => setTimeout(reject, 3000, 'timeout')),
+      new Promise((_resolve, reject) => setTimeout(reject, requestTimeout, 'timeout')),
       this.session.execute(msg),
     ])
   }

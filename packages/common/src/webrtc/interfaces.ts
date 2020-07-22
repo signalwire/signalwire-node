@@ -35,6 +35,7 @@ export interface CallOptions {
   sfu?: boolean
   simulcast?: boolean
   msStreamsNumber?: number
+  requestTimeout?: number
 }
 
 export interface ICantinaUser {

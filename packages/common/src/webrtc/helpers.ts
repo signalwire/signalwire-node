@@ -369,6 +369,36 @@ const checkIsDirectCall = ({ variables }) => {
   return typeof variables === 'object' && 'verto_svar_direct_call' in variables
 }
 
+const senderTransform = new TransformStream({
+		start() {
+			// Called on startup.
+		},
+
+		async transform(encodedFrame, controller) {
+		
+			let view = new DataView(encodedFrame.data);
+		
+			// Create a new buffer of same length
+			let newData = new ArrayBuffer(encodedFrame.data.byteLength);
+			let newView = new DataView(newData);
+
+			// Fill the new buffer with a negated version of all
+			// the bits in the original frame.
+			for (let i = 0; i < encodedFrame.data.byteLength; ++i)
+				newView.setInt8(i, ~view.getInt8(i));
+
+			// Replace the frame's data with the new buffer.
+			encodedFrame.data = newData;
+
+			// Send it to the output stream.
+			controller.enqueue(encodedFrame);
+		},
+
+		flush() {
+			// Called when the stream is about to be closed.
+		}
+});
+
 export {
   getUserMedia,
   getDevices,
@@ -391,5 +421,6 @@ export {
   checkIsDirectCall,
   sdpAudioVideoOrderHack,
   sdpAudioRemoveRTPExtensions,
-  sdpAudioRemoveRidMidExtHack
+  sdpAudioRemoveRidMidExtHack,
+  senderTransform,
 }

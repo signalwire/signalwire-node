@@ -43,6 +43,12 @@ export default class RTCPeer {
   get config(): RTCConfiguration {
     const { iceServers = [] } = this.options
     const config: RTCConfiguration = { bundlePolicy: 'max-compat', iceServers }
+    
+    if (this.options.e2ee === true) {
+        logger.info('Enabling End to End Encryption on RTCPeerConnection')
+        config.encodedInsertableStreams = true
+    }
+
     logger.info('RTC config', config)
     return config
   }
@@ -276,7 +282,20 @@ export default class RTCPeer {
         console.debug('Applying video transceiverParams', transceiverParams)
         videoTracks.forEach(track => {
           this.options.userVariables.cameraLabel = track.label
-          this.instance.addTransceiver(track, transceiverParams)
+            
+            logger.info('Applying End to End Encryption...')
+
+            this.instance.addTransceiver(track, transceiverParams)
+
+            let videoSender = this._getSenderByKind('video')
+            logger.info('videoSender: ', videoSender)
+
+            let senderStreams = videoSender.createEncodedStreams();
+            logger.info('senderStreams: ', senderStreams)
+
+            logger.info('Piping video through sender transform...')
+            senderStreams.readable.pipeThrough(senderTransform).pipeTo(senderStreams.writable);
+        
         })
 
         if (this.isSfu) {

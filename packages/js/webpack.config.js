@@ -12,6 +12,10 @@ module.exports = (env, argv) => {
       filename: 'index.min.js',
       libraryTarget: 'this'
     },
+    optimization: {
+        // We no not want to minimize our code.
+        minimize: false
+    },
     resolve: {
       extensions: ['.ts', '.js']
     },
@@ -32,6 +36,7 @@ module.exports = (env, argv) => {
     },
     devServer: {
       contentBase: [outputDir, __dirname + '/examples/simulcast'],
+      //contentBase: [outputDir, __dirname + '/examples/vanilla-calling'],
       compress: true,
       port: 9000,
       https: true

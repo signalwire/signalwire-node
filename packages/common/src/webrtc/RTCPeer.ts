@@ -222,7 +222,7 @@ export default class RTCPeer {
     }
 
     this.instance.addEventListener('track', (event: RTCTrackEvent) => {
-      if (this.isSimulcast) {
+      if (this.isSfu) {
         const notification = { type: 'trackAdd', event }
         this.call._dispatchNotification(notification)
       }

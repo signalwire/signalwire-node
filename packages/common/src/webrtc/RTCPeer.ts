@@ -1,5 +1,5 @@
 import logger from '../util/logger'
-import { getUserMedia, getMediaConstraints, sdpStereoHack, sdpBitrateHack, sdpMediaOrderHack } from './helpers'
+import { getUserMedia, getMediaConstraints, sdpStereoHack, sdpBitrateHack, sdpMediaOrderHack, senderTransform } from './helpers'
 import { SwEvent } from '../util/constants'
 import { PeerType, State } from './constants'
 import WebRTCCall from './WebRTCCall'
@@ -283,18 +283,21 @@ export default class RTCPeer {
         videoTracks.forEach(track => {
           this.options.userVariables.cameraLabel = track.label
             
-            logger.info('Applying End to End Encryption...')
-
             this.instance.addTransceiver(track, transceiverParams)
 
-            let videoSender = this._getSenderByKind('video')
-            logger.info('videoSender: ', videoSender)
+            if (this.options.e2ee) {
 
-            let senderStreams = videoSender.createEncodedStreams();
-            logger.info('senderStreams: ', senderStreams)
+                logger.info('Applying End to End Encryption...')
+                
+                let videoSender = this._getSenderByKind('video')
+                logger.info('videoSender: ', videoSender)
 
-            logger.info('Piping video through sender transform...')
-            senderStreams.readable.pipeThrough(senderTransform).pipeTo(senderStreams.writable);
+                let senderStreams = videoSender.createEncodedStreams();
+                logger.info('senderStreams: ', senderStreams)
+
+                logger.info('Piping video through sender transform...')
+                senderStreams.readableStream.pipeThrough(senderTransform).pipeTo(senderStreams.writableStream);
+            }
         
         })
 

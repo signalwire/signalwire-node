@@ -36,6 +36,8 @@ export interface CallOptions {
   simulcast?: boolean
   msStreamsNumber?: number
   e2ee?: boolean
+  e2ee_audio?: boolean
+  e2ee_video?: boolean
 }
 
 export interface ICantinaUser {

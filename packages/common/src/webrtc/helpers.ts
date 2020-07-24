@@ -369,23 +369,33 @@ const checkIsDirectCall = ({ variables }) => {
   return typeof variables === 'object' && 'verto_svar_direct_call' in variables
 }
 
+let transformStart = 0
+
 const senderTransform = new TransformStream({
+
 		start() {
-			// Called on startup.
+            // Called on startup.
+            transformStart = 0
+            //setTimeout(function(){ alert("e2ee: timeout"); transformStart = 1 }, 30000);
 		},
 
 		async transform(encodedFrame, controller) {
-		
-			let view = new DataView(encodedFrame.data);
+
+            //logger.info('e2ee: transforming frame:', encodedFrame);
+
+            let view = new DataView(encodedFrame.data);
+            //logger.info('e2ee: frame data view is:', view);
 		
 			// Create a new buffer of same length
 			let newData = new ArrayBuffer(encodedFrame.data.byteLength);
 			let newView = new DataView(newData);
 
 			// Fill the new buffer with a negated version of all
-			// the bits in the original frame.
-			for (let i = 0; i < encodedFrame.data.byteLength; ++i)
-				newView.setInt8(i, ~view.getInt8(i));
+            // the bits in the original frame.
+            //if (transformStart) {
+            //    for (let i = 0; i < encodedFrame.data.byteLength; ++i)
+            //        newView.setInt8(i, ~view.getInt8(i));
+            //}
 
 			// Replace the frame's data with the new buffer.
 			encodedFrame.data = newData;
@@ -396,6 +406,7 @@ const senderTransform = new TransformStream({
 
 		flush() {
 			// Called when the stream is about to be closed.
+            transformStart = 0
 		}
 });
 

@@ -283,16 +283,28 @@ export default class RTCPeer {
         videoTracks.forEach(track => {
           this.options.userVariables.cameraLabel = track.label
             
-            this.instance.addTransceiver(track, transceiverParams)
+            let transceiver = this.instance.addTransceiver(track, transceiverParams)
 
             if (this.options.e2ee) {
 
                 logger.info('Applying End to End Encryption...')
                 
-                let videoSender = this._getSenderByKind('video')
+                let videoSender = transceiver.sender
                 logger.info('videoSender: ', videoSender)
 
-                let senderStreams = videoSender.createEncodedStreams();
+                // choose what to encode: audio / video / both
+                let encodeAudio = this.options.e2ee_audio
+                let encodeVideo = this.options.e2ee_video
+
+                let senderStreams = null
+                if (encodeAudio && encodeVideo) {
+                    senderStreams = videoSender.createEncodedStreams();
+                } else if (encodeAudio) {
+                    senderStreams = videoSender.createEncodedAudioStreams();
+                } else {
+                    senderStreams = videoSender.createEncodedVideoStreams();
+                }
+
                 logger.info('senderStreams: ', senderStreams)
 
                 logger.info('Piping video through sender transform...')

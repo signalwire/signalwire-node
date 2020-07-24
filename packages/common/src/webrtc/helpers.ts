@@ -381,14 +381,14 @@ const senderTransform = new TransformStream({
 
 		async transform(encodedFrame, controller) {
 
-            //logger.info('e2ee: transforming frame:', encodedFrame);
+            logger.info('e2ee: frame:', encodedFrame);
 
             let view = new DataView(encodedFrame.data);
             //logger.info('e2ee: frame data view is:', view);
 		
 			// Create a new buffer of same length
-			let newData = new ArrayBuffer(encodedFrame.data.byteLength);
-			let newView = new DataView(newData);
+            let newData = new ArrayBuffer(encodedFrame.data.byteLength);
+            let newView = new DataView(newData);
 
 			// Fill the new buffer with a negated version of all
             // the bits in the original frame.
@@ -397,8 +397,14 @@ const senderTransform = new TransformStream({
             //        newView.setInt8(i, ~view.getInt8(i));
             //}
 
+            // dummy e2ee!!!
+            //if (encodedFrame.data.byteLength > 1700) {
+            //    logger.debug('e2ee: transforming frame:', encodedFrame)
+            //    newView.setInt8(encodedFrame.data.byteLength - 1, ~view.getInt8(encodedFrame.data.byteLength - 1))
+            //}
+
 			// Replace the frame's data with the new buffer.
-			encodedFrame.data = newData;
+            encodedFrame.data = newData;
 
 			// Send it to the output stream.
 			controller.enqueue(encodedFrame);
@@ -407,6 +413,23 @@ const senderTransform = new TransformStream({
 		flush() {
 			// Called when the stream is about to be closed.
             transformStart = 0
+		}
+});
+
+const receiverTransform = new TransformStream({
+
+		start() {
+            // Called on startup.
+		},
+
+		async transform(encodedFrame, controller) {
+
+			// Send it to the output stream.
+			controller.enqueue(encodedFrame);
+		},
+
+		flush() {
+			// Called when the stream is about to be closed.
 		}
 });
 
@@ -434,4 +457,5 @@ export {
   sdpAudioRemoveRTPExtensions,
   sdpAudioRemoveRidMidExtHack,
   senderTransform,
+  receiverTransform,
 }

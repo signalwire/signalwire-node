@@ -1,5 +1,5 @@
 import logger from '../util/logger'
-import { getUserMedia, getMediaConstraints, sdpStereoHack, sdpBitrateHack, sdpMediaOrderHack, senderTransform } from './helpers'
+import { getUserMedia, getMediaConstraints, sdpStereoHack, sdpBitrateHack, sdpMediaOrderHack, senderTransform, receiverTransform } from './helpers'
 import { SwEvent } from '../util/constants'
 import { PeerType, State } from './constants'
 import WebRTCCall from './WebRTCCall'
@@ -287,7 +287,7 @@ export default class RTCPeer {
 
             if (this.options.e2ee) {
 
-                logger.info('Applying End to End Encryption...')
+                console.debug('Applying End to End Encryption to sender...')
                 
                 let videoSender = transceiver.sender
                 logger.info('videoSender: ', videoSender)
@@ -318,7 +318,34 @@ export default class RTCPeer {
           console.debug('Add ', msStreamsNumber, 'recvonly MS Streams')
           transceiverParams.direction = 'recvonly'
           for (let i = 0; i < Number(msStreamsNumber); i++) {
-            this.instance.addTransceiver('video', transceiverParams)
+            
+            let transceiver = this.instance.addTransceiver('video', transceiverParams)
+            
+            if (this.options.e2ee) {
+
+                console.debug('Applying End to End Encryption to receiver...')
+                
+                let videoReceiver = transceiver.receiver
+                logger.info('videoReceiver: ', videoReceiver)
+
+                // choose what to encode: audio / video / both
+                let encodeAudio = this.options.e2ee_audio
+                let encodeVideo = this.options.e2ee_video
+
+                let receiverStreams = null
+                if (encodeAudio && encodeVideo) {
+                    receiverStreams = videoReceiver.createEncodedStreams();
+                } else if (encodeAudio) {
+                    receiverStreams = videoReceiver.createEncodedAudioStreams();
+                } else {
+                    receiverStreams = videoReceiver.createEncodedVideoStreams();
+                }
+
+                logger.info('receiverStreams: ', receiverStreams)
+
+                logger.info('Piping video through receiver transform...')
+                receiverStreams.readableStream.pipeThrough(receiverTransform).pipeTo(receiverStreams.writableStream);
+            }
           }
         }
 

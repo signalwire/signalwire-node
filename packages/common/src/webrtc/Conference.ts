@@ -316,13 +316,16 @@ export default class Conference {
   }
 
   updateLayouts(params: any) {
-    const { contentType, callID, canvasType, canvasInfo = null, currentLayerIdx = -1, ...rest } = params
+    const { contentType, callID, canvasType, canvasInfo = null, currentLayerIdx = null, ...rest } = params
     this.canvasType = canvasType
-    this.participantLayerIndex = currentLayerIdx
+    if (contentType === 'layer-info' && currentLayerIdx !== null) {
+      this.participantLayerIndex = currentLayerIdx
+    }
     if (canvasInfo !== null) {
       this.canvasInfo = mutateCanvasInfoData(canvasInfo)
     }
-    this._dispatchConferenceUpdate({ action: ConferenceAction.LayoutInfo, participant: this.currentParticipant, canvasInfo: this.canvasInfo, ...rest })
+    const action = contentType === 'layer-info' ? ConferenceAction.LayerInfo : ConferenceAction.LayoutInfo
+    this._dispatchConferenceUpdate({ action, participant: this.currentParticipant, canvasInfo: this.canvasInfo, contentType, canvasType, ...rest })
   }
 
   updateLogo(params: any) {

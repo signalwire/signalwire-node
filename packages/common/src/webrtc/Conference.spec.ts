@@ -366,7 +366,7 @@ export default (instance: any) => {
           call.conference.updateLayouts(eventData)
           expect(call.conference.canvasType).toEqual('mcu-personal-canvas')
           const participant = call.conference.currentParticipant
-          expect(onNotification).toBeCalledWith({ type: Notification.ConferenceUpdate, action: ConferenceAction.LayoutInfo, call, participant, canvasInfo: mutateCanvasInfoData(eventData.canvasInfo) })
+          expect(onNotification).toBeCalledWith({ type: Notification.ConferenceUpdate, action: ConferenceAction.LayoutInfo, call, participant, canvasType: 'mcu-personal-canvas', contentType: 'layout-info', canvasInfo: mutateCanvasInfoData(eventData.canvasInfo) })
         })
 
         it('should set participantLayerIndex if present', () => {
@@ -375,7 +375,7 @@ export default (instance: any) => {
           expect(call.conference.canvasType).toEqual('mcu-canvas')
           expect(call.conference.participantLayerIndex).toEqual(3)
           const participant = call.conference.currentParticipant
-          expect(onNotification).toBeCalledWith({ type: Notification.ConferenceUpdate, action: ConferenceAction.LayoutInfo, call, participant, canvasInfo: mutateCanvasInfoData(eventData.canvasInfo) })
+          expect(onNotification).toBeCalledWith({ type: Notification.ConferenceUpdate, action: ConferenceAction.LayerInfo, call, participant, canvasType: 'mcu-canvas', contentType: 'layer-info', canvasInfo: mutateCanvasInfoData(eventData.canvasInfo) })
         })
       })
 

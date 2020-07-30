@@ -67,12 +67,9 @@ const _buildCall = (session: BrowserSession, params: any, attach: boolean, nodeI
     attach,
     secondSource: /;second-source$/.test(params.callee_id_number),
     screenShare: /;screen$/.test(params.callee_id_number),
+    shakenCheck: params.shaken_check || '',
+    shakenResult: params.shaken_result || '',
   })
-  const { shaken_check, shaken_result } = params
-  if (shaken_check && shaken_result) {
-    call.options.shaken_check = shaken_check
-    call.options.shaken_result = shaken_result
-  }
 
   const hasAudioLine = params.sdp.indexOf('m=audio') !== -1
   if (!hasAudioLine) {

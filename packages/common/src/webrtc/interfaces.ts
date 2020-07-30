@@ -36,6 +36,8 @@ export interface CallOptions {
   simulcast?: boolean
   msStreamsNumber?: number
   requestTimeout?: number
+  shaken_check?: string
+  shaken_result?: string
 }
 
 export interface ICantinaUser {

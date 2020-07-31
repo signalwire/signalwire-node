@@ -45,8 +45,8 @@ export default class Conference {
     }
     if (this.canvasInfo && this.participantLayerIndex >= 0) {
       const { layoutOverlap, canvasLayouts } = this.canvasInfo
-      participant.layer = canvasLayouts[this.participantLayerIndex]
-      participant.isLayerBehind = layoutOverlap && participant.layer.overlap === 0
+      participant.layer = canvasLayouts[this.participantLayerIndex] || null
+      participant.isLayerBehind = layoutOverlap && participant.layer && participant.layer.overlap === 0
     }
     return participant
   }

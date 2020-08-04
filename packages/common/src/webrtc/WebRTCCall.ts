@@ -329,6 +329,11 @@ export default abstract class WebRTCCall {
     this._execute(msg)
   }
 
+  askVideoKeyFrame() {
+    const msg = new Modify({ ...this.messagePayload, action: 'videoRefresh' })
+    return this._execute(msg)
+  }
+
   hold() {
     return this._changeHold('hold')
   }

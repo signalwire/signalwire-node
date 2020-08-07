@@ -31,7 +31,7 @@ module.exports = (env, argv) => {
       ]
     },
     devServer: {
-      contentBase: [outputDir, __dirname + '/examples/simulcast'],
+      contentBase: [outputDir, __dirname + '/examples/split-audio-video'],
       compress: true,
       port: 9000,
       https: true

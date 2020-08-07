@@ -36,6 +36,8 @@ export default abstract class WebRTCCall {
   public secondSource?: WebRTCCall
   public doReinvite = false
   public isDirect = false
+  public videoElements: HTMLVideoElement[] = []
+  public audioElements: HTMLAudioElement[] = []
 
   private _state: State = State.New
   private _prevState: State = State.New
@@ -165,6 +167,14 @@ export default abstract class WebRTCCall {
 
   get withVideo() {
     return this.remoteStream ? this.remoteStream.getVideoTracks().length > 0 : false
+  }
+
+  get htmlVideoElement() {
+    return this.videoElements.length ? this.videoElements[0] : null
+  }
+
+  get htmlAudioElement() {
+    return this.audioElements.length ? this.audioElements[0] : null
   }
 
   async _upgrade() {

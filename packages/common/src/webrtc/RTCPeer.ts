@@ -3,7 +3,7 @@ import { getUserMedia, getMediaConstraints, sdpStereoHack, sdpBitrateHack, sdpMe
 import { SwEvent } from '../util/constants'
 import { PeerType, State } from './constants'
 import WebRTCCall from './WebRTCCall'
-import { attachMediaStream, muteMediaElement, sdpToJsonHack, RTCPeerConnection, streamIsValid } from '../util/webrtc'
+import { attachMediaStream, muteMediaElement, sdpToJsonHack, RTCPeerConnection, streamIsValid, buildAudioElementByTrack, buildVideoElementByTrack } from '../util/webrtc'
 import { CallOptions } from './interfaces'
 import { trigger } from '../services/Handler'
 import { Invite, Attach, Answer, Modify } from '../messages/Verto'
@@ -38,6 +38,10 @@ export default class RTCPeer {
 
   get isSfu() {
     return this.options.sfu === true
+  }
+
+  get hasExperimentalFlag() {
+    return this.options.experimental === true
   }
 
   get config(): RTCConfiguration {
@@ -222,6 +226,12 @@ export default class RTCPeer {
     }
 
     this.instance.addEventListener('track', (event: RTCTrackEvent) => {
+      if (this.hasExperimentalFlag) {
+        this._buildMediaElementByTrack(event)
+        const notification = { type: 'trackAdd', event }
+        this.call._dispatchNotification(notification)
+      }
+
       if (this.isSfu) {
         const notification = { type: 'trackAdd', event }
         this.call._dispatchNotification(notification)
@@ -423,5 +433,18 @@ export default class RTCPeer {
     }
     const constraints = await getMediaConstraints(this.options)
     return getUserMedia(constraints)
+  }
+
+  private _buildMediaElementByTrack(event: RTCTrackEvent) {
+    console.debug('_buildMediaElementByTrack', event.track.kind, event.track.id, event.streams, event)
+    const streamIds = event.streams.map(stream => stream.id)
+    switch (event.track.kind) {
+      case 'audio':
+        this.call.audioElements.push(buildAudioElementByTrack(event.track, streamIds))
+        break
+      case 'video':
+        this.call.videoElements.push(buildVideoElementByTrack(event.track, streamIds))
+        break
+    }
   }
 }

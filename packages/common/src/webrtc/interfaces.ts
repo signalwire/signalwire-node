@@ -38,6 +38,7 @@ export interface CallOptions {
   requestTimeout?: number
   shakenCheck?: string
   shakenResult?: string
+  experimental?: boolean
 }
 
 export interface ICantinaUser {

@@ -126,8 +126,8 @@ export default abstract class WebRTCCall {
     if (this.session.relayProtocol === VERTO_PROTOCOL) {
       return { sessid: this.session.sessionid, dialogParams: this.options }
     }
-    // FIXME: secondSource not accepted by Relay
-    const { secondSource, ...rest } = this.options
+    // FIXME: filter properties that Relay does not accept
+    const { secondSource, experimental, requestTimeout, ...rest } = this.options
     return { sessid: this.session.sessionid, dialogParams: rest }
   }
 

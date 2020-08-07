@@ -45,6 +45,9 @@ const stopStream = (stream: MediaStream) => {
 
 const getHostname = () => null
 
+const buildVideoElementByTrack = (videoTrack: MediaStreamTrack, streamIds: string[] = []) => null
+const buildAudioElementByTrack = (audioTrack: MediaStreamTrack, streamIds: string[] = []) => null
+
 export {
   _RTCPeerConnection as RTCPeerConnection,
   _getUserMedia as getUserMedia,
@@ -61,4 +64,6 @@ export {
   toggleMuteMediaElement,
   setMediaElementSinkId,
   getHostname,
+  buildVideoElementByTrack,
+  buildAudioElementByTrack,
 }

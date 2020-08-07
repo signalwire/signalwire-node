@@ -64,6 +64,10 @@ export default abstract class BaseSession {
     return this.authorization ? this.authorization.signature : null
   }
 
+  get scopes() {
+    return this.authorization ? this.authorization.scopes : []
+  }
+
   get expiresAt() {
     return this.authorization ? +this.authorization.expires_at : 0
   }

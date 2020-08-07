@@ -16,15 +16,20 @@ export interface IBladeConnectRequest extends IMessageBase {
   }
 }
 
+export interface IBladeAuthorization {
+  expires_at: number
+  signature: string
+  project: string
+  scopes: string[]
+  resource: string
+}
+
 export interface IBladeConnectResult extends IMessageBase {
   sessionid: string
   nodeid: string
   master_nodeid: string
   protocols_uncertified: string[]
-  authorization: {
-    expires_at: number
-    signature: string
-  }
+  authorization: IBladeAuthorization
 }
 
 export interface IBladeExecuteRequest extends IMessageBase {

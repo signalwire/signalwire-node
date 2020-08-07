@@ -8,7 +8,7 @@ import { deRegister, register, trigger, deRegisterAll } from './services/Handler
 import BroadcastHandler from './services/BroadcastHandler'
 import { ADD, REMOVE, SwEvent, BladeMethod } from './util/constants'
 import { Notification } from './webrtc/constants'
-import { BroadcastParams, ISignalWireOptions, SubscribeParams, IBladeConnectResult } from './util/interfaces'
+import { BroadcastParams, ISignalWireOptions, SubscribeParams, IBladeConnectResult, IBladeAuthorization } from './util/interfaces'
 import { Subscription, Connect, Reauthenticate, Ping } from './messages/Blade'
 import { isFunction, randomInt } from './util/helpers'
 import { sessionStorage } from './util/storage/'
@@ -21,17 +21,17 @@ export default abstract class BaseSession {
   public subscriptions: { [channel: string]: any } = {}
   public nodeid: string
   public master_nodeid: string
-  public expiresAt: number = 0
-  public signature: string = null
   public relayProtocol: string = null
   public contexts: string[] = []
   public timeoutErrorCode = -32000
+  public authorization: IBladeAuthorization
 
   protected connection: Connection = null
   protected _jwtAuth: boolean = false
   protected _doKeepAlive: boolean = false
   protected _keepAliveTimeout: any
   protected _reconnectTimeout: any
+  protected _checkTokenExpirationTimeout: any
   protected _autoReconnect: boolean = true
   protected _idle: boolean = false
 
@@ -58,6 +58,14 @@ export default abstract class BaseSession {
 
   get connected() {
     return this.connection && this.connection.connected
+  }
+
+  get signature() {
+    return this.authorization ? this.authorization.signature : null
+  }
+
+  get expiresAt() {
+    return this.authorization ? +this.authorization.expires_at : 0
   }
 
   get expired() {
@@ -192,8 +200,7 @@ export default abstract class BaseSession {
       } else {
         const br = new Reauthenticate(this.options.project, token, this.sessionid)
         const response = await this.execute(br)
-        const { authorization: { expires_at = null } = {} } = response
-        this.expiresAt = +expires_at || 0
+        this.authorization = response.authorization || null
       }
     } catch (error) {
       logger.error('refreshToken error:', error)
@@ -238,9 +245,8 @@ export default abstract class BaseSession {
     const response: IBladeConnectResult = await this.execute(bc).catch(this._handleLoginError)
     if (response) {
       this._autoReconnect = true
-      const { sessionid, nodeid, master_nodeid, authorization: { expires_at = null, signature = null } = {} } = response
-      this.expiresAt = +expires_at || 0
-      this.signature = signature
+      const { sessionid, nodeid, master_nodeid, authorization } = response
+      this.authorization = authorization
       this.relayProtocol = await Setup(this)
       this._checkTokenExpiration()
       this.sessionid = sessionid
@@ -271,7 +277,7 @@ export default abstract class BaseSession {
     if (this.expired) {
       this._idle = true
       this._autoReconnect = false
-      this.expiresAt = 0
+      this.authorization = null
     }
     if (this._autoReconnect) {
       this._reconnectTimeout = setTimeout(() => this.connect(), this.reconnectDelay)
@@ -404,7 +410,8 @@ export default abstract class BaseSession {
       trigger(SwEvent.Notification, { type: Notification.RefreshToken, session: this }, this.uuid, false)
     }
     if (!this.expired) {
-      setTimeout(this._checkTokenExpiration, 30 * 1000)
+      clearTimeout(this._checkTokenExpirationTimeout)
+      this._checkTokenExpirationTimeout = setTimeout(this._checkTokenExpiration, 30 * 1000)
     }
   }
 

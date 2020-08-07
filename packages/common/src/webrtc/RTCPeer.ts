@@ -44,6 +44,22 @@ export default class RTCPeer {
     return this.options.experimental === true
   }
 
+  get hasAudioSender() {
+    return this._getSenderByKind('audio') ? true : false
+  }
+
+  get hasVideoSender() {
+    return this._getSenderByKind('video') ? true : false
+  }
+
+  get hasAudioReceiver() {
+    return this._getReceiverByKind('audio') ? true : false
+  }
+
+  get hasVideoReceiver() {
+    return this._getReceiverByKind('video') ? true : false
+  }
+
   get config(): RTCConfiguration {
     const { iceServers = [] } = this.options
     const config: RTCConfiguration = { bundlePolicy: 'max-compat', iceServers }
@@ -141,6 +157,10 @@ export default class RTCPeer {
 
   private _getSenderByKind(kind: string) {
     return this.instance.getSenders().find(({ track }) => (track && track.kind === kind))
+  }
+
+  private _getReceiverByKind(kind: string) {
+    return this.instance.getReceivers().find(({ track }) => (track && track.kind === kind))
   }
 
   async startNegotiation(force = false) {

@@ -7,6 +7,7 @@ import { attachMediaStream, muteMediaElement, sdpToJsonHack, RTCPeerConnection, 
 import { CallOptions } from './interfaces'
 import { trigger } from '../services/Handler'
 import { Invite, Attach, Answer, Modify } from '../messages/Verto'
+import BaseMessage from '../messages/BaseMessage'
 
 export default class RTCPeer {
   public instance: RTCPeerConnection
@@ -65,6 +66,10 @@ export default class RTCPeer {
     const config: RTCConfiguration = { bundlePolicy: 'max-compat', iceServers }
     logger.info('RTC config', config)
     return config
+  }
+
+  get localSdp() {
+    return this.instance.localDescription.sdp
   }
 
   stopTrackSender(kind: string) {
@@ -365,7 +370,7 @@ export default class RTCPeer {
     }
   }
 
-  private async _sdpReady() {
+  private _sdpReady() {
     clearTimeout(this._iceTimeout)
     this._iceTimeout = null
     const { sdp, type } = this.instance.localDescription
@@ -376,24 +381,51 @@ export default class RTCPeer {
     }
     logger.info('LOCAL SDP \n', `Type: ${type}`, '\n\n', sdp)
     this.instance.removeEventListener('icecandidate', this._onIce)
-    let msg = null
-    const tmpParams = { ...this.call.messagePayload, sdp }
     switch (type) {
       case PeerType.Offer:
         if (this.call.active) {
-          msg = new Modify({ ...this.call.messagePayload, sdp, action: 'updateMedia' })
+          this.executeUpdateMedia()
         } else {
-          this.call.setState(State.Requesting)
-          msg = new Invite(tmpParams)
+          this.executeInvite()
         }
         break
       case PeerType.Answer:
-        this.call.setState(State.Answering)
-        msg = this.options.attach === true ? new Attach(tmpParams) : new Answer(tmpParams)
+        this.executeAnswer()
         break
       default:
         return logger.error(`Unknown SDP type: '${type}' on call ${this.options.id}`)
     }
+  }
+
+  executeInvite() {
+    this.call.setState(State.Requesting)
+    const msg = new Invite({
+      ...this.call.messagePayload,
+      sdp: this.localSdp,
+    })
+    return this._execute(msg)
+  }
+
+  executeUpdateMedia() {
+    const msg = new Modify({
+      ...this.call.messagePayload,
+      sdp: this.localSdp,
+      action: 'updateMedia',
+    })
+    return this._execute(msg)
+  }
+
+  executeAnswer() {
+    this.call.setState(State.Answering)
+    const params = {
+      ...this.call.messagePayload,
+      sdp: this.localSdp,
+    }
+    const msg = this.options.attach === true ? new Attach(params) : new Answer(params)
+    return this._execute(msg)
+  }
+
+  private async _execute(msg: BaseMessage) {
     try {
       const { node_id = null, sdp = null } = await this.call._execute(msg)
       if (node_id) {
@@ -402,11 +434,11 @@ export default class RTCPeer {
       if (sdp !== null) {
         await this._setRemoteDescription({ sdp, type: PeerType.Answer })
       } else {
-        const state = type === PeerType.Offer ? State.Trying : State.Active
+        const state = this.isOffer ? State.Trying : State.Active
         this.call.setState(state)
       }
     } catch (error) {
-      logger.error(`Error sending ${type} on call ${this.options.id}:`, error)
+      logger.error(`Error sending ${this.type} on call ${this.options.id}:`, error)
       this.call.hangup()
     }
   }

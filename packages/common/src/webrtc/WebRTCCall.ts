@@ -110,6 +110,10 @@ export default abstract class WebRTCCall {
     return this._state === State.Active
   }
 
+  get trying() {
+    return this._state === State.Trying
+  }
+
   get prevState() {
     return State[this._prevState].toLowerCase()
   }
@@ -502,8 +506,12 @@ export default abstract class WebRTCCall {
   }
 
   private _hangup(params: IHangupParams = {}) {
-    this.cause = params.cause || 'NORMAL_CLEARING'
-    this.causeCode = params.code || '16'
+    const { cause = 'NORMAL_CLEARING', code = '16', redirectDestination = null } = params
+    this.cause = cause
+    this.causeCode = code
+    if (redirectDestination && this.trying) {
+      return this.peer.executeInvite()
+    }
     this.setState(State.Hangup)
   }
 

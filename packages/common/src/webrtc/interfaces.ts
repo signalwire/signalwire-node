@@ -130,6 +130,7 @@ export interface ICanvasLayout {
 export interface IHangupParams {
   code?: string
   cause?: string
+  redirectDestination?: any
 }
 
 export interface ICallParticipant {

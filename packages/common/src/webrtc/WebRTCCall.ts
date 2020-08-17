@@ -299,11 +299,15 @@ export default abstract class WebRTCCall {
     this.peer = new RTCPeer(this, PeerType.Answer, this.options)
   }
 
-  hangup(params?: IHangupParams) {
-    const bye = new Bye(this.messagePayload)
-    return this._execute(bye)
-      .catch(error => logger.error('Hangup error:', error))
-      .then(() => this._hangup(params))
+  async hangup(params?: IHangupParams) {
+    try {
+      const bye = new Bye(this.messagePayload)
+      await this._execute(bye)
+    } catch (error) {
+      logger.error('Hangup error:', error)
+    } finally {
+      this._hangup(params)
+    }
   }
 
   dtmf(dtmf: string) {

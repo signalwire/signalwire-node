@@ -20,6 +20,7 @@ export interface IBladeAuthorization {
   expires_at: number
   signature: string
   project: string
+  scope_id: string
   scopes: string[]
   resource: string
 }

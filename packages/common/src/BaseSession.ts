@@ -64,6 +64,14 @@ export default abstract class BaseSession {
     return this.authorization ? this.authorization.signature : null
   }
 
+  get scopeId() {
+    return this.authorization ? this.authorization.scope_id : null
+  }
+
+  get resource() {
+    return this.authorization ? this.authorization.resource : null
+  }
+
   get scopes() {
     return this.authorization ? this.authorization.scopes : []
   }

@@ -236,6 +236,7 @@
           }
           break;
         case 'ringing': // Someone is calling you
+          currentCall.options.experimental = true
           if (confirm('Pick up the call?')) {
             currentCall.answer();
           } else {

@@ -140,8 +140,24 @@ export default abstract class BrowserSession extends BaseSession {
     })
   }
 
+  /**
+   * Validate if a device is available
+   * @deprecated
+   */
   validateDeviceId(id: string, label: string, kind: MediaDeviceInfo['kind']): Promise<string> {
     return assureDeviceId(id, label, kind)
+  }
+
+  validateVideoDevice(id: string, label: string): Promise<string> {
+    return assureDeviceId(id, label, 'videoinput')
+  }
+
+  validateAudioInDevice(id: string, label: string): Promise<string> {
+    return assureDeviceId(id, label, 'audioinput')
+  }
+
+  validateAudioOutDevice(id: string, label: string): Promise<string> {
+    return assureDeviceId(id, label, 'audiooutput')
   }
 
   /**

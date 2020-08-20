@@ -131,7 +131,7 @@ export default abstract class WebRTCCall {
       return { sessid: this.session.sessionid, dialogParams: this.options }
     }
     // FIXME: filter properties that Relay does not accept
-    const { secondSource, experimental, requestTimeout, ...rest } = this.options
+    const { secondSource, experimental, requestTimeout, negotiateAudio, negotiateVideo, ...rest } = this.options
     return { sessid: this.session.sessionid, dialogParams: rest }
   }
 

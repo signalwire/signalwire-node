@@ -130,9 +130,14 @@ export default abstract class WebRTCCall {
     if (this.session.relayProtocol === VERTO_PROTOCOL) {
       return { sessid: this.session.sessionid, dialogParams: this.options }
     }
-    // FIXME: filter properties that Relay does not accept
-    const { secondSource, experimental, requestTimeout, negotiateAudio, negotiateVideo, ...rest } = this.options
-    return { sessid: this.session.sessionid, dialogParams: rest }
+    // FIXME: Send only the fields relay accepts
+    const { id, destinationNumber, attach, callerName, callerNumber, remoteCallerName, remoteCallerNumber, userVariables, screenShare } = this.options
+    return {
+      sessid: this.session.sessionid,
+      dialogParams: {
+        id, destinationNumber, attach, callerName, callerNumber, remoteCallerName, remoteCallerNumber, userVariables, screenShare,
+      }
+    }
   }
 
   get currentParticipant(): Partial<ICallParticipant> {

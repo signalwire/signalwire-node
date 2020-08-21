@@ -16,17 +16,22 @@ const _handlePvtEvent = async (session: BrowserSession, pvtData: any) => {
   if (!callID || !session.calls[callID]) {
     return logger.debug('Verto pvtData with invalid or unknown callID.', pvtData)
   }
+  // FIXME: screenShare and secondSource do not need conf events.
+  const call = session.calls[callID]
+  if (!call.isMainCall) {
+    return logger.debug('Verto pvtData on screenShare or secondSource legs.', pvtData)
+  }
   switch (action) {
     case 'conference-liveArray-join':
-      if (!session.calls[callID].conference) {
-        session.calls[callID].conference = new Conference(session)
+      if (!call.conference) {
+        call.conference = new Conference(session)
       }
-      session.calls[callID].conference.join(pvtData)
+      await call.conference.join(pvtData)
       trigger(callID, null, CONF_READY)
       break
     case 'conference-liveArray-part':
-      if (session.calls[callID].conference) {
-        session.calls[callID].conference.part(pvtData)
+      if (call.conference) {
+        call.conference.part(pvtData)
       }
       break
   }

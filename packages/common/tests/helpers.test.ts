@@ -1,4 +1,4 @@
-import { objEmpty, mutateLiveArrayData, safeParseJson, isDefined, checkWebSocketHost, destructResponse } from '../src/util/helpers'
+import { objEmpty, mutateLiveArrayData, safeParseJson, checkWebSocketHost, destructResponse } from '../src/util/helpers'
 
 describe('Helpers functions', () => {
   describe('objEmpty', () => {
@@ -33,22 +33,6 @@ describe('Helpers functions', () => {
       expect(safeParseJson(null)).toEqual(null)
       // @ts-ignore
       expect(safeParseJson(true)).toEqual(true)
-    })
-  })
-
-  describe('isDefined', () => {
-    it('should return true if the variable is defined', () => {
-      const obj = { key: 'value' }
-      expect(isDefined(obj.key)).toEqual(true)
-    })
-
-    it('should return false if the variable is undefined', () => {
-      const obj = { key: 'value' }
-      // @ts-ignore
-      expect(isDefined(obj.key2)).toEqual(false)
-      expect(isDefined(undefined)).toEqual(false)
-      delete obj.key
-      expect(isDefined(obj.key)).toEqual(false)
     })
   })
 

@@ -1,6 +1,6 @@
 import logger from '../util/logger'
 import * as WebRTC from '../util/webrtc'
-import { isDefined, roundToFixed } from '../util/helpers'
+import { roundToFixed } from '../util/helpers'
 import { DeviceType } from './constants'
 import { CallOptions, IVertoCanvasInfo, ICanvasInfo, ICanvasLayout } from './interfaces'
 
@@ -129,8 +129,8 @@ const removeUnsupportedConstraints = (constraints: MediaTrackConstraints): void 
 }
 
 const checkDeviceIdConstraints = async (id: string, label: string, kind: MediaDeviceInfo['kind'], constraints: MediaTrackConstraints) => {
-  const { deviceId } = constraints
-  if (!isDefined(deviceId) && (id || label)) {
+  const { deviceId = null } = constraints
+  if (deviceId === null && (id || label)) {
     const deviceId = await assureDeviceId(id, label, kind).catch(error => null)
     if (deviceId) {
       constraints.deviceId = { exact: deviceId }
@@ -269,29 +269,15 @@ const toggleVideoTracks = (stream: MediaStream) => {
   _updateMediaStreamTracks(stream, 'video', null)
 }
 
-const _updateMediaStreamTracks = (stream: MediaStream, kind: string = null, enabled: boolean | string = null) => {
+const _updateMediaStreamTracks = (stream: MediaStream, kind: string = null, enabled: boolean = null) => {
   if (!WebRTC.streamIsValid(stream)) {
     return null
   }
-  let tracks: MediaStreamTrack[] = []
-  switch (kind) {
-    case 'audio':
-      tracks = stream.getAudioTracks()
-      break
-    case 'video':
-      tracks = stream.getVideoTracks()
-      break
-    default:
-      tracks = stream.getTracks()
-      break
-  }
-  tracks.forEach((track: MediaStreamTrack) => {
+  const _updateTrack = (track: MediaStreamTrack) => {
     switch (enabled) {
-      case 'on':
       case true:
         track.enabled = true
         break
-      case 'off':
       case false:
         track.enabled = false
         break
@@ -299,7 +285,15 @@ const _updateMediaStreamTracks = (stream: MediaStream, kind: string = null, enab
         track.enabled = !track.enabled
         break
     }
-  })
+  }
+  switch (kind) {
+    case 'audio':
+      return stream.getAudioTracks().forEach(_updateTrack)
+    case 'video':
+      return stream.getVideoTracks().forEach(_updateTrack)
+    default:
+      return stream.getTracks().forEach(_updateTrack)
+  }
 }
 
 /**

@@ -245,27 +245,27 @@ const destructSubscribeResponse = (response: any): DestructuredResult => {
   return tmp
 }
 
-const enableAudioTracks = (stream: MediaStream) => {
+export const enableAudioTracks = (stream: MediaStream) => {
   _updateMediaStreamTracks(stream, 'audio', true)
 }
 
-const disableAudioTracks = (stream: MediaStream) => {
+export const disableAudioTracks = (stream: MediaStream) => {
   _updateMediaStreamTracks(stream, 'audio', false)
 }
 
-const toggleAudioTracks = (stream: MediaStream) => {
+export const toggleAudioTracks = (stream: MediaStream) => {
   _updateMediaStreamTracks(stream, 'audio', null)
 }
 
-const enableVideoTracks = (stream: MediaStream) => {
+export const enableVideoTracks = (stream: MediaStream) => {
   _updateMediaStreamTracks(stream, 'video', true)
 }
 
-const disableVideoTracks = (stream: MediaStream) => {
+export const disableVideoTracks = (stream: MediaStream) => {
   _updateMediaStreamTracks(stream, 'video', false)
 }
 
-const toggleVideoTracks = (stream: MediaStream) => {
+export const toggleVideoTracks = (stream: MediaStream) => {
   _updateMediaStreamTracks(stream, 'video', null)
 }
 
@@ -300,7 +300,7 @@ const _updateMediaStreamTracks = (stream: MediaStream, kind: string = null, enab
  * Modify the SDP to increase video bitrate
  * @return the SDP modified
  */
-const sdpBitrateHack = (sdp: string, max: number, min: number, start: number) => {
+export const sdpBitrateHack = (sdp: string, max: number, min: number, start: number) => {
   const endOfLine = '\r\n'
   const lines = sdp.split(endOfLine)
   lines.forEach((line, i) => {
@@ -313,7 +313,7 @@ const sdpBitrateHack = (sdp: string, max: number, min: number, start: number) =>
   return lines.join(endOfLine)
 }
 
-const mutateCanvasInfoData = (canvasInfo: IVertoCanvasInfo): ICanvasInfo => {
+export const mutateCanvasInfoData = (canvasInfo: IVertoCanvasInfo): ICanvasInfo => {
   const { canvasID, layoutFloorID, scale, canvasLayouts, ...rest } = canvasInfo
   const layouts: ICanvasLayout[] = []
   let layoutOverlap = false
@@ -343,7 +343,7 @@ const mutateCanvasInfoData = (canvasInfo: IVertoCanvasInfo): ICanvasInfo => {
   }
 }
 
-const checkIsDirectCall = ({ variables }) => {
+export const checkIsDirectCall = ({ variables }) => {
   return typeof variables === 'object' && 'verto_svar_direct_call' in variables
 }
 
@@ -357,16 +357,7 @@ export {
   checkDeviceIdConstraints,
   sdpStereoHack,
   sdpMediaOrderHack,
-  sdpBitrateHack,
   destructSubscribeResponse,
-  enableAudioTracks,
-  disableAudioTracks,
-  toggleAudioTracks,
-  enableVideoTracks,
-  disableVideoTracks,
-  toggleVideoTracks,
-  mutateCanvasInfoData,
-  checkIsDirectCall,
   sdpAudioRemoveRTPExtensions,
   sdpAudioRemoveRidMidExtHack
 }

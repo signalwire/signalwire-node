@@ -194,22 +194,6 @@ const sdpMediaOrderHack = (answer: string, localOffer: string): string => {
   return [...beginLines, ...videoLines, ...audioLines, ''].join(endOfLine)
 }
 
-const sdpAudioVideoOrderHack = (offerLines: string): string => {
-  const endOfLine = '\r\n'
-  const sdp = offerLines.split(endOfLine)
-  const offerAudioIndex = sdp.findIndex(_isAudioLine)
-  const offerVideoIndex = sdp.findIndex(_isVideoLine)
-  if (offerAudioIndex < offerVideoIndex) {
-    return offerLines
-  }
-
-  const newLines = offerLines.split(endOfLine)
-  const beginLines = newLines.slice(0, offerVideoIndex)
-  const videoLines = newLines.slice(offerVideoIndex, offerAudioIndex)
-  const audioLines = newLines.slice(offerAudioIndex, (newLines.length - 1))
-  return [...beginLines, ...audioLines, ...videoLines, ''].join(endOfLine)
-}
-
 const sdpAudioRemoveRTPExtensions = (sdp: string, extensionsToFilter: string[]): string => {
   const endOfLine = '\r\n'
 
@@ -389,7 +373,6 @@ export {
   toggleVideoTracks,
   mutateCanvasInfoData,
   checkIsDirectCall,
-  sdpAudioVideoOrderHack,
   sdpAudioRemoveRTPExtensions,
   sdpAudioRemoveRidMidExtHack
 }

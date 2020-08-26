@@ -13,6 +13,14 @@ const _getUserMedia = (constraints: MediaStreamConstraints) => mediaDevices.getU
 
 const _enumerateDevices = () => mediaDevices.enumerateDevices()
 
+const enumerateDevicesByKind = async (filterByKind: string = null) => {
+  let devices: MediaDeviceInfo[] = await _enumerateDevices().catch(error => [])
+  if (filterByKind) {
+    devices = devices.filter(({ kind }) => kind === filterByKind)
+  }
+  return devices
+}
+
 const streamIsValid = (stream: MediaStream) => stream && stream instanceof MediaStream
 
 const getSupportedConstraints = () => ({})
@@ -53,6 +61,7 @@ export {
   _getUserMedia as getUserMedia,
   _getUserMedia as getDisplayMedia,
   _enumerateDevices as enumerateDevices,
+  enumerateDevicesByKind,
   getSupportedConstraints,
   streamIsValid,
   attachMediaStream,

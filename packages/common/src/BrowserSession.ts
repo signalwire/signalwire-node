@@ -3,8 +3,8 @@ import { IAudioSettings, IVideoSettings, BroadcastParams, SubscribeParams } from
 import { registerOnce, trigger, register, deRegister } from './services/Handler'
 import { SwEvent, SESSION_ID } from './util/constants'
 import { State, DeviceType } from './webrtc/constants'
-import { getDevices, scanResolutions, removeUnsupportedConstraints, checkDeviceIdConstraints, getUserMedia, assureDeviceId, destructSubscribeResponse } from './webrtc/helpers'
-import { findElementByType } from './util/helpers'
+import { removeUnsupportedConstraints, getUserMedia, destructSubscribeResponse } from './webrtc/helpers'
+import { getDevices, scanResolutions, checkDeviceIdConstraints, assureDeviceId } from './webrtc/deviceHelpers'
 import BaseMessage from './messages/BaseMessage'
 import BaseRequest from './messages/verto/BaseRequest'
 import { Execute } from './messages/Blade'
@@ -44,6 +44,7 @@ export default abstract class BrowserSession extends BaseSession {
 
   /**
    * Check if the browser has the permission to access mic and/or webcam
+   * @deprecated Directly exported from the SDK entrypoint
    */
   async checkPermissions(audio: boolean = true, video: boolean = true): Promise<boolean> {
     try {
@@ -102,6 +103,7 @@ export default abstract class BrowserSession extends BaseSession {
 
   /**
    * Return the device list supported by the browser
+   * @deprecated Directly exported from the SDK entrypoint
    */
   getDevices(): Promise<MediaDeviceInfo[]> {
     return getDevices().catch(error => {
@@ -112,6 +114,7 @@ export default abstract class BrowserSession extends BaseSession {
 
   /**
    * Return the device list supported by the browser
+   * @deprecated Directly exported from the SDK entrypoint
    */
   getVideoDevices(): Promise<MediaDeviceInfo[]> {
     return getDevices(DeviceType.Video).catch(error => {
@@ -122,6 +125,7 @@ export default abstract class BrowserSession extends BaseSession {
 
   /**
    * Return the device list supported by the browser
+   * @deprecated Directly exported from the SDK entrypoint
    */
   getAudioInDevices(): Promise<MediaDeviceInfo[]> {
     return getDevices(DeviceType.AudioIn).catch(error => {
@@ -132,6 +136,7 @@ export default abstract class BrowserSession extends BaseSession {
 
   /**
    * Return the device list supported by the browser
+   * @deprecated Directly exported from the SDK entrypoint
    */
   getAudioOutDevices(): Promise<MediaDeviceInfo[]> {
     return getDevices(DeviceType.AudioOut).catch(error => {
@@ -142,20 +147,29 @@ export default abstract class BrowserSession extends BaseSession {
 
   /**
    * Validate if a device is available
-   * @deprecated
+   * @deprecated Directly exported from the SDK entrypoint
    */
   validateDeviceId(id: string, label: string, kind: MediaDeviceInfo['kind']): Promise<string> {
     return assureDeviceId(id, label, kind)
   }
 
+  /**
+   * @deprecated Directly exported from the SDK entrypoint
+   */
   validateVideoDevice(id: string, label: string): Promise<string> {
     return assureDeviceId(id, label, 'videoinput')
   }
 
+  /**
+   * @deprecated Directly exported from the SDK entrypoint
+   */
   validateAudioInDevice(id: string, label: string): Promise<string> {
     return assureDeviceId(id, label, 'audioinput')
   }
 
+  /**
+   * @deprecated Directly exported from the SDK entrypoint
+   */
   validateAudioOutDevice(id: string, label: string): Promise<string> {
     return assureDeviceId(id, label, 'audiooutput')
   }

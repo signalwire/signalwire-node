@@ -31,15 +31,10 @@ export const getDevices = async (kind: string = null, fullList: boolean = false)
     // No devices at all
     return []
   } else if (hasPerms === false) {
-    try {
-      const constraints = _constraintsByKind(kind)
-      const stream = await WebRTC.getUserMedia(constraints)
-      WebRTC.stopStream(stream)
-      return getDevices(kind)
-    } catch (error) {
-      logger.error('getUserMedia error: ', error)
-      return []
-    }
+    const constraints = _constraintsByKind(kind)
+    const stream = await WebRTC.getUserMedia(constraints)
+    WebRTC.stopStream(stream)
+    return getDevices(kind)
   }
   let devices: MediaDeviceInfo[] = await WebRTC.enumerateDevicesByKind(kind)
   if (fullList === true) {

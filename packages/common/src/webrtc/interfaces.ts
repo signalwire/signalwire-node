@@ -140,3 +140,70 @@ export interface ICallParticipant {
   layerIndex: number
   isLayerBehind: boolean
 }
+
+export interface IConferenceInfoMember {
+  participantId: string
+  callId: string
+  participantNumber: string
+  participantName: string
+}
+
+export interface IConferenceInfo {
+  uuid: string
+  md5: string
+  domain: string
+  laChannel: string
+  infoChannel: string
+  modChannel: string
+  confName: string
+  numMembers: number
+  isPrivate: boolean
+  mohPlaying: boolean
+  filesPlaying: boolean
+  filesPlayingName: string
+  asyncFilesPlaying: boolean
+  asyncFilesPlayingName: string
+  asyncFilesPlayingPaused: boolean
+  asyncFilesPlayingVolume: number
+  filesSeekable: boolean
+  asyncFilesSeekable: boolean
+  performerDelay: number
+  volAudience: number
+  filesFullScreen: boolean
+  // flags
+  silentMode: boolean
+  meetingMode: boolean
+  locked: boolean
+  recording: boolean
+  personalCanvas: boolean
+  personalCanvasTP: number
+  liveMusic: boolean
+  vidMuteHide: boolean
+  // variables
+  publicClipeeze: boolean
+  confQuality: string
+  accessPin: string
+  moderatorPin: string
+  speakerHighlight: boolean
+  disableIntercom: boolean
+  lastLayoutGroup: string
+  lastLayout: string
+  members?: IConferenceInfoMember[]
+  layouts?: any
+}
+
+export interface ILayout {
+  id: string
+  label: string
+  type: string
+  reservationIds: string[]
+  belongsToAGroup: boolean
+}
+
+export interface IVertoLayout {
+  name: string
+  displayName?: string
+  type: string
+  resIDS: string[]
+  groupLayouts?: string[]
+}

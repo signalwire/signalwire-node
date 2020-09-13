@@ -3,7 +3,7 @@ import { IAudioSettings, IVideoSettings, BroadcastParams, SubscribeParams } from
 import { registerOnce, trigger, register, deRegister } from './services/Handler'
 import { SwEvent, SESSION_ID } from './util/constants'
 import { State, DeviceType } from './webrtc/constants'
-import { removeUnsupportedConstraints, getUserMedia, destructSubscribeResponse } from './webrtc/helpers'
+import { removeUnsupportedConstraints, getUserMedia, destructSubscribeResponse, destructConferenceState, mungeLayoutList } from './webrtc/helpers'
 import { getDevices, scanResolutions, checkDeviceIdConstraints, assureDeviceId } from './webrtc/deviceHelpers'
 import BaseMessage from './messages/BaseMessage'
 import BaseRequest from './messages/verto/BaseRequest'
@@ -310,6 +310,84 @@ export default abstract class BrowserSession extends BaseSession {
     })
     console.debug('Send confList', msg)
     return this.execute(msg)
+  }
+
+  async vertoConferenceList(showLayouts = false, showMembers = false) {
+    try {
+      const rooms = []
+      const response = await this._jsApi({
+        command: 'conference',
+        data: {
+          command: 'list',
+          showLayouts,
+          showMembers,
+        },
+      })
+      response.conferences.forEach((conf) => {
+        const { conferenceState, members = [], layouts = [] } = conf
+        const room = destructConferenceState(conferenceState)
+        if (members.length) {
+          room.members = members.filter(({ type }) => type === 'caller')
+            .map(({ id, uuid, caller_id_number, caller_id_name }) => {
+              return {
+                participantId: Number(id).toString(),
+                callId: uuid,
+                participantNumber: caller_id_number,
+                participantName: caller_id_name,
+              }
+            })
+        }
+        if (layouts.length) {
+          const normal = layouts.filter(({ type }) => type === 'layout')
+          const group = layouts.filter(({ type }) => type === 'layoutGroup')
+          room.layouts = mungeLayoutList(normal, group)
+        }
+        rooms.push(room)
+      })
+
+      return rooms
+    } catch (error) {
+      console.error('vertoConferenceList error', error)
+      return []
+    }
+  }
+
+  async vertoLayoutList(options: { fullList?: boolean } = {}) {
+    const { fullList = false } = options
+    try {
+      const {
+        layouts: { layouts, groups }
+      } = await this._jsApi({
+        command: 'conference',
+        data: {
+          command: 'listLayouts',
+        },
+      })
+      const final = mungeLayoutList(layouts, groups)
+        .map((layout) => {
+          const { id, type } = layout
+          const prefix = type === 'group' ? 'group:' : ''
+          return {
+            ...layout,
+            id: `${prefix}${id}`,
+          }
+        })
+      if (fullList) {
+        return final
+      }
+      return final.filter(layout => !layout.belongsToAGroup)
+    } catch (error) {
+      console.error('vertoLayoutList error', error)
+      return []
+    }
+  }
+
+  watchVertoConferences = async () => {
+
+  }
+
+  unwatchVertoConferences = async () => {
+
   }
 
   _jsApi(params = {}) {

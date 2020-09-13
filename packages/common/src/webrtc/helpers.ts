@@ -3,7 +3,7 @@ import * as WebRTC from '../util/webrtc'
 import { roundToFixed } from '../util/helpers'
 import { assureDeviceId } from './deviceHelpers'
 import { DeviceType } from './constants'
-import { CallOptions, IVertoCanvasInfo, ICanvasInfo, ICanvasLayout } from './interfaces'
+import { CallOptions, IVertoCanvasInfo, ICanvasInfo, ICanvasLayout, IConferenceInfo, ILayout, IVertoLayout } from './interfaces'
 
 export const getUserMedia = async (constraints: MediaStreamConstraints): Promise<MediaStream | null> => {
   logger.info('RTCService.getUserMedia', constraints)
@@ -136,4 +136,81 @@ export const mutateCanvasInfoData = (canvasInfo: IVertoCanvasInfo): ICanvasInfo 
 
 export const checkIsDirectCall = ({ variables }) => {
   return typeof variables === 'object' && 'verto_svar_direct_call' in variables
+}
+
+export const destructConferenceState = (confState: any): IConferenceInfo => {
+  const { variables = {}, flags = {} } = confState
+  const suffix = `${confState.md5}@${confState.domain}`
+  return {
+    uuid: confState.uuid,
+    md5: confState.md5,
+    domain: confState.domain,
+    laChannel: `conference-liveArray.${suffix}`,
+    infoChannel: `conference-info.${suffix}`,
+    modChannel: `conference-mod.${suffix}`,
+    confName: confState.name,
+    numMembers: Number(confState.members) || 0,
+    isPrivate: variables.is_private === 'true',
+    mohPlaying: Boolean(confState.mohPlaying),
+    filesPlaying: Boolean(confState.filesPlaying),
+    filesPlayingName: confState.filesPlayingName || null,
+    asyncFilesPlaying: Boolean(confState.asyncFilesPlaying),
+    asyncFilesPlayingName: confState.asyncFilesPlayingName || null,
+    asyncFilesPlayingPaused: Boolean(confState.asyncFilesPlayingPaused),
+    asyncFilesPlayingVolume: Number(confState.asyncFilesPlayingVolume) || null,
+    filesSeekable: Boolean(confState.filesSeekable),
+    asyncFilesSeekable: Boolean(confState.asyncFilesSeekable),
+    performerDelay: confState.performerDelay,
+    volAudience: confState['vol-audience'],
+    filesFullScreen: Boolean(confState.filesFullScreen),
+    // flags
+    silentMode: flags['silent-mode'] || false,
+    meetingMode: flags['meeting-mode'] || false,
+    vidMuteHide: flags['vid-mute-hide'] || false,
+    personalCanvas: Boolean(flags.personalCanvas),
+    personalCanvasTP: flags.personalCanvasTP || null,
+    locked: Boolean(flags.locked),
+    recording: Boolean(flags.recording),
+    liveMusic: Boolean(flags.liveMusic),
+    // variables
+    publicClipeeze: variables.public_clipeeze === 'true',
+    confQuality: variables.conf_quality,
+    accessPin: variables.access_pin || null,
+    moderatorPin: variables.moderator_pin || null,
+    speakerHighlight: variables.speaker_highlight === 'true',
+    disableIntercom: variables.disable_intercom === true,
+    lastLayoutGroup: variables.lastLayoutGroup,
+    lastLayout: variables.lastLayout,
+  }
+}
+
+
+const _layoutReducer = (result: ILayout[], layout: IVertoLayout) => {
+  const { type, name, displayName, resIDS = [] } = layout
+  const label = displayName || name.replace(/[-_]/g, ' ')
+  return result.concat({ id: name, label, type, reservationIds: resIDS, belongsToAGroup: false })
+}
+
+function _layoutCompare(prev: ILayout, next: ILayout) {
+  const prevLabel = prev.label.toLowerCase()
+  const nextLabel = next.label.toLowerCase()
+  if (prevLabel > nextLabel) {
+    return 1
+  } else if (prevLabel < nextLabel) {
+    return -1
+  }
+  return 0
+}
+
+export const mungeLayoutList = (layouts: IVertoLayout[], layoutGroups: IVertoLayout[]) => {
+  const layoutsPartOfGroup = layoutGroups.reduce((cumulative, layout) => {
+    return cumulative.concat(layout.groupLayouts || [])
+  }, [])
+
+  const normalList = layouts.reduce(_layoutReducer, [])
+  normalList.forEach((layout) => {
+    layout.belongsToAGroup = layoutsPartOfGroup.includes(layout.id)
+  })
+  const groupList = layoutGroups.reduce(_layoutReducer, [])
+  return groupList.concat(normalList).sort(_layoutCompare)
 }

@@ -29,7 +29,7 @@ export default function infoChannelHandler(session: BrowserSession, params: any)
     }
     case 'conference-info':
       const { conferenceState, messages = [] } = eventData
-      return _dispatch(session, { action: ConferenceAction.ConferenceInfo, conferenceState: destructConferenceState(conferenceState), messages }, callIds)
+      return _dispatch(session, { action: ConferenceAction.ConferenceInfo, eventChannel, conferenceState: destructConferenceState(conferenceState), messages }, callIds)
     case 'caption-info': {
       if (callIds.length) {
         callIds.forEach(callId => {

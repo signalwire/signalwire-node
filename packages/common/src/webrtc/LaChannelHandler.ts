@@ -13,6 +13,7 @@ export default function (session: BrowserSession, { eventChannel, eventSerno, da
     }
     return logger.error('Invalid conference wireSerno:', packet)
   }
+  const [, confMd5, domain] = eventChannel.match(/conference-liveArray.(.*)@(.*)/)
   const callIds = session.channelToCallIds.get(eventChannel) || []
   const { action, data, hashKey: callId } = packet
   switch (action) {
@@ -20,7 +21,7 @@ export default function (session: BrowserSession, { eventChannel, eventSerno, da
       // lastSerno = 0
       const participants = []
       for (const i in data) {
-        const participant = { callId: data[i][0], ...mutateLiveArrayData(data[i][1]) }
+        const participant = { callId: data[i][0], confMd5, domain, eventChannel, ...mutateLiveArrayData(data[i][1]) }
         const { callId, audio, video } = participant
         const isMyCall = callIds.includes(callId)
         if (isMyCall && audio && video) {
@@ -34,12 +35,12 @@ export default function (session: BrowserSession, { eventChannel, eventSerno, da
         }
         participants.push(participant)
       }
-      return _dispatch(session, { action: ConferenceAction.Bootstrap, participants }, callIds)
+      return _dispatch(session, { action: ConferenceAction.Bootstrap, participants, confMd5, domain, eventChannel }, callIds)
     }
     case 'add':
-      return _dispatch(session, { action: ConferenceAction.Add, callId, ...mutateLiveArrayData(data) }, callIds)
+      return _dispatch(session, { action: ConferenceAction.Add, callId, confMd5, domain, eventChannel, ...mutateLiveArrayData(data) }, callIds)
     case 'modify': {
-      const notification = { action: ConferenceAction.Modify, callId, ...mutateLiveArrayData(data) }
+      const notification = { action: ConferenceAction.Modify, callId, confMd5, domain, eventChannel, ...mutateLiveArrayData(data) }
       const isMyCall = callIds.includes(callId)
       if (isMyCall) {
         const { audio, video } = notification
@@ -61,11 +62,11 @@ export default function (session: BrowserSession, { eventChannel, eventSerno, da
       return _dispatch(session, notification, callIds)
     }
     case 'del':
-      return _dispatch(session, { action: ConferenceAction.Delete, callId, ...mutateLiveArrayData(data) }, callIds)
+      return _dispatch(session, { action: ConferenceAction.Delete, callId, confMd5, domain, eventChannel, ...mutateLiveArrayData(data) }, callIds)
     case 'clear':
-      return _dispatch(session, { action: ConferenceAction.Clear, confName: packet.name || null }, callIds)
+      return _dispatch(session, { action: ConferenceAction.Clear, confMd5, domain, eventChannel, confName: packet.name || null }, callIds)
     default:
-      return _dispatch(session, { action, data, callId }, callIds)
+      return _dispatch(session, { action, data, callId, confMd5, domain, eventChannel }, callIds)
   }
 }
 

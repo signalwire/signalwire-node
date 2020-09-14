@@ -453,6 +453,8 @@ export default abstract class BrowserSession extends BaseSession {
     if (all.includes(modChannel)) {
       this._addSubscription(this.relayProtocol, modChannelHandler.bind(this, this), modChannel)
     }
+
+    return currentConfList
   }
 
   unwatchVertoConferences = async () => {

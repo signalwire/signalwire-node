@@ -16,11 +16,11 @@ export default function modChannelHandler(session: BrowserSession, { data, event
     case 'list-videoLayouts':
       if (data.responseData) {
         const tmp = JSON.stringify(data.responseData).replace(/IDS"/g, 'Ids"')
-        params = { action: ConferenceAction.LayoutList, layouts: JSON.parse(tmp) }
+        params = { action: ConferenceAction.LayoutList, eventChannel, layouts: JSON.parse(tmp) }
       }
       break
     default:
-      params = { action: ConferenceAction.ModCmdResponse, command: data['conf-command'], response: data.response }
+      params = { action: ConferenceAction.ModCmdResponse, eventChannel, command: data['conf-command'], response: data.response }
   }
   if (params) {
     _dispatch(session, params, callIds)

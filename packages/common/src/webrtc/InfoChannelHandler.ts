@@ -50,6 +50,7 @@ const _dispatch = (session: BrowserSession, params: any, callIds: string[]) => {
       session.calls[callId] && session.calls[callId]._dispatchConferenceUpdate(params)
     })
   } else {
-    console.warn('Dispatch global ConferenceUpdate for', params)
+    // console.warn('Dispatch global ConferenceUpdate for', params)
+    session.dispatchConferenceUpdate(params)
   }
 }

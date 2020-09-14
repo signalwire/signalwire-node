@@ -2,7 +2,7 @@ import BaseSession from './BaseSession'
 import { IAudioSettings, IVideoSettings, BroadcastParams, SubscribeParams } from './util/interfaces'
 import { registerOnce, trigger } from './services/Handler'
 import { SwEvent, SESSION_ID } from './util/constants'
-import { State, DeviceType } from './webrtc/constants'
+import { State, DeviceType, Notification } from './webrtc/constants'
 import { removeUnsupportedConstraints, getUserMedia, destructSubscribeResponse, destructConferenceState, mungeLayoutList } from './webrtc/helpers'
 import { getDevices, scanResolutions, checkDeviceIdConstraints, assureDeviceId } from './webrtc/deviceHelpers'
 import BaseMessage from './messages/BaseMessage'
@@ -12,6 +12,9 @@ import { Unsubscribe, Subscribe, Broadcast, JSApi } from './messages/Verto'
 import { localStorage } from './util/storage/'
 import { stopStream } from './util/webrtc'
 import WebRTCCall from './webrtc/WebRTCCall'
+import laChannelHandler from './webrtc/LaChannelHandler'
+import modChannelHandler, { publicModMethods } from './webrtc/ModChannelHandler'
+import infoChannelHandler from './webrtc/InfoChannelHandler'
 
 export default abstract class BrowserSession extends BaseSession {
   public calls: { [callId: string]: WebRTCCall } = {}
@@ -39,8 +42,9 @@ export default abstract class BrowserSession extends BaseSession {
 
   addChannelCallIdEntry(channel: string, callId: string) {
     const current = this.channelToCallIds.get(channel) || []
-    current.push(callId)
-    this.channelToCallIds.set(channel, current)
+    const filtered = current.filter(id => id !== callId)
+    filtered.push(callId)
+    this.channelToCallIds.set(channel, filtered)
   }
 
   removeChannelCallIdEntry(channel: string, callId: string) {
@@ -401,11 +405,50 @@ export default abstract class BrowserSession extends BaseSession {
   }
 
   watchVertoConferences = async () => {
-
+    const infoChannel = 'conference-info'
+    const laChannel = 'conference-liveArray'
+    const modChannel = 'conference-mod'
+    const result = await this.vertoSubscribe({
+      nodeId: this.nodeid,
+      channels: [infoChannel, laChannel, modChannel],
+    })
+    const { subscribed = [], alreadySubscribed = [] } = destructSubscribeResponse(result)
+    const all = subscribed.concat(alreadySubscribed)
+    if (all.includes(laChannel)) {
+      this._addSubscription(this.relayProtocol, laChannelHandler.bind(this, this), laChannel)
+    }
+    if (all.includes(infoChannel)) {
+      this.on('signalwire.notification', (event) => {
+        switch (event.type) {
+          case 'conferenceUpdate':
+            console.debug('Here >', event.type, event.action)
+            break;
+        }
+      })
+      this._addSubscription(this.relayProtocol, infoChannelHandler.bind(this, this), infoChannel)
+    }
+    if (all.includes(modChannel)) {
+      this._addSubscription(this.relayProtocol, modChannelHandler.bind(this, this), modChannel)
+    }
   }
 
   unwatchVertoConferences = async () => {
+    const infoChannel = 'conference-info'
+    const laChannel = 'conference-liveArray'
+    const modChannel = 'conference-mod'
+    const channels = [infoChannel, laChannel, modChannel]
+    channels.forEach(channel => {
+      this._removeSubscription(this.relayProtocol, channel)
+    })
+    await this.vertoUnsubscribe({
+      nodeId: this.nodeid,
+      channels,
+    })
+  }
 
+  dispatchConferenceUpdate(params: any) {
+    const notification = { type: Notification.ConferenceUpdate, ...params }
+    trigger(SwEvent.Notification, notification, this.uuid)
   }
 
   _jsApi(params = {}) {

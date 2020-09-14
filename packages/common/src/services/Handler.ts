@@ -4,6 +4,8 @@ type QueueMap = { [key: string]: Function[] }
 
 const GLOBAL = 'GLOBAL'
 const queue: QueueMap = {}
+// @ts-ignore
+window._queue = queue
 const _buildEventName = (event: string, uniqueId: string) => `${event}|${uniqueId}`
 
 const isQueued = (event: string, uniqueId: string = GLOBAL) => {

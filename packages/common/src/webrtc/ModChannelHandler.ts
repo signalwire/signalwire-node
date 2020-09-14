@@ -1,24 +1,40 @@
 import logger from '../util/logger'
 import { ConferenceAction } from './constants'
+import BrowserSession from '../BrowserSession'
 
 // TODO: clear serno
 let lastSerno = 0
 
-export default function modChannelHandler(params: any) {
-  const { data, eventSerno = null } = params
+export default function modChannelHandler(session: BrowserSession, { data, eventChannel, eventSerno = null }: any) {
   if (eventSerno !== null && eventSerno === lastSerno) {
     return logger.debug('Skip Mod event:', eventSerno, 'last was:', lastSerno)
   }
   lastSerno = eventSerno
+  const callIds = session.channelToCallIds.get(eventChannel) || []
+  let params = null
   switch (data['conf-command']) {
     case 'list-videoLayouts':
       if (data.responseData) {
         const tmp = JSON.stringify(data.responseData).replace(/IDS"/g, 'Ids"')
-        this._dispatchConferenceUpdate({ action: ConferenceAction.LayoutList, layouts: JSON.parse(tmp) })
+        params = { action: ConferenceAction.LayoutList, layouts: JSON.parse(tmp) }
       }
       break
     default:
-      this._dispatchConferenceUpdate({ action: ConferenceAction.ModCmdResponse, command: data['conf-command'], response: data.response })
+      params = { action: ConferenceAction.ModCmdResponse, command: data['conf-command'], response: data.response }
+  }
+  if (params) {
+    _dispatch(session, params, callIds)
+  }
+}
+
+const _dispatch = (session: BrowserSession, params: any, callIds: string[]) => {
+  if (callIds.length) {
+    callIds.forEach(callId => {
+      session.calls[callId] && session.calls[callId]._dispatchConferenceUpdate(params)
+    })
+  } else {
+    // console.warn('Dispatch global ConferenceUpdate for', params)
+    session.dispatchConferenceUpdate(params)
   }
 }
 

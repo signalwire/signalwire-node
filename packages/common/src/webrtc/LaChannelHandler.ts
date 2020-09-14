@@ -4,12 +4,12 @@ import { ConferenceAction } from './constants'
 import BrowserSession from '../BrowserSession'
 
 // TODO: clear serno
-let lastWireSerno = 0
+let lastSerno = 0
 
-export default function (session: BrowserSession, { eventChannel, data: packet }: any) {
-  if (!_checkSerno(packet.wireSerno)) {
-    if (packet.wireSerno === lastWireSerno) {
-      return logger.debug('Skip liveArray event:', packet.wireSerno, 'last was:', lastWireSerno)
+export default function (session: BrowserSession, { eventChannel, eventSerno, data: packet }: any) {
+  if (!_checkSerno(eventSerno)) {
+    if (eventSerno === lastSerno) {
+      return logger.info('Skip liveArray event:', eventSerno, 'last was:', lastSerno)
     }
     return logger.error('Invalid conference wireSerno:', packet)
   }
@@ -17,7 +17,7 @@ export default function (session: BrowserSession, { eventChannel, data: packet }
   const { action, data, hashKey: callId } = packet
   switch (action) {
     case 'bootObj': {
-      lastWireSerno = 0
+      // lastSerno = 0
       const participants = []
       for (const i in data) {
         const participant = { callId: data[i][0], ...mutateLiveArrayData(data[i][1]) }
@@ -80,9 +80,9 @@ export const publicLiveArrayMethods = {
 }
 
 const _checkSerno = (serno: number) => {
-  const check = (serno < 0) || (!lastWireSerno || (lastWireSerno && serno === (lastWireSerno + 1)))
+  const check = (serno < 0) || (!lastSerno || (lastSerno && serno === (lastSerno + 1)))
   if (check && serno >= 0) {
-    lastWireSerno = serno
+    lastSerno = serno
   }
   return check
 }
@@ -93,6 +93,7 @@ const _dispatch = (session: BrowserSession, params: any, callIds: string[]) => {
       session.calls[callId] && session.calls[callId]._dispatchConferenceUpdate(params)
     })
   } else {
-    console.warn('Dispatch global ConferenceUpdate for', params)
+    // console.warn('Dispatch global ConferenceUpdate for', params)
+    session.dispatchConferenceUpdate(params)
   }
 }

@@ -6,7 +6,7 @@ import RTCPeer from './RTCPeer'
 import { Bye, Info, Modify } from '../messages/Verto'
 import { SwEvent, VERTO_PROTOCOL } from '../util/constants'
 import { State, DEFAULT_CALL_OPTIONS, Role, PeerType, VertoMethod, Notification, Direction, ConferenceAction } from './constants'
-import { trigger, register, deRegisterAll } from '../services/Handler'
+import { trigger, register, deRegisterAll, deRegister } from '../services/Handler'
 import { enableAudioTracks, disableAudioTracks, toggleAudioTracks, enableVideoTracks, disableVideoTracks, toggleVideoTracks, checkIsDirectCall, mutateCanvasInfoData, destructSubscribeResponse } from './helpers'
 import { objEmpty, isFunction } from '../util/helpers'
 import { CallOptions, IHangupParams, ICallParticipant, VertoPvtData, ICanvasInfo } from './interfaces'
@@ -479,7 +479,7 @@ export default abstract class WebRTCCall {
     this.pvtData = pvtData
     this._dispatchConferenceUpdate({ action: ConferenceAction.Leave, conferenceName: this.pvtData.laName, participantId: this.participantId, role: this.participantRole })
     this.conferenceChannels.forEach(channel => {
-      deRegisterAll(channel)
+      deRegister(this.session.relayProtocol, null, channel)
       this.session.removeChannelCallIdEntry(channel, this.id)
     })
     try {
@@ -538,14 +538,14 @@ export default abstract class WebRTCCall {
       })
     })
 
-    this.conferenceChannels.forEach(channel => {
-      this.session.addChannelCallIdEntry(channel, this.id)
-    })
-
     this._dispatchConferenceUpdate({ action: ConferenceAction.Join, conferenceName: this.pvtData.laName, participantId: this.participantId, role: this.participantRole })
 
     try {
       const { relayProtocol } = this.session
+      this.conferenceChannels.forEach(channel => {
+        deRegister(relayProtocol, null, channel)
+        this.session.addChannelCallIdEntry(channel, this.id)
+      })
       const filteredChannels = this.conferenceChannels.filter(channel => {
         const global = channel.split('.')[0]
         return !this.session._existsSubscription(relayProtocol, global)
@@ -556,20 +556,23 @@ export default abstract class WebRTCCall {
       })
       const { subscribed = [], alreadySubscribed = [] } = destructSubscribeResponse(result)
       const all = subscribed.concat(alreadySubscribed)
-      this.conferenceChannels.forEach(deRegisterAll)
       // this._clearAllSerno()
       const { laChannel, chatChannel, infoChannel, modChannel } = this.pvtData
       if (all.includes(laChannel)) {
+        deRegister(relayProtocol, null, laChannel)
         register(relayProtocol, laChannelHandler.bind(this, this.session), laChannel)
         this.liveArrayBootstrap()
       }
       if (all.includes(chatChannel)) {
+        deRegister(relayProtocol, null, chatChannel)
         register(relayProtocol, chatChannelHandler.bind(this, this.session), chatChannel)
       }
       if (all.includes(infoChannel)) {
+        deRegister(relayProtocol, null, infoChannel)
         register(relayProtocol, infoChannelHandler.bind(this, this.session), infoChannel)
       }
       if (all.includes(modChannel)) {
+        deRegister(relayProtocol, null, modChannel)
         register(relayProtocol, modChannelHandler.bind(this, this.session), modChannel)
       }
     } catch (error) {

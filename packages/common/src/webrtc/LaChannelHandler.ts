@@ -63,7 +63,7 @@ export default function (session: BrowserSession, { eventChannel, eventSerno, da
     case 'del':
       return _dispatch(session, { action: ConferenceAction.Delete, callId, ...mutateLiveArrayData(data) }, callIds)
     case 'clear':
-      return _dispatch(session, { action: ConferenceAction.Clear }, callIds)
+      return _dispatch(session, { action: ConferenceAction.Clear, confName: packet.name || null }, callIds)
     default:
       return _dispatch(session, { action, data, callId }, callIds)
   }

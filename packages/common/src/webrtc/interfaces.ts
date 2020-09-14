@@ -152,6 +152,7 @@ export interface IConferenceInfo {
   uuid: string
   md5: string
   domain: string
+  running: boolean
   laChannel: string
   infoChannel: string
   modChannel: string

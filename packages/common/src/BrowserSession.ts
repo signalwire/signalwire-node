@@ -15,10 +15,12 @@ import WebRTCCall from './webrtc/WebRTCCall'
 import laChannelHandler from './webrtc/LaChannelHandler'
 import modChannelHandler, { publicModMethods } from './webrtc/ModChannelHandler'
 import infoChannelHandler from './webrtc/InfoChannelHandler'
+import { IConferenceInfo } from './webrtc/interfaces'
+import Conference from './webrtc/Conference'
 
 export default abstract class BrowserSession extends BaseSession {
   public calls: { [callId: string]: WebRTCCall } = {}
-  // public conferences: { [confUuid: string]: Conference } = {}
+  public conferences: { [confUuid: string]: Conference } = {}
   public channelToCallIds = new Map<string, string[]>()
   public micId: string
   public micLabel: string
@@ -336,7 +338,7 @@ export default abstract class BrowserSession extends BaseSession {
 
   async vertoConferenceList(showLayouts = false, showMembers = false) {
     try {
-      const rooms = []
+      const rooms: IConferenceInfo[] = []
       const response = await this._jsApi({
         command: 'conference',
         data: {
@@ -405,6 +407,11 @@ export default abstract class BrowserSession extends BaseSession {
   }
 
   watchVertoConferences = async () => {
+    this.conferences = {}
+    const currentConfList = await this.vertoConferenceList()
+    currentConfList.forEach(row => {
+      this.conferences[row.uuid] = new Conference(this, row)
+    })
     const infoChannel = 'conference-info'
     const laChannel = 'conference-liveArray'
     const modChannel = 'conference-mod'
@@ -419,10 +426,26 @@ export default abstract class BrowserSession extends BaseSession {
     }
     if (all.includes(infoChannel)) {
       this.on('signalwire.notification', (event) => {
-        switch (event.type) {
-          case 'conferenceUpdate':
-            console.debug('Here >', event.type, event.action)
-            break;
+        if (event.type !== 'conferenceUpdate') {
+          return
+        }
+        switch (event.action) {
+          case 'clear':
+            Object.keys(this.conferences).forEach(uuid => {
+              if (this.conferences[uuid].confName === event.confName) {
+                delete this.conferences[uuid]
+              }
+            })
+            break
+          case 'conferenceInfo':
+            const conferenceState: IConferenceInfo = event.conferenceState
+            const { uuid, running } = conferenceState
+            if (running) {
+              this.conferences[uuid] = new Conference(this, conferenceState)
+            } else {
+              delete this.conferences[uuid]
+            }
+            break
         }
       })
       this._addSubscription(this.relayProtocol, infoChannelHandler.bind(this, this), infoChannel)
@@ -433,6 +456,7 @@ export default abstract class BrowserSession extends BaseSession {
   }
 
   unwatchVertoConferences = async () => {
+    this.conferences = {}
     const infoChannel = 'conference-info'
     const laChannel = 'conference-liveArray'
     const modChannel = 'conference-mod'

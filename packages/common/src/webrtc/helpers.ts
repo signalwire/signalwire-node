@@ -145,6 +145,7 @@ export const destructConferenceState = (confState: any): IConferenceInfo => {
     uuid: confState.uuid,
     md5: confState.md5,
     domain: confState.domain,
+    running: Boolean(confState.running),
     laChannel: `conference-liveArray.${suffix}`,
     infoChannel: `conference-info.${suffix}`,
     modChannel: `conference-mod.${suffix}`,

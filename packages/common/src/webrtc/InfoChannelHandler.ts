@@ -1,6 +1,7 @@
 import logger from '../util/logger'
 import { ConferenceAction } from './constants'
 import BrowserSession from '../BrowserSession'
+import { destructConferenceState } from './helpers'
 
 // TODO: clear serno
 let lastSerno = 0
@@ -27,8 +28,8 @@ export default function infoChannelHandler(session: BrowserSession, params: any)
       break
     }
     case 'conference-info':
-      const { contentType, ...rest } = eventData
-      return _dispatch(session, { action: ConferenceAction.ConferenceInfo, ...rest }, callIds)
+      const { conferenceState, messages = [] } = eventData
+      return _dispatch(session, { action: ConferenceAction.ConferenceInfo, conferenceState: destructConferenceState(conferenceState), messages }, callIds)
     case 'caption-info': {
       if (callIds.length) {
         callIds.forEach(callId => {

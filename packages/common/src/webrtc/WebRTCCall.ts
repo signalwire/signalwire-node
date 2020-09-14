@@ -5,21 +5,16 @@ import BaseMessage from '../messages/BaseMessage'
 import RTCPeer from './RTCPeer'
 import { Bye, Info, Modify } from '../messages/Verto'
 import { SwEvent, VERTO_PROTOCOL } from '../util/constants'
-import { State, DEFAULT_CALL_OPTIONS, Role, PeerType, VertoMethod, Notification, Direction } from './constants'
+import { State, DEFAULT_CALL_OPTIONS, Role, PeerType, VertoMethod, Notification, Direction, ConferenceAction } from './constants'
 import { trigger, register, deRegisterAll } from '../services/Handler'
-import { enableAudioTracks, disableAudioTracks, toggleAudioTracks, enableVideoTracks, disableVideoTracks, toggleVideoTracks, checkIsDirectCall } from './helpers'
+import { enableAudioTracks, disableAudioTracks, toggleAudioTracks, enableVideoTracks, disableVideoTracks, toggleVideoTracks, checkIsDirectCall, mutateCanvasInfoData, destructSubscribeResponse } from './helpers'
 import { objEmpty, isFunction } from '../util/helpers'
-import { CallOptions, IHangupParams, ICallParticipant } from './interfaces'
+import { CallOptions, IHangupParams, ICallParticipant, VertoPvtData, ICanvasInfo } from './interfaces'
 import { detachMediaStream, stopStream, setMediaElementSinkId, getUserMedia, getHostname } from '../util/webrtc'
-import Conference from './Conference'
-import { CheckConferenceMethod } from './decorators'
-
-const confMethods = [
-  'sendChatMessage', 'listVideoLayouts', 'playMedia', 'stopMedia', 'startRecord', 'stopRecord',
-  'snapshot', 'setVideoLayout', 'kick', 'presenter', 'videoFloor', 'banner',
-  'volumeDown', 'volumeUp', 'gainDown', 'gainUp', 'toggleNoiseBlocker', 'toggleLowBitrateMode',
-  'toggleHandRaised', 'confQuality', 'confFullscreen', 'addToCall', 'modCommand'
-]
+import laChannelHandler, { publicLiveArrayMethods } from './LaChannelHandler'
+import chatChannelHandler, { publicChatMethods } from './ChatChannelHandler'
+import modChannelHandler, { publicModMethods } from './ModChannelHandler'
+import infoChannelHandler from './InfoChannelHandler'
 
 export default abstract class WebRTCCall {
   public id: string = ''
@@ -27,7 +22,6 @@ export default abstract class WebRTCCall {
   public direction: Direction
   public peer: RTCPeer
   public options: CallOptions
-  public conference: Conference
   public cause: string
   public causeCode: string
   public extension: string = null
@@ -38,6 +32,11 @@ export default abstract class WebRTCCall {
   public isDirect = false
   public videoElements: HTMLVideoElement[] = []
   public audioElements: HTMLAudioElement[] = []
+  public pvtData: VertoPvtData = null
+  public canvasType: string
+  public canvasInfo: ICanvasInfo
+  public participantLayerIndex = -1
+  public participantLogo = ''
 
   private _state: State = State.New
   private _prevState: State = State.New
@@ -51,6 +50,7 @@ export default abstract class WebRTCCall {
   setSpeakerPhone?(flag: boolean): void
 
   sendChatMessage?(message: string, type: string): void
+  liveArrayBootstrap?(): void
   listVideoLayouts?(): void
   playMedia?(file: string): void
   stopMedia?(): void
@@ -87,17 +87,6 @@ export default abstract class WebRTCCall {
     this._hangup = this._hangup.bind(this)
     this._onParticipantData = this._onParticipantData.bind(this)
     this._onGenericEvent = this._onGenericEvent.bind(this)
-
-    confMethods.forEach(method => {
-      Object.defineProperty(this, method, {
-        value: function () {
-          if (this.conference instanceof Conference) {
-            return this.conference[method](...arguments)
-          }
-          console.warn(`Invalid method: ${method}. This Call is not a Conference.`)
-        }.bind(this)
-      })
-    })
 
     this._init()
   }
@@ -141,11 +130,31 @@ export default abstract class WebRTCCall {
   }
 
   get currentParticipant(): Partial<ICallParticipant> {
-    return this.conference ? this.conference.currentParticipant : {}
+    const participant = {
+      id: this.participantId,
+      role: this.participantRole,
+      layer: null,
+      layerIndex: this.participantLayerIndex,
+      isLayerBehind: false,
+    }
+    if (this.canvasInfo && this.participantLayerIndex >= 0) {
+      const { layoutOverlap, canvasLayouts } = this.canvasInfo
+      participant.layer = canvasLayouts[this.participantLayerIndex] || null
+      participant.isLayerBehind = layoutOverlap && participant.layer && participant.layer.overlap === 0
+    }
+    return participant
+  }
+
+  get participantId() {
+    return this.pvtData ? String(this.pvtData.conferenceMemberID) : null
+  }
+
+  get participantRole() {
+    return this.pvtData ? this.pvtData.role : null
   }
 
   get role() {
-    return this.conference ? this.conference.participantRole : Role.Participant
+    return this.participantRole
   }
 
   // secondSource and screenShare calls are not "main"
@@ -184,6 +193,11 @@ export default abstract class WebRTCCall {
 
   get htmlAudioElement() {
     return this.audioElements.length ? this.audioElements[0] : null
+  }
+
+  get conferenceChannels() {
+    const { laChannel, chatChannel, infoChannel, modChannel } = this.pvtData
+    return [laChannel, chatChannel, infoChannel, modChannel].filter(Boolean)
   }
 
   async _upgrade() {
@@ -265,39 +279,6 @@ export default abstract class WebRTCCall {
     }
   }
 
-  // async setMicrophone(deviceId: string): Promise<void> {
-  //   const { instance } = this.peer
-  //   const sender = instance.getSenders().find(({ track: { kind } }: RTCRtpSender) => kind === 'audio')
-  //   if (sender) {
-  //     const newStream = await getUserMedia({ audio: { deviceId: { exact: deviceId } } })
-  //     const audioTrack = newStream.getAudioTracks()[0]
-  //     sender.replaceTrack(audioTrack)
-  //     this.options.micId = deviceId
-
-  //     const { localStream } = this.options
-  //     localStream.getAudioTracks().forEach(t => t.stop())
-  //     localStream.getVideoTracks().forEach(t => newStream.addTrack(t))
-  //     this.options.localStream = newStream
-  //   }
-  // }
-
-  // async setCamera(deviceId: string): Promise<void> {
-  //   const { instance } = this.peer
-  //   const sender = instance.getSenders().find(({ track: { kind } }: RTCRtpSender) => kind === 'video')
-  //   if (sender) {
-  //     const newStream = await getUserMedia({ video: { deviceId: { exact: deviceId } } })
-  //     const videoTrack = newStream.getVideoTracks()[0]
-  //     sender.replaceTrack(videoTrack)
-  //     const { localElement, localStream } = this.options
-  //     attachMediaStream(localElement, newStream)
-  //     this.options.camId = deviceId
-
-  //     localStream.getAudioTracks().forEach(t => newStream.addTrack(t))
-  //     localStream.getVideoTracks().forEach(t => t.stop())
-  //     this.options.localStream = newStream
-  //   }
-  // }
-
   invite() {
     this.direction = Direction.Outbound
     this.peer = new RTCPeer(this, PeerType.Offer, this.options)
@@ -341,7 +322,6 @@ export default abstract class WebRTCCall {
     return this._execute(msg)
   }
 
-  @CheckConferenceMethod
   transfer(destination: string, id?: string) {
     const msg = new Modify({ ...this.messagePayload, action: 'transfer', destination })
     this._execute(msg)
@@ -369,48 +349,48 @@ export default abstract class WebRTCCall {
     return this._changeHold('toggleHold')
   }
 
-  @CheckConferenceMethod
-  muteAudio(participantId?: string) {
+  muteAudio(participantId?: string): void
+  muteAudio() {
     disableAudioTracks(this.options.localStream)
   }
 
-  @CheckConferenceMethod
-  unmuteAudio(participantId?: string) {
+  unmuteAudio(participantId?: string): void
+  unmuteAudio() {
     enableAudioTracks(this.options.localStream)
   }
 
-  @CheckConferenceMethod
-  toggleAudioMute(participantId?: string) {
+  toggleAudioMute(participantId?: string): void
+  toggleAudioMute() {
     toggleAudioTracks(this.options.localStream)
   }
 
-  @CheckConferenceMethod
-  muteVideo(participantId?: string) {
+  muteVideo(participantId?: string): void
+  muteVideo() {
     disableVideoTracks(this.options.localStream)
   }
 
-  @CheckConferenceMethod
-  unmuteVideo(participantId?: string) {
+  unmuteVideo(participantId?: string): void
+  unmuteVideo() {
     enableVideoTracks(this.options.localStream)
   }
 
-  @CheckConferenceMethod
-  toggleVideoMute(participantId?: string) {
+  toggleVideoMute(participantId?: string): void
+  toggleVideoMute() {
     toggleVideoTracks(this.options.localStream)
   }
 
-  @CheckConferenceMethod
-  deaf(participantId?: string) {
+  deaf(participantId?: string): void
+  deaf() {
     disableAudioTracks(this.options.remoteStream)
   }
 
-  @CheckConferenceMethod
-  undeaf(participantId?: string) {
+  undeaf(participantId?: string): void
+  undeaf() {
     enableAudioTracks(this.options.remoteStream)
   }
 
-  @CheckConferenceMethod
-  toggleDeaf(participantId?: string) {
+  toggleDeaf(participantId?: string): void
+  toggleDeaf() {
     toggleAudioTracks(this.options.remoteStream)
   }
 
@@ -493,6 +473,132 @@ export default abstract class WebRTCCall {
         this._finalize()
         break
     }
+  }
+
+  async conferencePartHandler(pvtData: VertoPvtData) {
+    this.pvtData = pvtData
+    this._dispatchConferenceUpdate({ action: ConferenceAction.Leave, conferenceName: this.pvtData.laName, participantId: this.participantId, role: this.participantRole })
+    this.conferenceChannels.forEach(channel => {
+      deRegisterAll(channel)
+      this.session.removeChannelCallIdEntry(channel, this.id)
+    })
+    try {
+      await this.session.vertoUnsubscribe({
+        nodeId: pvtData.nodeId,
+        channels: this.conferenceChannels,
+      })
+    } catch (error) {
+      logger.error('Conference unsubscribe error:', error)
+    }
+    // this._clearAllSerno()
+  }
+
+  async conferenceJoinHandler(pvtData: VertoPvtData) {
+    this.pvtData = pvtData
+    this.extension = pvtData.laName
+
+    const laObject = {
+      session: this.session,
+      nodeId: this.nodeId,
+      channel: this.pvtData.laChannel || null,
+      laName: this.pvtData.laName || null,
+    }
+    Object.keys(publicLiveArrayMethods).forEach(method => {
+      Object.defineProperty(this, method, {
+        configurable: true,
+        writable: true,
+        value: publicLiveArrayMethods[method].bind(laObject)
+      })
+    })
+
+    const chatObject = {
+      session: this.session,
+      nodeId: this.nodeId,
+      channel: this.pvtData.chatChannel || null,
+    }
+    Object.keys(publicChatMethods).forEach(method => {
+      Object.defineProperty(this, method, {
+        configurable: true,
+        writable: true,
+        value: publicChatMethods[method].bind(chatObject)
+      })
+    })
+
+    const modObject = {
+      session: this.session,
+      nodeId: this.nodeId,
+      channel: this.pvtData.modChannel || null,
+      callID: this.id,
+    }
+    Object.keys(publicModMethods).forEach(method => {
+      Object.defineProperty(this, method, {
+        configurable: true,
+        writable: true,
+        value: publicModMethods[method].bind(modObject)
+      })
+    })
+
+    this.conferenceChannels.forEach(channel => {
+      this.session.addChannelCallIdEntry(channel, this.id)
+    })
+
+    this._dispatchConferenceUpdate({ action: ConferenceAction.Join, conferenceName: this.pvtData.laName, participantId: this.participantId, role: this.participantRole })
+
+    try {
+      const { relayProtocol } = this.session
+      const filteredChannels = this.conferenceChannels.filter(channel => {
+        const global = channel.split('.')[0]
+        return !this.session._existsSubscription(relayProtocol, global)
+      })
+      const result = await this.session.vertoSubscribe({
+        nodeId: pvtData.nodeId,
+        channels: filteredChannels,
+      })
+      const { subscribed = [], alreadySubscribed = [] } = destructSubscribeResponse(result)
+      const all = subscribed.concat(alreadySubscribed)
+      this.conferenceChannels.forEach(deRegisterAll)
+      // this._clearAllSerno()
+      const { laChannel, chatChannel, infoChannel, modChannel } = this.pvtData
+      if (all.includes(laChannel)) {
+        register(relayProtocol, laChannelHandler.bind(this, this.session), laChannel)
+        this.liveArrayBootstrap()
+      }
+      if (all.includes(chatChannel)) {
+        register(relayProtocol, chatChannelHandler.bind(this, this.session), chatChannel)
+      }
+      if (all.includes(infoChannel)) {
+        register(relayProtocol, infoChannelHandler.bind(this, this.session), infoChannel)
+      }
+      if (all.includes(modChannel)) {
+        register(relayProtocol, modChannelHandler.bind(this, this.session), modChannel)
+      }
+    } catch (error) {
+      logger.error('Conference subscriptions error:', error)
+    }
+  }
+
+  updateLayouts(params: any) {
+    const { contentType, callID, canvasType, canvasInfo = null, currentLayerIdx = null, ...rest } = params
+    this.canvasType = canvasType
+    if (contentType === 'layer-info' && currentLayerIdx !== null) {
+      this.participantLayerIndex = currentLayerIdx
+    }
+    if (canvasInfo !== null) {
+      this.canvasInfo = mutateCanvasInfoData(canvasInfo)
+    }
+    const action = contentType === 'layer-info' ? ConferenceAction.LayerInfo : ConferenceAction.LayoutInfo
+    this._dispatchConferenceUpdate({ action, participant: this.currentParticipant, canvasInfo: this.canvasInfo, contentType, canvasType, ...rest })
+  }
+
+  updateLogo(params: any) {
+    const { logoURL: logo } = params
+    this.participantLogo = logo
+    this._dispatchConferenceUpdate({ action: ConferenceAction.LogoInfo, logo })
+  }
+
+  handleCaptionInfo(params: any) {
+    const { contentType, ...rest } = params
+    this._dispatchConferenceUpdate({ action: ConferenceAction.CaptionInfo, ...rest })
   }
 
   private async _changeHold(action: string) {
@@ -582,6 +688,10 @@ export default abstract class WebRTCCall {
     }
   }
 
+  public _dispatchConferenceUpdate(params: any) {
+    this._dispatchNotification({ type: Notification.ConferenceUpdate, ...params })
+  }
+
   public _execute(msg: BaseMessage) {
     if (this.nodeId) {
       msg.targetNodeId = this.nodeId
@@ -662,9 +772,6 @@ export default abstract class WebRTCCall {
     if (this.peer && this.peer.instance) {
       this.peer.instance.close()
       this.peer = null
-    }
-    if (this.conference instanceof Conference) {
-      this.conference.destroy().then(() => delete this.conference)
     }
     const { remoteStream, localStream, remoteElement, localElement } = this.options
     stopStream(remoteStream)

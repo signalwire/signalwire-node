@@ -12,11 +12,10 @@ import { Unsubscribe, Subscribe, Broadcast, JSApi } from './messages/Verto'
 import { localStorage } from './util/storage/'
 import { stopStream } from './util/webrtc'
 import WebRTCCall from './webrtc/WebRTCCall'
-import Conference from './webrtc/Conference'
 
 export default abstract class BrowserSession extends BaseSession {
   public calls: { [callId: string]: WebRTCCall } = {}
-  public conferences: { [confUuid: string]: Conference } = {}
+  // public conferences: { [confUuid: string]: Conference } = {}
   public channelToCallIds = new Map<string, string[]>()
   public micId: string
   public micLabel: string

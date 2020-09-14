@@ -1,7 +1,7 @@
 {
   "rules": {
     "class-name": true,
-    "only-arrow-functions": true,
+    "only-arrow-functions": false,
     "ban-comma-operator": true,
     "curly": [
       true,

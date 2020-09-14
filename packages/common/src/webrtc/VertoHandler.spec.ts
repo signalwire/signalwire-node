@@ -1,11 +1,7 @@
 import VertoHandler from './VertoHandler'
 import Call from './Call'
-import { Notification, ConferenceAction } from './constants'
-import Conference from './Conference'
 import { Result } from '../messages/Verto'
 const Connection = require('../../../common/src/services/Connection')
-
-jest.mock('./Conference')
 
 export default (instance: any) => {
   describe('VertoHandler', () => {
@@ -18,6 +14,10 @@ export default (instance: any) => {
       call = new Call(instance, { id: callId, destinationNumber: 'x3599', remoteCallerName: 'Js Client Test', remoteCallerNumber: '1234', callerName: 'Jest Client', callerNumber: '5678' })
       // @ts-ignore
       call.peer = { onRemoteSdp: jest.fn() }
+      call.conferenceJoinHandler = jest.fn()
+      call.conferencePartHandler = jest.fn()
+      call.updateLogo = jest.fn()
+      call.updateLayouts = jest.fn()
       instance.on('signalwire.notification', onNotification)
       onNotification.mockClear()
     })
@@ -90,43 +90,35 @@ export default (instance: any) => {
         it('should handle the liveArray-join', () => {
           const payload = JSON.parse(`{"jsonrpc":"2.0","id":26017,"method":"verto.event","params":{"eventChannel":"${instance.sessionid}","eventType":"channelPvtData","pvtData":{"callID":"${callId}","action":"conference-liveArray-join","laChannel":"conference-liveArray.3594@cantina.freeswitch.org","laName":"3594","role":"moderator","chatID":"conf+3594@cantina.freeswitch.org","conferenceMemberID":"455","canvasCount":1,"modChannel":"conference-mod.3594@cantina.freeswitch.org","chatChannel":"conference-chat.3594@cantina.freeswitch.org","infoChannel":"conference-info.3594@cantina.freeswitch.org"}}}`)
           VertoHandler(instance, payload)
-          expect(Conference).toHaveBeenCalledTimes(1)
-          expect(instance.calls[callId].conference).toBeInstanceOf(Conference)
-          expect(instance.calls[callId].conference.join).toHaveBeenCalledTimes(1)
-          expect(instance.calls[callId].conference.join).toHaveBeenCalledWith(payload.params.pvtData)
+          expect(instance.calls[callId].conferenceJoinHandler).toHaveBeenCalledTimes(1)
+          expect(instance.calls[callId].conferenceJoinHandler).toHaveBeenCalledWith(payload.params.pvtData)
         })
 
         it('should handle the liveArray-part', () => {
           const payload = JSON.parse(`{"jsonrpc":"2.0","id":26064,"method":"verto.event","params":{"eventChannel":"${instance.sessionid}","eventType":"channelPvtData","pvtData":{"callID":"${callId}","action":"conference-liveArray-part","laChannel":"conference-liveArray.3594@cantina.freeswitch.org","laName":"3594","role":"moderator","chatID":"conf+3594@cantina.freeswitch.org","conferenceMemberID":"455","canvasCount":1,"modChannel":"conference-mod.3594@cantina.freeswitch.org","chatChannel":"conference-chat.3594@cantina.freeswitch.org","infoChannel":"conference-info.3594@cantina.freeswitch.org"}}}`)
-          instance.calls[callId].conference = new Conference(instance)
           VertoHandler(instance, payload)
-          expect(instance.calls[callId].conference.part).toHaveBeenCalledTimes(1)
-          expect(instance.calls[callId].conference.part).toHaveBeenCalledWith(payload.params.pvtData)
+          expect(instance.calls[callId].conferencePartHandler).toHaveBeenCalledTimes(1)
+          expect(instance.calls[callId].conferencePartHandler).toHaveBeenCalledWith(payload.params.pvtData)
         })
       })
 
       describe('with eventChannel equal to the sessionId', () => {
-
-        beforeEach(() => {
-          instance.calls[callId].conference = new Conference(instance)
-        })
-
         it('should handle the logo-info event', () => {
           const payload = JSON.parse(`{"jsonrpc":"2.0","id":37,"method":"verto.event","params":{"eventChannel":"${instance.sessionid}","eventData":{"contentType":"logo-info","callID":"${callId}","logoURL":"data:image/png;base64,long-string"}}}`)
           VertoHandler(instance, payload)
-          expect(instance.calls[callId].conference.updateLogo).toHaveBeenCalledTimes(1)
+          expect(instance.calls[callId].updateLogo).toHaveBeenCalledTimes(1)
         })
 
         it('should handle the layout-info event', () => {
           const payload = JSON.parse(`{"jsonrpc":"2.0","id":37,"method":"verto.event","params":{"eventChannel":"${instance.sessionid}","eventData":{"contentType":"layout-info","canvasType":"mcu-personal-canvas","callID":"${callId}","canvasInfo":{"canvasID":-1,"totalLayers":1,"layersUsed":0,"layoutFloorID":0,"layoutName":"1x1","canvasLayouts":[],"scale":360}}}}`)
           VertoHandler(instance, payload)
-          expect(instance.calls[callId].conference.updateLayouts).toHaveBeenCalledTimes(1)
+          expect(instance.calls[callId].updateLayouts).toHaveBeenCalledTimes(1)
         })
 
         it('should handle the layer-info event', () => {
           const payload = JSON.parse(`{"jsonrpc":"2.0","id":37,"method":"verto.event","params":{"eventChannel":"${instance.sessionid}","eventData":{"contentType":"layer-info","currentLayerIdx":-1,"canvasType":"mcu-personal-canvas","callID":"${callId}"}}}`)
           VertoHandler(instance, payload)
-          expect(instance.calls[callId].conference.updateLayouts).toHaveBeenCalledTimes(1)
+          expect(instance.calls[callId].updateLayouts).toHaveBeenCalledTimes(1)
         })
       })
     })

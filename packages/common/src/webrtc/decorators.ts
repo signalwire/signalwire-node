@@ -1,5 +1,4 @@
-import WebRTCCall from './WebRTCCall'
-import Conference from './Conference'
+// import WebRTCCall from './WebRTCCall'
 
 /* tslint:disable-next-line */
 // export function InjectConferenceMethods(klass: Function) {
@@ -22,19 +21,19 @@ import Conference from './Conference'
 // }
 
 /* tslint:disable-next-line */
-export function CheckConferenceMethod(target: WebRTCCall, key: string, descriptor: PropertyDescriptor) {
-  if (descriptor === undefined) {
-    descriptor = Object.getOwnPropertyDescriptor(target, key)
-  }
-  const originalMethod = descriptor.value
-  descriptor.value = function () {
-    if (this.conference instanceof Conference) {
-      if (!this.conference[key]) {
-        return console.warn(`The method '${key}' does not exist on Conference.`)
-      }
-      return this.conference[key](...arguments)
-    }
-    return originalMethod.apply(this, arguments)
-  }
-  return descriptor
-}
+// export function CheckConferenceMethod(target: WebRTCCall, key: string, descriptor: PropertyDescriptor) {
+//   if (descriptor === undefined) {
+//     descriptor = Object.getOwnPropertyDescriptor(target, key)
+//   }
+//   const originalMethod = descriptor.value
+//   descriptor.value = function () {
+//     if (this.conference instanceof Conference) {
+//       if (!this.conference[key]) {
+//         return console.warn(`The method '${key}' does not exist on Conference.`)
+//       }
+//       return this.conference[key](...arguments)
+//     }
+//     return originalMethod.apply(this, arguments)
+//   }
+//   return descriptor
+// }

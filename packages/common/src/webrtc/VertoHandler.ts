@@ -1,6 +1,5 @@
 import logger from '../util/logger'
 import BrowserSession from '../BrowserSession'
-import Conference from './Conference'
 import Call from './Call'
 import { Result } from '../messages/Verto'
 import { SwEvent } from '../util/constants'
@@ -9,7 +8,7 @@ import { trigger, registerOnce } from '../services/Handler'
 import { State } from './constants'
 import { checkIsDirectCall } from './helpers'
 
-const CONF_READY = 'CONF_READY'
+// const CONF_READY = 'CONF_READY'
 
 const _handlePvtEvent = async (session: BrowserSession, pvtData: any) => {
   const { action, callID } = pvtData
@@ -23,16 +22,11 @@ const _handlePvtEvent = async (session: BrowserSession, pvtData: any) => {
   }
   switch (action) {
     case 'conference-liveArray-join':
-      if (!call.conference) {
-        call.conference = new Conference(session)
-      }
-      await call.conference.join(pvtData)
-      trigger(callID, null, CONF_READY)
+      await call.conferenceJoinHandler(pvtData)
+      // trigger(callID, null, CONF_READY)
       break
     case 'conference-liveArray-part':
-      if (call.conference) {
-        call.conference.part(pvtData)
-      }
+      await call.conferencePartHandler(pvtData)
       break
   }
 }
@@ -43,19 +37,19 @@ const _handleSessionEvent = (session: BrowserSession, eventData: any) => {
     return logger.debug('Unhandled session event:', eventData)
   }
   const call = session.calls[callID]
-  if (!call.conference) {
-    return registerOnce(callID, _handleSessionEvent.bind(this, session, eventData), CONF_READY)
-  }
+  // if (!call.conference) {
+  //   return registerOnce(callID, _handleSessionEvent.bind(this, session, eventData), CONF_READY)
+  // }
   switch (contentType) {
     case 'layout-info':
     case 'layer-info':
-      call.conference.updateLayouts(eventData)
+      call.updateLayouts(eventData)
       break
     case 'logo-info':
-      call.conference.updateLogo(eventData)
+      call.updateLogo(eventData)
       break
     case 'caption-info':
-      call.conference.handleCaptionInfo(eventData)
+      call.handleCaptionInfo(eventData)
       break
   }
 }
@@ -136,13 +130,13 @@ export default (session: BrowserSession, msg: any) => {
     case VertoMethod.Event:
     case 'webrtc.event': {
       const { subscribedChannel } = params
-      if (subscribedChannel && trigger(subscribedChannel, params)) {
+      if (subscribedChannel && trigger(session.relayProtocol, params, subscribedChannel)) {
         return
       }
       if (eventChannel) {
         const channelType = eventChannel.split('.')[0]
-        const global = trigger(channelType, params)
-        const specific = trigger(eventChannel, params)
+        const global = trigger(session.relayProtocol, params, channelType)
+        const specific = trigger(session.relayProtocol, params, eventChannel)
         if (global || specific) {
           return
         }

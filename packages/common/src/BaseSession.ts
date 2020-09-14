@@ -18,7 +18,7 @@ const KEEPALIVE_INTERVAL = 10 * 1000
 export default abstract class BaseSession {
   public uuid: string = uuidv4()
   public sessionid: string = ''
-  public subscriptions: { [channel: string]: any } = {}
+  public subscriptions = new Map<string, boolean>()
   public nodeid: string
   public master_nodeid: string
   public relayProtocol: string = null
@@ -173,7 +173,7 @@ export default abstract class BaseSession {
    */
   async disconnect() {
     clearTimeout(this._reconnectTimeout)
-    this.subscriptions = {}
+    this.subscriptions.clear()
     this._autoReconnect = false
     this.relayProtocol = null
     this._closeConnection()
@@ -282,9 +282,10 @@ export default abstract class BaseSession {
       deRegisterAll(this.relayProtocol)
     }
     for (const sub in this.subscriptions) {
-      deRegisterAll(sub)
+      const protocol = sub.split('|')[0]
+      deRegisterAll(protocol)
     }
-    this.subscriptions = {}
+    this.subscriptions.clear()
     this.contexts = []
     if (this.expired) {
       this._idle = true
@@ -321,12 +322,11 @@ export default abstract class BaseSession {
       return
     }
     if (channel) {
-      delete this.subscriptions[protocol][channel]
       deRegister(protocol, null, channel)
     } else {
-      delete this.subscriptions[protocol]
       deRegisterAll(protocol)
     }
+    this.subscriptions.delete(`${protocol}|${channel}`)
   }
 
   /**
@@ -337,13 +337,10 @@ export default abstract class BaseSession {
     if (this._existsSubscription(protocol, channel)) {
       return
     }
-    if (!this._existsSubscription(protocol)) {
-      this.subscriptions[protocol] = {}
-    }
-    this.subscriptions[protocol][channel] = {}
     if (isFunction(handler)) {
       register(protocol, handler, channel)
     }
+    this.subscriptions.set(`${protocol}|${channel}`, true)
   }
 
   /**
@@ -351,12 +348,8 @@ export default abstract class BaseSession {
    * @return boolean
    */
   public _existsSubscription(protocol: string, channel?: string) {
-    if (this.subscriptions.hasOwnProperty(protocol)) {
-      if (!channel || (channel && this.subscriptions[protocol].hasOwnProperty(channel))) {
-        return true
-      }
-    }
-    return false
+    const sub = `${protocol}|${channel}`
+    return this.subscriptions.has(sub)
   }
 
   /**

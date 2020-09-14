@@ -3,7 +3,6 @@ import behaveLikeBrowserSession from '../../common/tests/behaveLike/BrowserSessi
 import CallSpecs from '../../common/src/webrtc/Call.spec'
 import VertoHandler from '../../common/src/webrtc/VertoHandler.spec'
 import LayoutHandler from '../../common/tests/webrtc/LayoutHandler.spec'
-import ConferenceSpec from '../../common/src/webrtc/Conference.spec'
 import { Subscribe, Unsubscribe, Broadcast } from '../../common/src/messages/Verto'
 import Verto from '../src/Verto'
 import { clearQueue } from '../../common/src/services/Handler'
@@ -23,7 +22,6 @@ describe('Verto', () => {
   CallSpecs(_buildInstance())
   VertoHandler(_buildInstance())
   LayoutHandler(_buildInstance())
-  ConferenceSpec(_buildInstance())
 
   beforeEach(() => {
     clearQueue()

@@ -17,7 +17,7 @@ export default (instance: any) => {
       instance.connection = Connection.default()
       const protocol = await Setup(instance)
       expect(protocol).toEqual('signalwire_service_random_uuid')
-      expect(instance.subscriptions).toHaveProperty(protocol)
+      expect(instance._existsSubscription('signalwire_service_random_uuid', 'notifications')).toBe(true)
       expect(Connection.mockSend).toHaveBeenCalledTimes(2)
       done()
     })

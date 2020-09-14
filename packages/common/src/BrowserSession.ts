@@ -1,6 +1,6 @@
 import BaseSession from './BaseSession'
 import { IAudioSettings, IVideoSettings, BroadcastParams, SubscribeParams } from './util/interfaces'
-import { registerOnce, trigger, register, deRegister } from './services/Handler'
+import { registerOnce, trigger } from './services/Handler'
 import { SwEvent, SESSION_ID } from './util/constants'
 import { State, DeviceType } from './webrtc/constants'
 import { removeUnsupportedConstraints, getUserMedia, destructSubscribeResponse, destructConferenceState, mungeLayoutList } from './webrtc/helpers'
@@ -12,9 +12,12 @@ import { Unsubscribe, Subscribe, Broadcast, JSApi } from './messages/Verto'
 import { localStorage } from './util/storage/'
 import { stopStream } from './util/webrtc'
 import WebRTCCall from './webrtc/WebRTCCall'
+import Conference from './webrtc/Conference'
 
 export default abstract class BrowserSession extends BaseSession {
   public calls: { [callId: string]: WebRTCCall } = {}
+  public conferences: { [confUuid: string]: Conference } = {}
+  public channelToCallIds = new Map<string, string[]>()
   public micId: string
   public micLabel: string
   public camId: string
@@ -30,6 +33,22 @@ export default abstract class BrowserSession extends BaseSession {
   protected _audioConstraints: boolean | MediaTrackConstraints = true
   protected _videoConstraints: boolean | MediaTrackConstraints = false
   protected _speaker: string = null
+
+  get callIds() {
+    return Object.keys(this.calls)
+  }
+
+  addChannelCallIdEntry(channel: string, callId: string) {
+    const current = this.channelToCallIds.get(channel) || []
+    current.push(callId)
+    this.channelToCallIds.set(channel, current)
+  }
+
+  removeChannelCallIdEntry(channel: string, callId: string) {
+    const current = this.channelToCallIds.get(channel) || []
+    const filtered = current.filter(id => id !== callId)
+    this.channelToCallIds.set(channel, filtered)
+  }
 
   get reconnectDelay() {
     return 1000
@@ -276,7 +295,7 @@ export default abstract class BrowserSession extends BaseSession {
       const response = await this.execute(msg)
       if (handler) {
         const { subscribed = [] } = destructSubscribeResponse(response)
-        subscribed.forEach(channel => register(channel, handler))
+        subscribed.forEach(channel => this._addSubscription(this.relayProtocol, handler, channel))
       }
       return response
     } catch (error) {
@@ -293,8 +312,8 @@ export default abstract class BrowserSession extends BaseSession {
       const response = await this.execute(msg)
       if (handler) {
         const { unsubscribed = [], notSubscribed = [] } = destructSubscribeResponse(response)
-        unsubscribed.forEach(channel => deRegister(channel, handler))
-        notSubscribed.forEach(channel => deRegister(channel, handler))
+        unsubscribed.forEach(channel => this._removeSubscription(this.relayProtocol, channel))
+        notSubscribed.forEach(channel => this._removeSubscription(this.relayProtocol, channel))
       }
       return response
     } catch (error) {

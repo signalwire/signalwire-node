@@ -187,6 +187,7 @@ export interface IConferenceInfo {
   moderatorPin: string
   speakerHighlight: boolean
   disableIntercom: boolean
+  lastSnapshot: string
   lastLayoutGroup: string
   lastLayout: string
   members?: IConferenceInfoMember[]

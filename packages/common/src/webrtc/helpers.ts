@@ -180,6 +180,7 @@ export const destructConferenceState = (confState: any): IConferenceInfo => {
     moderatorPin: variables.moderator_pin || null,
     speakerHighlight: variables.speaker_highlight === 'true',
     disableIntercom: variables.disable_intercom === true,
+    lastSnapshot: variables.lastSnapshot,
     lastLayoutGroup: variables.lastLayoutGroup,
     lastLayout: variables.lastLayout,
   }

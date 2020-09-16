@@ -16,3 +16,4 @@ export * from '../common/src/webrtc/deviceHelpers'
 
 export * from '../common/src/util/interfaces'
 export * from '../common/src/webrtc/interfaces'
+export { Base64 } from 'js-base64'

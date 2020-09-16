@@ -1,26 +1,19 @@
-import logger from '../util/logger'
+import { Base64 } from 'js-base64'
 import { ConferenceAction } from './constants'
 import BrowserSession from '../BrowserSession'
 
-// TODO: clear serno
-let lastSerno = 0
-
 export default function modChannelHandler(session: BrowserSession, { data, eventChannel, eventSerno = null }: any) {
-  if (eventSerno !== null && eventSerno === lastSerno) {
-    return logger.debug('Skip Mod event:', eventSerno, 'last was:', lastSerno)
-  }
-  lastSerno = eventSerno
   const callIds = session.channelToCallIds.get(eventChannel) || []
   let params = null
   switch (data['conf-command']) {
     case 'list-videoLayouts':
       if (data.responseData) {
         const tmp = JSON.stringify(data.responseData).replace(/IDS"/g, 'Ids"')
-        params = { action: ConferenceAction.LayoutList, eventChannel, layouts: JSON.parse(tmp) }
+        params = { action: ConferenceAction.LayoutList, eventChannel, eventSerno, layouts: JSON.parse(tmp) }
       }
       break
     default:
-      params = { action: ConferenceAction.ModCmdResponse, eventChannel, command: data['conf-command'], response: data.response }
+      params = { action: ConferenceAction.ModCmdResponse, eventChannel, eventSerno, command: data['conf-command'], response: data.response }
   }
   if (params) {
     _dispatch(session, params, callIds)
@@ -225,8 +218,8 @@ export const publicModMethods = {
   },
 
   setBanner: function(participantId: string, value: string) {
-    // TODO: check base64 ('banner.lua', memberId, Base64.encode(value));
-    return _modCommand.call(this, { command: 'banner.lua', id: participantId, value })
+    const clean = Base64.encode(value)
+    return _modCommand.call(this, { command: 'banner.lua', id: participantId, value: clean })
   },
 
   setPerformerDelay: function(value: string) {

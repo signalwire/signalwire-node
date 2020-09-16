@@ -3,18 +3,12 @@ import { ConferenceAction } from './constants'
 import BrowserSession from '../BrowserSession'
 import { destructConferenceState } from './helpers'
 
-// TODO: clear serno
-let lastSerno = 0
-
 export default function infoChannelHandler(session: BrowserSession, params: any) {
   const { eventData = null, eventChannel, eventSerno = null } = params
   if (!eventData) {
     return logger.warn('Unknown conference info event', params)
   }
-  if (eventSerno !== null && eventSerno === lastSerno) {
-    return logger.debug('Skip Info event:', eventSerno, 'last was:', lastSerno)
-  }
-  lastSerno = eventSerno
+
   const callIds = session.channelToCallIds.get(eventChannel) || []
   switch (eventData.contentType) {
     case 'layout-info': {
@@ -29,7 +23,7 @@ export default function infoChannelHandler(session: BrowserSession, params: any)
     }
     case 'conference-info':
       const { conferenceState, messages = [] } = eventData
-      return _dispatch(session, { action: ConferenceAction.ConferenceInfo, eventChannel, conferenceState: destructConferenceState(conferenceState), messages }, callIds)
+      return _dispatch(session, { action: ConferenceAction.ConferenceInfo, eventChannel, eventSerno, conferenceState: destructConferenceState(conferenceState), messages }, callIds)
     case 'caption-info': {
       if (callIds.length) {
         callIds.forEach(callId => {

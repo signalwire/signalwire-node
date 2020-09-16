@@ -11,27 +11,21 @@ export default function (session: BrowserSession, { eventChannel, eventSerno, da
     if (eventSerno === lastSerno) {
       return logger.info('Skip liveArray event:', eventSerno, 'last was:', lastSerno)
     }
-    return logger.error('Invalid conference wireSerno:', packet)
+    logger.warn('liveArray eventSerno mismatch:', lastSerno, eventSerno, packet)
+    lastSerno = eventSerno
   }
   const [, confMd5, domain] = eventChannel.match(/conference-liveArray.(.*)@(.*)/)
   const callIds = session.channelToCallIds.get(eventChannel) || []
   const { action, data, hashKey: callId } = packet
   switch (action) {
     case 'bootObj': {
-      // lastSerno = 0
       const participants = []
       for (const i in data) {
         const participant = { callId: data[i][0], confMd5, domain, eventChannel, ...mutateLiveArrayData(data[i][1]) }
         const { callId, audio, video } = participant
         const isMyCall = callIds.includes(callId)
-        if (isMyCall && audio && video) {
-          // TODO: use this method instead
-          // session.calls[callId].setValueFromLiveArray(audio, video)
-          //   this._isMuted = audio.muted
-          //   this._isVmuted = video.muted
-          //   if (call) {
-          //     this._isVmuted ? call.stopOutboundVideo() : call.restoreOutboundVideo()
-          //   }
+        if (isMyCall && audio && video && session.calls[callId]) {
+          session.calls[callId].updateFromLaChannel(audio.muted, video.muted)
         }
         participants.push(participant)
       }
@@ -44,19 +38,8 @@ export default function (session: BrowserSession, { eventChannel, eventSerno, da
       const isMyCall = callIds.includes(callId)
       if (isMyCall) {
         const { audio, video } = notification
-        const call = session.calls[callId]
-        // TODO: use this method instead
-        // session.calls[callId].setValueFromLiveArray(audio, video)
-        if (audio) {
-          console.debug('My Audio Changed', call.id, audio.muted)
-          // this._isMuted = audio.muted
-        }
-        if (video) {
-          console.debug('My Video Changed', call.id, video.muted)
-          // if (this._isVmuted !== video.muted) {
-          //   video.muted ? call.stopOutboundVideo() : call.restoreOutboundVideo()
-          // }
-          // this._isVmuted = video.muted
+        if (audio && video && session.calls[callId]) {
+          session.calls[callId].updateFromLaChannel(audio.muted, video.muted)
         }
       }
       return _dispatch(session, notification, callIds)

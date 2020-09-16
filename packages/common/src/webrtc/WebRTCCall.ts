@@ -37,9 +37,11 @@ export default abstract class WebRTCCall {
   public participantLayerIndex = -1
   public participantLogo = ''
 
-  public _extension: string = null
+  private _extension: string = null
   private _state: State = State.New
   private _prevState: State = State.New
+  private _laChannelAudioMuted: boolean = null
+  private _laChannelVideoMuted: boolean = null
 
   startScreenShare?(opts?: CallOptions): Promise<WebRTCCall>
   stopScreenShare?(): void
@@ -610,6 +612,14 @@ export default abstract class WebRTCCall {
   handleCaptionInfo(params: any) {
     const { contentType, ...rest } = params
     this._dispatchConferenceUpdate({ action: ConferenceAction.CaptionInfo, ...rest })
+  }
+
+  updateFromLaChannel(muted: boolean, vmuted: boolean) {
+    this._laChannelAudioMuted = muted
+    if (this._laChannelVideoMuted !== vmuted) {
+      vmuted ? this.stopOutboundVideo() : this.restoreOutboundVideo()
+    }
+    this._laChannelVideoMuted = vmuted
   }
 
   private _removeConferenceChannel() {

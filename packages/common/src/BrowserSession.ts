@@ -406,9 +406,9 @@ export default abstract class BrowserSession extends BaseSession {
     }
   }
 
-  watchVertoConferences = async () => {
+  watchVertoConferences = async (showLayouts = false, showMembers = false) => {
     this.conferences = {}
-    const currentConfList = await this.vertoConferenceList()
+    const currentConfList = await this.vertoConferenceList(showLayouts, showMembers)
     currentConfList.forEach(row => {
       this.conferences[row.uuid] = new Conference(this, row)
     })

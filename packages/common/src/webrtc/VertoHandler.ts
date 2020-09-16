@@ -94,7 +94,8 @@ export default (session: BrowserSession, msg: any) => {
     params.pvtData.nodeId = nodeId
     return _handlePvtEvent(session, params.pvtData)
   }
-  if (eventChannel === session.sessionid) {
+  // Verto uses sessionid / Relay the protocol
+  if (eventChannel === session.sessionid || eventChannel === session.relayProtocol) {
     return _handleSessionEvent(session, params.eventData)
   }
 

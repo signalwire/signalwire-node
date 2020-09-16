@@ -3,7 +3,7 @@ import Verto from './src/Verto'
 import { setAgentName } from '../common/src/messages/blade/Connect'
 import CantinaAuth from '../common/src/webrtc/CantinaAuth'
 
-export const VERSION = '1.3.0-cantina.9'
+export const VERSION = '1.3.0-cantina.10'
 setAgentName(`JavaScript SDK/${VERSION}`)
 
 export {
@@ -16,4 +16,3 @@ export * from '../common/src/webrtc/deviceHelpers'
 
 export * from '../common/src/util/interfaces'
 export * from '../common/src/webrtc/interfaces'
-export { Base64 } from 'js-base64'

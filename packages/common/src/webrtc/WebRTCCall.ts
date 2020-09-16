@@ -36,7 +36,6 @@ export default abstract class WebRTCCall {
   public canvasInfo: ICanvasInfo
   public participantLayerIndex = -1
   public participantLogo = ''
-
   private _extension: string = null
   private _state: State = State.New
   private _prevState: State = State.New
@@ -211,6 +210,18 @@ export default abstract class WebRTCCall {
     }
     const { laChannel, chatChannel, infoChannel, modChannel } = this.pvtData
     return [laChannel, chatChannel, infoChannel, modChannel].filter(Boolean)
+  }
+
+  get conferenceName() {
+    return this.pvtData ? this.pvtData.conferenceName : null
+  }
+
+  get conferenceMd5() {
+    return this.pvtData ? this.pvtData.conferenceMD5 : null
+  }
+
+  get conferenceUuid() {
+    return this.pvtData ? this.pvtData.conferenceUUID : null
   }
 
   async _upgrade() {
@@ -490,7 +501,15 @@ export default abstract class WebRTCCall {
 
   async conferencePartHandler(pvtData: VertoPvtData) {
     this.pvtData = pvtData
-    this._dispatchConferenceUpdate({ action: ConferenceAction.Leave, conferenceName: this.pvtData.laName, participantId: this.participantId, role: this.participantRole })
+    const notification = {
+      action: ConferenceAction.Leave,
+      conferenceName: this.conferenceName,
+      conferenceMd5: this.conferenceMd5,
+      conferenceUuid: this.conferenceUuid,
+      participantId: this.participantId,
+      role: this.participantRole,
+    }
+    this._dispatchConferenceUpdate(notification)
     this._removeConferenceChannel()
     try {
       await this.session.vertoUnsubscribe({
@@ -548,7 +567,15 @@ export default abstract class WebRTCCall {
       })
     })
 
-    this._dispatchConferenceUpdate({ action: ConferenceAction.Join, conferenceName: this.pvtData.laName, participantId: this.participantId, role: this.participantRole })
+    const notification = {
+      action: ConferenceAction.Join,
+      conferenceName: this.conferenceName,
+      conferenceMd5: this.conferenceMd5,
+      conferenceUuid: this.conferenceUuid,
+      participantId: this.participantId,
+      role: this.participantRole,
+    }
+    this._dispatchConferenceUpdate(notification)
 
     try {
       const { relayProtocol } = this.session

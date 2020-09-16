@@ -1,4 +1,3 @@
-import { Base64 } from 'js-base64'
 import { ConferenceAction } from './constants'
 import BrowserSession from '../BrowserSession'
 
@@ -218,8 +217,8 @@ export const publicModMethods = {
   },
 
   setBanner: function(participantId: string, value: string) {
-    const clean = Base64.encode(value)
-    return _modCommand.call(this, { command: 'banner.lua', id: participantId, value: clean })
+    // const clean = Base64.encode(value)
+    return _modCommand.call(this, { command: 'banner.lua', id: participantId, value })
   },
 
   setPerformerDelay: function(value: string) {

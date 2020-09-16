@@ -66,6 +66,9 @@ export interface VertoPvtData {
   modChannel: string
   chatChannel: string
   infoChannel: string
+  conferenceName: string
+  conferenceMD5: string
+  conferenceUUID: string
 }
 
 export interface IVertoCanvasInfo {

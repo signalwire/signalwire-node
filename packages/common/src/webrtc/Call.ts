@@ -17,11 +17,11 @@ export default class Call extends WebRTCCall {
         }
       })
     })
-    const { destinationNumber, remoteCallerName, remoteCallerNumber, callerName, callerNumber } = this.options
+    const { remoteCallerName, remoteCallerNumber, callerName, callerNumber } = this.options
     const options: CallOptions = {
       screenShare: true,
       localStream: displayStream,
-      destinationNumber,
+      destinationNumber: this.extension,
       remoteCallerName,
       remoteCallerNumber,
       callerName: `${callerName} (Screen)`,
@@ -40,11 +40,11 @@ export default class Call extends WebRTCCall {
   }
 
   async addSecondSource(opts?: CallOptions) {
-    const { destinationNumber, remoteCallerName, remoteCallerNumber, callerName, callerNumber } = this.options
+    const { remoteCallerName, remoteCallerNumber, callerName, callerNumber } = this.options
     const options: CallOptions = {
       secondSource: true,
       recoverCall: false,
-      destinationNumber,
+      destinationNumber: this.extension,
       remoteCallerName,
       remoteCallerNumber,
       callerName: `${callerName} (Second Source)`,

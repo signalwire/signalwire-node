@@ -24,7 +24,6 @@ export default abstract class WebRTCCall {
   public options: CallOptions
   public cause: string
   public causeCode: string
-  public extension: string = null
   public gotEarly = false
   public screenShare?: WebRTCCall
   public secondSource?: WebRTCCall
@@ -38,6 +37,7 @@ export default abstract class WebRTCCall {
   public participantLayerIndex = -1
   public participantLogo = ''
 
+  public _extension: string = null
   private _state: State = State.New
   private _prevState: State = State.New
 
@@ -101,6 +101,14 @@ export default abstract class WebRTCCall {
 
   get trying() {
     return this._state === State.Trying
+  }
+
+  get extension() {
+    return this._extension || this.options.destinationNumber
+  }
+
+  set extension(extension: string) {
+    this._extension = extension
   }
 
   get prevState() {

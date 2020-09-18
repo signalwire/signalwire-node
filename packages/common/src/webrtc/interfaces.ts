@@ -165,11 +165,13 @@ export interface IConferenceInfo {
   mohPlaying: boolean
   filesPlaying: boolean
   filesPlayingName: string
+  filesPlayingVolume: number
+  filesPlayingPaused: boolean
+  filesSeekable: boolean
   asyncFilesPlaying: boolean
   asyncFilesPlayingName: string
-  asyncFilesPlayingPaused: boolean
   asyncFilesPlayingVolume: number
-  filesSeekable: boolean
+  asyncFilesPlayingPaused: boolean
   asyncFilesSeekable: boolean
   performerDelay: number
   volAudience: number

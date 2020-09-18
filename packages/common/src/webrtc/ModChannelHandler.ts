@@ -87,6 +87,14 @@ export const publicModMethods = {
     return _modCommand.call(this, { command: 'vid-write-png', value: file })
   },
 
+  lock: function() {
+    return _modCommand.call(this, { command: 'lock' })
+  },
+
+  unlock: function() {
+    return _modCommand.call(this, { command: 'unlock' })
+  },
+
   setVideoLayout: function(layout: string, canvasID: number) {
     const value = canvasID ? [layout, canvasID] : layout
     return _modCommand.call(this, { command: 'vid-layout', value })
@@ -112,66 +120,66 @@ export const publicModMethods = {
     return _modCommand.call(this, { command: 'unvmute', value: 'all' })
   },
 
-  muteAudio: function(participantId?: string) {
-    return _modCommand.call(this, { command: 'mute', id: participantId || this.participantId })
+  muteAudio: function(participantId: string) {
+    return _modCommand.call(this, { command: 'mute', id: participantId })
   },
 
-  unmuteAudio: function(participantId?: string) {
-    return _modCommand.call(this, { command: 'unmute', id: participantId || this.participantId })
+  unmuteAudio: function(participantId: string) {
+    return _modCommand.call(this, { command: 'unmute', id: participantId })
   },
 
-  toggleAudioMute: function(participantId?: string) {
-    return _modCommand.call(this, { command: 'tmute', id: participantId || this.participantId })
+  toggleAudioMute: function(participantId: string) {
+    return _modCommand.call(this, { command: 'tmute', id: participantId })
   },
 
-  muteVideo: function(participantId?: string) {
-    return _modCommand.call(this, { command: 'vmute', id: participantId || this.participantId })
+  muteVideo: function(participantId: string) {
+    return _modCommand.call(this, { command: 'vmute', id: participantId })
   },
 
-  unmuteVideo: function(participantId?: string) {
-    return _modCommand.call(this, { command: 'unvmute', id: participantId || this.participantId })
+  unmuteVideo: function(participantId: string) {
+    return _modCommand.call(this, { command: 'unvmute', id: participantId })
   },
 
-  toggleVideoMute: function(participantId?: string) {
-    return _modCommand.call(this, { command: 'tvmute', id: participantId || this.participantId })
+  toggleVideoMute: function(participantId: string) {
+    return _modCommand.call(this, { command: 'tvmute', id: participantId })
   },
 
-  deaf: function(participantId?: string) {
-    return _modCommand.call(this, { command: 'deaf', id: participantId || this.participantId })
+  deaf: function(participantId: string) {
+    return _modCommand.call(this, { command: 'deaf', id: participantId })
   },
 
-  undeaf: function(participantId?: string) {
-    return _modCommand.call(this, { command: 'undeaf', id: participantId || this.participantId })
+  undeaf: function(participantId: string) {
+    return _modCommand.call(this, { command: 'undeaf', id: participantId })
   },
 
   // TODO: implement toggleDeaf
 
-  setReservationId: function(participantId?: string, value: string = 'presenter') {
-    return _modCommand.call(this, { command: 'vid-res-id', id: participantId || this.participantId, value })
+  setReservationId: function(participantId: string, value: string = 'presenter') {
+    return _modCommand.call(this, { command: 'vid-res-id', id: participantId, value })
   },
 
-  videoFloor: function(participantId?: string) {
-    return _modCommand.call(this, { command: 'vid-floor', id: participantId || this.participantId, value: 'force' })
+  videoFloor: function(participantId: string) {
+    return _modCommand.call(this, { command: 'vid-floor', id: participantId, value: 'force' })
   },
 
-  banner: function(text: string, participantId?: string) {
-    return _modCommand.call(this, { command: 'vid-banner', id: participantId || this.participantId, value: encodeURI(text) })
+  banner: function(participantId: string, text: string) {
+    return _modCommand.call(this, { command: 'vid-banner', id: participantId, value: encodeURI(text) })
   },
 
-  volumeDown: function(participantId?: string) {
-    return _modCommand.call(this, { command: 'volume_out', id: participantId || this.participantId, value: 'down' })
+  volumeDown: function(participantId: string) {
+    return _modCommand.call(this, { command: 'volume_out', id: participantId, value: 'down' })
   },
 
-  volumeUp: function(participantId?: string) {
-    return _modCommand.call(this, { command: 'volume_out', id: participantId || this.participantId, value: 'up' })
+  volumeUp: function(participantId: string) {
+    return _modCommand.call(this, { command: 'volume_out', id: participantId, value: 'up' })
   },
 
-  gainDown: function(participantId?: string) {
-    return _modCommand.call(this, { command: 'volume_in', id: participantId || this.participantId, value: 'down' })
+  gainDown: function(participantId: string) {
+    return _modCommand.call(this, { command: 'volume_in', id: participantId, value: 'down' })
   },
 
-  gainUp: function(participantId?: string) {
-    return _modCommand.call(this, { command: 'volume_in', id: participantId || this.participantId, value: 'up' })
+  gainUp: function(participantId: string) {
+    return _modCommand.call(this, { command: 'volume_in', id: participantId, value: 'up' })
   },
 
   setEnergy: function(participantId: string, value: string) {
@@ -179,24 +187,24 @@ export const publicModMethods = {
     return _modCommand.call(this, { command: 'energy', id: participantId, value })
   },
 
-  transfer: function(destination: string, participantId?: string) {
-    return _modCommand.call(this, { command: 'transfer', id: participantId || this.participantId, value: destination })
+  transferMember: function(participantId: string, destination: string) {
+    return _modCommand.call(this, { command: 'transfer', id: participantId, value: destination })
   },
 
-  toggleNoiseBlocker: function(participantId: string) {
-    return _modCommand.call(this, { command: 'denoise', id: participantId })
+  setDenoise: function(participantId: string, value: string = null) {
+    return _modCommand.call(this, { command: 'denoise', id: participantId, value })
   },
 
-  toggleLowBitrateMode: function(participantId: string) {
-    return _modCommand.call(this, { command: 'lowbr', id: participantId })
+  setLowBitrate: function(participantId: string, value: string = null) {
+    return _modCommand.call(this, { command: 'lowbr', id: participantId, value })
   },
 
   addToCall: function(extension: string, email: string = '', name: string = '') {
     return _modCommand.call(this, { command: 'xdial', value: [extension, email, name] })
   },
 
-  toggleHandRaised: function(participantId: string) {
-    return _modCommand.call(this, { command: 'handraise', id: participantId })
+  setHandRaised: function(participantId: string, value: string = null) {
+    return _modCommand.call(this, { command: 'handraise', id: participantId, value })
   },
 
   confQuality: function(value: string) {

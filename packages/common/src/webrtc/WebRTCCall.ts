@@ -52,28 +52,55 @@ export default abstract class WebRTCCall {
 
   sendChatMessage?(message: string, type: string): void
   liveArrayBootstrap?(): void
+  modCommand?(command: string, id: string, value: any): void
   listVideoLayouts?(): void
   playMedia?(file: string): void
   stopMedia?(): void
+  pauseMedia?(isAsync?: boolean): void
+  fileSeek?(value: string, isAsync?: boolean): void
+  fileVolume?(value: string, isAsync?: boolean): void
   startRecord?(file: string): void
   stopRecord?(): void
   snapshot?(file: string): void
+  lock?(): void
+  unlock?(): void
   setVideoLayout?(layout: string, canvasID: number): void
-  presenter?(participantId?: string): void
-  videoFloor?(participantId?: string): void
-  banner?(text: string, participantId?: string): void
-  volumeDown?(participantId?: string): void
-  volumeUp?(participantId?: string): void
-  gainDown?(participantId?: string): void
-  gainUp?(participantId?: string): void
-  kick?(participantId?: string): void
-  toggleNoiseBlocker?(participantId: string, value: string): void
-  toggleLowBitrateMode?(participantId: string, value: string): void
-  addToCall?(value: string): void
-  toggleHandRaised?(participantId: string, value?: string): void
+  kick?(id: string): void
+  muteAudioAll?(flags?: string): void
+  unmuteAudioAll?(): void
+  muteVideoAll?(): void
+  unmuteVideoAll?(): void
+  setReservationId?(participantId: string, value?: string): void
+  videoFloor?(participantId: string): void
+  banner?(participantId: string, text: string): void
+  volumeDown?(participantId: string): void
+  volumeUp?(participantId: string): void
+  gainDown?(participantId: string): void
+  gainUp?(participantId: string): void
+  setEnergy?(participantId: string, value: string): void
+  transferMember?(participantId: string, destination: string): void
+  setDenoise?(participantId: string, value?: string): void
+  setLowBitrate?(participantId: string, value?: string): void
+  addToCall?(extension: string, email?: string, name?: string): void
+  setHandRaised?(participantId: string, value?: string): void
   confQuality?(value: string): void
-  confFullscreen?(participantId: string, value?: string): void
-  modCommand?(command: string, participantId?: string, value?: string): void
+  confFullscreen?(participantId: string, value: string): void
+  sayAll?(value: string): void
+  sayMember?(participantId: string, value: string): void
+  setBanner?(participantId: string, value: string): void
+  setPerformerDelay?(value: string): void
+  setVolumeAudience?(value: string): void
+  toggleVidMuteHide?(value?: string): void
+  setMeetingMode?(value?: string): void
+  setSilentMode?(value?: string): void
+  setConfVariable?(variable: string, value: string): void
+  grantModerator?(participantId: string, value: string): void
+  grantScreenShare?(participantId: string, value: string): void
+  setPin?(pin: string): void
+  removePin?(): void
+  setModeratorPin?(pin: string): void
+  removeModeratorPin?(): void
+  setConfLayoutMode?(value: string): void
 
   constructor(protected session: BrowserSession, opts?: CallOptions) {
     const { iceServers, speaker: speakerId, micId, micLabel, camId, camLabel, localElement, remoteElement, mediaConstraints: { audio, video } } = session
@@ -346,7 +373,7 @@ export default abstract class WebRTCCall {
     return this._execute(msg)
   }
 
-  transfer(destination: string, id?: string) {
+  transfer(destination: string) {
     const msg = new Modify({ ...this.messagePayload, action: 'transfer', destination })
     this._execute(msg)
   }

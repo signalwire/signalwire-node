@@ -17,7 +17,7 @@ export default function infoChannelHandler(session: BrowserSession, params: any)
           session.calls[callId] && session.calls[callId].updateLayouts(eventData)
         })
       } else {
-        console.warn('Dispatch global layout-info with', params)
+        // TODO: handle global layout-info
       }
       break
     }
@@ -30,7 +30,7 @@ export default function infoChannelHandler(session: BrowserSession, params: any)
           session.calls[callId] && session.calls[callId].handleCaptionInfo(eventData)
         })
       } else {
-        console.warn('Dispatch global caption-info with', params)
+        // TODO: handle global caption-info
       }
       break
     }

@@ -492,9 +492,19 @@ export default class RTCPeer {
     console.debug('_buildMediaElementByTrack', event.track.kind, event.track.id, event.streams, event)
     const streamIds = event.streams.map(stream => stream.id)
     switch (event.track.kind) {
-      case 'audio':
-        this.call.audioElements.push(buildAudioElementByTrack(event.track, streamIds))
+      case 'audio': {
+        const audio = buildAudioElementByTrack(event.track, streamIds)
+        if (this.options.speakerId) {
+          try {
+            // @ts-ignore
+            audio.setSinkId(this.options.speakerId)
+          } catch (error) {
+            console.debug('setSinkId not supported', this.options.speakerId)
+          }
+        }
+        this.call.audioElements.push(audio)
         break
+      }
       case 'video':
         this.call.videoElements.push(buildVideoElementByTrack(event.track, streamIds))
         break

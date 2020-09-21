@@ -594,16 +594,6 @@ export default abstract class WebRTCCall {
       })
     })
 
-    const notification = {
-      action: ConferenceAction.Join,
-      conferenceName: this.conferenceName,
-      conferenceMd5: this.conferenceMd5,
-      conferenceUuid: this.conferenceUuid,
-      participantId: this.participantId,
-      role: this.participantRole,
-    }
-    this._dispatchConferenceUpdate(notification)
-
     try {
       const { relayProtocol } = this.session
       this.conferenceChannels.forEach(channel => {
@@ -639,6 +629,17 @@ export default abstract class WebRTCCall {
         deRegister(relayProtocol, null, modChannel)
         register(relayProtocol, modChannelHandler.bind(this, this.session), modChannel)
       }
+
+      const notification = {
+        action: ConferenceAction.Join,
+        conferenceName: this.conferenceName,
+        conferenceMd5: this.conferenceMd5,
+        conferenceUuid: this.conferenceUuid,
+        participantId: this.participantId,
+        role: this.participantRole,
+      }
+      this._dispatchConferenceUpdate(notification)
+
     } catch (error) {
       logger.error('Conference subscriptions error:', error)
     }

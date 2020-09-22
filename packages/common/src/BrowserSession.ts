@@ -1,6 +1,6 @@
 import BaseSession from './BaseSession'
 import { IAudioSettings, IVideoSettings, BroadcastParams, SubscribeParams } from './util/interfaces'
-import { registerOnce, trigger } from './services/Handler'
+import { deRegister, registerOnce, trigger } from './services/Handler'
 import { SwEvent, SESSION_ID } from './util/constants'
 import { State, DeviceType, Notification } from './webrtc/constants'
 import { removeUnsupportedConstraints, getUserMedia, destructSubscribeResponse, destructConferenceState, mungeLayoutList } from './webrtc/helpers'
@@ -477,6 +477,7 @@ export default abstract class BrowserSession extends BaseSession {
 
   private _detachChannels = (channels: string[]) => {
     channels.forEach(channel => {
+      deRegister(this.relayProtocol, null, channel)
       this._removeSubscription(this.relayProtocol, channel)
     })
   }
@@ -508,6 +509,8 @@ export default abstract class BrowserSession extends BaseSession {
 
   protected _onSocketCloseOrError(event: any): void {
     this.purge()
+    const channels = ['conference-info', 'conference-liveArray', 'conference-mod']
+    this._detachChannels(channels)
     super._onSocketCloseOrError(event)
   }
 }

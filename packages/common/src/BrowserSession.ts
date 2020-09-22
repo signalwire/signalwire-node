@@ -415,9 +415,11 @@ export default abstract class BrowserSession extends BaseSession {
     const infoChannel = 'conference-info'
     const laChannel = 'conference-liveArray'
     const modChannel = 'conference-mod'
+    const channels = [infoChannel, laChannel, modChannel]
+    this._detachChannels(channels)
     const result = await this.vertoSubscribe({
       nodeId: this.nodeid,
-      channels: [infoChannel, laChannel, modChannel],
+      channels,
     })
     const { subscribed = [], alreadySubscribed = [] } = destructSubscribeResponse(result)
     const all = subscribed.concat(alreadySubscribed)
@@ -425,29 +427,8 @@ export default abstract class BrowserSession extends BaseSession {
       this._addSubscription(this.relayProtocol, laChannelHandler.bind(this, this), laChannel)
     }
     if (all.includes(infoChannel)) {
-      this.on('signalwire.notification', (event) => {
-        if (event.type !== 'conferenceUpdate') {
-          return
-        }
-        switch (event.action) {
-          case 'clear':
-            Object.keys(this.conferences).forEach(uuid => {
-              if (this.conferences[uuid].confName === event.confName) {
-                delete this.conferences[uuid]
-              }
-            })
-            break
-          case 'conferenceInfo':
-            const conferenceState: IConferenceInfo = event.conferenceState
-            const { uuid, running } = conferenceState
-            if (running) {
-              this.conferences[uuid] = new Conference(this, conferenceState)
-            } else {
-              delete this.conferences[uuid]
-            }
-            break
-        }
-      })
+      this.off('signalwire.notification', this._watchRoomsNotificationHandler)
+      this.on('signalwire.notification', this._watchRoomsNotificationHandler)
       this._addSubscription(this.relayProtocol, infoChannelHandler.bind(this, this), infoChannel)
     }
     if (all.includes(modChannel)) {
@@ -457,18 +438,46 @@ export default abstract class BrowserSession extends BaseSession {
     return currentConfList
   }
 
+  _watchRoomsNotificationHandler = (event: any) => {
+    if (event.type !== 'conferenceUpdate') {
+      return
+    }
+    switch (event.action) {
+      case 'clear':
+        Object.keys(this.conferences).forEach(uuid => {
+          if (this.conferences[uuid].confName === event.confName) {
+            delete this.conferences[uuid]
+          }
+        })
+        break
+      case 'conferenceInfo':
+        const conferenceState: IConferenceInfo = event.conferenceState
+        const { uuid, running } = conferenceState
+        if (running) {
+          this.conferences[uuid] = new Conference(this, conferenceState)
+        } else {
+          delete this.conferences[uuid]
+        }
+        break
+    }
+  }
+
   unwatchVertoConferences = async () => {
     this.conferences = {}
     const infoChannel = 'conference-info'
     const laChannel = 'conference-liveArray'
     const modChannel = 'conference-mod'
     const channels = [infoChannel, laChannel, modChannel]
-    channels.forEach(channel => {
-      this._removeSubscription(this.relayProtocol, channel)
-    })
+    this._detachChannels(channels)
     await this.vertoUnsubscribe({
       nodeId: this.nodeid,
       channels,
+    })
+  }
+
+  private _detachChannels = (channels: string[]) => {
+    channels.forEach(channel => {
+      this._removeSubscription(this.relayProtocol, channel)
     })
   }
 

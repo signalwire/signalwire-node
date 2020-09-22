@@ -180,6 +180,9 @@ export default abstract class BaseSession {
     await sessionStorage.removeItem(this.signature)
     this._executeQueue = []
     this._detachListeners()
+    this.off(SwEvent.Ready)
+    this.off(SwEvent.Notification)
+    this.off(SwEvent.Error)
   }
 
   /**

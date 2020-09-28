@@ -4,7 +4,7 @@ import { sdpStereoHack, sdpBitrateHack, sdpMediaOrderHack } from './sdpHelpers'
 import { SwEvent } from '../util/constants'
 import { PeerType, State } from './constants'
 import WebRTCCall from './WebRTCCall'
-import { attachMediaStream, muteMediaElement, sdpToJsonHack, RTCPeerConnection, streamIsValid, buildAudioElementByTrack, buildVideoElementByTrack } from '../util/webrtc'
+import { attachMediaStream, muteMediaElement, sdpToJsonHack, RTCPeerConnection, streamIsValid, buildAudioElementByTrack, buildVideoElementByTrack, stopTrack } from '../util/webrtc'
 import { CallOptions } from './interfaces'
 import { trigger } from '../services/Handler'
 import { Invite, Attach, Answer, Modify } from '../messages/Verto'
@@ -80,7 +80,7 @@ export default class RTCPeer {
         return logger.info(`These is not a '${kind}' sender to stop.`)
       }
       if (sender.track) {
-        sender.track.stop()
+        stopTrack(sender.track)
         this.options.localStream.removeTrack(sender.track)
       }
     } catch (error) {

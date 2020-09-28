@@ -87,14 +87,16 @@ const sdpToJsonHack = sdp => sdp
 
 const stopStream = (stream: MediaStream) => {
   if (streamIsValid(stream)) {
-    stream.getTracks().forEach(t => {
-      if (t.readyState === 'live') {
-        t.stop()
-        t.dispatchEvent(new Event('ended'))
-      }
-    })
+    stream.getTracks().forEach(stopTrack)
   }
   stream = null
+}
+
+const stopTrack = (track: MediaStreamTrack) => {
+  if (track && track.readyState === 'live') {
+    track.stop()
+    track.dispatchEvent(new Event('ended'))
+  }
 }
 
 const getHostname = () => window.location.hostname
@@ -165,6 +167,7 @@ export {
   detachMediaStream,
   sdpToJsonHack,
   stopStream,
+  stopTrack,
   muteMediaElement,
   unmuteMediaElement,
   toggleMuteMediaElement,

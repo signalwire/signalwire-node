@@ -64,7 +64,12 @@ export default class RTCPeer {
 
   get config(): RTCConfiguration {
     const { iceServers = [] } = this.options
-    const config: RTCConfiguration = { bundlePolicy: 'max-compat', iceServers }
+    const config: RTCConfiguration = {
+      bundlePolicy: 'max-compat',
+      iceServers,
+      // @ts-ignore
+      sdpSemantics: 'unified-plan',
+    }
     logger.info('RTC config', config)
     return config
   }

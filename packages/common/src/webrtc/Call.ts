@@ -20,6 +20,8 @@ export default class Call extends WebRTCCall {
     const { remoteCallerName, remoteCallerNumber, callerName, callerNumber } = this.options
     const options: CallOptions = {
       screenShare: true,
+      recoverCall: false,
+      skipLiveArray: true,
       localStream: displayStream,
       destinationNumber: this.extension,
       remoteCallerName,
@@ -44,6 +46,7 @@ export default class Call extends WebRTCCall {
     const options: CallOptions = {
       secondSource: true,
       recoverCall: false,
+      skipLiveArray: true,
       destinationNumber: this.extension,
       remoteCallerName,
       remoteCallerNumber,

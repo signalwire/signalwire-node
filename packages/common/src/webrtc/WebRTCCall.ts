@@ -5,12 +5,12 @@ import BaseMessage from '../messages/BaseMessage'
 import RTCPeer from './RTCPeer'
 import { Bye, Info, Modify } from '../messages/Verto'
 import { SwEvent, VERTO_PROTOCOL } from '../util/constants'
-import { State, DEFAULT_CALL_OPTIONS, Role, PeerType, VertoMethod, Notification, Direction, ConferenceAction } from './constants'
+import { State, DEFAULT_CALL_OPTIONS, PeerType, VertoMethod, Notification, Direction, ConferenceAction } from './constants'
 import { trigger, register, deRegisterAll, deRegister } from '../services/Handler'
 import { enableAudioTracks, disableAudioTracks, toggleAudioTracks, enableVideoTracks, disableVideoTracks, toggleVideoTracks, checkIsDirectCall, mutateCanvasInfoData, destructSubscribeResponse } from './helpers'
 import { objEmpty, isFunction } from '../util/helpers'
 import { CallOptions, IHangupParams, ICallParticipant, VertoPvtData, ICanvasInfo } from './interfaces'
-import { detachMediaStream, stopStream, setMediaElementSinkId, getUserMedia, getHostname } from '../util/webrtc'
+import { stopStream, setMediaElementSinkId, getUserMedia, getHostname } from '../util/webrtc'
 import laChannelHandler, { publicLiveArrayMethods } from './LaChannelHandler'
 import chatChannelHandler, { publicChatMethods } from './ChatChannelHandler'
 import modChannelHandler, { publicModMethods } from './ModChannelHandler'
@@ -191,12 +191,6 @@ export default abstract class WebRTCCall {
 
   get role() {
     return this.participantRole
-  }
-
-  // secondSource and screenShare calls are not "main"
-  get isMainCall() {
-    const { screenShare, secondSource } = this.options
-    return !screenShare && !secondSource
   }
 
   get cameraId() {
@@ -762,7 +756,7 @@ export default abstract class WebRTCCall {
   }
 
   public _dispatchNotification(notification: any) {
-    if (this.isMainCall === false) {
+    if (this.options.skipNotifications === true) {
       return
     }
     notification.call = this
@@ -821,9 +815,6 @@ export default abstract class WebRTCCall {
       this.options.id = uuidv4()
     }
     this.id = this.options.id
-    if (!this.isMainCall) {
-      this.options.recoverCall = false
-    }
     if (!userVariables || objEmpty(userVariables)) {
       this.options.userVariables = this.session.options.userVariables || {}
     }
@@ -860,10 +851,6 @@ export default abstract class WebRTCCall {
     const { remoteStream, localStream, remoteElement, localElement } = this.options
     stopStream(remoteStream)
     stopStream(localStream)
-    if (this.isMainCall) {
-      detachMediaStream(remoteElement)
-      detachMediaStream(localElement)
-    }
     deRegisterAll(this.id)
     this.session.calls[this.id] = null
     delete this.session.calls[this.id]

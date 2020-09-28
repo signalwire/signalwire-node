@@ -17,8 +17,8 @@ const _handlePvtEvent = async (session: BrowserSession, pvtData: any) => {
   }
   // FIXME: screenShare and secondSource do not need conf events.
   const call = session.calls[callID]
-  if (!call.isMainCall) {
-    return logger.debug('Verto pvtData on screenShare or secondSource legs.', pvtData)
+  if (call.options.skipLiveArray) {
+    return logger.debug('Skip liveArray pvtData for', callID, pvtData)
   }
   switch (action) {
     case 'conference-liveArray-join':

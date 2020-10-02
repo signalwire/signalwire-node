@@ -75,6 +75,11 @@ export const publicModMethods = {
     return _modCommand.call(this, { command: 'file-vol', value: [String(value), async] })
   },
 
+  fileReservationId: function(value: string, isAsync: boolean = true) {
+    const async = isAsync ? 'async' : ''
+    return _modCommand.call(this, { command: 'file-res-id', value: [String(value), async] })
+  },
+
   startRecord: function(file: string) {
     return _modCommand.call(this, { command: 'recording', value: ['start', file] })
   },
@@ -205,6 +210,10 @@ export const publicModMethods = {
 
   setHandRaised: function(participantId: string, value: string = null) {
     return _modCommand.call(this, { command: 'handraise', id: participantId, value })
+  },
+
+  setVidFloorResId: function(value: string) {
+    return _modCommand.call(this, { command: 'vid-floor-res-id', value })
   },
 
   confQuality: function(value: string) {

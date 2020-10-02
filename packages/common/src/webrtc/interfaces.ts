@@ -166,11 +166,13 @@ export interface IConferenceInfo {
   isPrivate: boolean
   mohPlaying: boolean
   filesPlaying: boolean
+  filesRole: string
   filesPlayingName: string
   filesPlayingVolume: number
   filesPlayingPaused: boolean
   filesSeekable: boolean
   asyncFilesPlaying: boolean
+  asyncFilesRole: string
   asyncFilesPlayingName: string
   asyncFilesPlayingVolume: number
   asyncFilesPlayingPaused: boolean

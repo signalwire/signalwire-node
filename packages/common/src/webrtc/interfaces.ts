@@ -178,6 +178,7 @@ export interface IConferenceInfo {
   performerDelay: number
   volAudience: number
   filesFullScreen: boolean
+  vidFloorRole: string
   // flags
   silentMode: boolean
   meetingMode: boolean

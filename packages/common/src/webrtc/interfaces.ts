@@ -202,6 +202,7 @@ export interface IConferenceInfo {
   lastLayout: string
   members?: IConferenceInfoMember[]
   layouts?: any
+  userRecordFile: string
 }
 
 export interface ILayout {

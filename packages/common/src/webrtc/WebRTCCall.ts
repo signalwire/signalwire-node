@@ -262,6 +262,9 @@ export default abstract class WebRTCCall {
   async updateDevices(constraints: MediaStreamConstraints): Promise<void> {
     try {
       console.debug('updateDevices trying constraints', constraints)
+      if (!Object.keys(constraints).length) {
+        return console.warn('Invalid constraints:', constraints)
+      }
       const newStream = await getUserMedia(constraints)
       console.debug('updateDevices got stream', newStream)
       if (!this.options.localStream) {

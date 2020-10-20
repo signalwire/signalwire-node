@@ -2,6 +2,7 @@ import logger from '../util/logger'
 import WebRTCCall from './WebRTCCall'
 import { CallOptions } from './interfaces'
 import { getDisplayMedia, setMediaElementSinkId } from '../util/webrtc'
+import { Notification } from './constants'
 
 export default class Call extends WebRTCCall {
 
@@ -68,13 +69,14 @@ export default class Call extends WebRTCCall {
     }
   }
 
-  setAudioOutDevice(deviceId: string): Promise<boolean> {
+  async setAudioOutDevice(deviceId: string): Promise<boolean> {
     this.options.speakerId = deviceId
     const { remoteElement, speakerId, experimental } = this.options
     if (experimental === true) {
       try {
         // @ts-ignore
-        this.audioElements[0].setSinkId(speakerId)
+        await this.audioElements[0].setSinkId(speakerId)
+        this._dispatchNotification({ type: Notification.DeviceUpdated })
       } catch (error) {
         console.error('setAudioOutDevice error', this.audioElements, speakerId)
       }

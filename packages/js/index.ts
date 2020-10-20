@@ -3,7 +3,7 @@ import Verto from './src/Verto'
 import { setAgentName } from '../common/src/messages/blade/Connect'
 import CantinaAuth from '../common/src/webrtc/CantinaAuth'
 
-export const VERSION = '1.3.0-cantina.16'
+export const VERSION = '1.3.0-cantina.17'
 setAgentName(`JavaScript SDK/${VERSION}`)
 
 export {

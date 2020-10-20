@@ -98,6 +98,7 @@ export interface IVertoCanvasLayout {
   yPOS: number
   audioPOS: string
   memberID: number
+  layerOccupied: boolean
 }
 
 export interface ICanvasInfo {

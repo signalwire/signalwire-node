@@ -111,7 +111,7 @@ export const mutateCanvasInfoData = (canvasInfo: IVertoCanvasInfo): ICanvasInfo 
   for (let i = 0; i < canvasLayouts.length; i++) {
     const layout = canvasLayouts[i]
     const { memberID, audioPOS, xPOS, yPOS, ...rest } = layout
-    layoutOverlap = layoutOverlap || layout.overlap === 1
+    layoutOverlap = layoutOverlap || (layout.overlap === 1 && layout.layerOccupied)
     layouts.push({
       startX: `${roundToFixed((layout.x / scale) * 100)}%`,
       startY: `${roundToFixed((layout.y / scale) * 100)}%`,

@@ -25,23 +25,33 @@ const _constraintsByKind = (kind: string = null): MediaStreamConstraints => {
  * Retrieve device list using the browser APIs
  * It checks for permission to return valid deviceId and label
  */
-export const getDevices = async (kind: string = null, fullList: boolean = false): Promise<MediaDeviceInfo[]> => {
+export const getDevicesWithPermissions = async (kind: string = null, fullList: boolean = false): Promise<MediaDeviceInfo[]> => {
   const hasPerms = await checkPermissions(kind)
-  if (hasPerms === null) {
-    // No devices at all
-    return []
-  } else if (hasPerms === false) {
+  if (hasPerms === false) {
     const constraints = _constraintsByKind(kind)
     const stream = await WebRTC.getUserMedia(constraints)
     WebRTC.stopStream(stream)
-    return getDevices(kind)
   }
-  let devices: MediaDeviceInfo[] = await WebRTC.enumerateDevicesByKind(kind)
+  return getDevices(kind, fullList)
+}
+
+/**
+ * Helper methods to get devices by kind
+ */
+export const getVideoDevicesWithPermissions = () => getDevicesWithPermissions(DeviceType.Video)
+export const getAudioInDevicesWithPermissions = () => getDevicesWithPermissions(DeviceType.AudioIn)
+export const getAudioOutDevicesWithPermissions = () => getDevicesWithPermissions(DeviceType.AudioOut)
+
+export const getDevices = async (kind: string = null, fullList: boolean = false): Promise<MediaDeviceInfo[]> => {
+  const devices: MediaDeviceInfo[] = await WebRTC.enumerateDevicesByKind(kind)
   if (fullList === true) {
     return devices
   }
   const found = []
-  devices = devices.filter(({ kind, groupId }) => {
+  return devices.filter(({ deviceId, label, kind, groupId }) => {
+    if (!deviceId || !label) {
+      return false
+    }
     if (!groupId) {
       return true
     }
@@ -52,8 +62,6 @@ export const getDevices = async (kind: string = null, fullList: boolean = false)
     }
     return false
   })
-
-  return devices
 }
 
 /**

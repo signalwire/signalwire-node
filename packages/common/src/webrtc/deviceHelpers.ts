@@ -118,3 +118,12 @@ export const checkDeviceIdConstraints = async (id: string, label: string, kind: 
   }
   return constraints
 }
+
+export const requestPermissions = async (constraints: MediaStreamConstraints) => {
+  try {
+    const stream = await WebRTC.getUserMedia(constraints)
+    WebRTC.stopStream(stream)
+  } catch (error) {
+    throw error
+  }
+}

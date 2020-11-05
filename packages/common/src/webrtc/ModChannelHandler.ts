@@ -1,5 +1,6 @@
 import { ConferenceAction } from './constants'
 import BrowserSession from '../BrowserSession'
+import { mungeLayoutList } from './helpers'
 
 export default function modChannelHandler(session: BrowserSession, { data, eventChannel, eventSerno = null }: any) {
   const callIds = session.channelToCallIds.get(eventChannel) || []
@@ -7,8 +8,10 @@ export default function modChannelHandler(session: BrowserSession, { data, event
   switch (data['conf-command']) {
     case 'list-videoLayouts':
       if (data.responseData) {
-        const tmp = JSON.stringify(data.responseData).replace(/IDS"/g, 'Ids"')
-        params = { action: ConferenceAction.LayoutList, eventChannel, eventSerno, layouts: JSON.parse(tmp) }
+        const normal = data.responseData.filter(({ type }) => type === 'layout')
+        const group = data.responseData.filter(({ type }) => type === 'layoutGroup')
+        const layouts = mungeLayoutList(normal, group)
+        params = { action: ConferenceAction.LayoutList, eventChannel, eventSerno, layouts }
       }
       break
     default:

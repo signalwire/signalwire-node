@@ -189,6 +189,7 @@ export const destructConferenceState = (confState: any): IConferenceInfo => {
     lastLayoutGroup: variables.lastLayoutGroup,
     lastLayout: variables.lastLayout,
     userRecordFile: variables.user_record_file || null,
+    podcastMode: variables.podcast_mode === 'true',
   }
 }
 

@@ -204,6 +204,7 @@ export interface IConferenceInfo {
   members?: IConferenceInfoMember[]
   layouts?: any
   userRecordFile: string
+  podcastMode: boolean
 }
 
 export interface ILayout {

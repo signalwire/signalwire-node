@@ -151,6 +151,24 @@ export default class RTCPeer {
     }
   }
 
+  restartIceWithRelayOnly() {
+    try {
+      const config = this.instance.getConfiguration()
+      if (config.iceTransportPolicy === 'relay') {
+        return console.warn('RTCPeer already with iceTransportPolicy relay only')
+      }
+      const newConfig: RTCConfiguration = {
+        ...config,
+        iceTransportPolicy: 'relay',
+      }
+      this.instance.setConfiguration(newConfig)
+      // @ts-ignore
+      this.instance.restartIce()
+    } catch (error) {
+      logger.error('RTCPeer restartIce error', error)
+    }
+  }
+
   async applyMediaConstraints(kind: string, constraints: MediaTrackConstraints) {
     try {
       const sender = this._getSenderByKind(kind)

@@ -484,6 +484,12 @@ export default abstract class WebRTCCall {
     return this._execute(msg)
   }
 
+  doReinviteWithRelayOnly() {
+    if (this.peer) {
+      this.peer.restartIceWithRelayOnly()
+    }
+  }
+
   stopOutboundAudio() {
     if (this.peer) {
       this.peer.stopTrackSender('audio')

@@ -397,6 +397,30 @@ export default abstract class WebRTCCall {
     return this._changeHold('toggleHold')
   }
 
+  disableOutboundAudio() {
+    disableAudioTracks(this.options.localStream)
+  }
+
+  enableOutboundAudio() {
+    enableAudioTracks(this.options.localStream)
+  }
+
+  toggleOutboundAudio() {
+    toggleAudioTracks(this.options.localStream)
+  }
+
+  disableOutboundVideo() {
+    disableVideoTracks(this.options.localStream)
+  }
+
+  enableOutboundVideo() {
+    enableVideoTracks(this.options.localStream)
+  }
+
+  toggleOutboundVideo() {
+    toggleVideoTracks(this.options.localStream)
+  }
+
   muteAudio(participantId?: string): void
   muteAudio() {
     disableAudioTracks(this.options.localStream)

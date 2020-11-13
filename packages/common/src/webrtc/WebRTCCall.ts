@@ -485,31 +485,31 @@ export default abstract class WebRTCCall {
   }
 
   doReinviteWithRelayOnly() {
-    if (this.peer) {
+    if (this.peer && this.active) {
       this.peer.restartIceWithRelayOnly()
     }
   }
 
   stopOutboundAudio() {
-    if (this.peer) {
+    if (this.peer && this.active) {
       this.peer.stopTrackSender('audio')
     }
   }
 
   restoreOutboundAudio() {
-    if (this.peer) {
+    if (this.peer && this.active) {
       this.peer.restoreTrackSender('audio')
     }
   }
 
   stopOutboundVideo() {
-    if (this.peer) {
+    if (this.peer && this.active) {
       this.peer.stopTrackSender('video')
     }
   }
 
   restoreOutboundVideo() {
-    if (this.peer) {
+    if (this.peer && this.active) {
       this.peer.restoreTrackSender('video')
     }
   }

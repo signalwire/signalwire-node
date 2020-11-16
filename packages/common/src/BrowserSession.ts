@@ -352,12 +352,13 @@ export default abstract class BrowserSession extends BaseSession {
         const room = destructConferenceState(conferenceState)
         if (members.length) {
           room.members = members.filter(({ type }) => type === 'caller')
-            .map(({ id, uuid, caller_id_number, caller_id_name }) => {
+            .map(({ id, uuid, caller_id_number, caller_id_name, ...rest }) => {
               return {
                 participantId: Number(id).toString(),
                 callId: uuid,
                 participantNumber: caller_id_number,
                 participantName: caller_id_name,
+                ...rest,
               }
             })
         }

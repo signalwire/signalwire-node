@@ -169,6 +169,8 @@ export const destructConferenceState = (confState: any): IConferenceInfo => {
     volAudience: confState['vol-audience'],
     filesFullScreen: Boolean(confState.filesFullScreen),
     vidFloorRole: confState.vidFloorRole || null,
+    motionQuality: confState.motionQuality || 1,
+    motionQualityInbound: confState.motionQualityIn || 1,
     // flags
     silentMode: flags['silent-mode'] || false,
     meetingMode: flags['meeting-mode'] || false,

@@ -182,6 +182,8 @@ export interface IConferenceInfo {
   volAudience: number
   filesFullScreen: boolean
   vidFloorRole: string
+  motionQuality: number
+  motionQualityInbound: number
   // flags
   silentMode: boolean
   meetingMode: boolean

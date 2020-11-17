@@ -223,6 +223,18 @@ export const publicModMethods = {
     return _modCommand.call(this, { command: 'quality.lua', value })
   },
 
+  confMotionQuality: function(value: string) {
+    return _modCommand.call(this, { command: 'motion-quality', value })
+  },
+
+  confMotionQualityInbound: function(value: string) {
+    return _modCommand.call(this, { command: 'motion-quality-in', value })
+  },
+
+  confMotionQualityMember: function(participantId: string, value: string) {
+    return _modCommand.call(this, { command: 'motion-quality-member', id: participantId, value })
+  },
+
   confFullscreen: function(participantId: string, value: string) {
     // remove user/all banners
     return _modCommand.call(this, { command: 'full-screen', id: participantId, value })

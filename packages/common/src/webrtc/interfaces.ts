@@ -224,3 +224,9 @@ export interface IVertoLayout {
   resIDS: string[]
   groupLayouts?: string[]
 }
+
+export interface IVertoConferenceListParams {
+  showLayouts?: boolean
+  showMembers?: boolean
+  activeSession?: string
+}

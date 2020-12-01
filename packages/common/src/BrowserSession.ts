@@ -15,7 +15,7 @@ import WebRTCCall from './webrtc/WebRTCCall'
 import laChannelHandler from './webrtc/LaChannelHandler'
 import modChannelHandler from './webrtc/ModChannelHandler'
 import infoChannelHandler from './webrtc/InfoChannelHandler'
-import { IConferenceInfo } from './webrtc/interfaces'
+import { IConferenceInfo, IVertoConferenceListParams } from './webrtc/interfaces'
 import Conference from './webrtc/Conference'
 
 export default abstract class BrowserSession extends BaseSession {
@@ -336,15 +336,14 @@ export default abstract class BrowserSession extends BaseSession {
     return this.execute(msg)
   }
 
-  async vertoConferenceList(showLayouts = false, showMembers = false) {
+  async vertoConferenceList(params: IVertoConferenceListParams) {
     try {
       const rooms: IConferenceInfo[] = []
       const response = await this._jsApi({
         command: 'conference',
         data: {
           command: 'list',
-          showLayouts,
-          showMembers,
+          ...params,
         },
       })
       response.conferences.forEach((conf) => {
@@ -407,9 +406,9 @@ export default abstract class BrowserSession extends BaseSession {
     }
   }
 
-  watchVertoConferences = async (showLayouts = false, showMembers = false) => {
+  watchVertoConferences = async (params: IVertoConferenceListParams) => {
     this.conferences = {}
-    const currentConfList = await this.vertoConferenceList(showLayouts, showMembers)
+    const currentConfList = await this.vertoConferenceList(params)
     currentConfList.forEach(row => {
       this.conferences[row.uuid] = new Conference(this, row)
     })

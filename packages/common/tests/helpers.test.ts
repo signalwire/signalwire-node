@@ -13,9 +13,9 @@ describe('Helpers functions', () => {
 
   describe('mutateLiveArrayData', () => {
     it('should filter data from liveArray', () => {
-      const data = JSON.parse('["0067","email@domain.com","Js Client Test","opus@48000","{\\"audio\\":{\\"muted\\":false,\\"deaf\\":false,\\"onHold\\":false,\\"talking\\":true,\\"floor\\":true,\\"energyScore\\":1159},\\"video\\":{\\"visible\\":true,\\"videoOnly\\":false,\\"avatarPresented\\":false,\\"mediaFlow\\":\\"sendRecv\\",\\"muted\\":false,\\"floor\\":true,\\"reservationID\\":null,\\"roleID\\":null,\\"videoLayerID\\":1},\\"oldStatus\\":\\"TALKING (FLOOR) VIDEO (FLOOR)\\"}",{"email":"email","avatar":"avatar"},null]')
+      const data = JSON.parse('["0067","email@domain.com","Js Client Test","opus@48000","{\\"audio\\":{\\"muted\\":false,\\"deaf\\":false,\\"onHold\\":false,\\"talking\\":true,\\"floor\\":true,\\"energyScore\\":1159},\\"video\\":{\\"visible\\":true,\\"videoOnly\\":false,\\"avatarPresented\\":false,\\"mediaFlow\\":\\"sendRecv\\",\\"muted\\":false,\\"floor\\":true,\\"reservationID\\":null,\\"roleID\\":null,\\"videoLayerID\\":1},\\"oldStatus\\":\\"TALKING (FLOOR) VIDEO (FLOOR)\\"}","public",{"email":"email","avatar":"avatar"},null]')
       const media = JSON.parse('{"audio":{"muted":false,"deaf":false,"onHold":false,"talking":true,"floor":true,"energyScore":1159},"video":{"visible":true,"videoOnly":false,"avatarPresented":false,"mediaFlow":"sendRecv","muted":false,"floor":true,"reservationID":null,"roleID":null,"videoLayerID":1},"oldStatus":"TALKING (FLOOR) VIDEO (FLOOR)"}')
-      expect(mutateLiveArrayData(data)).toMatchObject({ participantId: '0067', participantNumber: 'email@domain.com', participantName: 'Js Client Test', codec: 'opus@48000', ...media, participantData: { email: 'email', avatar: 'avatar' } })
+      expect(mutateLiveArrayData(data)).toStrictEqual({ participantId: '0067', participantNumber: 'email@domain.com', participantName: 'Js Client Test', codec: 'opus@48000', ...media, visibility: 'public', participantData: { email: 'email', avatar: 'avatar' } })
     })
   })
 

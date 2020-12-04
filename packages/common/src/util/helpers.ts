@@ -9,14 +9,14 @@ export const objEmpty = (obj: Object) => Object.keys(obj).length === 0
 export const mutateStorageKey = (key: string) => `${STORAGE_PREFIX}${key}`
 
 export const mutateLiveArrayData = (data: any) => {
-  const [participantId, participantNumber, participantName, codec, mediaJson, participantData] = data
+  const [participantId, participantNumber, participantName, codec, mediaJson, visibility, participantData] = data
   let media: { audio?: any, video?: any, connectionState?: any, variables?: any } = {}
   try {
     media = JSON.parse(mediaJson)
   } catch (error) {
     logger.warn('Verto LA invalid media JSON string:', mediaJson)
   }
-  return { participantId, participantNumber, participantName, codec, participantData, ...media }
+  return { participantId, participantNumber, participantName, codec, visibility, participantData, ...media }
 }
 
 export const safeParseJson = (value: string): string | Object => {

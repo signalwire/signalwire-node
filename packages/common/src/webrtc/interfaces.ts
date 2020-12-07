@@ -185,6 +185,7 @@ export interface IConferenceInfo {
   vidFloorRole: string
   motionQuality: number
   motionQualityInbound: number
+  videoShuffle: number | string
   // flags
   silentMode: boolean
   meetingMode: boolean

@@ -776,6 +776,9 @@ export default abstract class WebRTCCall {
 
   private _onVertoMediaParams(params: any) {
     const { mediaParams } = params
+    if (this.options.autoApplyMediaParams === false) {
+      return this._dispatchNotification({ type: Notification.MediaParams, mediaParams })
+    }
     if (this.peer && mediaParams) {
       Object.keys(mediaParams).forEach(kind => {
         this.peer.applyMediaConstraints(kind, mediaParams[kind])

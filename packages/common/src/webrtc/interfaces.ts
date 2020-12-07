@@ -41,6 +41,7 @@ export interface CallOptions {
   shakenCheck?: string
   shakenResult?: string
   experimental?: boolean
+  autoApplyMediaParams?: boolean
 }
 
 export interface ICantinaUser {

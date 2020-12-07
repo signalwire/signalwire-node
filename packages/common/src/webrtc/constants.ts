@@ -44,6 +44,7 @@ export enum Notification {
   Prompt = 'prompt',
   Announce = 'announce',
   DeviceUpdated = 'deviceUpdated',
+  MediaParams = 'mediaParams',
 }
 
 export const DEFAULT_CALL_OPTIONS: CallOptions = {
@@ -61,6 +62,7 @@ export const DEFAULT_CALL_OPTIONS: CallOptions = {
   userVariables: {},
   requestTimeout: 10 * 1000,
   experimental: false,
+  autoApplyMediaParams: true,
 }
 
 export enum State {

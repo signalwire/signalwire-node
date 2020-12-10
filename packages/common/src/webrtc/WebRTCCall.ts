@@ -206,7 +206,7 @@ export default abstract class WebRTCCall {
   }
 
   get microphoneLabel() {
-    return this.peer ? this.peer.getDeviceLabel('video') : null
+    return this.peer ? this.peer.getDeviceLabel('audio') : null
   }
 
   get withAudio() {

@@ -306,7 +306,7 @@ export const publicModMethods = {
   },
 
   shuffleVideo: function(value: string) {
-    return _modCommand.call(this, { command: 'shuffle', value })
+    return _modCommand.call(this, { command: 'vid-shuffle', value })
   },
 
 }

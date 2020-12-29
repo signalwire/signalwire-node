@@ -10,7 +10,7 @@ import { trigger, register, deRegisterAll, deRegister } from '../services/Handle
 import { enableAudioTracks, disableAudioTracks, toggleAudioTracks, enableVideoTracks, disableVideoTracks, toggleVideoTracks, checkIsDirectCall, mutateCanvasInfoData, destructSubscribeResponse } from './helpers'
 import { objEmpty, isFunction } from '../util/helpers'
 import { CallOptions, IHangupParams, ICallParticipant, VertoPvtData, ICanvasInfo } from './interfaces'
-import { stopStream, setMediaElementSinkId, getUserMedia, getHostname } from '../util/webrtc'
+import { stopStream, stopTrack, setMediaElementSinkId, getUserMedia, getHostname } from '../util/webrtc'
 import laChannelHandler, { publicLiveArrayMethods } from './LaChannelHandler'
 import chatChannelHandler, { publicChatMethods } from './ChatChannelHandler'
 import modChannelHandler, { publicModMethods } from './ModChannelHandler'
@@ -261,7 +261,7 @@ export default abstract class WebRTCCall {
 
   async updateDevices(constraints: MediaStreamConstraints): Promise<void> {
     try {
-      console.debug('updateDevices trying constraints', constraints)
+      console.debug('updateDevices trying constraints', this.id, constraints)
       if (!Object.keys(constraints).length) {
         return console.warn('Invalid constraints:', constraints)
       }
@@ -289,10 +289,7 @@ export default abstract class WebRTCCall {
             return true
           }
           return false
-          // mid: 0 is audio / mid: 1 is video
-          // return (mid === '0' && newTrack.kind === 'audio') || (mid === '1' && newTrack.kind === 'video')
         })
-        // const sender = instance.getSenders().find(({ track }) => (track && track.kind === newTrack.kind))
         if (transceiver && transceiver.sender) {
           console.debug('updateDevices FOUND - replaceTrack on it and on localStream')
           await transceiver.sender.replaceTrack(newTrack)
@@ -301,8 +298,7 @@ export default abstract class WebRTCCall {
           this.options.localStream.getTracks().forEach(track => {
             if (track.kind === newTrack.kind && track.id !== newTrack.id) {
               console.debug('updateDevices stop old track and apply new one - ')
-              track.stop()
-              track.dispatchEvent(new Event('ended'))
+              stopTrack(track)
               this.options.localStream.removeTrack(track)
             }
           })
@@ -324,6 +320,7 @@ export default abstract class WebRTCCall {
       this._dispatchNotification({ type: Notification.DeviceUpdated })
     } catch (error) {
       console.error('updateDevices', error)
+      throw error
     }
   }
 

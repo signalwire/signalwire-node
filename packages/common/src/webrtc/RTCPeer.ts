@@ -106,7 +106,7 @@ export default class RTCPeer {
       const stream = await getUserMedia({ [kind]: constraints[kind] })
       if (streamIsValid(stream)) {
         const newTrack = stream.getTracks().find(t => t.kind === kind)
-        sender.replaceTrack(newTrack)
+        await sender.replaceTrack(newTrack)
         this.options.localStream.addTrack(newTrack)
       }
     } catch (error) {

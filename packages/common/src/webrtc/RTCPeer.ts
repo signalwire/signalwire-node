@@ -82,7 +82,7 @@ export default class RTCPeer {
     try {
       const sender = this._getSenderByKind(kind)
       if (!sender) {
-        return logger.info(`These is not a '${kind}' sender to stop.`)
+        return logger.info(`There is not a '${kind}' sender to stop.`)
       }
       if (sender.track) {
         stopTrack(sender.track)
@@ -97,7 +97,7 @@ export default class RTCPeer {
     try {
       const sender = this._getSenderByKind(kind)
       if (!sender) {
-        return logger.info(`These is not a '${kind}' sender to restore.`)
+        return logger.info(`There is not a '${kind}' sender to restore.`)
       }
       if (sender.track && sender.track.readyState !== 'ended') {
         return logger.info(`There is already an active ${kind} track.`)

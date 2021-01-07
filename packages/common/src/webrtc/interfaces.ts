@@ -155,6 +155,12 @@ export interface IConferenceInfoMember {
   participantName: string
 }
 
+interface IConferenceZone {
+  id: string
+  name: string
+  extVol: number
+}
+
 export interface IConferenceInfo {
   uuid: string
   md5: string
@@ -186,6 +192,7 @@ export interface IConferenceInfo {
   motionQuality: number
   motionQualityInbound: number
   videoShuffle: number | string
+  zones: IConferenceZone[]
   // flags
   silentMode: boolean
   meetingMode: boolean

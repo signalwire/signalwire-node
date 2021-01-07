@@ -172,6 +172,7 @@ export const destructConferenceState = (confState: any): IConferenceInfo => {
     motionQuality: confState.motionQuality || 1,
     motionQualityInbound: confState.motionQualityIn || 1,
     videoShuffle: confState.videoShuffle || 0,
+    zones: confState.zones || [],
     // flags
     silentMode: flags['silent-mode'] || false,
     meetingMode: flags['meeting-mode'] || false,

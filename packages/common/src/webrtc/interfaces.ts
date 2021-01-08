@@ -42,6 +42,7 @@ export interface CallOptions {
   shakenResult?: string
   experimental?: boolean
   autoApplyMediaParams?: boolean
+  rtcPeerConfig?: { [key: string]: any }
 }
 
 export interface ICantinaUser {

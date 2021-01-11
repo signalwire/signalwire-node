@@ -175,6 +175,7 @@ export const destructConferenceState = (confState: any): IConferenceInfo => {
     zones: confState.zones || [],
     // flags
     silentMode: flags['silent-mode'] || false,
+    blindMode: flags['blind-mode'] || false,
     meetingMode: flags['meeting-mode'] || false,
     vidMuteHide: flags['vid-mute-hide'] || false,
     personalCanvas: Boolean(flags.personalCanvas),

@@ -273,6 +273,10 @@ export const publicModMethods = {
     return _modCommand.call(this, { command: 'silent-mode', value })
   },
 
+  setBlindMode: function(value: string = 'toggle') {
+    return _modCommand.call(this, { command: 'blind-mode', value })
+  },
+
   setConfVariable: function(variable: string, value: string) {
     return _modCommand.call(this, { command: 'setvar', value: [variable, String(value)] })
   },

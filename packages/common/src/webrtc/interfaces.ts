@@ -196,6 +196,7 @@ export interface IConferenceInfo {
   zones: IConferenceZone[]
   // flags
   silentMode: boolean
+  blindMode: boolean
   meetingMode: boolean
   locked: boolean
   recording: boolean

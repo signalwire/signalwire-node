@@ -55,8 +55,14 @@ export default class Verto extends BrowserSession {
 
   protected async _onSocketOpen() {
     this._idle = false
-    const { login, password, passwd, userVariables } = this.options
-    const msg = new Login(login, (password || passwd), this.sessionid, userVariables)
+    const { login, password, passwd, userVariables, loginParams } = this.options
+    const msg = new Login({
+      login,
+      passwd: (password || passwd),
+      sessionid: this.sessionid,
+      userVariables,
+      loginParams,
+    })
     const response = await this.execute(msg).catch(this._handleLoginError)
     if (response) {
       this._autoReconnect = true

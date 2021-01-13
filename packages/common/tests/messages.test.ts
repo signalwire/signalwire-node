@@ -73,14 +73,28 @@ describe('Messages', function () {
   describe('Verto', function () {
     describe('Login', function () {
       it('should match struct', function () {
-        const message = new Login('login', 'password', null).request
+        const message = new Login({ login: 'login', passwd: 'password' }).request
         const res = JSON.parse(`{"jsonrpc":"2.0","id":"${message.id}","method":"login","params":{"login":"login","passwd":"password","loginParams":{},"userVariables":{}}}`)
         expect(message).toEqual(res)
       })
 
       it('should match struct with sessid', function () {
-        const message = new Login('login', 'password', '123456789').request
+        const message = new Login({ login: 'login', passwd: 'password', sessionid: '123456789' }).request
         const res = JSON.parse(`{"jsonrpc":"2.0","id":"${message.id}","method":"login","params":{"login":"login","passwd":"password","sessid":"123456789","loginParams":{},"userVariables":{}}}`)
+        expect(message).toEqual(res)
+      })
+
+      it('should match struct with userVariables', function () {
+        const options = { login: 'login', passwd: 'password', userVariables: { key: 'value' } }
+        const message = new Login(options).request
+        const res1 = JSON.parse(`{"jsonrpc":"2.0","id":"${message.id}","method":"login","params":{"login":"login","passwd":"password","loginParams":{},"userVariables":{"key":"value"}}}`)
+        expect(message).toEqual(res1)
+      })
+
+      it('should match struct with loginParams', function () {
+        const options = { login: 'login', passwd: 'password', loginParams: { token: 'auth' } }
+        const message = new Login(options).request
+        const res = JSON.parse(`{"jsonrpc":"2.0","id":"${message.id}","method":"login","params":{"login":"login","passwd":"password","loginParams":{"token":"auth"},"userVariables":{}}}`)
         expect(message).toEqual(res)
       })
     })

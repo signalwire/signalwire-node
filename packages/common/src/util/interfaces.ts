@@ -70,6 +70,7 @@ export interface ISignalWireOptions {
   passwd?: string
   password?: string
   userVariables?: { [key: string]: any }
+  loginParams?: { [key: string]: any }
 }
 
 export interface SubscribeParams {

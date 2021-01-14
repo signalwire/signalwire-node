@@ -1,3 +1,4 @@
+import logger from '../../common/src/util/logger'
 import BrowserSession from '../../common/src/BrowserSession'
 import { SubscribeParams, BroadcastParams } from '../../common/src/util/interfaces'
 import { CallOptions } from '../../common/src/webrtc/interfaces'
@@ -53,8 +54,7 @@ export default class Verto extends BrowserSession {
     return message
   }
 
-  protected async _onSocketOpen() {
-    this._idle = false
+  async vertoLogin() {
     const { login, password, passwd, userVariables, loginParams } = this.options
     const msg = new Login({
       login,
@@ -66,6 +66,7 @@ export default class Verto extends BrowserSession {
     const response = await this.execute(msg).catch(this._handleLoginError)
     if (response) {
       this._autoReconnect = true
+      this._idle = false
       this.loginResponse = response
       this.moderator = response.moderator || false
       this.superuser = response.superuser || false
@@ -73,6 +74,15 @@ export default class Verto extends BrowserSession {
       if (!this.incognito) {
         localStorage.setItem(SESSION_ID, this.sessionid)
       }
+    }
+
+    return response
+  }
+
+  protected async _onSocketOpen() {
+    this._idle = false
+    const response = await this.vertoLogin()
+    if (response) {
       trigger(SwEvent.Ready, this, this.uuid)
     }
   }

@@ -1,6 +1,7 @@
 import BrowserSession from '../BrowserSession'
 import { IConferenceInfo } from './interfaces'
 import { publicModMethods } from './ModChannelHandler'
+import { publicChatMethods } from './ChatChannelHandler'
 
 export default class Conference implements Partial<IConferenceInfo> {
   uuid: string
@@ -8,17 +9,19 @@ export default class Conference implements Partial<IConferenceInfo> {
   domain: string
   laChannel: string
   infoChannel: string
+  chatChannel: string
   modChannel: string
   confName: string
   isPrivate: boolean
 
   constructor (session: BrowserSession, params: IConferenceInfo) {
-    const { uuid, md5, domain, laChannel, infoChannel, modChannel = null, confName, isPrivate = false } = params
+    const { uuid, md5, domain, laChannel, infoChannel, chatChannel, modChannel = null, confName, isPrivate = false } = params
     this.uuid = uuid
     this.md5 = md5
     this.domain = domain
     this.laChannel = laChannel
     this.infoChannel = infoChannel
+    this.chatChannel = chatChannel
     this.modChannel = modChannel
     this.confName = confName
     this.isPrivate = isPrivate
@@ -33,6 +36,19 @@ export default class Conference implements Partial<IConferenceInfo> {
         configurable: true,
         writable: true,
         value: publicModMethods[method].bind(modObject)
+      })
+    })
+
+    const chatObject = {
+      session: session,
+      nodeId: session.nodeid,
+      channel: this.chatChannel || null,
+    }
+    Object.keys(publicChatMethods).forEach(method => {
+      Object.defineProperty(this, method, {
+        configurable: true,
+        writable: true,
+        value: publicChatMethods[method].bind(chatObject)
       })
     })
   }

@@ -454,7 +454,8 @@ export default abstract class BrowserSession extends BaseSession {
         const conferenceState: IConferenceInfo = event.conferenceState
         const { uuid, running } = conferenceState
         if (running) {
-          this.conferences[uuid] = new Conference(this, conferenceState)
+          const params = destructConferenceState(conferenceState)
+          this.conferences[uuid] = new Conference(this, params)
         } else {
           delete this.conferences[uuid]
         }

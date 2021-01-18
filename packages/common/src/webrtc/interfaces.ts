@@ -169,6 +169,7 @@ export interface IConferenceInfo {
   running: boolean
   laChannel: string
   infoChannel: string
+  chatChannel: string
   modChannel: string
   confName: string
   numMembers: number

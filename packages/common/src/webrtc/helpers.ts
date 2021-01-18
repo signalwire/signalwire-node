@@ -149,6 +149,7 @@ export const destructConferenceState = (confState: any): IConferenceInfo => {
     laChannel: `conference-liveArray.${suffix}`,
     infoChannel: `conference-info.${suffix}`,
     modChannel: `conference-mod.${suffix}`,
+    chatChannel: `conference-chat.${suffix}`,
     confName: confState.name,
     numMembers: Number(confState.members) || 0,
     isPrivate: variables.is_private === 'true',

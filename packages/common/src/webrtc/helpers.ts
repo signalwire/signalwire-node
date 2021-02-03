@@ -141,8 +141,9 @@ export const checkIsDirectCall = ({ variables }) => {
 export const destructConferenceState = (confState: any): IConferenceInfo => {
   const { variables = {}, flags = {} } = confState
   const suffix = `${confState.md5}@${confState.domain}`
+  const confName = confState.displayName || confState.name
   return {
-    uuid: confState.uuid,
+    uuid: variables.conference_uuid || confState.uuid,
     md5: confState.md5,
     domain: confState.domain,
     running: Boolean(confState.running),
@@ -150,7 +151,7 @@ export const destructConferenceState = (confState: any): IConferenceInfo => {
     infoChannel: `conference-info.${suffix}`,
     modChannel: `conference-mod.${suffix}`,
     chatChannel: `conference-chat.${suffix}`,
-    confName: confState.name,
+    confName,
     numMembers: Number(confState.members) || 0,
     isPrivate: variables.is_private === 'true',
     mohPlaying: Boolean(confState.mohPlaying),

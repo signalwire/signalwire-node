@@ -71,6 +71,7 @@ export interface VertoPvtData {
   chatChannel: string
   infoChannel: string
   conferenceName: string
+  conferenceDisplayName: string
   conferenceMD5: string
   conferenceUUID: string
 }

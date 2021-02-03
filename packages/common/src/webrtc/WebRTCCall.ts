@@ -234,7 +234,11 @@ export default abstract class WebRTCCall {
   }
 
   get conferenceName() {
-    return this.pvtData ? this.pvtData.conferenceName : null
+    if (this.pvtData) {
+      const { conferenceDisplayName, conferenceName } = this.pvtData
+      return conferenceDisplayName || conferenceName
+    }
+    return null
   }
 
   get conferenceMd5() {
@@ -242,7 +246,15 @@ export default abstract class WebRTCCall {
   }
 
   get conferenceUuid() {
-    return this.pvtData ? this.pvtData.conferenceUUID : null
+    if (this.pvtData) {
+      /**
+       * If conferenceDisplayName is present conferenceName is the UUID to use
+       * Otherwise just conferenceUUID
+       */
+      const { conferenceDisplayName, conferenceName, conferenceUUID } = this.pvtData
+      return conferenceDisplayName ? conferenceName : conferenceUUID
+    }
+    return null
   }
 
   async _upgrade() {
@@ -575,7 +587,7 @@ export default abstract class WebRTCCall {
 
   async conferenceJoinHandler(pvtData: VertoPvtData) {
     this.pvtData = pvtData
-    this.extension = pvtData.laName
+    this.extension = pvtData.conferenceDisplayName || pvtData.laName
 
     const laObject = {
       session: this.session,

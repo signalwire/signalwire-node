@@ -206,6 +206,8 @@ export interface IConferenceInfo {
   personalCanvasTP: number
   liveMusic: boolean
   vidMuteHide: boolean
+  logosVisible: boolean
+  handraiseOnscreen: boolean
   // variables
   publicClipeeze: boolean
   confQuality: string

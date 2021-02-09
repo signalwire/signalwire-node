@@ -313,4 +313,12 @@ export const publicModMethods = {
     return _modCommand.call(this, { command: 'vid-shuffle', value })
   },
 
+  setVidLogos: function(value: 'on' | 'off') {
+    return _modCommand.call(this, { command: 'vid-logos', value })
+  },
+
+  setHandraiseOnscreen: function(value: 'on' | 'off') {
+    return _modCommand.call(this, { command: 'handraise-onscreen', value })
+  },
+
 }

@@ -185,6 +185,8 @@ export const destructConferenceState = (confState: any): IConferenceInfo => {
     locked: Boolean(flags.locked),
     recording: Boolean(flags.recording),
     liveMusic: Boolean(flags.liveMusic),
+    logosVisible: Boolean(flags['logos-visible']),
+    handraiseOnscreen: Boolean(flags['handraise-onscreen']),
     // variables
     publicClipeeze: variables.public_clipeeze === 'true',
     confQuality: variables.conf_quality,

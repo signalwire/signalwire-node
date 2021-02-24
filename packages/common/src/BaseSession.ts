@@ -28,6 +28,8 @@ export default abstract class BaseSession {
 
   protected connection: Connection = null
   protected _jwtAuth: boolean = false
+  protected _checkJWTExpirationTimeout = 30 * 1000
+  protected _refreshTokenNotificationDiff = 120
   protected _doKeepAlive: boolean = false
   protected _keepAliveTimeout: any
   protected _reconnectTimeout: any
@@ -413,13 +415,13 @@ export default abstract class BaseSession {
       return
     }
     const diff = this.expiresAt - (Date.now() / 1000)
-    if (diff <= 60) {
-      logger.warn('Your JWT is going to expire. You should refresh it to keep the session live.')
+    if (diff <= this._refreshTokenNotificationDiff) {
+      // logger.debug('Your JWT is going to expire. You should refresh it to keep the session live.')
       trigger(SwEvent.Notification, { type: Notification.RefreshToken, session: this }, this.uuid, false)
     }
     clearTimeout(this._checkTokenExpirationTimeout)
     if (!this.expired) {
-      this._checkTokenExpirationTimeout = setTimeout(this._checkTokenExpiration, 30 * 1000)
+      this._checkTokenExpirationTimeout = setTimeout(this._checkTokenExpiration, this._checkJWTExpirationTimeout)
     }
   }
 

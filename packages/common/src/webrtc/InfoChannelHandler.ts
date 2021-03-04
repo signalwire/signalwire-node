@@ -49,3 +49,13 @@ const _dispatch = (session: BrowserSession, params: any, callIds: string[]) => {
     session.dispatchConferenceUpdate(params)
   }
 }
+
+export const publicInfoMethods = {
+  // NB: "this" refers to a special object to pass channel and params.
+  // See WebRTCCall conferenceJoinHandler method
+  getLayoutInfo : function() {
+    const { session, nodeId, channel } = this
+    const data = { application: 'conf-control', command: 'get-layout-info' }
+    session.vertoBroadcast({ nodeId, channel, data })
+  }
+}

@@ -1,4 +1,3 @@
-import logger from '../util/logger'
 import { ConferenceAction } from './constants'
 import BrowserSession from '../BrowserSession'
 

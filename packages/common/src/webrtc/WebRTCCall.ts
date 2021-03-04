@@ -14,7 +14,7 @@ import { stopStream, stopTrack, setMediaElementSinkId, getUserMedia, getHostname
 import laChannelHandler, { publicLiveArrayMethods } from './LaChannelHandler'
 import chatChannelHandler, { publicChatMethods } from './ChatChannelHandler'
 import modChannelHandler, { publicModMethods } from './ModChannelHandler'
-import infoChannelHandler from './InfoChannelHandler'
+import infoChannelHandler, { publicInfoMethods } from './InfoChannelHandler'
 
 export default abstract class WebRTCCall {
   public id: string = ''
@@ -51,6 +51,7 @@ export default abstract class WebRTCCall {
   setSpeakerPhone?(flag: boolean): void
 
   sendChatMessage?(message: string, type: string): void
+  getLayoutInfo?(): void
   liveArrayBootstrap?(): void
   modCommand?(command: string, id: string, value: any): void
   listVideoLayouts?(): void
@@ -630,6 +631,20 @@ export default abstract class WebRTCCall {
       })
     })
 
+    const infoObject = {
+      session: this.session,
+      nodeId: this.nodeId,
+      channel: this.pvtData.infoChannel || null,
+      callID: this.id,
+    }
+    Object.keys(publicInfoMethods).forEach(method => {
+      Object.defineProperty(this, method, {
+        configurable: true,
+        writable: true,
+        value: publicInfoMethods[method].bind(infoObject)
+      })
+    })
+
     try {
       const { relayProtocol } = this.session
       this.conferenceChannels.forEach(channel => {
@@ -675,6 +690,10 @@ export default abstract class WebRTCCall {
         role: this.participantRole,
       }
       this._dispatchConferenceUpdate(notification)
+
+      if (this.pvtData.layoutBootstrap) {
+        this.updateLayouts(this.pvtData.layoutBootstrap)
+      }
 
     } catch (error) {
       logger.error('Conference subscriptions error:', error)

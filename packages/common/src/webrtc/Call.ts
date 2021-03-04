@@ -19,7 +19,7 @@ export default class Call extends WebRTCCall {
         }
       })
     })
-    const { remoteCallerName, remoteCallerNumber, callerName, callerNumber } = this.options
+    const { remoteCallerName, remoteCallerNumber, callerName, callerNumber, userVariables = {} } = this.options
     const options: CallOptions = {
       screenShare: true,
       recoverCall: false,
@@ -31,6 +31,13 @@ export default class Call extends WebRTCCall {
       remoteCallerNumber,
       callerName: `${callerName} (Screen)`,
       callerNumber: `${callerNumber} (Screen)`,
+      // Apply the same userVariables adding
+      // memberCallId/memberId to let FS know the originator
+      userVariables: {
+        ...userVariables,
+        memberCallId: this.id,
+        memberId: this.participantId,
+      },
       ...opts
     }
     this.screenShare = new Call(this.session, options)
@@ -45,7 +52,7 @@ export default class Call extends WebRTCCall {
   }
 
   async addSecondSource(opts?: CallOptions) {
-    const { remoteCallerName, remoteCallerNumber, callerName, callerNumber } = this.options
+    const { remoteCallerName, remoteCallerNumber, callerName, callerNumber, userVariables = {} } = this.options
     const options: CallOptions = {
       secondSource: true,
       recoverCall: false,
@@ -57,6 +64,13 @@ export default class Call extends WebRTCCall {
       callerName: `${callerName} (Second Source)`,
       callerNumber: `${callerNumber} (Second Source)`,
       localStream: null,
+      // Apply the same userVariables adding
+      // memberCallId/memberId to let FS know the originator
+      userVariables: {
+        ...userVariables,
+        memberCallId: this.id,
+        memberId: this.participantId,
+      },
       ...opts,
     }
     this.secondSource = new Call(this.session, options)

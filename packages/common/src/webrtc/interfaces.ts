@@ -74,7 +74,6 @@ export interface VertoPvtData {
   conferenceDisplayName: string
   conferenceMD5: string
   conferenceUUID: string
-  layoutBootstrap: IVertoCanvasInfo
 }
 
 export interface IVertoCanvasInfo {

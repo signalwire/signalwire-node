@@ -675,6 +675,7 @@ export default abstract class WebRTCCall {
       if (all.includes(infoChannel)) {
         deRegister(relayProtocol, null, infoChannel)
         register(relayProtocol, infoChannelHandler.bind(this, this.session), infoChannel)
+        this.getLayoutInfo()
       }
       if (all.includes(modChannel)) {
         deRegister(relayProtocol, null, modChannel)
@@ -690,10 +691,6 @@ export default abstract class WebRTCCall {
         role: this.participantRole,
       }
       this._dispatchConferenceUpdate(notification)
-
-      if (this.pvtData.layoutBootstrap) {
-        this.updateLayouts(this.pvtData.layoutBootstrap)
-      }
 
     } catch (error) {
       logger.error('Conference subscriptions error:', error)

@@ -4,7 +4,10 @@ import BrowserSession from '../BrowserSession'
 import { destructConferenceState } from './helpers'
 
 export default function infoChannelHandler(session: BrowserSession, params: any) {
-  const { eventData = null, eventChannel, eventSerno = null } = params
+  const { eventData = null, eventChannel, eventSerno = null, data } = params
+  if (data) {
+    return logger.debug('Unhandled conference info event', params)
+  }
   if (!eventData) {
     return logger.warn('Unknown conference info event', params)
   }

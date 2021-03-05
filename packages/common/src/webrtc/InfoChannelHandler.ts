@@ -4,19 +4,12 @@ import BrowserSession from '../BrowserSession'
 import { destructConferenceState } from './helpers'
 
 export default function infoChannelHandler(session: BrowserSession, params: any) {
-  const { eventData = null, eventChannel, eventSerno = null, data = null } = params
-  const callIds = session.channelToCallIds.get(eventChannel) || []
-  // workaround for the "get-layout-info" command
-  if (data && data['conf-command'] === 'get-layout-info') {
-    callIds.forEach(callId => {
-      session.calls[callId] && session.calls[callId].updateLayouts(data.responseData)
-    })
-    return
-  }
+  const { eventData = null, eventChannel, eventSerno = null } = params
   if (!eventData) {
     return logger.warn('Unknown conference info event', params)
   }
 
+  const callIds = session.channelToCallIds.get(eventChannel) || []
   switch (eventData.contentType) {
     case 'layout-info': {
       if (callIds.length) {

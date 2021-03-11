@@ -71,6 +71,20 @@ export default class Verto extends BrowserSession {
       this.moderator = response.moderator || false
       this.superuser = response.superuser || false
       this.sessionid = response.sessid
+      /**
+       * Enable mod_verto with token auth
+       */
+      if (response['auth-expires']) {
+        this.authorization = {
+          expires_at: response['auth-expires'],
+          signature: null,
+          project: null,
+          scope_id: null,
+          scopes: [],
+          resource: null,
+        }
+        this._checkTokenExpiration()
+      }
       if (!this.incognito) {
         localStorage.setItem(SESSION_ID, this.sessionid)
       }

@@ -410,7 +410,7 @@ export default abstract class BaseSession {
    * Set a timer to dispatch a notification when the JWT is going to expire.
    * @return void
    */
-  private _checkTokenExpiration() {
+  protected _checkTokenExpiration() {
     if (!this.expiresAt) {
       return
     }

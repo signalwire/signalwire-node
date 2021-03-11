@@ -30,6 +30,7 @@ export default abstract class BaseSession {
   protected _jwtAuth: boolean = false
   protected _checkJWTExpirationTimeout = 30 * 1000
   protected _refreshTokenNotificationDiff = 120
+  protected _expiredDiffSeconds = 0
   protected _doKeepAlive: boolean = false
   protected _keepAliveTimeout: any
   protected _reconnectTimeout: any
@@ -83,7 +84,17 @@ export default abstract class BaseSession {
   }
 
   get expired() {
-    return this.expiresAt && this.expiresAt <= (Date.now() / 1000)
+    if (this.expiresAt) {
+      const now = Math.floor(Date.now() / 1000)
+      const diff = this.expiresAt - now
+      /**
+       * TODO: remove this workaround.
+       * _expiredDiffSeconds can be set a value different then zero
+       * Eg: to force the JWT as expired within 5 seconds...
+       */
+      return diff <= this._expiredDiffSeconds
+    }
+    return false
   }
 
   get reconnectDelay() {

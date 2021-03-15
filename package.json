@@ -8,14 +8,14 @@
     "setup": "node .scripts/setup.js"
   },
   "dependencies": {
-    "uuid": "^7.0.3"
+    "uuid": "^8.3.2"
   },
   "devDependencies": {
-    "@types/jest": "^25.2.1",
+    "@types/jest": "^26.0.20",
     "@types/webrtc": "0.0.26",
     "execa": "^1.0.0",
     "fs-extra": "^7.0.1",
     "listr": "^0.14.3",
-    "tslint": "^6.1.1"
+    "tslint": "^6.1.3"
   }
 }

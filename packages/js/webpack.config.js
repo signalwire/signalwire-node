@@ -45,7 +45,11 @@ module.exports = (env, argv) => {
       new webpack.BannerPlugin({
         banner: `Relay SDK for JavaScript v${VERSION} (https://signalwire.com)\nCopyright 2018-2019 SignalWire\nLicensed under MIT(https://github.com/signalwire/signalwire-node/blob/master/LICENSE)`
       })
-    ]
+    ],
+    node: {
+      Buffer: false,
+      process: false,
+    }
   }
 
   return config

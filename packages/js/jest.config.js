@@ -8,7 +8,8 @@ module.exports = {
 	},
 	coverageDirectory: '<rootDir>/js/coverage',
 	testMatch: [
-		'<rootDir>/(common|js)/tests/**/*.test.(ts|js)'
+		'<rootDir>/(common|js)/tests/**/*.test.(ts|js)',
+		'<rootDir>/(common|js)/src/**/*.test.(ts|js)',
 	],
 	transform: {
 		'^.+\\.tsx?$': './js/node_modules/ts-jest/dist/'

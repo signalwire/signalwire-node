@@ -1,3 +1,6 @@
+/**
+ * @deprecated
+ */
 import BaseRequest from './verto/BaseRequest'
 import { Login } from './verto/Login'
 import { Result } from './verto/Result'

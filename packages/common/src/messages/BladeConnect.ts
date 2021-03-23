@@ -14,7 +14,7 @@ export const setAgentName = (name: string) => {
 type WithToken = { token: string, jwt_token?: never }
 type WithJWT = { token?: never, jwt_token: string }
 type BladeConnectAuthentication = { project: string } & WithToken | WithJWT
-type BladeConnectParams = {
+export type BladeConnectParams = {
   authentication: BladeConnectAuthentication,
   params?: {
     protocol?: string

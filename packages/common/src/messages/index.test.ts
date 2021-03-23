@@ -90,12 +90,16 @@ describe('RPC Messages', () => {
 
   describe('BladePing', () => {
     it('should generate the message', function () {
+      global.Date.now = jest.fn(() => 1581442824134)
+
       const message = BladePing()
       expect(message).toStrictEqual({
         jsonrpc: '2.0',
         id: 'mocked-uuid',
         method: 'blade.ping',
-        params: {},
+        params: {
+          timestamp: 1581442824134 / 1000,
+        },
       })
     })
   })

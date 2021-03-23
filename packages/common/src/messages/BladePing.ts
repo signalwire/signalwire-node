@@ -1,10 +1,10 @@
 import { makeRPCRequest } from './index'
 
-type BladePingParams = {}
-
-export const BladePing = (params: BladePingParams = {}) => {
+export const BladePing = () => {
   return makeRPCRequest({
     method: 'blade.ping',
-    params,
+    params: {
+      timestamp: Date.now() / 1000,
+    },
   })
 }

@@ -1,4 +1,12 @@
-import { BladeConnect, setAgentName, BladeReauthenticate, BladePing, BladeExecute } from './index'
+import {
+  BladeConnect,
+  setAgentName,
+  BladeReauthenticate,
+  BladePing,
+  BladePingResponse,
+  BladeExecute,
+  BladeDisconnectResponse,
+} from './index'
 
 jest.mock('uuid', () => {
   return {
@@ -102,6 +110,17 @@ describe('RPC Messages', () => {
         },
       })
     })
+
+    it('should generate the response', function () {
+      const message = BladePingResponse('uuid', 1234)
+      expect(message).toStrictEqual({
+        jsonrpc: '2.0',
+        id: 'uuid',
+        result: {
+          timestamp: 1234,
+        },
+      })
+    })
   })
 
   describe('BladeExecute', () => {
@@ -129,6 +148,17 @@ describe('RPC Messages', () => {
           method: 'sum',
           params: { x: 3, y: 6 },
         },
+      })
+    })
+  })
+
+  describe('BladeDisconnect', () => {
+    it('should generate the response', function () {
+      const message = BladeDisconnectResponse('uuid')
+      expect(message).toStrictEqual({
+        jsonrpc: '2.0',
+        id: 'uuid',
+        result: {},
       })
     })
   })

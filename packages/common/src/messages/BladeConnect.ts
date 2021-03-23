@@ -1,4 +1,5 @@
 import { makeRPCRequest } from './index'
+import { BladeMethod } from '../util/constants'
 
 const BLADE_VERSION = {
   major: 2,
@@ -24,7 +25,7 @@ export type BladeConnectParams = {
 
 export const BladeConnect = (params: BladeConnectParams) => {
   return makeRPCRequest({
-    method: 'blade.connect',
+    method: BladeMethod.Connect,
     params: {
       version: BLADE_VERSION,
       agent,

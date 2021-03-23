@@ -1,4 +1,5 @@
 import { makeRPCRequest } from './index'
+import { BladeMethod } from '../util/constants'
 
 type BladeExecuteParams = {
   protocol: string,
@@ -10,7 +11,7 @@ type BladeExecuteParams = {
 
 export const BladeExecute = (params: BladeExecuteParams) => {
   return makeRPCRequest({
-    method: 'blade.execute',
+    method: BladeMethod.Execute,
     params,
   })
 }

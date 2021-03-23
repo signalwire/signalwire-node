@@ -14,6 +14,19 @@ export const makeRPCRequest = (params: MakeRPCRequestParams) => {
   }
 }
 
+type MakeRPCResponseParams = {
+  id: string,
+  result: { // TODO: use list of types?
+    [key: string]: any
+  }
+}
+export const makeRPCResponse = (params: MakeRPCResponseParams) => {
+  return {
+    jsonrpc: '2.0',
+    ...params,
+  }
+}
+
 export * from './BladeConnect'
 export * from './BladeReauthenticate'
 export * from './BladePing'

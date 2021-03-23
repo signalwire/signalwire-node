@@ -13,15 +13,22 @@ export const setAgentName = (name: string) => {
 
 type WithToken = { token: string, jwt_token?: never }
 type WithJWT = { token?: never, jwt_token: string }
-type BladeConnectParams = { project: string } & WithToken | WithJWT
+type BladeConnectAuthentication = { project: string } & WithToken | WithJWT
+type BladeConnectParams = {
+  authentication: BladeConnectAuthentication,
+  params?: {
+    protocol?: string
+    contexts?: string[]
+  },
+}
 
-export const BladeConnect = (authentication: BladeConnectParams) => {
+export const BladeConnect = (params: BladeConnectParams) => {
   return makeRPCRequest({
     method: 'blade.connect',
     params: {
       version: BLADE_VERSION,
-      authentication,
       agent,
+      ...params,
     }
   })
 }

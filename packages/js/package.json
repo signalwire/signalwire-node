@@ -14,7 +14,7 @@
     "clean-build": "rm -rf dist/* && npm run build",
     "build": "npm run check_versions && npm run build-es5 && npm run build-esm",
     "build-es5": "webpack -p",
-    "watch-es5": "webpack-dev-server --host 0.0.0.0 --mode development",
+    "watch-es5": "webpack-dev-server --host shaken.signalwire.cloud --mode development",
     "build-esm": "tsc",
     "watch-esm": "tsc -w",
     "tslint": "tslint -p tsconfig.json",

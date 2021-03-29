@@ -414,6 +414,7 @@ export default abstract class BaseSession {
     clearTimeout(this._keepAliveTimeout)
     if (this.connection) {
       this.connection.close()
+      this.connection = null
     }
   }
 

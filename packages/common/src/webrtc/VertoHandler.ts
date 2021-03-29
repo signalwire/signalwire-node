@@ -3,7 +3,7 @@ import BrowserSession from '../BrowserSession'
 import Call from './Call'
 import { Result } from '../messages/Verto'
 import { SwEvent } from '../util/constants'
-import { VertoMethod, Notification } from './constants'
+import { VertoMethod, Notification, Direction } from './constants'
 import { trigger, registerOnce } from '../services/Handler'
 import { State } from './constants'
 import { checkIsDirectCall } from './helpers'
@@ -55,14 +55,24 @@ const _handleSessionEvent = (session: BrowserSession, eventData: any) => {
 }
 
 const _buildCall = (session: BrowserSession, params: any, attach: boolean, nodeId: string) => {
+  let remoteCallerName = params.caller_id_name
+  let remoteCallerNumber = params.caller_id_number
+  let callerName = params.callee_id_name
+  let callerNumber = params.callee_id_number
+  if (params.display_direction === Direction.Inbound) {
+    remoteCallerName = params.callee_id_name
+    remoteCallerNumber = params.callee_id_number
+    callerName = params.caller_id_name
+    callerNumber = params.caller_id_number
+  }
   const call = new Call(session, {
     id: params.callID,
     remoteSdp: params.sdp,
     destinationNumber: params.callee_id_number,
-    remoteCallerName: params.caller_id_name,
-    remoteCallerNumber: params.caller_id_number,
-    callerName: params.callee_id_name,
-    callerNumber: params.callee_id_number,
+    remoteCallerName,
+    remoteCallerNumber,
+    callerName,
+    callerNumber,
     attach,
     secondSource: /;second-source$/.test(params.callee_id_number),
     screenShare: /;screen$/.test(params.callee_id_number),

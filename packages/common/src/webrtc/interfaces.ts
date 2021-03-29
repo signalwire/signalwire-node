@@ -43,6 +43,7 @@ export interface CallOptions {
   experimental?: boolean
   autoApplyMediaParams?: boolean
   rtcPeerConfig?: { [key: string]: any }
+  iceGatheringTimeout?: number
 }
 
 export interface ICantinaUser {

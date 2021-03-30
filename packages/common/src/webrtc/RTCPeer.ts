@@ -470,7 +470,7 @@ export default class RTCPeer {
 
   private _onIce(event: RTCPeerConnectionIceEvent) {
     if (this._iceTimeout === null) {
-      this._iceTimeout = setTimeout(() => this._sdpReady(), 1000)
+      this._iceTimeout = setTimeout(() => this._sdpReady(), this.options.iceGatheringTimeout)
     }
     if (event.candidate) {
       logger.debug('RTCPeer Candidate:', event.candidate)

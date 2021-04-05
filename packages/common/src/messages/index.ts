@@ -8,7 +8,7 @@ type MakeRPCRequestParams = {
 }
 export const makeRPCRequest = (params: MakeRPCRequestParams) => {
   return {
-    jsonrpc: '2.0',
+    jsonrpc: '2.0' as const,
     id: uuidv4(),
     ...params,
   }
@@ -22,7 +22,7 @@ type MakeRPCResponseParams = {
 }
 export const makeRPCResponse = (params: MakeRPCResponseParams) => {
   return {
-    jsonrpc: '2.0',
+    jsonrpc: '2.0' as const,
     ...params,
   }
 }

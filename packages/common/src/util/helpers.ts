@@ -79,7 +79,10 @@ export const destructResponse = (response: any, nodeId: string = null): { [key: 
   if (vertoResult) {
     return destructResponse(vertoResult, node_id)
   }
-  return { result: nestedResult }
+  if (code && node_id) {
+    return { result: nestedResult }
+  }
+  return { result }
 }
 
 export const randomInt = (min: number, max: number) => {
@@ -88,4 +91,12 @@ export const randomInt = (min: number, max: number) => {
 
 export const roundToFixed = (value: number, num = 2) => {
   return Number(value.toFixed(num))
+}
+
+export const timeoutPromise = (promise: Promise<unknown>, time: number, exception: any) => {
+	let timer = null
+	return Promise.race([
+    promise,
+    new Promise((_resolve, reject) => timer = setTimeout(reject, time, exception)),
+	]).finally(() => clearTimeout(timer))
 }

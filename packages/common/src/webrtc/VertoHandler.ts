@@ -7,6 +7,7 @@ import { VertoMethod, Notification, Direction } from './constants'
 import { trigger, registerOnce } from '../services/Handler'
 import { State } from './constants'
 import { checkIsDirectCall } from './helpers'
+import { roomIdToCallId } from './WebRTCCall'
 
 // const CONF_READY = 'CONF_READY'
 
@@ -95,6 +96,33 @@ const _buildCall = (session: BrowserSession, params: any, attach: boolean, nodeI
   call.nodeId = nodeId
   call.isDirect = checkIsDirectCall(params)
   return call
+}
+
+export const ConferencingHandler = (session: BrowserSession, msg: any) => {
+  console.warn('ConferencingHandler', msg)
+  const { event_type, params } = msg
+  switch (event_type) {
+    case 'room.subscribed': {
+      const { room, call_id } = params
+      if (!call_id || !session.calls[call_id]) {
+        return logger.warn('room.subscribed without call_id', msg)
+      }
+      // console.warn('Room Subscribed', JSON.stringify(params, null, 2))
+      session.calls[call_id]._onRoomSubscribed(room)
+      break
+    }
+    case 'member.joined': {
+      console.warn('Member Joined', JSON.stringify(params, null, 2))
+      const { member } = params
+      console.debug('Member', member, member.room_id, roomIdToCallId)
+      const call_id = roomIdToCallId.get(member.room_id)
+      session.calls[call_id]._onMemberJoined(member)
+      break
+    }
+
+    default:
+      console.debug('Conferencing', event_type, params)
+  }
 }
 
 export default (session: BrowserSession, msg: any) => {

@@ -15,6 +15,12 @@ import laChannelHandler, { publicLiveArrayMethods } from './LaChannelHandler'
 import chatChannelHandler, { publicChatMethods } from './ChatChannelHandler'
 import modChannelHandler, { publicModMethods } from './ModChannelHandler'
 import infoChannelHandler, { publicInfoMethods } from './InfoChannelHandler'
+import { Execute } from '../messages/Blade'
+
+export const roomIdToCallId = new Map<string, string>()
+
+// @ts-ignore
+window['roomIdToCallId'] = roomIdToCallId
 
 export default abstract class WebRTCCall {
   public id: string = ''
@@ -41,6 +47,7 @@ export default abstract class WebRTCCall {
   private _prevState: State = State.New
   private _laChannelAudioMuted: boolean = null
   private _laChannelVideoMuted: boolean = null
+  private _room: any = {}
 
   startScreenShare?(opts?: CallOptions): Promise<WebRTCCall>
   stopScreenShare?(): void
@@ -841,6 +848,34 @@ export default abstract class WebRTCCall {
     ])
   }
 
+  public bladeMute(member_id = 'all') {
+    const params = {
+      room_id: this._room.id,
+      member_id,
+    }
+    const msg = new Execute({ protocol: this.session.relayProtocol, method: 'conference.member.audio_mute', params })
+    this._execute(msg)
+  }
+
+  public bladeUnmute(member_id = 'all') {
+    const params = {
+      room_id: this._room.id,
+      member_id,
+    }
+    const msg = new Execute({ protocol: this.session.relayProtocol, method: 'conference.member.audio_unmute', params })
+    this._execute(msg)
+  }
+
+  public _onRoomSubscribed(room: any) {
+    roomIdToCallId.set(room.id, this.id)
+    this._room = room
+    console.debug('_onRoomSubscribed', JSON.stringify(room, null, 2))
+  }
+
+  public _onMemberJoined(params: any) {
+    console.debug('_onMemberJoined', JSON.stringify(params, null, 2))
+  }g
+
   private async _onVertoAttach(params: any) {
 
     if (this.options.simulcast === true) {
@@ -913,6 +948,9 @@ export default abstract class WebRTCCall {
     stopStream(remoteStream)
     stopStream(localStream)
     deRegisterAll(this.id)
+    if (this._room) {
+      roomIdToCallId.delete(this._room.id)
+    }
     this.session.calls[this.id] = null
     delete this.session.calls[this.id]
   }

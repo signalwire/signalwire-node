@@ -8,7 +8,7 @@ import { getDevices, scanResolutions, checkDeviceIdConstraints, assureDeviceId }
 import BaseMessage from './messages/BaseMessage'
 import BaseRequest from './messages/verto/BaseRequest'
 import { Execute } from './messages/Blade'
-import { Unsubscribe, Subscribe, Broadcast, JSApi } from './messages/Verto'
+import { Unsubscribe, Subscribe, Broadcast, JSApi, Invite } from './messages/Verto'
 import { localStorage } from './util/storage/'
 import { stopStream } from './util/webrtc'
 import WebRTCCall from './webrtc/WebRTCCall'
@@ -497,6 +497,10 @@ export default abstract class BrowserSession extends BaseSession {
     const params = {
       message: message.request,
       node_id: message.targetNodeId || undefined
+    }
+    if (message instanceof Invite) {
+      // @ts-ignore
+      params.subscribe = ['room.started', 'rooms.subscribed', 'room.subscribed', 'room.updated', 'room.ended', 'member.joined']
     }
     return new Execute({ protocol: this.relayProtocol, method: 'message', params })
   }

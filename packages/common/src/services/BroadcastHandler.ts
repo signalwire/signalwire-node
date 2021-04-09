@@ -1,5 +1,5 @@
 import logger from '../util/logger'
-import VertoHandler from '../webrtc/VertoHandler'
+import VertoHandler, { ConferencingHandler } from '../webrtc/VertoHandler'
 
 export default (session: any, broadcastParams: any): void => {
   const { protocol, event, params } = broadcastParams
@@ -18,6 +18,9 @@ export default (session: any, broadcastParams: any): void => {
         session.calling.notificationHandler(params)
       }
       break
+    case 'conference':
+      // params.params.nodeId = node_id
+      return ConferencingHandler(session, params)
     case 'queuing.relay.tasks':
       session.tasking.notificationHandler(params)
       break

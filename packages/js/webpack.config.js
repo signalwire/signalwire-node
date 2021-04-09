@@ -31,7 +31,7 @@ module.exports = (env, argv) => {
       ]
     },
     devServer: {
-      contentBase: [outputDir, __dirname + '/examples/split-audio-video'],
+      contentBase: [outputDir, __dirname + '/examples/video-sdk'],
       compress: true,
       port: 9000,
       https: true

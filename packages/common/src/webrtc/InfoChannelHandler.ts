@@ -53,12 +53,23 @@ const _dispatch = (session: BrowserSession, params: any, callIds: string[]) => {
   }
 }
 
+function _infoCommand(params: any) {
+  const { session, nodeId, channel, ...rest } = this
+  if (!channel) {
+    return console.warn('Missing modChannel')
+  }
+  const data = { application: 'conf-control', ...rest, ...params }
+  session.vertoBroadcast({ nodeId, channel, data })
+}
+
 export const publicInfoMethods = {
   // NB: "this" refers to a special object to pass channel and params.
   // See WebRTCCall conferenceJoinHandler method
-  getLayoutInfo : function() {
-    const { session, nodeId, channel } = this
-    const data = { application: 'conf-control', command: 'get-layout-info' }
-    session.vertoBroadcast({ nodeId, channel, data })
-  }
+  infoCommand: function (command: string, id: string, value: any) {
+    return _infoCommand.call(this, { command, id, value })
+  },
+  getLayoutInfo: function () {
+    const params = { command: 'get-layout-info' }
+    return _infoCommand.call(this, params)
+  },
 }

@@ -2,6 +2,7 @@ import BrowserSession from '../BrowserSession'
 import { IConferenceInfo } from './interfaces'
 import { publicModMethods } from './ModChannelHandler'
 import { publicChatMethods } from './ChatChannelHandler'
+import { publicInfoMethods } from './InfoChannelHandler'
 
 export default class Conference implements Partial<IConferenceInfo> {
   uuid: string
@@ -49,6 +50,19 @@ export default class Conference implements Partial<IConferenceInfo> {
         configurable: true,
         writable: true,
         value: publicChatMethods[method].bind(chatObject)
+      })
+    })
+
+    const infoObject = {
+      session: session,
+      nodeId: session.nodeid,
+      channel: this.infoChannel || null,
+    }
+    Object.keys(publicInfoMethods).forEach(method => {
+      Object.defineProperty(this, method, {
+        configurable: true,
+        writable: true,
+        value: publicInfoMethods[method].bind(infoObject)
       })
     })
   }

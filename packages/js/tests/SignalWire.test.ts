@@ -61,7 +61,7 @@ describe('SignalWire Web', () => {
         message: new Subscribe({ sessid: instance.sessionid, eventChannel: ['channel-test-name'] }).request,
         node_id: nodeId
       }
-      const msg = new Execute({ protocol: instance.relayProtocol, method: 'message', params })
+      const msg = new Execute({ protocol: instance.relayProtocol, method: 'video.message', params })
       expect(Connection.mockSend).toHaveBeenCalledWith(msg)
     })
   })
@@ -76,7 +76,7 @@ describe('SignalWire Web', () => {
         message: new Unsubscribe({ sessid: instance.sessionid, eventChannel: ['channel-test-name'] }).request,
         node_id: nodeId
       }
-      const msg = new Execute({ protocol: instance.relayProtocol, method: 'message', params })
+      const msg = new Execute({ protocol: instance.relayProtocol, method: 'video.message', params })
       expect(Connection.mockSend).toHaveBeenCalledWith(msg)
     })
   })
@@ -91,7 +91,7 @@ describe('SignalWire Web', () => {
         message: new Broadcast({ sessid: instance.sessionid, eventChannel: 'channel', data: { example: 'cmd' } }).request,
         node_id: nodeId
       }
-      const msg = new Execute({ protocol: instance.relayProtocol, method: 'message', params })
+      const msg = new Execute({ protocol: instance.relayProtocol, method: 'video.message', params })
       expect(Connection.mockSend).toHaveBeenCalledWith(msg)
     })
   })

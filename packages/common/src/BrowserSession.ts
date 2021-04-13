@@ -502,7 +502,7 @@ export default abstract class BrowserSession extends BaseSession {
       // @ts-ignore
       params.subscribe = ['room.started', 'rooms.subscribed', 'room.subscribed', 'room.updated', 'room.ended', 'member.joined']
     }
-    return new Execute({ protocol: this.relayProtocol, method: 'message', params })
+    return new Execute({ protocol: this.relayProtocol, method: 'video.message', params })
   }
 
   execute(message: BaseMessage) {

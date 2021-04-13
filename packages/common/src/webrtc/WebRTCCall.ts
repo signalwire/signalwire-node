@@ -866,6 +866,24 @@ export default abstract class WebRTCCall {
     this._execute(msg)
   }
 
+  public bladeVideoMute(member_id = 'all') {
+    const params = {
+      room_id: this._room.id,
+      member_id,
+    }
+    const msg = new Execute({ protocol: this.session.relayProtocol, method: 'conference.member.video_mute', params })
+    this._execute(msg)
+  }
+
+  public bladeVideoUnmute(member_id = 'all') {
+    const params = {
+      room_id: this._room.id,
+      member_id,
+    }
+    const msg = new Execute({ protocol: this.session.relayProtocol, method: 'conference.member.video_unmute', params })
+    this._execute(msg)
+  }
+
   public _onRoomSubscribed(room: any) {
     roomIdToCallId.set(room.id, this.id)
     this._room = room

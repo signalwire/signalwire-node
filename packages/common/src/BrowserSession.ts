@@ -500,7 +500,7 @@ export default abstract class BrowserSession extends BaseSession {
     }
     if (message instanceof Invite) {
       // @ts-ignore
-      params.subscribe = ['room.started', 'rooms.subscribed', 'room.subscribed', 'room.updated', 'room.ended', 'member.joined']
+      params.subscribe = ['room.started', 'room.subscribed', 'room.updated', 'room.ended', 'member.joined', 'member.updated', 'member.left', 'layout.changed']
     }
     return new Execute({ protocol: this.relayProtocol, method: 'video.message', params })
   }

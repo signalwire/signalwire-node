@@ -103,12 +103,12 @@ export const ConferencingHandler = (session: BrowserSession, msg: any) => {
   const { event_type, params } = msg
   switch (event_type) {
     case 'room.subscribed': {
-      const { room, call_id } = params
+      const { room, call_id, member_id } = params
       if (!call_id || !session.calls[call_id]) {
         return logger.warn('room.subscribed without call_id', msg)
       }
       // console.warn('Room Subscribed', JSON.stringify(params, null, 2))
-      session.calls[call_id]._onRoomSubscribed(room)
+      session.calls[call_id]._onRoomSubscribed(room, member_id)
       break
     }
     case 'member.joined': {

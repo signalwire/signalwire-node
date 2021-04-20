@@ -42,6 +42,7 @@ export default abstract class WebRTCCall {
   public canvasInfo: ICanvasInfo
   public participantLayerIndex = -1
   public participantLogo = ''
+  private _memberId = ''
   private _extension: string = null
   private _state: State = State.New
   private _prevState: State = State.New
@@ -190,6 +191,9 @@ export default abstract class WebRTCCall {
   }
 
   get participantId() {
+    if (this._memberId) {
+      return this._memberId
+    }
     return this.pvtData ? String(this.pvtData.conferenceMemberID) : null
   }
 
@@ -884,9 +888,10 @@ export default abstract class WebRTCCall {
     this._execute(msg)
   }
 
-  public _onRoomSubscribed(room: any) {
+  public _onRoomSubscribed(room: any, member_id: string) {
     roomIdToCallId.set(room.id, this.id)
     this._room = room
+    this._memberId = member_id
     console.debug('_onRoomSubscribed', JSON.stringify(room, null, 2))
   }
 

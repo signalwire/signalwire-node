@@ -102,6 +102,7 @@ export enum ConferenceAction {
   ModCmdResponse = 'modCommandResponse',
   ConferenceInfo = 'conferenceInfo',
   CaptionInfo = 'captionInfo',
+  MemberTalkState = 'memberTalkState',
 }
 
 export enum DeviceType {

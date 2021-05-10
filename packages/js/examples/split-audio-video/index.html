@@ -177,7 +177,7 @@
      * Handle notification from the client.
     */
     function handleNotification(notification) {
-      console.log("notification", notification.type, notification);
+      // console.log("notification", notification.type, notification);
       switch (notification.type) {
         case 'callUpdate':
           handleCallUpdate(notification.call);
@@ -188,6 +188,21 @@
         case 'trackAdd':
           // Handle new peer track
           handleTrackAdd(notification);
+          break;
+        case 'conferenceUpdate':
+          // Handle new peer track
+          handleConferenceUpdate(notification);
+          break;
+      }
+    }
+
+    function handleConferenceUpdate(notification) {
+      switch (notification.action) {
+        case 'memberTalkState':
+          console.warn('memberTalkState', notification)
+          break;
+
+        default:
           break;
       }
     }

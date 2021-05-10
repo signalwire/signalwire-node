@@ -406,6 +406,9 @@ export default abstract class BrowserSession extends BaseSession {
     }
   }
 
+  /**
+   * @deprecated
+   */
   watchVertoConferences = async (params: IVertoConferenceListParams) => {
     this.conferences = {}
     const currentConfList = await this.vertoConferenceList(params)
@@ -438,6 +441,9 @@ export default abstract class BrowserSession extends BaseSession {
     return currentConfList
   }
 
+  /**
+   * @deprecated
+   */
   _watchRoomsNotificationHandler = (event: any) => {
     if (event.type !== 'conferenceUpdate') {
       return
@@ -463,6 +469,9 @@ export default abstract class BrowserSession extends BaseSession {
     }
   }
 
+  /**
+   * @deprecated
+   */
   unwatchVertoConferences = async () => {
     this.conferences = {}
     const infoChannel = 'conference-info'
@@ -513,5 +522,55 @@ export default abstract class BrowserSession extends BaseSession {
     const channels = ['conference-info', 'conference-liveArray', 'conference-mod']
     this._detachChannels(channels)
     super._onSocketCloseOrError(event)
+  }
+
+  watchVertoConferenceList = async (params: IVertoConferenceListParams) => {
+    this.conferences = {}
+    const currentConfList = await this.vertoConferenceList(params)
+    currentConfList.forEach(row => {
+      this.conferences[row.uuid] = new Conference(this, row)
+    })
+    const listChannel = 'conference-list'
+    const channels = [listChannel]
+    this._detachChannels(channels)
+    const result = await this.vertoSubscribe({
+      nodeId: this.nodeid,
+      channels,
+    })
+    const { subscribed = [], alreadySubscribed = [] } = destructSubscribeResponse(result)
+    const all = subscribed.concat(alreadySubscribed)
+    if (all.includes(listChannel)) {
+      const conferenceListHandler = ({ data }: any) => {
+        switch (data.action) {
+          case 'add':
+            console.debug('conferenceList ADD', data.data)
+            break;
+          case 'modify':
+            console.debug('conferenceList MODIFY', data.data)
+            break;
+          case 'del':
+            console.debug('conferenceList DEL', data.data)
+            break;
+
+          default:
+            console.debug('conferenceList ?', data.action, data)
+            break;
+        }
+      }
+      this._addSubscription(this.relayProtocol, conferenceListHandler, listChannel)
+    }
+
+    return currentConfList
+  }
+
+  unwatchVertoConferenceList = async () => {
+    this.conferences = {}
+    const listChannel = 'conference-list'
+    const channels = [listChannel]
+    this._detachChannels(channels)
+    await this.vertoUnsubscribe({
+      nodeId: this.nodeid,
+      channels,
+    })
   }
 }

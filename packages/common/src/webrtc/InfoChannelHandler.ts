@@ -27,6 +27,9 @@ export default function infoChannelHandler(session: BrowserSession, params: any)
     case 'conference-info':
       const { conferenceState, messages = [] } = eventData
       return _dispatch(session, { action: ConferenceAction.ConferenceInfo, eventChannel, eventSerno, conferenceState: destructConferenceState(conferenceState), messages }, callIds)
+    case 'member-talk-state':
+      const { callID, memberID, talking } = eventData
+      return _dispatch(session, { action: ConferenceAction.MemberTalkState, eventChannel, eventSerno, callID, memberID, talking }, callIds)
     case 'caption-info': {
       if (callIds.length) {
         callIds.forEach(callId => {

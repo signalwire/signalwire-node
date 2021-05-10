@@ -544,17 +544,16 @@ export default abstract class BrowserSession extends BaseSession {
         switch (data.action) {
           case 'add':
             console.debug('conferenceList ADD', data.data)
-            break;
+            break
           case 'modify':
             console.debug('conferenceList MODIFY', data.data)
-            break;
+            break
           case 'del':
             console.debug('conferenceList DEL', data.data)
-            break;
-
+            break
           default:
             console.debug('conferenceList ?', data.action, data)
-            break;
+            break
         }
       }
       this._addSubscription(this.relayProtocol, conferenceListHandler, listChannel)

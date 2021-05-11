@@ -2,7 +2,6 @@ import { ConferenceAction } from './constants'
 import BrowserSession from '../BrowserSession'
 
 export default function chatChannelHandler(session: BrowserSession, { eventChannel, eventSerno, data }: any) {
-  console.log('chatChannelHandler', eventChannel, data)
   const callIds = session.channelToCallIds.get(eventChannel) || []
   const { direction, from: participantNumber, fromDisplay: participantName, message: messageText, type: messageType } = data
   const params = {

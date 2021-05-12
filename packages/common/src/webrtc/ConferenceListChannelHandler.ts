@@ -17,6 +17,7 @@ interface ConferenceListHandlerParams {
 
 interface ConferenceListRoom {
   uuid: string
+  md5: string
   displayName: string
   name: string
   member_count: number
@@ -30,6 +31,7 @@ interface ConferenceListRoom {
   liveArrayChannel: string
   infoChannel: string
   modChannel: string
+  chatChannel: string
   recording: false
   preview: string
 }
@@ -37,11 +39,12 @@ interface ConferenceListRoom {
 const _buildConference = (conference: ConferenceListRoom) => {
   return {
     uuid: conference.uuid,
+    md5: conference.md5,
     running: true,
     laChannel: conference.liveArrayChannel,
     infoChannel: conference.infoChannel,
     // FIXME: remove this hack
-    chatChannel: conference.liveArrayChannel.replace('liveArray', 'chat'),
+    chatChannel: conference.chatChannel,
     modChannel: conference.modChannel,
     confName: conference.displayName,
     numMembers: conference.member_count || 0,

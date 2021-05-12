@@ -147,7 +147,10 @@ export default (session: BrowserSession, msg: any) => {
       if (eventChannel) {
         const channelType = eventChannel.split('.')[0]
         const global = trigger(session.relayProtocol, params, channelType)
-        const specific = trigger(session.relayProtocol, params, eventChannel)
+        let specific = false
+        if (channelType !== eventChannel) {
+          specific = trigger(session.relayProtocol, params, eventChannel)
+        }
         if (global || specific) {
           return
         }

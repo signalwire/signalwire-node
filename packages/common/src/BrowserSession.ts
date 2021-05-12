@@ -561,7 +561,6 @@ export default abstract class BrowserSession extends BaseSession {
   }
 
   unwatchVertoConferenceList = async () => {
-    this.conferences = {}
     const listChannel = 'conference-list'
     const channels = [listChannel]
     this._detachChannels(channels)

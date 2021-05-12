@@ -1,12 +1,12 @@
 import { ConferenceAction } from './constants'
 import BrowserSession from '../BrowserSession'
-import { mungeLayoutList } from './helpers'
+import { mungeLayoutList, destructConferenceState } from './helpers'
 
 export default function modChannelHandler(session: BrowserSession, { data, eventChannel, eventSerno = null }: any) {
   const callIds = session.channelToCallIds.get(eventChannel) || []
   let params = null
   switch (data['conf-command']) {
-    case 'list-videoLayouts':
+    case 'list-videoLayouts': {
       if (data.responseData) {
         const normal = data.responseData.filter(({ type }) => type === 'layout')
         const group = data.responseData.filter(({ type }) => type === 'layoutGroup')
@@ -14,6 +14,13 @@ export default function modChannelHandler(session: BrowserSession, { data, event
         params = { action: ConferenceAction.LayoutList, eventChannel, eventSerno, layouts }
       }
       break
+    }
+    case 'getConferenceState': {
+      if (data.responseData) {
+        _dispatch(session, { action: ConferenceAction.ConferenceInfo, eventChannel, eventSerno, conferenceState: destructConferenceState(data.responseData), messages: [] }, callIds)
+      }
+      break
+    }
     default:
       params = { action: ConferenceAction.ModCmdResponse, eventChannel, eventSerno, command: data['conf-command'], response: data.response }
   }
@@ -52,6 +59,11 @@ export const publicModMethods = {
 
   listVideoLayouts: function () {
     const params = { command: 'list-videoLayouts' }
+    return _modCommand.call(this, params)
+  },
+
+  getConferenceState: function () {
+    const params = { command: 'getConferenceState' }
     return _modCommand.call(this, params)
   },
 

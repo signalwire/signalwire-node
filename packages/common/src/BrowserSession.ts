@@ -570,4 +570,49 @@ export default abstract class BrowserSession extends BaseSession {
       channels,
     })
   }
+
+  async vertoSubscribeToConference({ infoChannel, modChannel, laChannel }: { infoChannel?: string, modChannel?: string, laChannel?: string }) {
+    try {
+      const channels = [
+        infoChannel,
+        modChannel,
+        laChannel,
+      ].filter(Boolean)
+      if (!channels?.length) {
+        return
+      }
+      this._detachChannels(channels)
+      const result = await this.vertoSubscribe({ channels })
+      const { subscribed = [], alreadySubscribed = [] } = destructSubscribeResponse(result)
+      const all = subscribed.concat(alreadySubscribed)
+      if (all.includes(infoChannel)) {
+        this._addSubscription(this.relayProtocol, infoChannelHandler.bind(this, this), infoChannel)
+      }
+      if (all.includes(modChannel)) {
+        this._addSubscription(this.relayProtocol, modChannelHandler.bind(this, this), modChannel)
+      }
+    } catch (error) {
+      console.error('vertoSubscribeToConference error', error)
+    }
+  }
+
+  async vertoUnsubscribeFromConference({ infoChannel, modChannel, laChannel }: { infoChannel?: string, modChannel?: string, laChannel?: string }) {
+    try {
+      const channels = [
+        infoChannel,
+        modChannel,
+        laChannel,
+      ].filter(Boolean)
+      if (!channels?.length) {
+        return
+      }
+      this._detachChannels(channels)
+      await this.vertoUnsubscribe({
+        nodeId: this.nodeid,
+        channels
+      })
+    } catch (error) {
+      console.error('vertoUnsubscribeFromConference error', error)
+    }
+  }
 }

@@ -45,6 +45,7 @@ export enum Notification {
   Announce = 'announce',
   DeviceUpdated = 'deviceUpdated',
   MediaParams = 'mediaParams',
+  ConferenceListBootstrap = 'conferenceListBootstrap',
   ConferenceListAdd = 'conferenceListAdd',
   ConferenceListModify = 'conferenceListModify',
   ConferenceListDelete = 'conferenceListDelete',

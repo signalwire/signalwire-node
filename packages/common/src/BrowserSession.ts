@@ -547,7 +547,6 @@ export default abstract class BrowserSession extends BaseSession {
         session: this,
         nodeId: this.nodeid,
         channel: listChannel,
-        name: listChannel,
       }
       Object.keys(publicConferenceListMethods).forEach(method => {
         Object.defineProperty(this, method, {

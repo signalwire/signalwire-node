@@ -34,9 +34,8 @@ interface ConferenceListRoom {
   preview: string
 }
 
-export default function (session: BrowserSession, { eventChannel, eventSerno, data: packet }: any) {
-  const { data: conference } = packet
-  const confInfo = {
+const _buildConference = (conference: ConferenceListRoom) => {
+  return {
     uuid: conference.uuid,
     running: true,
     laChannel: conference.liveArrayChannel,
@@ -52,31 +51,57 @@ export default function (session: BrowserSession, { eventChannel, eventSerno, da
     // variables
     lastSnapshot: conference.lastSnapshot,
   }
-  switch (packet.action) {
-    case 'add': {
-      console.debug('conferenceList ADD', packet)
-      this.conferences[conference.uuid] = new Conference(this, confInfo)
-      const notification = { type: Notification.ConferenceListAdd, conference }
-      trigger(SwEvent.Notification, notification, this.uuid)
-      break
+}
+
+export default function (session: BrowserSession, { eventChannel, eventSerno, data: packet }: any) {
+  try {
+    switch (packet.action) {
+      case 'bootObj': {
+        console.debug('conferenceList BOOT', packet)
+        session.conferences = {}
+        const conferences = []
+        for (const i in packet.data) {
+          const conference = packet.data[i][1]
+          const confInfo = _buildConference(conference)
+          session.conferences[conference.uuid] = new Conference(session, confInfo)
+          conferences.push(conference)
+        }
+        const notification = { type: Notification.ConferenceListBootstrap, conferences }
+        trigger(SwEvent.Notification, notification, session.uuid)
+        break
+      }
+      case 'add': {
+        console.debug('conferenceList ADD', packet)
+        const conference = packet.data
+        const confInfo = _buildConference(conference)
+        session.conferences[conference.uuid] = new Conference(session, confInfo)
+        const notification = { type: Notification.ConferenceListAdd, conference }
+        trigger(SwEvent.Notification, notification, session.uuid)
+        break
+      }
+      case 'modify': {
+        console.debug('conferenceList MODIFY', packet)
+        const conference = packet.data
+        const confInfo = _buildConference(conference)
+        session.conferences[conference.uuid] = new Conference(session, confInfo)
+        const notification = { type: Notification.ConferenceListModify, conference }
+        trigger(SwEvent.Notification, notification, session.uuid)
+        break
+      }
+      case 'del': {
+        console.debug('conferenceList DEL', packet)
+        const conference = packet.data
+        delete session.conferences[conference.uuid]
+        const notification = { type: Notification.ConferenceListDelete, conference }
+        trigger(SwEvent.Notification, notification, session.uuid)
+        break
+      }
+      default:
+        console.warn('ConferenceList unknown action', packet.action, packet)
+        break
     }
-    case 'modify': {
-      console.debug('conferenceList MODIFY', packet)
-      this.conferences[conference.uuid] = new Conference(this, confInfo)
-      const notification = { type: Notification.ConferenceListModify, conference }
-      trigger(SwEvent.Notification, notification, this.uuid)
-      break
-    }
-    case 'del': {
-      console.debug('conferenceList DEL', packet)
-      delete this.conferences[conference.uuid]
-      const notification = { type: Notification.ConferenceListDelete, conference }
-      trigger(SwEvent.Notification, notification, this.uuid)
-      break
-    }
-    default:
-      console.warn('ConferenceList unknown action', packet.action, packet)
-      break
+  } catch (error) {
+    console.warn('ConferenceList error', error, packet)
   }
 }
 
@@ -84,8 +109,8 @@ export const publicConferenceListMethods = {
   // NB: "this" refers to a special object to pass channel and params.
   // See WebRTCCall conferenceJoinHandler method
   conferenceListBootstrap: function() {
-    const { session, nodeId, channel, name } = this
-    const data = { liveArray: { command: 'bootstrap', context: channel, name } }
+    const { session, nodeId, channel } = this
+    const data = { liveArray: { command: 'bootstrap', context: channel, name: 'conferences' } }
     session.vertoBroadcast({ nodeId, channel, data })
   }
 }

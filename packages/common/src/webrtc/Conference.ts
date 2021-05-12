@@ -15,7 +15,7 @@ export default class Conference implements Partial<IConferenceInfo> {
   confName: string
   isPrivate: boolean
 
-  constructor (session: BrowserSession, params: IConferenceInfo) {
+  constructor (session: BrowserSession, params: Partial<IConferenceInfo>) {
     const { uuid, md5, domain, laChannel, infoChannel, chatChannel, modChannel = null, confName, isPrivate = false } = params
     this.uuid = uuid
     this.md5 = md5

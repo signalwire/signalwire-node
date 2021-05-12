@@ -45,6 +45,9 @@ export enum Notification {
   Announce = 'announce',
   DeviceUpdated = 'deviceUpdated',
   MediaParams = 'mediaParams',
+  ConferenceListAdd = 'conferenceListAdd',
+  ConferenceListModify = 'conferenceListModify',
+  ConferenceListDelete = 'conferenceListDelete',
 }
 
 export const DEFAULT_CALL_OPTIONS: CallOptions = {

@@ -15,6 +15,7 @@ import WebRTCCall from './webrtc/WebRTCCall'
 import laChannelHandler from './webrtc/LaChannelHandler'
 import modChannelHandler from './webrtc/ModChannelHandler'
 import infoChannelHandler from './webrtc/InfoChannelHandler'
+import ConferenceListChannelHandler, { publicConferenceListMethods } from './webrtc/ConferenceListChannelHandler'
 import { IConferenceInfo, IVertoConferenceListParams } from './webrtc/interfaces'
 import Conference from './webrtc/Conference'
 
@@ -28,6 +29,7 @@ export default abstract class BrowserSession extends BaseSession {
   public camLabel: string
   public autoRecoverCalls: boolean = true
   public incognito = false
+  public conferenceListBootstrap?: () => void
 
   private _iceServers: RTCIceServer[] = []
   private _localElement: HTMLMediaElement | string | Function = null
@@ -524,12 +526,12 @@ export default abstract class BrowserSession extends BaseSession {
     super._onSocketCloseOrError(event)
   }
 
-  watchVertoConferenceList = async (params: IVertoConferenceListParams) => {
+  watchVertoConferenceList = async () => {
     this.conferences = {}
-    const currentConfList = await this.vertoConferenceList(params)
-    currentConfList.forEach(row => {
-      this.conferences[row.uuid] = new Conference(this, row)
-    })
+    // const currentConfList = await this.vertoConferenceList(params)
+    // currentConfList.forEach(row => {
+    //   this.conferences[row.uuid] = new Conference(this, row)
+    // })
     const listChannel = 'conference-list'
     const channels = [listChannel]
     this._detachChannels(channels)
@@ -540,26 +542,23 @@ export default abstract class BrowserSession extends BaseSession {
     const { subscribed = [], alreadySubscribed = [] } = destructSubscribeResponse(result)
     const all = subscribed.concat(alreadySubscribed)
     if (all.includes(listChannel)) {
-      const conferenceListHandler = ({ data }: any) => {
-        switch (data.action) {
-          case 'add':
-            console.debug('conferenceList ADD', data.data)
-            break
-          case 'modify':
-            console.debug('conferenceList MODIFY', data.data)
-            break
-          case 'del':
-            console.debug('conferenceList DEL', data.data)
-            break
-          default:
-            console.debug('conferenceList ?', data.action, data)
-            break
-        }
+      this._addSubscription(this.relayProtocol, ConferenceListChannelHandler.bind(this, this), listChannel)
+      const listObject = {
+        session: this,
+        nodeId: this.nodeid,
+        channel: listChannel,
+        name: listChannel,
       }
-      this._addSubscription(this.relayProtocol, conferenceListHandler, listChannel)
-    }
+      Object.keys(publicConferenceListMethods).forEach(method => {
+        Object.defineProperty(this, method, {
+          configurable: true,
+          writable: true,
+          value: publicConferenceListMethods[method].bind(listObject)
+        })
+      })
 
-    return currentConfList
+      this.conferenceListBootstrap()
+    }
   }
 
   unwatchVertoConferenceList = async () => {

@@ -9,6 +9,7 @@ export default class Conference implements Partial<IConferenceInfo> {
   uuid: string
   md5: string
   domain: string
+  laName: string
   laChannel: string
   infoChannel: string
   chatChannel: string
@@ -17,10 +18,11 @@ export default class Conference implements Partial<IConferenceInfo> {
   isPrivate: boolean
 
   constructor (session: BrowserSession, params: Partial<IConferenceInfo>) {
-    const { uuid, md5, domain, laChannel, infoChannel, chatChannel, modChannel = null, confName, isPrivate = false } = params
+    const { uuid, md5, domain, laName, laChannel, infoChannel, chatChannel, modChannel = null, confName, isPrivate = false } = params
     this.uuid = uuid
     this.md5 = md5
     this.domain = domain
+    this.laName = laName
     this.laChannel = laChannel
     this.infoChannel = infoChannel
     this.chatChannel = chatChannel
@@ -71,6 +73,7 @@ export default class Conference implements Partial<IConferenceInfo> {
       session: session,
       nodeId: session.nodeid,
       channel: this.laChannel || null,
+      laName: this.laName || null,
     }
     Object.keys(publicLiveArrayMethods).forEach(method => {
       Object.defineProperty(this, method, {

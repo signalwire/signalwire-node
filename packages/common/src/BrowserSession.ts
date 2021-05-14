@@ -590,6 +590,9 @@ export default abstract class BrowserSession extends BaseSession {
       if (all.includes(modChannel)) {
         this._addSubscription(this.relayProtocol, modChannelHandler.bind(this, this), modChannel)
       }
+      if (all.includes(laChannel)) {
+        this._addSubscription(this.relayProtocol, laChannelHandler.bind(this, this), laChannel)
+      }
     } catch (error) {
       console.error('vertoSubscribeToConference error', error)
     }

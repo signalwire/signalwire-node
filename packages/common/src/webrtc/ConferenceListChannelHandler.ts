@@ -41,6 +41,7 @@ const _buildConference = (conference: ConferenceListRoom) => {
     uuid: conference.uuid,
     md5: conference.md5,
     running: true,
+    laName: conference.name,
     laChannel: conference.liveArrayChannel,
     infoChannel: conference.infoChannel,
     // FIXME: remove this hack

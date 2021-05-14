@@ -169,6 +169,7 @@ export interface IConferenceInfo {
   md5: string
   domain: string
   running: boolean
+  laName: string
   laChannel: string
   infoChannel: string
   chatChannel: string

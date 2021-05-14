@@ -60,7 +60,7 @@ export default function (session: BrowserSession, { eventChannel, eventSerno, da
   try {
     switch (packet.action) {
       case 'bootObj': {
-        console.debug('conferenceList BOOT', packet)
+        // console.debug('conferenceList BOOT', packet)
         session.conferences = {}
         const conferences = []
         for (const i in packet.data) {
@@ -74,7 +74,7 @@ export default function (session: BrowserSession, { eventChannel, eventSerno, da
         break
       }
       case 'add': {
-        console.debug('conferenceList ADD', packet)
+        // console.debug('conferenceList ADD', packet)
         const conference = packet.data
         const confInfo = _buildConference(conference)
         session.conferences[conference.uuid] = new Conference(session, confInfo)
@@ -83,7 +83,7 @@ export default function (session: BrowserSession, { eventChannel, eventSerno, da
         break
       }
       case 'modify': {
-        console.debug('conferenceList MODIFY', packet)
+        // console.debug('conferenceList MODIFY', packet)
         const conference = packet.data
         const confInfo = _buildConference(conference)
         session.conferences[conference.uuid] = new Conference(session, confInfo)
@@ -92,7 +92,7 @@ export default function (session: BrowserSession, { eventChannel, eventSerno, da
         break
       }
       case 'del': {
-        console.debug('conferenceList DEL', packet)
+        // console.debug('conferenceList DEL', packet)
         const conference = packet.data
         delete session.conferences[conference.uuid]
         const notification = { type: Notification.ConferenceListDelete, conference }

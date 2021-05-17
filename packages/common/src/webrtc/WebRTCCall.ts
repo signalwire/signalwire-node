@@ -583,7 +583,6 @@ export default abstract class WebRTCCall {
     } catch (error) {
       logger.error('Conference unsubscribe error:', error)
     }
-    // this._clearAllSerno()
   }
 
   async conferenceJoinHandler(pvtData: VertoPvtData) {
@@ -661,7 +660,6 @@ export default abstract class WebRTCCall {
       })
       const { subscribed = [], alreadySubscribed = [] } = destructSubscribeResponse(result)
       const all = subscribed.concat(alreadySubscribed)
-      // this._clearAllSerno()
       const { laChannel, chatChannel, infoChannel, modChannel } = this.pvtData
       if (all.includes(laChannel)) {
         deRegister(relayProtocol, null, laChannel)

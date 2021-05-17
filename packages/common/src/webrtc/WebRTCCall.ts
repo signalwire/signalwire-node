@@ -574,15 +574,7 @@ export default abstract class WebRTCCall {
       role: this.participantRole,
     }
     this._dispatchConferenceUpdate(notification)
-    this._removeConferenceChannel()
-    try {
-      await this.session.vertoUnsubscribe({
-        nodeId: pvtData.nodeId,
-        channels: this.conferenceChannels,
-      })
-    } catch (error) {
-      logger.error('Conference unsubscribe error:', error)
-    }
+    this._removeConferenceChannels()
   }
 
   async conferenceJoinHandler(pvtData: VertoPvtData) {
@@ -727,10 +719,19 @@ export default abstract class WebRTCCall {
     this._laChannelVideoMuted = vmuted
   }
 
-  private _removeConferenceChannel() {
+  private _removeConferenceChannels() {
+    if (!this.conferenceChannels?.length) {
+      return
+    }
     this.conferenceChannels.forEach(channel => {
       deRegister(this.session.relayProtocol, null, channel)
       this.session.removeChannelCallIdEntry(channel, this.id)
+    })
+    this.session.vertoUnsubscribe({
+      nodeId: this.nodeId,
+      channels: this.conferenceChannels,
+    }).catch((error) => {
+      logger.error('Conference unsubscribe error:', error)
     })
   }
 
@@ -906,7 +907,7 @@ export default abstract class WebRTCCall {
       this.peer.instance.close()
       this.peer = null
     }
-    this._removeConferenceChannel()
+    this._removeConferenceChannels()
     const { remoteStream, localStream, remoteElement, localElement } = this.options
     stopStream(remoteStream)
     stopStream(localStream)

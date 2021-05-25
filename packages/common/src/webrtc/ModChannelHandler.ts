@@ -22,7 +22,7 @@ export default function modChannelHandler(session: BrowserSession, { data, event
       break
     }
     default:
-      params = { action: ConferenceAction.ModCmdResponse, eventChannel, eventSerno, command: data['conf-command'], ...data }
+      params = { ...data, action: ConferenceAction.ModCmdResponse, eventChannel, eventSerno, command: data['conf-command'] }
   }
   if (params) {
     _dispatch(session, params, callIds)

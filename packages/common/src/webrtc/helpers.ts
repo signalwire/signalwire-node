@@ -143,7 +143,7 @@ export const destructConferenceState = (confState: any): IConferenceInfo => {
   const suffix = `${confState.md5}@${confState.domain}`
   const confName = confState.displayName || confState.name
   return {
-    uuid: variables.conference_uuid || confState.uuid,
+    uuid: confState.uuid,
     md5: confState.md5,
     domain: confState.domain,
     running: Boolean(confState.running),

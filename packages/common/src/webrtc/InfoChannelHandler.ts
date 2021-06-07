@@ -75,4 +75,8 @@ export const publicInfoMethods = {
     const params = { command: 'get-layout-info' }
     return _infoCommand.call(this, params)
   },
+  getConferenceState: function () {
+    const params = { command: 'get-conference-state' }
+    return _infoCommand.call(this, params)
+  },
 }

@@ -52,6 +52,7 @@ export default abstract class WebRTCCall {
 
   sendChatMessage?(message: string, type: string): void
   getLayoutInfo?(): void
+  getConferenceState?(): void
   liveArrayBootstrap?(): void
   modCommand?(command: string, id: string, value: any): void
   listVideoLayouts?(): void
@@ -666,6 +667,7 @@ export default abstract class WebRTCCall {
         deRegister(relayProtocol, null, infoChannel)
         register(relayProtocol, infoChannelHandler.bind(this, this.session), infoChannel)
         this.getLayoutInfo()
+        this.getConferenceState()
       }
       if (all.includes(modChannel)) {
         deRegister(relayProtocol, null, modChannel)

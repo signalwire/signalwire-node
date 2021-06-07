@@ -45,6 +45,9 @@ const _handleSessionEvent = (session: BrowserSession, eventData: any) => {
     case 'caption-info':
       call.handleCaptionInfo(eventData)
       break
+    case 'conference-info':
+      call.handleConferenceInfo(eventData)
+      break
   }
 }
 

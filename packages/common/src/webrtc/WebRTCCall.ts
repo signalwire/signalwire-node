@@ -15,6 +15,7 @@ import laChannelHandler, { publicLiveArrayMethods } from './LaChannelHandler'
 import chatChannelHandler, { publicChatMethods } from './ChatChannelHandler'
 import modChannelHandler, { publicModMethods } from './ModChannelHandler'
 import infoChannelHandler, { publicInfoMethods } from './InfoChannelHandler'
+import { destructConferenceState } from './helpers'
 
 export default abstract class WebRTCCall {
   public id: string = ''
@@ -723,6 +724,11 @@ export default abstract class WebRTCCall {
   handleCaptionInfo(params: any) {
     const { contentType, ...rest } = params
     this._dispatchConferenceUpdate({ action: ConferenceAction.CaptionInfo, ...rest })
+  }
+
+  handleConferenceInfo(params: any) {
+    const { conferenceState, messages = [] } = params
+    this._dispatchConferenceUpdate({ action: ConferenceAction.ConferenceInfo, conferenceState: destructConferenceState(conferenceState), messages })
   }
 
   updateFromLaChannel(muted: boolean, vmuted: boolean) {

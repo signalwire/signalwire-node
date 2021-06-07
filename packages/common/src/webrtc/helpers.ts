@@ -158,6 +158,7 @@ export const destructConferenceState = (confState: any): IConferenceInfo => {
     mohPlaying: Boolean(confState.mohPlaying),
     filesPlaying: Boolean(confState.filesPlaying),
     filesRole: confState.filesRole || null,
+    filePlaybackRole: confState.filePlaybackRole || null,
     filesPlayingName: confState.filesPlayingName || null,
     filesPlayingVolume: Number(confState.filesPlayingVolume) || 0,
     filesPlayingPaused: Boolean(confState.filesPlayingPaused),
@@ -176,6 +177,7 @@ export const destructConferenceState = (confState: any): IConferenceInfo => {
     motionQualityInbound: confState.motionQualityIn || 1,
     videoShuffle: confState.videoShuffle || 0,
     zones: confState.zones || [],
+    maxVisible: confState?.maxVisible,
     // flags
     silentMode: flags['silent-mode'] || false,
     blindMode: flags['blind-mode'] || false,

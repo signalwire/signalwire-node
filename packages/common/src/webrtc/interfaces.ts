@@ -178,6 +178,7 @@ export interface IConferenceInfo {
   numMembers: number
   isPrivate: boolean
   mohPlaying: boolean
+  filePlaybackRole: string
   filesPlaying: boolean
   filesRole: string
   filesPlayingName: string
@@ -198,6 +199,7 @@ export interface IConferenceInfo {
   motionQualityInbound: number
   videoShuffle: number | string
   zones: IConferenceZone[]
+  maxVisible: number
   // flags
   silentMode: boolean
   blindMode: boolean

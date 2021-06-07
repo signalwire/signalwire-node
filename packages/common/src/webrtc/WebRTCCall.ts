@@ -657,7 +657,6 @@ export default abstract class WebRTCCall {
       if (all.includes(laChannel)) {
         deRegister(relayProtocol, null, laChannel)
         register(relayProtocol, laChannelHandler.bind(this, this.session), laChannel)
-        this.liveArrayBootstrap()
       }
       if (all.includes(chatChannel)) {
         deRegister(relayProtocol, null, chatChannel)
@@ -666,8 +665,6 @@ export default abstract class WebRTCCall {
       if (all.includes(infoChannel)) {
         deRegister(relayProtocol, null, infoChannel)
         register(relayProtocol, infoChannelHandler.bind(this, this.session), infoChannel)
-        this.getLayoutInfo()
-        this.getConferenceState()
       }
       if (all.includes(modChannel)) {
         deRegister(relayProtocol, null, modChannel)
@@ -683,6 +680,21 @@ export default abstract class WebRTCCall {
         role: this.participantRole,
       }
       this._dispatchConferenceUpdate(notification)
+
+
+      /**
+       * After dispatch the Join notification, bootstrap the room data.
+       * - liveArray bootstrap
+       * - layout bootstrap
+       * - ask for conferenceState
+       */
+      if (all.includes(laChannel)) {
+        this.liveArrayBootstrap()
+      }
+      if (all.includes(infoChannel)) {
+        this.getLayoutInfo()
+        this.getConferenceState()
+      }
 
     } catch (error) {
       logger.error('Conference subscriptions error:', error)

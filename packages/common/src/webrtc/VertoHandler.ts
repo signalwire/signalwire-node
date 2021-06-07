@@ -4,11 +4,9 @@ import Call from './Call'
 import { Result } from '../messages/Verto'
 import { SwEvent } from '../util/constants'
 import { VertoMethod, Notification, Direction } from './constants'
-import { trigger, registerOnce } from '../services/Handler'
+import { trigger } from '../services/Handler'
 import { State } from './constants'
 import { checkIsDirectCall } from './helpers'
-
-// const CONF_READY = 'CONF_READY'
 
 const _handlePvtEvent = async (session: BrowserSession, pvtData: any) => {
   const { action, callID } = pvtData
@@ -23,7 +21,6 @@ const _handlePvtEvent = async (session: BrowserSession, pvtData: any) => {
   switch (action) {
     case 'conference-liveArray-join':
       await call.conferenceJoinHandler(pvtData)
-      // trigger(callID, null, CONF_READY)
       break
     case 'conference-liveArray-part':
       await call.conferencePartHandler(pvtData)
@@ -37,9 +34,6 @@ const _handleSessionEvent = (session: BrowserSession, eventData: any) => {
     return logger.debug('Unhandled session event:', eventData)
   }
   const call = session.calls[callID]
-  // if (!call.conference) {
-  //   return registerOnce(callID, _handleSessionEvent.bind(this, session, eventData), CONF_READY)
-  // }
   switch (contentType) {
     case 'layout-info':
     case 'layer-info':

@@ -226,6 +226,13 @@ export interface IConferenceInfo {
   layouts?: any
   userRecordFile: string
   podcastMode: boolean
+  publicDisableChat: boolean
+  chatOneWay: boolean
+  bannerDisplayOption: string
+  defaultPlayVolume: number
+  customCanvas: string[]
+  customEmpty: string[]
+  customAlone: string[]
 }
 
 export interface ILayout {

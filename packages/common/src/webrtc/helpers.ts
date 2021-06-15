@@ -142,6 +142,18 @@ export const destructConferenceState = (confState: any): IConferenceInfo => {
   const { variables = {}, flags = {} } = confState
   const suffix = `${confState.md5}@${confState.domain}`
   const confName = confState.displayName || confState.name
+
+  let customCanvas = []
+  let customEmpty = []
+  let customAlone = []
+  try {
+    customCanvas = JSON.parse(variables.custom_canvas)
+    customEmpty = JSON.parse(variables.custom_empty)
+    customAlone = JSON.parse(variables.custom_alone)
+  } catch (error) {
+    logger.warn('Invalid conferenceState vars', error)
+  }
+
   return {
     uuid: confState.uuid,
     md5: confState.md5,
@@ -202,6 +214,13 @@ export const destructConferenceState = (confState: any): IConferenceInfo => {
     lastLayout: variables.lastLayout,
     userRecordFile: variables.user_record_file || null,
     podcastMode: variables.podcast_mode === 'true',
+    publicDisableChat: variables.public_disable_chat === 'true',
+    chatOneWay: variables.chat_one_way === 'true',
+    bannerDisplayOption: variables.banner_display_option,
+    defaultPlayVolume: Number(variables.default_play_volume) || 0,
+    customCanvas,
+    customEmpty,
+    customAlone,
   }
 }
 

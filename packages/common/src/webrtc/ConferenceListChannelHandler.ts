@@ -32,7 +32,8 @@ interface ConferenceListRoom {
   infoChannel: string
   modChannel: string
   chatChannel: string
-  recording: false
+  recording: boolean
+  lock: boolean
   preview: string
 }
 
@@ -52,6 +53,7 @@ const _buildConference = (conference: ConferenceListRoom) => {
     isPrivate: false,
     // flags
     recording: Boolean(conference.recording),
+    lock: Boolean(conference.lock),
     // variables
     lastSnapshot: conference.lastSnapshot,
   }

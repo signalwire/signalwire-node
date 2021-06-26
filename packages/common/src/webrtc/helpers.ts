@@ -218,6 +218,8 @@ export const destructConferenceState = (confState: any): IConferenceInfo => {
     chatOneWay: variables.chat_one_way === 'true',
     bannerDisplayOption: variables.banner_display_option,
     defaultPlayVolume: Number(variables.default_play_volume) || 0,
+    hasSms: Boolean(variables.has_sms),
+    autoOpenNav: Boolean(variables.auto_open_nav),
     customCanvas,
     customEmpty,
     customAlone,

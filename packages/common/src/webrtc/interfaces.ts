@@ -230,6 +230,8 @@ export interface IConferenceInfo {
   chatOneWay: boolean
   bannerDisplayOption: string
   defaultPlayVolume: number
+  hasSms: boolean
+  autoOpenNav: boolean
   customCanvas: string[]
   customEmpty: string[]
   customAlone: string[]

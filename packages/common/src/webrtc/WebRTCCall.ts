@@ -928,7 +928,7 @@ export default abstract class WebRTCCall {
       this.peer = null
     }
     this._removeConferenceChannels()
-    const { remoteStream, localStream, remoteElement, localElement } = this.options
+    const { remoteStream, localStream } = this.options
     stopStream(remoteStream)
     stopStream(localStream)
     deRegisterAll(this.id)

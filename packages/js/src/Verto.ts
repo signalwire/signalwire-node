@@ -1,4 +1,3 @@
-import logger from '../../common/src/util/logger'
 import BrowserSession from '../../common/src/BrowserSession'
 import { SubscribeParams, BroadcastParams } from '../../common/src/util/interfaces'
 import { CallOptions } from '../../common/src/webrtc/interfaces'

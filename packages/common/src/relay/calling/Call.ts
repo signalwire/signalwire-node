@@ -90,6 +90,8 @@ export default class Call implements ICall {
   get timeout(): number {
     if (this.device.type === 'phone') {
       return this.device?.params?.timeout ?? DEFAULT_CALL_TIMEOUT
+    } else if (this.device.type === 'sip') {
+      return this.device?.params?.timeout ?? null
     }
     return null
   }

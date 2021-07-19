@@ -178,6 +178,7 @@ interface CallingSipDevice {
     from: string
     to: string
     headers?: string[]
+    timeout?: number
   }
 }
 

@@ -25,6 +25,19 @@ describe('Call', () => {
     call = new Call(session.calling, { device })
     // @ts-ignore
     call._components = []
+    expect(call.from).toEqual('2345')
+    expect(call.to).toEqual('6789')
+  })
+
+  it('should handle sip type device', () => {
+    const device: ICallDevice = { type: 'sip', params: { from: '123@foo.com', to: '456@bar.com', headers: [] } }
+    const sipCall = new Call(session.calling, { device })
+    expect(sipCall.state).toEqual('none')
+    expect(sipCall.id).toBeUndefined()
+    expect(sipCall.nodeId).toBeUndefined()
+    expect(sipCall.type).toEqual('sip')
+    expect(sipCall.from).toEqual('123@foo.com')
+    expect(sipCall.to).toEqual('456@bar.com')
   })
 
   it('should create the Call object with no id and nodeId', () => {

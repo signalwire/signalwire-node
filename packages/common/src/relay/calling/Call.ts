@@ -62,24 +62,36 @@ export default class Call implements ICall {
     return Boolean(this.id)
   }
 
-  get type(): string {
+  get type() {
     const { type } = this.options.device
     return type
   }
 
   get from(): string {
-    const { params: { from_number = '' } = {} } = this.options.device
-    return from_number
+    if (this.device.type === 'phone') {
+      return this.device?.params?.from_number ?? ''
+    } else if (this.device.type === 'sip') {
+      return this.device?.params?.from ?? ''
+    }
+    // @ts-ignore
+    return this.device?.params?.from ?? ''
   }
 
   get to(): string {
-    const { params: { to_number = '' } = {} } = this.options.device
-    return to_number
+    if (this.device.type === 'phone') {
+      return this.device?.params?.to_number ?? ''
+    } else if (this.device.type === 'sip') {
+      return this.device?.params?.to ?? ''
+    }
+    // @ts-ignore
+    return this.device?.params?.to ?? ''
   }
 
   get timeout(): number {
-    const { params: { timeout = DEFAULT_CALL_TIMEOUT } = {} } = this.options.device
-    return timeout
+    if (this.device.type === 'phone') {
+      return this.device?.params?.timeout ?? DEFAULT_CALL_TIMEOUT
+    }
+    return null
   }
 
   setOptions(opts: ICallOptions) {

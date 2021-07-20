@@ -1,5 +1,5 @@
 import { ICallDevice, IMakeCallParams, DeepArray, ICallingRecord, IRelayCallingRecord, IRelayCallingPlay, ICallingPlay, ICallingPlayParams, ICallingCollect, IRelayCallingCollect, ICallingCollectAudio, ICallingPlayTTS, ICallingCollectTTS, ICallingDetect, IRelayCallingDetect, ICallingTapTap, ICallingTapFlat, IRelayCallingTapTap, IRelayCallingTapDevice, ICallingTapDevice, ICallingCollectRingtone, ICallingPlayRingtone, ICallingConnectParams } from '../util/interfaces'
-import { CallPlayType, CallDetectState, CallDetectType } from '../util/constants/relay'
+import { CallPlayType } from '../util/constants/relay'
 import { deepCopy, objEmpty } from '../util/helpers'
 
 interface DeviceAccumulator {
@@ -29,15 +29,32 @@ export const prepareConnectParams = (params: [ICallingConnectParams] | DeepArray
 }
 
 export const reduceConnectParams = (peers: DeepArray<IMakeCallParams>, callDevice: ICallDevice): DeepArray<ICallDevice> => {
-  const { params: { from_number: defaultFromNumber, timeout: defaultTimeout } } = callDevice
+  let defaultFromNumber: string
+  let defaultTimeout: number
+  if (callDevice.type === 'phone') {
+    defaultFromNumber = callDevice.params.from_number
+    defaultTimeout = callDevice.params.timeout
+  } else if (callDevice.type === 'sip') {
+    defaultFromNumber = callDevice.params.from
+  }
+  // const { params: { from_number: defaultFromNumber, timeout: defaultTimeout } } = callDevice
   const _reducer = (accumulator: DeviceAccumulator, peer: IMakeCallParams) => {
     let tmp: ICallDevice = null
     if (peer instanceof Array) {
       tmp = peer.reduce(_reducer, { devices: [], nested: true }).devices
     } else if (typeof peer === 'object') {
-      const { type, from: from_number = defaultFromNumber, to: to_number, timeout = defaultTimeout } = peer
-      if (type) {
-        tmp = { type, params: { to_number, from_number, timeout } }
+      const { type, from, to, timeout } = peer
+      if (type === 'phone') {
+        tmp = {
+          type,
+          params: {
+            to_number: to,
+            from_number: from || defaultFromNumber,
+            timeout: timeout || defaultTimeout,
+          }
+        }
+      } else if (type === 'sip') {
+        tmp = { type, params: { to, from: from || defaultFromNumber } }
       }
     }
     if (tmp) {
@@ -46,6 +63,7 @@ export const reduceConnectParams = (peers: DeepArray<IMakeCallParams>, callDevic
     }
     return accumulator
   }
+  // @ts-ignore
   const { devices } = peers.reduce(_reducer, { devices: [], nested: false })
   return devices
 }

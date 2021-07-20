@@ -37,20 +37,30 @@ export default class Calling extends Relay {
   }
 
   newCall(params: IMakeCallParams) {
-    const { type, from: from_number, to: to_number, timeout = DEFAULT_CALL_TIMEOUT } = params
-    if (!type || !from_number || !to_number || !timeout) {
+    const { type, from, to, timeout = DEFAULT_CALL_TIMEOUT } = params
+    if (!type || !from || !to || !timeout) {
       throw new TypeError(`Invalid parameters to create a new Call.`)
     }
-    const device: ICallDevice = { type, params: { from_number, to_number, timeout } }
+    let device: ICallDevice
+    if (type === 'phone') {
+      device = { type, params: { from_number: from, to_number: to, timeout } }
+    } else if (type === 'sip') {
+      device = { type, params: { from, to } }
+    }
     return new Call(this, { device })
   }
 
   async dial(params: IMakeCallParams) {
-    const { type, from: from_number, to: to_number, timeout = DEFAULT_CALL_TIMEOUT } = params
-    if (!type || !from_number || !to_number || !timeout) {
+    const { type, from, to, timeout = DEFAULT_CALL_TIMEOUT } = params
+    if (!type || !from || !to || !timeout) {
       throw new TypeError(`Invalid parameters to create a new Call.`)
     }
-    const device: ICallDevice = { type, params: { from_number, to_number, timeout } }
+    let device: ICallDevice
+    if (type === 'phone') {
+      device = { type, params: { from_number: from, to_number: to, timeout } }
+    } else if (type === 'sip') {
+      device = { type, params: { from, to } }
+    }
     const call = new Call(this, { device })
 
     const result = await call.dial()

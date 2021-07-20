@@ -5,7 +5,7 @@ describe('reduceConnectParams()', () => {
   const from_number = '+18992222222'
   const to_number = '+18991111111'
   const timeout = 30
-  const type = 'phone'
+  const type = 'phone' as const
   const DEFAULT_DEVICE: ICallDevice = { type, params: { from_number, timeout, to_number: '' } }
 
   it('should return a single device to call', () => {

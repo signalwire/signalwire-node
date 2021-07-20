@@ -163,14 +163,26 @@ export interface ICall {
   sendDigitsAsync: Function
 }
 
-export interface ICallDevice {
-  type: string
+interface CallingPhoneDevice {
+  type: 'phone'
   params: {
     from_number: string
     to_number: string
-    timeout: number
+    timeout?: number
   }
 }
+
+interface CallingSipDevice {
+  type: 'sip'
+  params: {
+    from: string
+    to: string
+    headers?: string[]
+    timeout?: number
+  }
+}
+
+export type ICallDevice = CallingPhoneDevice | CallingSipDevice
 
 export interface ICallPeer {
   call_id: string
@@ -188,7 +200,7 @@ export interface ICallOptions {
 }
 
 export interface IMakeCallParams {
-  type: string
+  type: 'phone' | 'sip' | string
   from?: string
   to: string
   timeout?: number

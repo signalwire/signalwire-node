@@ -61,6 +61,7 @@ export default class Verto extends BrowserSession {
       sessionid: this.sessionid,
       userVariables,
       loginParams,
+      callIds: this._experimental ? this.callIds : [],
     })
     const response = await this.execute(msg).catch(this._handleLoginError)
     if (response) {

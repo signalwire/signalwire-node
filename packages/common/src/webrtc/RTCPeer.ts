@@ -270,6 +270,30 @@ export default class RTCPeer {
 
     }
 
+    this.instance.addEventListener('connectionstatechange', (event) => {
+      logger.info('connectionState:', this.instance.connectionState)
+      // switch(this.instance.connectionState) {
+      //   case 'new':
+      //     // setOnlineStatus('Connecting...');
+      //     break
+      //   case 'connected':
+      //     // setOnlineStatus('Online');
+      //     break
+      //   case 'disconnected':
+      //     // setOnlineStatus('Disconnecting...');
+      //     break
+      //   case 'closed':
+      //     // setOnlineStatus('Offline');
+      //     break
+      //   case 'failed':
+      //     // setOnlineStatus('Error');
+      //     break
+      //   default:
+      //     // setOnlineStatus('Unknown');
+      //     break
+      // }
+    }, false)
+
     this.instance.onnegotiationneeded = event => {
       logger.info('Negotiation needed event')
       this.startNegotiation()

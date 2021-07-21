@@ -39,6 +39,8 @@ export default abstract class BrowserSession extends BaseSession {
   protected _audioConstraints: boolean | MediaTrackConstraints = true
   protected _videoConstraints: boolean | MediaTrackConstraints = false
   protected _speaker: string = null
+  protected _purgeTimeout: any = null
+  protected _experimental = false
 
   get callIds() {
     return Object.keys(this.calls)
@@ -519,8 +521,24 @@ export default abstract class BrowserSession extends BaseSession {
     return super.execute(message)
   }
 
+  protected async _onSocketOpen() {
+    clearTimeout(this._purgeTimeout)
+
+    super._onSocketOpen()
+  }
+
   protected _onSocketCloseOrError(event: any): void {
-    this.purge()
+    if (this._experimental) {
+      /**
+       * Wait for 10seconds before purge all the calls
+       */
+      const waitFor = 10 * 1000 // 10seconds
+      this._purgeTimeout = setTimeout(() => {
+        this.purge()
+      }, waitFor)
+    } else {
+      this.purge()
+    }
     const channels = ['conference-info', 'conference-liveArray', 'conference-mod']
     this._detachChannels(channels)
     super._onSocketCloseOrError(event)

@@ -513,7 +513,9 @@ export default class RTCPeer {
       localDescription.sdp = sdpBitrateHack(localDescription.sdp, googleMaxBitrate, googleMinBitrate, googleStartBitrate)
     }
 
-    logger.info('LOCAL SDP \n', `Type: ${localDescription.type}`, '\n\n', localDescription.sdp)
+    if (this.isAnswer) {
+      logger.info('LOCAL SDP \n', `Type: ${localDescription.type}`, '\n\n', localDescription.sdp)
+    }
     return this.instance.setLocalDescription(localDescription)
   }
 

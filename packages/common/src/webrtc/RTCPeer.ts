@@ -317,6 +317,7 @@ export default class RTCPeer {
       }
     })
 
+    // @ts-expect-error
     this.instance.addEventListener('addstream', (event: MediaStreamEvent) => {
       this.options.remoteStream = event.stream
     })

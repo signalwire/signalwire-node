@@ -200,7 +200,7 @@ export default class RTCPeer {
     this._negotiating = true
     try {
 
-      if (this.options.secondSource === true) {
+      if (this.options.screenShare === true || this.options.secondSource === true) {
         this.instance.getTransceivers().forEach(tr => {
           tr.direction = 'sendonly'
         })

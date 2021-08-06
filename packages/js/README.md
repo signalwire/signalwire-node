@@ -3,6 +3,8 @@
 
 [![Build Status](https://ci.signalwire.com/api/badges/signalwire/signalwire-node/status.svg)](https://ci.signalwire.com/signalwire/signalwire-node) ![NPM](https://img.shields.io/badge/npm-v1.x-brightgreen)
 
+> :warning: For the **latest version** of the JavaScript SDK, please see [signalwire/signalwire-js](https://github.com/signalwire/signalwire-js).
+
 The JavaScript SDK transforms your standard browser into a realtime media engine, enabling developers to directly make audio and video calls to phone numbers, SIP endpoints, and other browsers. Using the JavaScript SDK you can add immersive, scalable communication - from video conferences and softphones to click-to-call and mobile gaming - all available right in your own web pages and applications.
 
 ## Getting Started

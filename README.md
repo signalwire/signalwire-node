@@ -2,8 +2,6 @@
 
 ![Drone CI](https://ci.signalwire.com/api/badges/signalwire/signalwire-node/status.svg)
 
-> :warning: For the **latest version** of the JavaScript SDK, please see [signalwire/signalwire-js](https://github.com/signalwire/signalwire-js).
-
 This package provides a client for Signalwire services and supports different Javascript environments.
 
 ### Packages

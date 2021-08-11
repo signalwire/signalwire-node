@@ -12,7 +12,7 @@ export default class Call extends WebRTCCall {
     // const video = opts ? (opts.video || true) : true
     const { audio = false, video = true } = (opts || {})
     const displayStream: MediaStream = await getDisplayMedia({ audio, video })
-    displayStream.getTracks().forEach(t => {
+    displayStream.getVideoTracks().forEach(t => {
       t.addEventListener('ended', () => {
         if (this.screenShare) {
           this.screenShare.hangup()

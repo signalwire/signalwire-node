@@ -350,6 +350,12 @@ export default abstract class WebRTCCall {
   }
 
   async hangup(params?: IHangupParams) {
+    const states = [State.Hangup, State.Destroy]
+    if (states.includes(this._state)) {
+      logger.info(`Call ${this.id} already in ${this.state} state.`)
+      return
+    }
+
     try {
       const bye = new Bye(this.messagePayload)
       await this._execute(bye)

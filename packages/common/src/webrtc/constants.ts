@@ -68,6 +68,7 @@ export const DEFAULT_CALL_OPTIONS: CallOptions = {
   experimental: false,
   autoApplyMediaParams: true,
   iceGatheringTimeout: 2 * 1000,
+  maxIceGatheringTimeout: 5 * 1000,
 }
 
 export enum State {

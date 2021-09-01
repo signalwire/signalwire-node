@@ -7,6 +7,7 @@
   "scripts": {},
   "dependencies": {
     "loglevel": "^1.7.1",
+    "sdp": "^3.0.3",
     "uuid": "^8.3.2"
   }
 }

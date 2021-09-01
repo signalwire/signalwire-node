@@ -1,4 +1,5 @@
 import logger from '../util/logger'
+import SDPUtils from 'sdp'
 import { getUserMedia, getMediaConstraints } from './helpers'
 import { sdpStereoHack, sdpBitrateHack, sdpMediaOrderHack } from './sdpHelpers'
 import { SwEvent } from '../util/constants'
@@ -77,6 +78,14 @@ export default class RTCPeer {
 
   get localSdp() {
     return this.instance.localDescription.sdp
+  }
+
+  get hasIceServers() {
+    if (this.instance) {
+      const { iceServers = [] } = this.instance.getConfiguration()
+      return Boolean(iceServers?.length)
+    }
+    return false
   }
 
   stopTrackSender(kind: string) {
@@ -226,6 +235,14 @@ export default class RTCPeer {
         // RN workaroud
         this._sdpReady()
       }
+
+      logger.info('iceGatheringState', this.instance.iceGatheringState)
+      if (this.instance.iceGatheringState === 'gathering') {
+        this._iceTimeout = setTimeout(() => {
+          this._onIceTimeout()
+        }, this.options.maxIceGatheringTimeout)
+      }
+
     } catch (error) {
       logger.error(`Error creating ${this.type}:`, error)
     }
@@ -420,9 +437,46 @@ export default class RTCPeer {
     }
   }
 
+  private _sdpIsValid() {
+    try {
+      if (this.hasIceServers) {
+        // check for srflx, prflx and relay candidates
+        const regex = /typ (?:srflx|prflx|relay)/
+        const sections = SDPUtils.getMediaSections(this.localSdp)
+        for (const section of sections) {
+          const lines = SDPUtils.splitLines(section)
+          const valid = lines.some(line => {
+            return line.indexOf('a=candidate') === 0 && regex.test(line)
+          })
+          if (!valid) {
+            return false
+          }
+        }
+      }
+
+      return true
+    } catch (error) {
+      logger.error('Error checking SDP', error)
+      return false
+    }
+  }
+
+  private _forceNegotiation() {
+    logger.info('Force negotiation again')
+    this._negotiating = false
+    this.startNegotiation()
+  }
+
   private _sdpReady() {
     clearTimeout(this._iceTimeout)
     this._iceTimeout = null
+
+    if (!this._sdpIsValid()) {
+      logger.info('SDP ready but not valid')
+      this._forceNegotiation()
+      return
+    }
+
     const { sdp, type } = this.instance.localDescription
     if (sdp.indexOf('candidate') === -1) {
       logger.info('No candidate - retry \n')
@@ -430,7 +484,6 @@ export default class RTCPeer {
       return
     }
     logger.info('LOCAL SDP \n', `Type: ${type}`, '\n\n', sdp)
-    this.instance.removeEventListener('icecandidate', this._onIce)
     switch (type) {
       case PeerType.Offer:
         if (this.call.active) {
@@ -493,14 +546,64 @@ export default class RTCPeer {
     }
   }
 
-  private _onIce(event: RTCPeerConnectionIceEvent) {
-    if (this._iceTimeout === null) {
-      this._iceTimeout = setTimeout(() => this._sdpReady(), this.options.iceGatheringTimeout)
+  private _onIceTimeout() {
+    if (this._sdpIsValid()) {
+      return this._sdpReady()
     }
-    if (event.candidate) {
-      logger.debug('RTCPeer Candidate:', event.candidate)
-    } else {
+    const config = this.instance.getConfiguration()
+    if (config.iceTransportPolicy === 'relay') {
+      logger.info('RTCPeer already with `iceTransportPolicy: relay`')
+      this.call.setState(State.Destroy)
+      return
+    }
+    this.instance.setConfiguration({
+      ...config,
+      iceTransportPolicy: 'relay',
+    })
+
+    this._forceNegotiation()
+  }
+
+  private _onIce(event: RTCPeerConnectionIceEvent) {
+    /**
+     * Clear _iceTimeout on each single candidate
+     */
+    if (this._iceTimeout) {
+      clearTimeout(this._iceTimeout)
+      this._iceTimeout = null
+    }
+
+    /**
+     * Following spec: no candidate means the
+     * gathering is completed.
+     */
+    if (!event.candidate) {
+      this.instance.removeEventListener('icecandidate', this._onIce)
       this._sdpReady()
+      return
+    }
+
+    logger.info('RTCPeer Candidate:', event.candidate)
+    if (event.candidate.type === 'host') {
+      /**
+       * With `host` candidate set timeout to
+       * maxIceGatheringTimeout and then invoke
+       * _onIceTimeout to check if the SDP is valid
+       */
+      this._iceTimeout = setTimeout(() => {
+        this.instance.removeEventListener('icecandidate', this._onIce)
+        this._onIceTimeout()
+      }, this.options.maxIceGatheringTimeout)
+    } else {
+      /**
+       * With `srflx`, `prflx` or `relay` candidates
+       * set timeout to iceGatheringTimeout and then invoke
+       * _sdpReady since at least one candidate is valid.
+       */
+      this._iceTimeout = setTimeout(() => {
+        this.instance.removeEventListener('icecandidate', this._onIce)
+        this._sdpReady()
+      }, this.options.iceGatheringTimeout)
     }
   }
 

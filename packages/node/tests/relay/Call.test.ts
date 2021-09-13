@@ -30,7 +30,7 @@ describe('Call', () => {
   })
 
   it('should handle sip type device', () => {
-    const device: ICallDevice = { type: 'sip', params: { from: '123@foo.com', to: '456@bar.com', headers: [ {name: 'x-my-header', value: 'my-value'}], codecs: ['PCMA', 'PCMU'], webrtc_media: true } }
+    const device: ICallDevice = { type: 'sip', params: { from: '123@foo.com', to: '456@bar.com', headers: [ {name: 'x-my-header', value: 'my-value'}] } }
     const sipCall = new Call(session.calling, { device })
     expect(sipCall.state).toEqual('none')
     expect(sipCall.id).toBeUndefined()
@@ -39,8 +39,6 @@ describe('Call', () => {
     expect(sipCall.from).toEqual('123@foo.com')
     expect(sipCall.to).toEqual('456@bar.com')
     expect(sipCall.headers).toEqual([{name: 'x-my-header', value: 'my-value'}])
-    expect(sipCall.codecs).toEqual(['PCMA', 'PCMU'])
-    expect(sipCall.webrtcMedia).toEqual(true)
   })
 
   it('should create the Call object with no id and nodeId', () => {

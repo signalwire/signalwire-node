@@ -103,20 +103,6 @@ export default class Call implements ICall {
     return null
   }
 
-  get codecs(): string[] {
-    if (this.device.type === 'sip') {
-      return this.device?.params?.codecs ?? null
-    }
-    return null
-  }
-
-  get webrtcMedia(): boolean {
-    if (this.device.type === 'sip' && typeof this.device?.params?.webrtc_media === 'boolean') {
-      return this.device?.params?.webrtc_media
-    }
-    return false
-  }
-
   setOptions(opts: ICallOptions) {
     this.options = { ...this.options, ...opts }
   }

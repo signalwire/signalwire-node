@@ -42,14 +42,20 @@ export default class Calling extends Relay {
       throw new TypeError(`Invalid parameters to create a new Call.`)
     }
     let device: ICallDevice
-    if (type === 'phone') {
-      device = { type, params: { from_number: from, to_number: to, timeout } }
-    } else if (type === 'sip') {
-      let { headers, codecs, webrtc_media } = (params as MakeSipCallParams)
-      device = { type, params: { from, to } }
-      if (codecs) device.params.codecs = codecs
-      if (webrtc_media) device.params.webrtc_media = webrtc_media
-      if (headers instanceof Array && headers.length) device.params.headers = headers;
+    if (params.type === 'phone') {
+      device = { type: params.type, params: { from_number: from, to_number: to, timeout } }
+    } else if (params.type === 'sip') {
+      let { headers, codecs, webrtc_media } = params
+      device = { type: params.type, params: { from, to } }
+      if (codecs) {
+        device.params.codecs = codecs
+      }
+      if (webrtc_media) {
+        device.params.webrtc_media = webrtc_media
+      }
+      if (headers instanceof Array && headers.length) {
+        device.params.headers = headers
+      }
     }
     return new Call(this, { device })
   }
@@ -60,14 +66,20 @@ export default class Calling extends Relay {
       throw new TypeError(`Invalid parameters to create a new Call.`)
     }
     let device: ICallDevice
-    if (type === 'phone') {
-      device = { type, params: { from_number: from, to_number: to, timeout } }
-    } else if (type === 'sip') {
-      let { headers, codecs, webrtc_media } = (params as MakeSipCallParams)
-      device = { type, params: { from, to } }
-      if (codecs) device.params.codecs = codecs;
-      if (webrtc_media) device.params.webrtc_media = webrtc_media;
-      if (headers instanceof Array && headers.length) device.params.headers = headers
+    if (params.type === 'phone') {
+      device = { type: params.type, params: { from_number: from, to_number: to, timeout } }
+    } else if (params.type === 'sip') {
+      let { headers, codecs, webrtc_media } = params
+      device = { type: params.type, params: { from, to } }
+      if (codecs) {
+        device.params.codecs = codecs;
+      }
+      if (webrtc_media) {
+        device.params.webrtc_media = webrtc_media;
+      }
+      if (headers instanceof Array && headers.length) {
+        device.params.headers = headers
+      }
     }
     const call = new Call(this, { device })
 

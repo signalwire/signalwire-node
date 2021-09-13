@@ -30,7 +30,7 @@ describe('Call', () => {
   })
 
   it('should handle sip type device', () => {
-    const device: ICallDevice = { type: 'sip', params: { from: '123@foo.com', to: '456@bar.com', headers: [] } }
+    const device: ICallDevice = { type: 'sip', params: { from: '123@foo.com', to: '456@bar.com', headers: [ {name: 'x-my-header', value: 'my-value'}], codecs: ['PCMA', 'PCMU'], webrtc_media: true } }
     const sipCall = new Call(session.calling, { device })
     expect(sipCall.state).toEqual('none')
     expect(sipCall.id).toBeUndefined()
@@ -38,6 +38,9 @@ describe('Call', () => {
     expect(sipCall.type).toEqual('sip')
     expect(sipCall.from).toEqual('123@foo.com')
     expect(sipCall.to).toEqual('456@bar.com')
+    expect(sipCall.headers).toEqual([{name: 'x-my-header', value: 'my-value'}])
+    expect(sipCall.codecs).toEqual(['PCMA', 'PCMU'])
+    expect(sipCall.webrtcMedia).toEqual(true)
   })
 
   it('should create the Call object with no id and nodeId', () => {
@@ -238,9 +241,10 @@ describe('Call', () => {
     })
 
     describe('connect methods', () => {
+      const PHONE = 'phone' as const
       const _tmpDevices = [
-        { type: 'phone', to: '999', from: '231', timeout: 10 },
-        { type: 'phone', to: '888', from: '234', timeout: 20 }
+        { type: PHONE, to: '999', from: '231', timeout: 10 },
+        { type: PHONE, to: '888', from: '234', timeout: 20 }
       ]
       const getMsg = (serial: boolean, ringback: any = null) => {
         let devices = []
@@ -1359,9 +1363,10 @@ describe('Call', () => {
     })
 
     describe('connect methods', () => {
+      const PHONE = 'phone' as const
       const _tmpDevices = [
-        { type: 'phone', to: '999', from: '231', timeout: 10 },
-        { type: 'phone', to: '888', from: '234', timeout: 20 }
+        { type: PHONE, to: '999', from: '231', timeout: 10 },
+        { type: PHONE, to: '888', from: '234', timeout: 20 }
       ]
       const getMsg = (serial: boolean) => {
         let devices = []

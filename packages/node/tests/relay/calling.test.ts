@@ -18,7 +18,8 @@ describe('Calling', () => {
   })
 
   describe('.newCall()', () => {
-    const callOpts = { type: 'phone', from: '8992222222', to: '8991111111' }
+    const PHONE = 'phone' as const
+    const callOpts = { type: PHONE, from: '8992222222', to: '8991111111' }
 
     it('should return a new Call object', () => {
       const call = session.calling.newCall(callOpts)
@@ -109,7 +110,7 @@ describe('Calling', () => {
 
   describe('.dial()', () => {
 
-    const callOpts = { type: 'phone', from: '8992222222', to: '8991111111' }
+    const callOpts = { type: 'phone' as const, from: '8992222222', to: '8991111111' }
     const _stateNotificationCreated = JSON.parse(`{"event_type":"calling.call.state","params":{"call_state":"created","direction":"inbound","device":{"type":"phone","params":{"from_number":"+1234","to_number":"15678"}},"tag":"mocked-uuid","call_id":"call-id","node_id":"node-id"}}`)
     const _stateNotificationAnswered = JSON.parse(`{"event_type":"calling.call.state","params":{"call_state":"answered","direction":"inbound","device":{"type":"phone","params":{"from_number":"+1234","to_number":"15678"}},"tag":"mocked-uuid","call_id":"call-id","node_id":"node-id"}}`)
     const _stateNotificationEnded = JSON.parse(`{"event_type":"calling.call.state","params":{"call_state":"ended","end_reason":"busy","direction":"inbound","device":{"type":"phone","params":{"from_number":"+1234","to_number":"15678"}},"tag":"mocked-uuid","call_id":"call-id","node_id":"node-id"}}`)

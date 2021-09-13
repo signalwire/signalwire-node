@@ -1,4 +1,4 @@
-import { ICallDevice, IMakeCallParams, DeepArray, ICallingRecord, IRelayCallingRecord, IRelayCallingPlay, ICallingPlay, ICallingPlayParams, ICallingCollect, IRelayCallingCollect, ICallingCollectAudio, ICallingPlayTTS, ICallingCollectTTS, ICallingDetect, IRelayCallingDetect, ICallingTapTap, ICallingTapFlat, IRelayCallingTapTap, IRelayCallingTapDevice, ICallingTapDevice, ICallingCollectRingtone, ICallingPlayRingtone, ICallingConnectParams } from '../util/interfaces'
+import { ICallDevice, IMakeCallParams, DeepArray, ICallingRecord, IRelayCallingRecord, IRelayCallingPlay, ICallingPlay, ICallingPlayParams, ICallingCollect, IRelayCallingCollect, ICallingCollectAudio, ICallingPlayTTS, ICallingCollectTTS, ICallingDetect, IRelayCallingDetect, ICallingTapTap, ICallingTapFlat, IRelayCallingTapTap, IRelayCallingTapDevice, ICallingTapDevice, ICallingCollectRingtone, ICallingPlayRingtone, ICallingConnectParams, MakeSipCallParams } from '../util/interfaces'
 import { CallPlayType } from '../util/constants/relay'
 import { deepCopy, objEmpty } from '../util/helpers'
 
@@ -54,7 +54,11 @@ export const reduceConnectParams = (peers: DeepArray<IMakeCallParams>, callDevic
           }
         }
       } else if (type === 'sip') {
-        tmp = { type, params: { to, from: from || defaultFromNumber } }
+        const { headers, codecs, webrtc_media } = (peer as MakeSipCallParams);
+        tmp = { type, params: { to, from: from || defaultFromNumber } };
+        if(headers instanceof Array && headers.length) tmp.params.headers = headers;
+        if(codecs) tmp.params.codecs = codecs;
+        if(typeof webrtc_media === 'boolean') tmp.params.webrtc_media = webrtc_media;
       }
     }
     if (tmp) {

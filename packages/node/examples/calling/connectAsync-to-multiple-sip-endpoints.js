@@ -12,19 +12,24 @@ const consumer = new RelayConsumer({
       console.error('Error during call answer')
       return
     }
-    let connectAction = await call.connectAsync([{
-      type: 'sip',
-      from: '<YOUR_FROM_SIP_ENDPOINT>',
-      to: '<YOUR_TO_SIP_ENDPOINT>',
-      timeout: 30
-    }, {
-      type: 'sip',
-      from: '<YOUR_FROM_SIP_ENDPOINT>',
-      to: '<YOUR_TO_SIP_ENDPOINT>',
-      timeout: 30,
-    }]);
+    let connectAction = await call.connectAsync([
+      {
+        type: 'sip',
+        from: '<YOUR_FROM_SIP_ENDPOINT_HERE>',
+        to: '<YOUR_TO_SIP_ENDPOINT_HERE>',
+        codecs: ['PCMU', 'PCMA', 'OPUS', 'G729', 'G722', 'VP8', 'H264'],
+        timeout: 30
+      },
+      {
+        type: 'sip',
+        from: '<YOUR_FROM_SIP_ENDPOINT_HERE>',
+        to: '<YOUR_TO_SIP_ENDPOINT_2_HERE>',
+        codecs: ['PCMU', 'PCMA', 'OPUS', 'G729', 'G722', 'VP8', 'H264'],
+        timeout: 30
+      }
+    ]);
 
-    // console.log(connectAction.result);
+    console.log(connectAction.result.peer);
 
     let peer;
 
@@ -39,7 +44,7 @@ const consumer = new RelayConsumer({
     });
 
     call.on('connect.connected', () => {
-      peer = connectAction.result.call;
+      peer = call.peer;
       // console.log(peer);
       // if the connected outbound call hanged up hangup the inbound call
       peer.on('ended', () => call.hangup());

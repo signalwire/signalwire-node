@@ -2,6 +2,8 @@ interface IMessageBase { jsonrpc: string, id: string }
 
 type TBladeVersion = { major: number, minor: number, revision: number }
 
+type SipCodec = 'PCMU' | 'PCMA' | 'OPUS' | 'G729' | 'G722' | 'VP8' | 'H264'
+
 export interface ISubscription { channel: string, protocol: string, subscribers: string[] }
 
 export interface IBladeResultError extends IMessageBase { error: { code: number, message: string } }
@@ -163,7 +165,7 @@ export interface ICall {
   sendDigitsAsync: Function
 }
 
-interface CallingPhoneDevice {
+export interface CallingPhoneDevice {
   type: 'phone'
   params: {
     from_number: string
@@ -172,13 +174,19 @@ interface CallingPhoneDevice {
   }
 }
 
-interface CallingSipDevice {
+export interface SipHeader {
+  name: string
+  value: string
+}
+export interface CallingSipDevice {
   type: 'sip'
   params: {
     from: string
     to: string
-    headers?: string[]
+    headers?: SipHeader[]
     timeout?: number
+    codecs?: SipCodec[]
+    webrtc_media?: boolean
   }
 }
 
@@ -199,12 +207,24 @@ export interface ICallOptions {
   context?: string
 }
 
-export interface IMakeCallParams {
-  type: 'phone' | 'sip' | string
+export interface MakePhoneCallParams {
+  type: 'phone'
   from?: string
   to: string
   timeout?: number
 }
+
+export interface MakeSipCallParams {
+  type: 'sip'
+  from: string
+  to: string
+  timeout?: number
+  headers?: SipHeader[]
+  codecs?: SipCodec[]
+  webrtc_media?: boolean
+}
+
+export type IMakeCallParams = MakePhoneCallParams | MakeSipCallParams
 
 // export interface Constructable<T> {
 //   new(any: any): T

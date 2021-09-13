@@ -1,5 +1,5 @@
 import { trigger } from '../../services/Handler'
-import { ICallDevice, IMakeCallParams } from '../../util/interfaces'
+import { ICallDevice, IMakeCallParams, MakeSipCallParams } from '../../util/interfaces'
 import logger from '../../util/logger'
 import Relay from '../Relay'
 import Call from './Call'
@@ -45,7 +45,11 @@ export default class Calling extends Relay {
     if (type === 'phone') {
       device = { type, params: { from_number: from, to_number: to, timeout } }
     } else if (type === 'sip') {
+      let { headers, codecs, webrtc_media } = (params as MakeSipCallParams)
       device = { type, params: { from, to } }
+      if (codecs) device.params.codecs = codecs
+      if (webrtc_media) device.params.webrtc_media = webrtc_media
+      if (headers instanceof Array && headers.length) device.params.headers = headers;
     }
     return new Call(this, { device })
   }
@@ -59,7 +63,11 @@ export default class Calling extends Relay {
     if (type === 'phone') {
       device = { type, params: { from_number: from, to_number: to, timeout } }
     } else if (type === 'sip') {
+      let { headers, codecs, webrtc_media } = (params as MakeSipCallParams)
       device = { type, params: { from, to } }
+      if (codecs) device.params.codecs = codecs;
+      if (webrtc_media) device.params.webrtc_media = webrtc_media;
+      if (headers instanceof Array && headers.length) device.params.headers = headers
     }
     const call = new Call(this, { device })
 

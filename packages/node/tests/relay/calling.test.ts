@@ -19,13 +19,25 @@ describe('Calling', () => {
 
   describe('.newCall()', () => {
     const PHONE = 'phone' as const
-    const callOpts = { type: PHONE, from: '8992222222', to: '8991111111' }
+    const phoneCallOpts = { type: PHONE, from: '8992222222', to: '8991111111' }
 
     it('should return a new Call object', () => {
-      const call = session.calling.newCall(callOpts)
+      const call = session.calling.newCall(phoneCallOpts)
       expect(call).toBeInstanceOf(Call)
     })
 
+    const SIP = 'sip' as const
+    const sipCallOpts = { type: SIP, from: '11111', to: 'sip:aaa@sip.example.com', headers: [ { name: 'my-header', value: 'my-value' } ] }
+
+    it('should return a new Call object for sip device', () => {
+      const call = session.calling.newCall(sipCallOpts)
+      expect(call).toBeInstanceOf(Call)
+      expect(call.type).toEqual(SIP)
+      expect(call.from).toEqual('11111')
+      expect(call.to).toEqual('sip:aaa@sip.example.com')
+      expect(call.headers).toEqual([ { name: 'my-header', value: 'my-value' } ])
+    })
+    
     describe('calling.call.state notification', () => {
       const fnMock = jest.fn()
       const CALL_TAG = '1ed7b040-812a-44b2-8dde-9f8adf6773af'
@@ -45,7 +57,7 @@ describe('Calling', () => {
       })
 
       it('should handle the "created" state setting up callId and nodeId', async done => {
-        const call = session.calling.newCall(callOpts)
+        const call = session.calling.newCall(phoneCallOpts)
         call.tag = CALL_TAG
         call.on('stateChange', fnMock)
         call.on('created', fnMock)
@@ -59,7 +71,7 @@ describe('Calling', () => {
       })
 
       it('should handle the "ringing" state', async done => {
-        const call = session.calling.newCall(callOpts)
+        const call = session.calling.newCall(phoneCallOpts)
         call.id = CALL_ID
         call.on('stateChange', fnMock)
         call.on('ringing', fnMock)
@@ -71,7 +83,7 @@ describe('Calling', () => {
       })
 
       it('should handle the "answered" state', async done => {
-        const call = session.calling.newCall(callOpts)
+        const call = session.calling.newCall(phoneCallOpts)
         call.id = CALL_ID
         call.on('stateChange', fnMock)
         call.on('answered', fnMock)
@@ -83,7 +95,7 @@ describe('Calling', () => {
       })
 
       it('should handle the "ending" state', async done => {
-        const call = session.calling.newCall(callOpts)
+        const call = session.calling.newCall(phoneCallOpts)
         call.id = CALL_ID
         call.on('stateChange', fnMock)
         call.on('ending', fnMock)
@@ -95,7 +107,7 @@ describe('Calling', () => {
       })
 
       it('should handle the "ended" state', async done => {
-        const call = session.calling.newCall(callOpts)
+        const call = session.calling.newCall(phoneCallOpts)
         call.id = CALL_ID
         call.on('stateChange', fnMock)
         call.on('ended', fnMock)

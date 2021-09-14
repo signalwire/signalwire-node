@@ -1,9 +1,10 @@
 import { trigger } from '../../services/Handler'
-import { ICallDevice, IMakeCallParams, MakeSipCallParams } from '../../util/interfaces'
+import { ICallDevice, IMakeCallParams } from '../../util/interfaces'
 import logger from '../../util/logger'
 import Relay from '../Relay'
 import Call from './Call'
-import { DEFAULT_CALL_TIMEOUT, CallNotification } from '../../util/constants/relay'
+import { CallNotification } from '../../util/constants/relay'
+import { prepareDevice } from '../helpers'
 
 export default class Calling extends Relay {
   protected service: string = 'calling'
@@ -37,52 +38,13 @@ export default class Calling extends Relay {
   }
 
   newCall(params: IMakeCallParams) {
-    const { type, from, to, timeout = DEFAULT_CALL_TIMEOUT } = params
-    if (!type || !from || !to || !timeout) {
-      throw new TypeError(`Invalid parameters to create a new Call.`)
-    }
-    let device: ICallDevice
-    if (params.type === 'phone') {
-      device = { type: params.type, params: { from_number: from, to_number: to, timeout } }
-    } else if (params.type === 'sip') {
-      let { headers, codecs, webrtc_media } = params
-      device = { type: params.type, params: { from, to } }
-      if (codecs) {
-        device.params.codecs = codecs
-      }
-      if (webrtc_media) {
-        device.params.webrtc_media = webrtc_media
-      }
-      if (headers instanceof Array && headers.length) {
-        device.params.headers = headers
-      }
-    }
+    const device = prepareDevice(params)
     return new Call(this, { device })
   }
 
   async dial(params: IMakeCallParams) {
-    const { type, from, to, timeout = DEFAULT_CALL_TIMEOUT } = params
-    if (!type || !from || !to || !timeout) {
-      throw new TypeError(`Invalid parameters to create a new Call.`)
-    }
-    let device: ICallDevice
-    if (params.type === 'phone') {
-      device = { type: params.type, params: { from_number: from, to_number: to, timeout } }
-    } else if (params.type === 'sip') {
-      let { headers, codecs, webrtc_media } = params
-      device = { type: params.type, params: { from, to } }
-      if (codecs) {
-        device.params.codecs = codecs;
-      }
-      if (webrtc_media) {
-        device.params.webrtc_media = webrtc_media;
-      }
-      if (headers instanceof Array && headers.length) {
-        device.params.headers = headers
-      }
-    }
+    const device = prepareDevice(params)
     const call = new Call(this, { device })
-
     const result = await call.dial()
     return result
   }

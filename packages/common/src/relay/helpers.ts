@@ -1,5 +1,5 @@
 import { ICallDevice, IMakeCallParams, DeepArray, ICallingRecord, IRelayCallingRecord, IRelayCallingPlay, ICallingPlay, ICallingPlayParams, ICallingCollect, IRelayCallingCollect, ICallingCollectAudio, ICallingPlayTTS, ICallingCollectTTS, ICallingDetect, IRelayCallingDetect, ICallingTapTap, ICallingTapFlat, IRelayCallingTapTap, IRelayCallingTapDevice, ICallingTapDevice, ICallingCollectRingtone, ICallingPlayRingtone, ICallingConnectParams } from '../util/interfaces'
-import { CallPlayType } from '../util/constants/relay'
+import { CallPlayType, DEFAULT_CALL_TIMEOUT } from '../util/constants/relay'
 import { deepCopy, objEmpty } from '../util/helpers'
 
 interface DeviceAccumulator {
@@ -43,18 +43,33 @@ export const reduceConnectParams = (peers: DeepArray<IMakeCallParams>, callDevic
     if (peer instanceof Array) {
       tmp = peer.reduce(_reducer, { devices: [], nested: true }).devices
     } else if (typeof peer === 'object') {
-      const { type, from, to, timeout } = peer
-      if (type === 'phone') {
+      const { from, to, timeout } = peer
+      if (peer.type === 'phone') {
         tmp = {
-          type,
+          type: peer.type,
           params: {
             to_number: to,
             from_number: from || defaultFromNumber,
             timeout: timeout || defaultTimeout,
           }
         }
-      } else if (type === 'sip') {
-        tmp = { type, params: { to, from: from || defaultFromNumber } }
+      } else if (peer.type === 'sip') {
+        const { headers, codecs, webrtc_media } = peer
+        tmp = { type: peer.type, params: { to, from: from || defaultFromNumber } }
+
+        if (headers instanceof Array && headers.length) {
+          tmp.params.headers = headers
+        }
+
+        if (codecs) {
+          tmp.params.codecs = codecs
+        }
+
+        if (typeof webrtc_media === 'boolean') {
+          tmp.params.webrtc_media = webrtc_media
+        }
+
+        tmp.params.timeout = timeout || defaultTimeout
       }
     }
     if (tmp) {
@@ -216,6 +231,32 @@ export const prepareTapParams = (params: ICallingTapTap | ICallingTapFlat, devic
   newDevice.params = deviceParams
 
   return { tap, device: newDevice }
+}
+
+export const prepareDevice = (params: IMakeCallParams): ICallDevice => {
+  const { type, from, to, timeout = DEFAULT_CALL_TIMEOUT } = params
+  if (!type || !from || !to || !timeout) {
+    throw new TypeError(`Invalid parameters to create a new Call.`)
+  }
+
+  let device: ICallDevice
+
+  if (params.type === 'phone') {
+    device = { type: params.type, params: { from_number: from, to_number: to, timeout } }
+  } else if (params.type === 'sip') {
+    const { headers, codecs, webrtc_media } = params
+    device = { type: params.type, params: { from, to } }
+    if (codecs) {
+      device.params.codecs = codecs
+    }
+    if (webrtc_media) {
+      device.params.webrtc_media = webrtc_media
+    }
+    if (headers instanceof Array && headers.length) {
+      device.params.headers = headers
+    }
+  }
+  return device
 }
 
 const _isICallingPlayParams = (params: ICallingPlayParams | IRelayCallingPlay | ICallingPlay): params is ICallingPlayParams => {

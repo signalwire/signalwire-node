@@ -30,7 +30,7 @@ describe('Call', () => {
   })
 
   it('should handle sip type device', () => {
-    const device: ICallDevice = { type: 'sip', params: { from: '123@foo.com', to: '456@bar.com', headers: [] } }
+    const device: ICallDevice = { type: 'sip', params: { from: '123@foo.com', to: '456@bar.com', headers: [ {name: 'x-my-header', value: 'my-value'}] } }
     const sipCall = new Call(session.calling, { device })
     expect(sipCall.state).toEqual('none')
     expect(sipCall.id).toBeUndefined()
@@ -38,6 +38,7 @@ describe('Call', () => {
     expect(sipCall.type).toEqual('sip')
     expect(sipCall.from).toEqual('123@foo.com')
     expect(sipCall.to).toEqual('456@bar.com')
+    expect(sipCall.headers).toEqual([{name: 'x-my-header', value: 'my-value'}])
   })
 
   it('should create the Call object with no id and nodeId', () => {
@@ -121,8 +122,10 @@ describe('Call', () => {
     const _stateNotificationEnding = JSON.parse(`{"event_type":"calling.call.state","params":{"call_state":"ending","end_reason":"busy","direction":"inbound","device":{"type":"phone","params":{"from_number":"+1234","to_number":"15678"}},"call_id":"call-id","node_id":"node-id"}}`)
     const _stateNotificationEnded = JSON.parse(`{"event_type":"calling.call.state","params":{"call_state":"ended","end_reason":"busy","direction":"inbound","device":{"type":"phone","params":{"from_number":"+1234","to_number":"15678"}},"call_id":"call-id","node_id":"node-id"}}`)
     const _recordNotification = JSON.parse(`{"event_type":"calling.call.record","params":{"state":"finished","record":{"audio":{"format":"mp3","direction":"speak","stereo":false}},"url":"record.mp3","control_id":"mocked-uuid","size":4096,"duration":4,"call_id":"call-id","node_id":"node-id"}}`)
-    const _connectNotification = JSON.parse(`{"event_type":"calling.call.connect","params":{"connect_state":"connected","peer":{"call_id":"peer-call-id","node_id":"peer-node-id","device":{"type":"phone","params":{"from_number":"+1234","to_number":"+15678"}}},"call_id":"call-id","node_id":"node-id"}}`)
-    const _connectNotificationPeerCreated = JSON.parse('{"event_type":"calling.call.state","params":{"call_state":"created","direction":"outbound","device":{"type":"phone","params":{"from_number":"+1234","to_number":"15678"}},"peer":{"call_id":"call-id","node_id":"node-id"},"call_id":"peer-call-id","node_id":"peer-node-id"}}')
+    const _connectPhoneNotification = JSON.parse(`{"event_type":"calling.call.connect","params":{"connect_state":"connected","peer":{"call_id":"peer-call-id","node_id":"peer-node-id","device":{"type":"phone","params":{"from_number":"+1234","to_number":"+15678"}}},"call_id":"call-id","node_id":"node-id"}}`)
+    const _connectSipNotification = JSON.parse(`{"event_type":"calling.call.connect","params":{"connect_state":"connected","peer":{"call_id":"peer-call-id","node_id":"peer-node-id","device":{"type":"sip","params":{"from":"ggg@sip.example.com","to":"fff@sip.example.com"}}},"call_id":"call-id","node_id":"node-id"}}`)
+    const _connectNotificationPhonePeerCreated = JSON.parse('{"event_type":"calling.call.state","params":{"call_state":"created","direction":"outbound","device":{"type":"phone","params":{"from_number":"+1234","to_number":"15678"}},"peer":{"call_id":"call-id","node_id":"node-id"},"call_id":"peer-call-id","node_id":"peer-node-id"}}')
+    const _connectNotificationSipPeerCreated = JSON.parse('{"event_type":"calling.call.state","params":{"call_state":"created","direction":"outbound","device":{"type":"sip","params":{"from":"sip:ggg@sip.example.com","to":"fff@sip.example.com"}},"peer":{"call_id":"call-id","node_id":"node-id"},"call_id":"peer-call-id","node_id":"peer-node-id"}}')
     const _connectNotificationDisconnected = JSON.parse(`{"event_type":"calling.call.connect","params":{"connect_state":"disconnected","peer":{"call_id":"peer-call-id","node_id":"peer-node-id","device":{"type":"phone","params":{"from_number":"+1234","to_number":"+15678"}}},"call_id":"call-id","node_id":"node-id"}}`)
     const _playNotification = JSON.parse(`{"event_type":"calling.call.play","params":{"control_id":"mocked-uuid","call_id":"call-id","node_id":"node-id","state":"finished"}}`)
     const _collectNotification = JSON.parse(`{"event_type":"calling.call.collect","params":{"control_id":"mocked-uuid","call_id":"call-id","node_id":"node-id","result":{"type":"digit","params":{"digits":"12345","terminator":"#"}}}}`)
@@ -238,24 +241,47 @@ describe('Call', () => {
     })
 
     describe('connect methods', () => {
-      const _tmpDevices = [
-        { type: 'phone', to: '999', from: '231', timeout: 10 },
-        { type: 'phone', to: '888', from: '234', timeout: 20 }
+      const PHONE = 'phone' as const
+      const SIP = 'sip' as const
+      const _tmpPhoneDevices = [
+        { type: PHONE, to: '999', from: '231', timeout: 10 },
+        { type: PHONE, to: '888', from: '234', timeout: 20 }
       ]
-      const getMsg = (serial: boolean, ringback: any = null) => {
+
+      const _tmpSipDevices = [
+        { type: SIP, to: 'sip:aaa.sip.example.com', from: 'sip:bbb.sip.example.com', timeout: 10 },
+        { type: SIP, to: 'sip:ccc.sip.example.com', from: 'sip:ddd.sip.example.com', timeout: 20 }
+      ]
+      const getMsg = (serial: boolean, ringback: any = null, sip: boolean = false) => {
         let devices = []
         if (serial) {
-          devices = [
-            [ { type: 'phone', params: { to_number: '999', from_number: '231', timeout: 10 } } ],
-            [ { type: 'phone', params: { to_number: '888', from_number: '234', timeout: 20 } } ]
-          ]
-        } else {
-          devices = [
-            [
-              { type: 'phone', params: { to_number: '999', from_number: '231', timeout: 10 } },
-              { type: 'phone', params: { to_number: '888', from_number: '234', timeout: 20 } }
+          if (sip) {
+            devices = [
+              [ { type: 'sip', params: { to: 'sip:aaa.sip.example.com', from: 'sip:bbb.sip.example.com', timeout: 10 } } ],
+              [ { type: 'sip', params: { to: 'sip:ccc.sip.example.com', from: 'sip:ddd.sip.example.com', timeout: 20 } } ]
             ]
-          ]
+          } else {
+            devices = [
+              [ { type: 'phone', params: { to_number: '999', from_number: '231', timeout: 10 } } ],
+              [ { type: 'phone', params: { to_number: '888', from_number: '234', timeout: 20 } } ]
+            ]
+          }
+        } else {
+          if (sip) {
+            devices = [
+              [
+                { type: 'sip', params: { to: 'sip:aaa.sip.example.com', from: 'sip:bbb.sip.example.com', timeout: 10 } },
+                { type: 'sip', params: { to: 'sip:ccc.sip.example.com', from: 'sip:ddd.sip.example.com', timeout: 20 } }
+              ]
+            ]
+          } else {
+            devices = [
+              [
+                { type: 'phone', params: { to_number: '999', from_number: '231', timeout: 10 } },
+                { type: 'phone', params: { to_number: '888', from_number: '234', timeout: 20 } }
+              ]
+            ]
+          }
         }
         const params: any = { node_id: call.nodeId, call_id: call.id, devices }
         if (ringback) {
@@ -264,8 +290,8 @@ describe('Call', () => {
         return new Execute({ protocol: 'signalwire_service_random_uuid', method: 'calling.connect', params })
       }
 
-      it('.connect() in serial should wait until the call is connected', done => {
-        call.connect(..._tmpDevices).then(result => {
+      it('.connect() to phone devices in serial should wait until the call is connected', done => {
+        call.connect(..._tmpPhoneDevices).then(result => {
           expect(result).toBeInstanceOf(ConnectResult)
           expect(result.successful).toBe(true)
           expect(result.call).toBe(call.peer)
@@ -273,14 +299,27 @@ describe('Call', () => {
           expect(Connection.mockSend).nthCalledWith(1, getMsg(true))
           done()
         })
-        session.calling.notificationHandler(_connectNotificationPeerCreated)
-        session.calling.notificationHandler(_connectNotification)
+        session.calling.notificationHandler(_connectNotificationPhonePeerCreated)
+        session.calling.notificationHandler(_connectPhoneNotification)
       })
 
-      it('.connect() in serial - with ringback - should wait until the call is connected', done => {
+      it('.connect() to SIP devices in serial should wait until the call is connected', done => {
+        call.connect(..._tmpSipDevices).then(result => {
+          expect(result).toBeInstanceOf(ConnectResult)
+          expect(result.successful).toBe(true)
+          expect(result.call).toBe(call.peer)
+          expect(result.call.id).toEqual('peer-call-id')
+          expect(Connection.mockSend).nthCalledWith(1, getMsg(true, null, true))
+          done()
+        })
+        session.calling.notificationHandler(_connectNotificationSipPeerCreated)
+        session.calling.notificationHandler(_connectSipNotification)
+      })
+
+      it('.connect() to phone devices in serial - with ringback - should wait until the call is connected', done => {
         const ringback = { type: 'ringtone', name: 'at', duration: 20 }
         const relayMedia = { type: 'ringtone', params: { name: 'at', duration: 20 } }
-        call.connect({ devices: _tmpDevices, ringback }).then(result => {
+        call.connect({ devices: _tmpPhoneDevices, ringback }).then(result => {
           expect(result).toBeInstanceOf(ConnectResult)
           expect(result.successful).toBe(true)
           expect(result.call).toBe(call.peer)
@@ -288,12 +327,27 @@ describe('Call', () => {
           expect(Connection.mockSend).nthCalledWith(1, getMsg(true, relayMedia))
           done()
         })
-        session.calling.notificationHandler(_connectNotificationPeerCreated)
-        session.calling.notificationHandler(_connectNotification)
+        session.calling.notificationHandler(_connectNotificationPhonePeerCreated)
+        session.calling.notificationHandler(_connectPhoneNotification)
       })
 
-      it('.connect() in parallel should wait until the call is connected', done => {
-        call.connect(_tmpDevices).then(result => {
+      it('.connect() to sip devices in serial - with ringback - should wait until the call is connected', done => {
+        const ringback = { type: 'ringtone', name: 'at', duration: 20 }
+        const relayMedia = { type: 'ringtone', params: { name: 'at', duration: 20 } }
+        call.connect({ devices: _tmpSipDevices, ringback }).then(result => {
+          expect(result).toBeInstanceOf(ConnectResult)
+          expect(result.successful).toBe(true)
+          expect(result.call).toBe(call.peer)
+          expect(result.call.id).toEqual('peer-call-id')
+          expect(Connection.mockSend).nthCalledWith(1, getMsg(true, relayMedia, true))
+          done()
+        })
+        session.calling.notificationHandler(_connectNotificationSipPeerCreated)
+        session.calling.notificationHandler(_connectSipNotification)
+      })
+
+      it('.connect() to phone devices in parallel should wait until the call is connected', done => {
+        call.connect(_tmpPhoneDevices).then(result => {
           expect(result).toBeInstanceOf(ConnectResult)
           expect(result.successful).toBe(true)
           expect(result.call).toBe(call.peer)
@@ -301,14 +355,27 @@ describe('Call', () => {
           expect(Connection.mockSend).nthCalledWith(1, getMsg(false))
           done()
         })
-        session.calling.notificationHandler(_connectNotificationPeerCreated)
-        session.calling.notificationHandler(_connectNotification)
+        session.calling.notificationHandler(_connectNotificationPhonePeerCreated)
+        session.calling.notificationHandler(_connectPhoneNotification)
       })
 
-      it('.connect() in parallel - with ringback - should wait until the call is connected', done => {
+      it('.connect() to sip devices in parallel should wait until the call is connected', done => {
+        call.connect(_tmpSipDevices).then(result => {
+          expect(result).toBeInstanceOf(ConnectResult)
+          expect(result.successful).toBe(true)
+          expect(result.call).toBe(call.peer)
+          expect(result.call.id).toEqual('peer-call-id')
+          expect(Connection.mockSend).nthCalledWith(1, getMsg(false, null, true))
+          done()
+        })
+        session.calling.notificationHandler(_connectNotificationSipPeerCreated)
+        session.calling.notificationHandler(_connectSipNotification)
+      })
+
+      it('.connect() to phone devices in parallel - with ringback - should wait until the call is connected', done => {
         const ringback = { type: 'ringtone', name: 'at', duration: 20 }
         const relayMedia = { type: 'ringtone', params: { name: 'at', duration: 20 } }
-        call.connect({ devices: [_tmpDevices], ringback }).then(result => {
+        call.connect({ devices: [_tmpPhoneDevices], ringback }).then(result => {
           expect(result).toBeInstanceOf(ConnectResult)
           expect(result.successful).toBe(true)
           expect(result.call).toBe(call.peer)
@@ -316,21 +383,36 @@ describe('Call', () => {
           expect(Connection.mockSend).nthCalledWith(1, getMsg(false, relayMedia))
           done()
         })
-        session.calling.notificationHandler(_connectNotificationPeerCreated)
-        session.calling.notificationHandler(_connectNotification)
+        session.calling.notificationHandler(_connectNotificationPhonePeerCreated)
+        session.calling.notificationHandler(_connectPhoneNotification)
       })
 
-      it('.connectAsync() in serial should return a ConnectAction for async control', async done => {
+      it('.connect() to sip devices in parallel - with ringback - should wait until the call is connected', done => {
+        const ringback = { type: 'ringtone', name: 'at', duration: 20 }
+        const relayMedia = { type: 'ringtone', params: { name: 'at', duration: 20 } }
+        call.connect({ devices: [_tmpSipDevices], ringback }).then(result => {
+          expect(result).toBeInstanceOf(ConnectResult)
+          expect(result.successful).toBe(true)
+          expect(result.call).toBe(call.peer)
+          expect(result.call.id).toEqual('peer-call-id')
+          expect(Connection.mockSend).nthCalledWith(1, getMsg(false, relayMedia, true))
+          done()
+        })
+        session.calling.notificationHandler(_connectNotificationSipPeerCreated)
+        session.calling.notificationHandler(_connectSipNotification)
+      })
+
+      it('.connectAsync() to phone devices in serial should return a ConnectAction for async control', async done => {
         const callback = jest.fn()
         call.on('connect.stateChange', callback)
         call.on('connect.connected', callback)
-        const action = await call.connectAsync(..._tmpDevices)
+        const action = await call.connectAsync(..._tmpPhoneDevices)
         expect(action).toBeInstanceOf(ConnectAction)
         expect(action.completed).toBe(false)
         expect(Connection.mockSend).nthCalledWith(1, getMsg(true))
         expect(callback).not.toHaveBeenCalled()
-        session.calling.notificationHandler(_connectNotificationPeerCreated)
-        session.calling.notificationHandler(_connectNotification)
+        session.calling.notificationHandler(_connectNotificationPhonePeerCreated)
+        session.calling.notificationHandler(_connectPhoneNotification)
         expect(action.result.call.id).toEqual('peer-call-id')
         expect(action.completed).toBe(true)
         expect(callback).toHaveBeenCalledTimes(2)
@@ -338,29 +420,76 @@ describe('Call', () => {
         done()
       })
 
-      it('.connectAsync() in parallel should return a ConnectAction for async control', async done => {
-        const action = await call.connectAsync(_tmpDevices)
+      it('.connectAsync() to sip devices in serial should return a ConnectAction for async control', async done => {
+        const callback = jest.fn()
+        call.on('connect.stateChange', callback)
+        call.on('connect.connected', callback)
+        const action = await call.connectAsync(..._tmpSipDevices)
+        expect(action).toBeInstanceOf(ConnectAction)
+        expect(action.completed).toBe(false)
+        expect(Connection.mockSend).nthCalledWith(1, getMsg(true, null, true))
+        expect(callback).not.toHaveBeenCalled()
+        session.calling.notificationHandler(_connectNotificationSipPeerCreated)
+        session.calling.notificationHandler(_connectSipNotification)
+        expect(action.result.call.id).toEqual('peer-call-id')
+        expect(action.completed).toBe(true)
+        expect(callback).toHaveBeenCalledTimes(2)
+        expect(callback).toHaveBeenCalledWith(call)
+        done()
+      })
+
+
+      it('.connectAsync() to phone devices in parallel should return a ConnectAction for async control', async done => {
+        const action = await call.connectAsync(_tmpPhoneDevices)
         expect(action).toBeInstanceOf(ConnectAction)
         expect(action.completed).toBe(false)
         expect(Connection.mockSend).nthCalledWith(1, getMsg(false))
 
-        session.calling.notificationHandler(_connectNotificationPeerCreated)
-        session.calling.notificationHandler(_connectNotification)
+        session.calling.notificationHandler(_connectNotificationPhonePeerCreated)
+        session.calling.notificationHandler(_connectPhoneNotification)
         expect(action.result.call.id).toEqual('peer-call-id')
         expect(action.completed).toBe(true)
         done()
       })
 
-      it('.connectAsync() in parallel - with ringback - should return a ConnectAction for async control', async done => {
+      it('.connectAsync() to sip devices in parallel should return a ConnectAction for async control', async done => {
+        const action = await call.connectAsync(_tmpSipDevices)
+        expect(action).toBeInstanceOf(ConnectAction)
+        expect(action.completed).toBe(false)
+        expect(Connection.mockSend).nthCalledWith(1, getMsg(false, null, true))
+
+        session.calling.notificationHandler(_connectNotificationSipPeerCreated)
+        session.calling.notificationHandler(_connectSipNotification)
+        expect(action.result.call.id).toEqual('peer-call-id')
+        expect(action.completed).toBe(true)
+        done()
+      })
+
+      it('.connectAsync() to phone devices in parallel - with ringback - should return a ConnectAction for async control', async done => {
         const ringback = { type: 'ringtone', name: 'at', duration: 20 }
         const relayMedia = { type: 'ringtone', params: { name: 'at', duration: 20 } }
-        const action = await call.connectAsync({ devices: [_tmpDevices], ringback })
+        const action = await call.connectAsync({ devices: [_tmpPhoneDevices], ringback })
         expect(action).toBeInstanceOf(ConnectAction)
         expect(action.completed).toBe(false)
         expect(Connection.mockSend).nthCalledWith(1, getMsg(false, relayMedia))
 
-        session.calling.notificationHandler(_connectNotificationPeerCreated)
-        session.calling.notificationHandler(_connectNotification)
+        session.calling.notificationHandler(_connectNotificationPhonePeerCreated)
+        session.calling.notificationHandler(_connectPhoneNotification)
+        expect(action.result.call.id).toEqual('peer-call-id')
+        expect(action.completed).toBe(true)
+        done()
+      })
+
+      it('.connectAsync() to sip devices in parallel - with ringback - should return a ConnectAction for async control', async done => {
+        const ringback = { type: 'ringtone', name: 'at', duration: 20 }
+        const relayMedia = { type: 'ringtone', params: { name: 'at', duration: 20 } }
+        const action = await call.connectAsync({ devices: [_tmpSipDevices], ringback })
+        expect(action).toBeInstanceOf(ConnectAction)
+        expect(action.completed).toBe(false)
+        expect(Connection.mockSend).nthCalledWith(1, getMsg(false, relayMedia, true))
+
+        session.calling.notificationHandler(_connectNotificationSipPeerCreated)
+        session.calling.notificationHandler(_connectSipNotification)
         expect(action.result.call.id).toEqual('peer-call-id')
         expect(action.completed).toBe(true)
         done()
@@ -1255,8 +1384,8 @@ describe('Call', () => {
       })
 
       beforeEach(() => {
-        session.calling.notificationHandler(_connectNotificationPeerCreated)
-        session.calling.notificationHandler(_connectNotification)
+        session.calling.notificationHandler(_connectNotificationPhonePeerCreated)
+        session.calling.notificationHandler(_connectPhoneNotification)
       })
 
       it('.disconnect() should wait until call has been disconnected', done => {
@@ -1359,9 +1488,10 @@ describe('Call', () => {
     })
 
     describe('connect methods', () => {
+      const PHONE = 'phone' as const
       const _tmpDevices = [
-        { type: 'phone', to: '999', from: '231', timeout: 10 },
-        { type: 'phone', to: '888', from: '234', timeout: 20 }
+        { type: PHONE, to: '999', from: '231', timeout: 10 },
+        { type: PHONE, to: '888', from: '234', timeout: 20 }
       ]
       const getMsg = (serial: boolean) => {
         let devices = []

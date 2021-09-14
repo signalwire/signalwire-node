@@ -6,6 +6,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ## [Unreleased]
 ### Added
 - Call `disconnect()` method.
+- Allowing to `connect()` to SIP device
 
 ## [2.3.4] - 2021-07-19
 ### Added

@@ -178,7 +178,6 @@ describe('Call', () => {
         params: { tag: 'mocked-uuid', devices }
       })
       const multiDialCall = new Call(session.calling, { devices })
-      multiDialCall.tag = 'mocked-uuid'
       multiDialCall.dial().then(result => {
         expect(result).toBeInstanceOf(DialResult)
         expect(result.successful).toBe(true)

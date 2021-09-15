@@ -6,7 +6,7 @@ import { Execute } from '../../../common/src/messages/Blade'
 const Connection = require('../../../common/src/services/Connection')
 import { RecordAction, PlayAction, PromptAction, ConnectAction, FaxAction, DetectAction, TapAction, SendDigitsAction } from '../../../common/src/relay/calling/actions'
 import { HangupResult, RecordResult, AnswerResult, PlayResult, PromptResult, ConnectResult, DialResult, FaxResult, DetectResult, TapResult, SendDigitsResult, DisconnectResult } from '../../../common/src/relay/calling/results'
-import { DeepArray } from '../../dist/common/src/util/interfaces'
+import { DeepArray } from '../../../common/src/util/interfaces'
 jest.mock('../../../common/src/services/Connection')
 
 describe('Call', () => {

@@ -126,16 +126,28 @@ describe('Calling', () => {
     const _stateNotificationCreated = JSON.parse(`{"event_type":"calling.call.state","params":{"call_state":"created","direction":"inbound","device":{"type":"phone","params":{"from_number":"+1234","to_number":"15678"}},"tag":"mocked-uuid","call_id":"call-id","node_id":"node-id"}}`)
     const _stateNotificationAnswered = JSON.parse(`{"event_type":"calling.call.state","params":{"call_state":"answered","direction":"inbound","device":{"type":"phone","params":{"from_number":"+1234","to_number":"15678"}},"tag":"mocked-uuid","call_id":"call-id","node_id":"node-id"}}`)
     const _stateNotificationEnded = JSON.parse(`{"event_type":"calling.call.state","params":{"call_state":"ended","end_reason":"busy","direction":"inbound","device":{"type":"phone","params":{"from_number":"+1234","to_number":"15678"}},"tag":"mocked-uuid","call_id":"call-id","node_id":"node-id"}}`)
-
+    const _dialNotificationAnswered = JSON.parse(`{"event_type":"calling.call.dial","params":{"dial_state":"answered","tag":"mocked-uuid","node_id":"node-id","call":{"call_id":"call-id","tag":"mocked-uuid","node_id":"node-id","device":{"type":"phone","params":{"from_number":"+1234","to_number":"15678"}},"dial_winner":true}}}`)
     it('should create a Call object, dial and wait the call to be answered', done => {
+      jest.spyOn(session.calling, 'newCall').mockImplementation(() => {
+        let call = new Call(session.calling, { device: {
+          type: 'phone',
+          params: {
+            from_number: '8992222222',
+            to_number: '8991111111'
+          }
+        } })
+        call.tag = 'mocked-uuid'
+        return call
+      });
       session.calling.dial(callOpts).then(result => {
         expect(result).toBeInstanceOf(DialResult)
         expect(result.call).toBeInstanceOf(Call)
         expect(result.successful).toBe(true)
         done()
-      })
+      }).finally(() => jest.clearAllMocks())
       setTimeout(() => session.calling.notificationHandler(_stateNotificationCreated))
       setTimeout(() => session.calling.notificationHandler(_stateNotificationAnswered))
+      setTimeout(() => session.calling.notificationHandler(_dialNotificationAnswered))
     })
 
     it('should create a Call object, dial and wait the call to be ended', done => {

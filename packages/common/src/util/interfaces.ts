@@ -191,7 +191,6 @@ export interface CallingSipDevice {
 }
 
 export type ICallDevice = CallingPhoneDevice | CallingSipDevice
-
 export interface ICallPeer {
   call_id: string
   node_id: string
@@ -200,6 +199,7 @@ export interface ICallPeer {
 
 export interface ICallOptions {
   device?: ICallDevice
+  devices?: DeepArray<ICallDevice>
   peer?: ICallPeer
   node_id?: string
   call_id?: string
@@ -222,6 +222,10 @@ export interface MakeSipCallParams {
   headers?: SipHeader[]
   codecs?: SipCodec[]
   webrtc_media?: boolean
+}
+
+export interface IDialCallParams {
+  devices: DeepArray<IMakeCallParams>
 }
 
 export type IMakeCallParams = MakePhoneCallParams | MakeSipCallParams

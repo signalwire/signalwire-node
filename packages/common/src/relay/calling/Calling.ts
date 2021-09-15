@@ -1,10 +1,10 @@
 import { trigger } from '../../services/Handler'
-import { ICallDevice, IMakeCallParams } from '../../util/interfaces'
+import { DeepArray, ICallDevice, IDialCallParams, IMakeCallParams } from '../../util/interfaces'
 import logger from '../../util/logger'
 import Relay from '../Relay'
 import Call from './Call'
 import { CallNotification } from '../../util/constants/relay'
-import { prepareDevice } from '../helpers'
+import { isIDialCallParams, prepareDialDevices } from '../helpers'
 
 export default class Calling extends Relay {
   protected service: string = 'calling'
@@ -14,6 +14,8 @@ export default class Calling extends Relay {
     const { event_type, params } = notification
     params.event_type = event_type
     switch (event_type) {
+      case CallNotification.Dial:
+        return this._onDial(params)
       case CallNotification.State:
         return this._onState(params)
       case CallNotification.Receive:
@@ -37,14 +39,24 @@ export default class Calling extends Relay {
     }
   }
 
-  newCall(params: IMakeCallParams) {
-    const device = prepareDevice(params)
-    return new Call(this, { device })
+  newCall(...params: [IDialCallParams] | DeepArray<IMakeCallParams>) {
+    let devices: DeepArray<ICallDevice>
+    if (params.length === 1 && isIDialCallParams(params[0])) {
+      devices = prepareDialDevices(params[0].devices)
+    } else {
+      const paramsDevices = []
+      params.forEach(p => {
+        if (!isIDialCallParams(p)) {
+          paramsDevices.push(p)
+        }
+      })
+      devices = prepareDialDevices(paramsDevices)
+    }
+    return new Call(this, { devices })
   }
 
-  async dial(params: IMakeCallParams) {
-    const device = prepareDevice(params)
-    const call = new Call(this, { device })
+  async dial(...params: [IDialCallParams] | DeepArray<IMakeCallParams>) {
+    const call = this.newCall(...params)
     const result = await call.dial()
     return result
   }
@@ -74,19 +86,30 @@ export default class Calling extends Relay {
    * @return void
    */
   private _onState(params: any): void {
-    const { call_id, node_id, tag, peer } = params
+    const { call_id, node_id, tag } = params
     const call = this.getCallById(call_id) || this.getCallByTag(tag)
-    if (call) {
+    if (call && !call.isMultiDial) {
       if (!call.ready) {
         call.id = call_id
         call.nodeId = node_id
       }
       call._stateChange(params)
-    } else if (call_id && peer) {
-      const peerCall = new Call(this, params)
+    } else if (call_id) {
+      new Call(this, params)
     } else {
       logger.debug('\t - Unknown call:', params, '\n\n')
     }
+  }
+
+  /**
+   * Handle calling.call.dial notification params
+   * @param params - Inner params of calling.call.dial notification
+   * @return void
+   */
+  private _onDial(params: any): void {
+    const { tag } = params
+    const call = this.getCallByTag(tag)
+    call._dialChange(params)
   }
 
   /**

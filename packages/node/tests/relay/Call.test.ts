@@ -121,6 +121,7 @@ describe('Call', () => {
     const _stateNotificationAnswered = JSON.parse(`{"event_type":"calling.call.state","params":{"call_state":"answered","direction":"inbound","device":{"type":"phone","params":{"from_number":"+1234","to_number":"15678"}},"call_id":"call-id","node_id":"node-id"}}`)
     const _stateNotificationEnding = JSON.parse(`{"event_type":"calling.call.state","params":{"call_state":"ending","end_reason":"busy","direction":"inbound","device":{"type":"phone","params":{"from_number":"+1234","to_number":"15678"}},"call_id":"call-id","node_id":"node-id"}}`)
     const _stateNotificationEnded = JSON.parse(`{"event_type":"calling.call.state","params":{"call_state":"ended","end_reason":"busy","direction":"inbound","device":{"type":"phone","params":{"from_number":"+1234","to_number":"15678"}},"call_id":"call-id","node_id":"node-id"}}`)
+    const _dialNotificationAnswered = JSON.parse(`{"event_type": "calling.call.dial", "params": {"dial_state": "answered", "call": { "call_id": "call-id", "node_id": "node-id", "tag": "mocked-uuid", "device": { "type": "phone", "params": { "from_number": "+1234", "to_number": "15678" } } }, "node_id": "node-id", "tag": "mocked-uuid"}}`)
     const _recordNotification = JSON.parse(`{"event_type":"calling.call.record","params":{"state":"finished","record":{"audio":{"format":"mp3","direction":"speak","stereo":false}},"url":"record.mp3","control_id":"mocked-uuid","size":4096,"duration":4,"call_id":"call-id","node_id":"node-id"}}`)
     const _connectPhoneNotification = JSON.parse(`{"event_type":"calling.call.connect","params":{"connect_state":"connected","peer":{"call_id":"peer-call-id","node_id":"peer-node-id","device":{"type":"phone","params":{"from_number":"+1234","to_number":"+15678"}}},"call_id":"call-id","node_id":"node-id"}}`)
     const _connectSipNotification = JSON.parse(`{"event_type":"calling.call.connect","params":{"connect_state":"connected","peer":{"call_id":"peer-call-id","node_id":"peer-node-id","device":{"type":"sip","params":{"from":"ggg@sip.example.com","to":"fff@sip.example.com"}}},"call_id":"call-id","node_id":"node-id"}}`)
@@ -143,8 +144,8 @@ describe('Call', () => {
     it('.dial() should wait for "answered" event', done => {
       const msg = new Execute({
         protocol: 'signalwire_service_random_uuid',
-        method: 'calling.begin',
-        params: { tag: 'mocked-uuid', device: call.device }
+        method: 'calling.dial',
+        params: { tag: 'mocked-uuid', devices: [ [ call.device ] ] }
       })
       call.dial().then(result => {
         expect(result).toBeInstanceOf(DialResult)
@@ -155,6 +156,7 @@ describe('Call', () => {
         done()
       })
       session.calling.notificationHandler(_stateNotificationAnswered)
+      session.calling.notificationHandler(_dialNotificationAnswered)
     })
 
     it('.answer() should wait for "answered" event', done => {
@@ -1416,8 +1418,8 @@ describe('Call', () => {
     it('.dial() should wait for "answered" event', done => {
       const msg = new Execute({
         protocol: 'signalwire_service_random_uuid',
-        method: 'calling.begin',
-        params: { tag: 'mocked-uuid', device: call.device }
+        method: 'calling.dial',
+        params: { tag: 'mocked-uuid', devices: [ [ call.device ] ] }
       })
       call.dial().then(result => {
         expect(result).toBeInstanceOf(DialResult)

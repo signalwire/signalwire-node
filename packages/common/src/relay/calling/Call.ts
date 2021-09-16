@@ -110,6 +110,10 @@ export default class Call implements ICall {
     return null
   }
 
+  get region(): string {
+    return this.options.region
+  }
+
   get isMultiDial(): boolean {
     // @ts-ignore
     return this.devices?.flat(Infinity).length > 1

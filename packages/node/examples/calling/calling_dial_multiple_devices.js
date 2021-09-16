@@ -3,6 +3,7 @@ const { RelayConsumer } = require('../..');
 let consumer = new RelayConsumer({
   project: process.env.PROJECT,
   token: process.env.TOKEN,
+  contexts: ['default'],
   ready: async ({ client }) => {
     // client.__logger.setLevel(client.__logger.levels.DEBUG)
 
@@ -30,8 +31,7 @@ let consumer = new RelayConsumer({
         to: '<YOUR_TO_SIP_ENDPOINT>'
       });
     }
-  },
-  contexts: ['default']
+  }
 });
 
 consumer.run();

@@ -1,17 +1,21 @@
 import { BaseComponent } from './BaseComponent'
 import { CallNotification, CallMethod, DialState } from '../../../util/constants/relay'
 import Event from '../Event'
-
+import { DialPayload } from '../../../util/interfaces'
 export class Dial extends BaseComponent {
   public eventType: string = CallNotification.Dial
   public method: string = CallMethod.Dial
   public controlId: string = this.call.tag
 
   get payload(): any {
-    return {
+    const payload: DialPayload = {
       tag: this.call.tag,
       devices: this.call.devices ?? [[this.call.device]]
     }
+    if (this.call.region) {
+      payload.region = this.call.region
+    }
+    return payload
   }
 
   notificationHandler(params: any): void {
@@ -27,7 +31,7 @@ export class Dial extends BaseComponent {
       this.call = this.call.relayInstance.getCallById(call.call_id)
     }
 
-    if (this._hasBlocker() && this._eventsToWait.includes(this.state)) {
+    if (this._hasBlocker() && this.completed) {
       this.blocker.resolve()
     }
   }

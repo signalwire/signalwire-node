@@ -1,5 +1,5 @@
 import { trigger } from '../../services/Handler'
-import { DeepArray, ICallDevice, IDialCallParams, IMakeCallParams } from '../../util/interfaces'
+import { DeepArray, ICallDevice, ICallOptions, IDialCallParams, IMakeCallParams } from '../../util/interfaces'
 import logger from '../../util/logger'
 import Relay from '../Relay'
 import Call from './Call'
@@ -41,8 +41,13 @@ export default class Calling extends Relay {
 
   newCall(...params: [IDialCallParams] | DeepArray<IMakeCallParams>) {
     let devices: DeepArray<ICallDevice>
+    let region: string
     if (params.length === 1 && isIDialCallParams(params[0])) {
-      devices = prepareDialDevices(params[0].devices)
+      const { region: paramRegion, devices: paramDevices } = params[0]
+      devices = prepareDialDevices(paramDevices)
+      if (paramRegion) {
+        region = paramRegion
+      }
     } else {
       const paramsDevices = []
       params.forEach(p => {
@@ -52,7 +57,11 @@ export default class Calling extends Relay {
       })
       devices = prepareDialDevices(paramsDevices)
     }
-    return new Call(this, { devices })
+    const callOpts: ICallOptions = { devices }
+    if (region) {
+      callOpts.region = region
+    }
+    return new Call(this, callOpts)
   }
 
   async dial(...params: [IDialCallParams] | DeepArray<IMakeCallParams>) {
@@ -109,7 +118,7 @@ export default class Calling extends Relay {
   private _onDial(params: any): void {
     const { tag } = params
     const call = this.getCallByTag(tag)
-    call._dialChange(params)
+    call?._dialChange(params)
   }
 
   /**

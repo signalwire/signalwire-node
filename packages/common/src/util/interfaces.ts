@@ -198,6 +198,7 @@ export interface ICallPeer {
 }
 
 export interface ICallOptions {
+  region?: string
   device?: ICallDevice
   devices?: DeepArray<ICallDevice>
   peer?: ICallPeer
@@ -225,6 +226,7 @@ export interface MakeSipCallParams {
 }
 
 export interface IDialCallParams {
+  region?: string
   devices: DeepArray<IMakeCallParams>
 }
 
@@ -445,4 +447,10 @@ export interface IMessageOptions {
   media: string[]
   segments: number
   reason?: string
+}
+
+export interface DialPayload {
+  tag: string
+  devices: DeepArray<ICallDevice>
+  region?: string
 }

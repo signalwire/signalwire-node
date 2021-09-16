@@ -4,7 +4,7 @@ import Call from '../../../common/src/relay/calling/Call'
 import RelayClient from '../../src/relay'
 import { DialResult } from '../../../common/src/relay/calling/results'
 import { DeepArray } from '../../../common/src/util/interfaces'
-import { IMakeCallParams } from '../../dist/common/src/util/interfaces'
+import { IMakeCallParams } from '../../../common/src/util/interfaces'
 
 const Connection = require('../../../common/src/services/Connection')
 

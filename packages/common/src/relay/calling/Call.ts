@@ -116,7 +116,7 @@ export default class Call implements ICall {
 
   get isMultiDial(): boolean {
     // @ts-ignore
-    return this.devices?.flat(Infinity).length > 1
+    return !this.device && this.devices?.flat(Infinity).length > 1
   }
 
   setOptions(opts: ICallOptions) {
@@ -534,6 +534,19 @@ export default class Call implements ICall {
   }
 
   _dialChange(params: any) {
+    const { dial_state, call } = params
+    switch (dial_state) {
+      case DialState.Answered:
+        if (call) {
+          this.setOptions(call)
+          this.id = call.call_id
+          this.nodeId = call.node_id
+        }
+        break
+      // case DialState.Failed:
+      //   break
+    }
+
     this._notifyComponents(CallNotification.Dial, this.tag, params)
   }
 

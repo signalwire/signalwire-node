@@ -28,7 +28,7 @@ export default class Call implements ICall {
     this.id = call_id
     this.nodeId = node_id
     if (!this.device && this.devices && !this.isMultiDial) {
-      //@ts-ignore
+      // @ts-ignore
       this.setOptions({ device: this.devices.flat(Infinity)[0] })
     }
     this.amd = this.detectAnsweringMachine.bind(this)
@@ -115,7 +115,7 @@ export default class Call implements ICall {
   }
 
   get isMultiDial(): boolean {
-    //@ts-ignore
+    // @ts-ignore
     return this.devices?.flat(Infinity).length > 1
   }
 

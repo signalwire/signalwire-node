@@ -28,9 +28,9 @@ export class Dial extends BaseComponent {
     }
 
     if (this.successful && this.call.isMultiDial) {
-      const multiDialCall = this.call;
+      const multiDialCall = this.call
       this.call = this.call.relayInstance.getCallById(call.call_id)
-      this.call.relayInstance.removeCall(multiDialCall);
+      this.call.relayInstance.removeCall(multiDialCall)
     }
 
     if (this._hasBlocker() && this.completed) {

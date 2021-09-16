@@ -28,7 +28,7 @@ export default class Call implements ICall {
     this.id = call_id
     this.nodeId = node_id
     if (!this.device && this.devices && !this.isMultiDial) {
-      // @ts-ignore
+      //@ts-ignore
       this.setOptions({ device: this.devices.flat(Infinity)[0] })
     }
     this.amd = this.detectAnsweringMachine.bind(this)
@@ -115,7 +115,7 @@ export default class Call implements ICall {
   }
 
   get isMultiDial(): boolean {
-    // @ts-ignore
+    //@ts-ignore
     return this.devices?.flat(Infinity).length > 1
   }
 
@@ -534,15 +534,7 @@ export default class Call implements ICall {
   }
 
   _dialChange(params: any) {
-    const { dial_state } = params
     this._notifyComponents(CallNotification.Dial, this.tag, params)
-    const events = [ DialState.Answered, DialState.Failed ]
-    this._dispatchCallback('dialChange')
-    this._dispatchCallback(dial_state)
-    if (events.includes(dial_state)) {
-      this._terminateComponents(params)
-      this.relayInstance.removeCall(this)
-    }
   }
 
   _connectChange(params: { connect_state: string, peer?: ICallPeer }) {

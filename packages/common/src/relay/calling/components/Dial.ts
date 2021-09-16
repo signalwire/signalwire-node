@@ -27,8 +27,10 @@ export class Dial extends BaseComponent {
       this.event = new Event(this.state, params)
     }
 
-    if (this.successful && call?.call_id) {
+    if (this.successful && this.call.isMultiDial) {
+      const multiDialCall = this.call;
       this.call = this.call.relayInstance.getCallById(call.call_id)
+      this.call.relayInstance.removeCall(multiDialCall);
     }
 
     if (this._hasBlocker() && this.completed) {

@@ -88,14 +88,12 @@ export default class Calling extends Relay {
   private _onState(params: any): void {
     const { call_id, node_id, tag } = params
     const call = this.getCallById(call_id) || this.getCallByTag(tag)
-    if (call) {
-      if (!call.isMultiDial) {
-        if (!call.ready) {
-          call.id = call_id
-          call.nodeId = node_id
-        }
-        call._stateChange(params)
+    if (call && !call.isMultiDial) {
+      if (!call.ready) {
+        call.id = call_id
+        call.nodeId = node_id
       }
+      call._stateChange(params)
     } else if (call_id) {
       new Call(this, params)
     } else {

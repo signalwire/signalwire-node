@@ -7,6 +7,7 @@ const Connection = require('../../../common/src/services/Connection')
 import { RecordAction, PlayAction, PromptAction, ConnectAction, FaxAction, DetectAction, TapAction, SendDigitsAction } from '../../../common/src/relay/calling/actions'
 import { HangupResult, RecordResult, AnswerResult, PlayResult, PromptResult, ConnectResult, DialResult, FaxResult, DetectResult, TapResult, SendDigitsResult, DisconnectResult } from '../../../common/src/relay/calling/results'
 import { DeepArray } from '../../../common/src/util/interfaces'
+import { SessionContext } from 'twilio/lib/rest/messaging/v1/session'
 jest.mock('../../../common/src/services/Connection')
 
 describe('Call', () => {
@@ -163,15 +164,17 @@ describe('Call', () => {
     const _stateNotificationCallForFirstDeviceCreated = JSON.parse(`{"event_type":"calling.call.state","params":{"call_state":"created","created_by":"dial","tag":"mocked-uuid","call_id":"call-id-1","node_id":"node-id","device":{"type":"phone","params":{"from_number":"11111","to_number":"22222","timeout":30}}}}`)
     const _stateNotificationCallForSecondDeviceCreated = JSON.parse(`{"event_type":"calling.call.state","params":{"call_state":"created","created_by":"dial","tag":"mocked-uuid","call_id":"call-id-2","node_id":"node-id","device":{"type":"phone","params":{"from_number":"33333","to_number":"44444","timeout":30}}}}`)
     const _dialNotificationSecondCallAnswered = JSON.parse(`{"event_type":"calling.call.dial","params":{"dial_state":"answered","tag":"mocked-uuid","node_id":"node-id","call":{"call_id":"call-id-2","node_id":"node-id","tag":"mocked-uuid","device":{"type":"phone","params":{"from_number":"33333","to_number":"44444","timeout":30}}}}}`)
+    const _stateNotificationFirstCallEnded = JSON.parse(`{"event_type":"calling.call.state","params":{"call_state":"ended","tag":"mocked-uuid","call_id":"call-id-1","node-id":"node-id","device":{"type":"phone","params":{"from_number":"11111","to_number":"22222","timeout":30}}}}`)
+    const _stateNotificationSecondCallEnded = JSON.parse(`{"event_type":"calling.call.state","params":{"call_state":"ended","tag":"mocked-uuid","call_id":"call-id-2","node-id":"node-id","device":{"type":"phone","params":{"from_number":"33333","to_number":"44444","timeout":30}}}}`)
+    const _dialNotificationFailed = JSON.parse(`{"event_type":"calling.call.dial","params":{"dial_state":"failed","tag":"mocked-uuid","node_id":"node-id"}}`)
+    const devices: DeepArray<ICallDevice> = [ 
+      [ 
+        { type: "phone", params: { from_number: '11111', to_number: '22222', timeout: 30  } },
+        { type: "phone", params: { from_number: '33333', to_number: '44444', timeout: 30  } },
+      ] 
+    ]
     it('.dial() should wait for at least one call to answer event while dialing to multiple devices', done => {
       session.calling.removeCall(call)
-      const devices: DeepArray<ICallDevice> = [ 
-        [ 
-          { type: "phone", params: { from_number: '11111', to_number: '22222', timeout: 30  } },
-          { type: "phone", params: { from_number: '33333', to_number: '44444', timeout: 30  } },
-        ] 
-      ]
-
       const msg = new Execute({
         protocol: 'signalwire_service_random_uuid',
         method: 'calling.dial',
@@ -189,6 +192,29 @@ describe('Call', () => {
       session.calling.notificationHandler(_stateNotificationCallForFirstDeviceCreated)
       session.calling.notificationHandler(_stateNotificationCallForSecondDeviceCreated)
       session.calling.notificationHandler(_dialNotificationSecondCallAnswered)
+    })
+
+    it('.dial() when calling to multiple devices should wait for failed if no calls were answered', done => {
+      session.calling.removeCall(call);
+      const msg = new Execute({
+        protocol: 'signalwire_service_random_uuid',
+        method: 'calling.dial',
+        params: { tag: 'mocked-uuid', devices }
+      })
+      const multiDialCall = new Call(session.calling, { devices })
+      multiDialCall.dial().then(result => {
+        expect(result).toBeInstanceOf(DialResult)
+        expect(result.successful).toBe(false)
+        expect(result.event.name).toBe('failed')
+        expect(result.call).toBe(multiDialCall)
+        expect(Connection.mockSend).nthCalledWith(1, msg)
+        done()
+      })
+      session.calling.notificationHandler(_stateNotificationCallForFirstDeviceCreated)
+      session.calling.notificationHandler(_stateNotificationCallForSecondDeviceCreated)
+      session.calling.notificationHandler(_stateNotificationFirstCallEnded)
+      session.calling.notificationHandler(_stateNotificationSecondCallEnded)
+      session.calling.notificationHandler(_dialNotificationFailed)
     })
 
     it('.answer() should wait for "answered" event', done => {

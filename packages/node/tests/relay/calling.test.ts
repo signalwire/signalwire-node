@@ -3,6 +3,8 @@ import { isQueued, trigger } from '../../../common/src/services/Handler'
 import Call from '../../../common/src/relay/calling/Call'
 import RelayClient from '../../src/relay'
 import { DialResult } from '../../../common/src/relay/calling/results'
+import { DeepArray } from '../../../common/src/util/interfaces'
+import { IMakeCallParams } from '../../dist/common/src/util/interfaces'
 
 const Connection = require('../../../common/src/services/Connection')
 
@@ -148,6 +150,48 @@ describe('Calling', () => {
       })
       setTimeout(() => session.calling.notificationHandler(_stateNotificationCreated))
       setTimeout(() => session.calling.notificationHandler(_stateNotificationEnded))
+    })
+
+    const _stateNotificationFirstCallCreated = JSON.parse(`{"event_type":"calling.call.state","params":{"call_state":"created","created_by":"dial","tag":"mocked-uuid","call_id":"call-id-1","node_id":"node-id","device":{"type":"phone","params":{"from_number":"1234","to_number":"5678","timeout":30}}}}`)
+    const _stateNotificationSecondCallCreated = JSON.parse(`{"event_type":"calling.call.state","params":{"call_state":"created","created_by":"dial","tag":"mocked-uuid","call_id":"call-id-2","node_id":"node-id","device":{"type":"phone","params":{"from_number":"9123","to_number":"8456","timeout":30}}}}`)
+    const _stateNotificationFirstCallAnswered = JSON.parse(`{"event_type":"calling.call.state","params":{"call_state":"answered","created_by":"dial","tag":"mocked-uuid","call_id":"call-id-1","node_id":"node-id","device":{"type":"phone","params":{"from_number":"1234","to_number":"5678","timeout":30}}}}`)
+    const _dialNotificationFirstCallAnswered = JSON.parse(`{"event_type":"calling.call.dial","params":{"dial_state":"answered","tag":"mocked-uuid","node_id":"node-id","call":{"call_id":"call-id-1","node_id":"node-id","tag":"mocked-uuid","device":{"type":"phone","params":{"from_number":"1234","to_number":"5678","timeout":30}}}}}`)
+    const _stateNotificationFirstCallEnded = JSON.parse(`{"event_type":"calling.call.state","params":{"call_state":"ended","tag":"mocked-uuid","call_id":"call-id-1","node-id":"node-id","device":{"type":"phone","params":{"from_number":"1234","to_number":"5678","timeout":30}}}}`)
+    const _stateNotificationSecondCallEnded = JSON.parse(`{"event_type":"calling.call.state","params":{"call_state":"ended","tag":"mocked-uuid","call_id":"call-id-2","node-id":"node-id","device":{"type":"phone","params":{"from_number":"9123","to_number":"8456","timeout":30}}}}`)
+    const _dialNotificationFailed = JSON.parse(`{"event_type":"calling.call.dial","params":{"dial_state":"failed","tag":"mocked-uuid","node_id":"node-id"}}`)
+    
+    const devices: DeepArray<IMakeCallParams> = [ 
+      { type: "phone", from: '1234', to: '5678', timeout: 30  },
+      { type: "phone", from: '9123', to: '8456', timeout: 30  },
+    ]
+
+    it('should wait for one device to answer while calling to multiple device', done => {
+      session.calling.dial(devices).then(result => {
+        expect(result).toBeInstanceOf(DialResult)
+        expect(result.successful).toBe(true)
+        expect(result.event.name).toEqual('answered')
+        expect(result.call).toBe(session.calling.getCallById('call-id-1'))
+        done()
+      })
+
+      session.calling.notificationHandler(_stateNotificationFirstCallCreated)
+      session.calling.notificationHandler(_stateNotificationSecondCallCreated)
+      session.calling.notificationHandler(_stateNotificationFirstCallAnswered)
+      session.calling.notificationHandler(_dialNotificationFirstCallAnswered)
+    })
+
+    it('should wait for all calls to be declined while calling to multiple device', done => {
+      session.calling.dial(devices).then(result => {
+        expect(result).toBeInstanceOf(DialResult)
+        expect(result.successful).toBe(false)
+        expect(result.event.name).toBe('failed')
+        done()
+      })
+      session.calling.notificationHandler(_stateNotificationFirstCallCreated)
+      session.calling.notificationHandler(_stateNotificationSecondCallCreated)
+      session.calling.notificationHandler(_stateNotificationFirstCallEnded)
+      session.calling.notificationHandler(_stateNotificationSecondCallEnded)
+      session.calling.notificationHandler(_dialNotificationFailed)
     })
   })
 

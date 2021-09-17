@@ -3,10 +3,12 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [2.4.0] - 2021-09-17
+
 ### Added
-- Call `disconnect()` method.
-- Allowing to `connect()` to SIP device
+- Call `disconnect()` method to disconnect two legs.
+- Allowing to `call.connect()` with a SIP device.
+- Added support to dial multiple devices simultaneous.
 
 ## [2.3.4] - 2021-07-19
 ### Added

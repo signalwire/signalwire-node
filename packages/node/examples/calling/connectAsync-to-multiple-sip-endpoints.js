@@ -1,4 +1,3 @@
-const { allowedNodeEnvironmentFlags } = require('process')
 const { RelayConsumer } = require('../..')
 
 const consumer = new RelayConsumer({
@@ -28,8 +27,6 @@ const consumer = new RelayConsumer({
         timeout: 30
       }
     ]);
-
-    console.log(connectAction.result.peer);
 
     let peer;
 

@@ -1,30 +1,33 @@
 import { BaseComponent } from './BaseComponent'
-import { CallNotification, CallState, CallMethod } from '../../../util/constants/relay'
+import { CallNotification, CallMethod, DialState } from '../../../util/constants/relay'
 import Event from '../Event'
-
+import { DialPayload } from '../../../util/interfaces'
 export class Dial extends BaseComponent {
-  public eventType: string = CallNotification.State
-  public method: string = CallMethod.Begin
+  public eventType: string = CallNotification.Dial
+  public method: string = CallMethod.Dial
   public controlId: string = this.call.tag
 
   get payload(): any {
-    return {
+    const payload: DialPayload = {
       tag: this.call.tag,
-      device: this.call.device
+      devices: this.call.devices ?? [[this.call.device]]
     }
+    if (this.call.region) {
+      payload.region = this.call.region
+    }
+    return payload
   }
 
   notificationHandler(params: any): void {
-    this.state = params.call_state
-
-    const events: string[] = [CallState.Answered, CallState.Ending, CallState.Ended]
-    this.completed = events.includes(this.state)
+    const { dial_state, call } = params
+    this.state = dial_state
+    this.completed = this._eventsToWait.includes(this.state)
     if (this.completed) {
-      this.successful = this.state === CallState.Answered
+      this.successful = this.state === DialState.Answered
       this.event = new Event(this.state, params)
     }
 
-    if (this._hasBlocker() && this._eventsToWait.includes(this.state)) {
+    if (this._hasBlocker() && this.completed) {
       this.blocker.resolve()
     }
   }

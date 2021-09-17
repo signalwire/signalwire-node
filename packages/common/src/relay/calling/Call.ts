@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid'
 import logger from '../../util/logger'
 import { Execute } from '../../messages/Blade'
-import { CallState, DisconnectReason, DEFAULT_CALL_TIMEOUT, CallNotification, CallRecordState, CallPlayState, CallPlayType, CallPromptState, CallConnectState, CALL_STATES, CallFaxState, CallDetectState, CallDetectType, CallTapState, SendDigitsState } from '../../util/constants/relay'
+import { CallState, DisconnectReason, DEFAULT_CALL_TIMEOUT, CallNotification, CallRecordState, CallPlayState, CallPlayType, CallPromptState, CallConnectState, CALL_STATES, CallFaxState, CallDetectState, CallDetectType, CallTapState, SendDigitsState, DialState } from '../../util/constants/relay'
 import { ICall, ICallOptions, ICallDevice, IMakeCallParams, ICallingPlay, ICallingPlayParams, ICallingCollect, DeepArray, ICallingDetect, ICallingTapTap, ICallingTapDevice, ICallingRecord, IRelayCallingPlay, ICallingPlayRingtone, ICallingPlayTTS, ICallingCollectAudio, ICallingCollectTTS, ICallingTapFlat, ICallingCollectRingtone, ICallingConnectParams, ICallPeer, SipHeader } from '../../util/interfaces'
 import { prepareRecordParams, preparePlayParams, preparePlayAudioParams, preparePromptParams, preparePromptAudioParams, preparePromptTTSParams, prepareTapParams, preparePromptRingtoneParams, prepareConnectParams } from '../helpers'
 import Calling from './Calling'
@@ -9,7 +9,6 @@ import { isFunction } from '../../util/helpers'
 import { Answer, Await, BaseComponent, Connect, Detect, Dial, FaxReceive, FaxSend, Hangup, Play, Prompt, Record, SendDigits, Tap, Disconnect } from './components'
 import { RecordAction, PlayAction, PromptAction, ConnectAction, FaxAction, DetectAction, TapAction, SendDigitsAction } from './actions'
 import { HangupResult, RecordResult, AnswerResult, PlayResult, PromptResult, ConnectResult, DialResult, FaxResult, DetectResult, TapResult, SendDigitsResult, DisconnectResult } from './results'
-
 export default class Call implements ICall {
   public id: string
   public tag: string = uuidv4()
@@ -28,6 +27,10 @@ export default class Call implements ICall {
     const { call_id, node_id } = options
     this.id = call_id
     this.nodeId = node_id
+    if (!this.device && this.devices && !this.isMultiDial) {
+      // @ts-ignore
+      this.setOptions({ device: this.devices.flat(Infinity)[0] })
+    }
     this.amd = this.detectAnsweringMachine.bind(this)
     this.amdAsync = this.detectAnsweringMachineAsync.bind(this)
     this.relayInstance.addCall(this)
@@ -56,6 +59,10 @@ export default class Call implements ICall {
 
   get device(): ICallDevice {
     return this.options.device
+  }
+
+  get devices(): DeepArray<ICallDevice> {
+    return this.options.devices
   }
 
   get ready(): boolean {
@@ -103,6 +110,15 @@ export default class Call implements ICall {
     return null
   }
 
+  get region(): string {
+    return this.options.region
+  }
+
+  get isMultiDial(): boolean {
+    // @ts-ignore
+    return !this.device && this.devices?.flat(Infinity).length > 1
+  }
+
   setOptions(opts: ICallOptions) {
     this.options = { ...this.options, ...opts }
   }
@@ -119,8 +135,7 @@ export default class Call implements ICall {
   async dial() {
     const component = new Dial(this)
     this._addComponent(component)
-    await component._waitFor(CallState.Answered, CallState.Ending, CallState.Ended)
-
+    await component._waitFor(DialState.Answered, DialState.Failed)
     return new DialResult(component)
   }
 
@@ -516,6 +531,23 @@ export default class Call implements ICall {
       this._terminateComponents(params)
       this.relayInstance.removeCall(this)
     }
+  }
+
+  _dialChange(params: any) {
+    const { dial_state, call } = params
+    switch (dial_state) {
+      case DialState.Answered:
+        if (call) {
+          this.setOptions(call)
+          this.id = call.call_id
+          this.nodeId = call.node_id
+        }
+        break
+      // case DialState.Failed:
+      //   break
+    }
+
+    this._notifyComponents(CallNotification.Dial, this.tag, params)
   }
 
   _connectChange(params: { connect_state: string, peer?: ICallPeer }) {

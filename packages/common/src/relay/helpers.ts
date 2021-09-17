@@ -1,10 +1,15 @@
-import { ICallDevice, IMakeCallParams, DeepArray, ICallingRecord, IRelayCallingRecord, IRelayCallingPlay, ICallingPlay, ICallingPlayParams, ICallingCollect, IRelayCallingCollect, ICallingCollectAudio, ICallingPlayTTS, ICallingCollectTTS, ICallingDetect, IRelayCallingDetect, ICallingTapTap, ICallingTapFlat, IRelayCallingTapTap, IRelayCallingTapDevice, ICallingTapDevice, ICallingCollectRingtone, ICallingPlayRingtone, ICallingConnectParams } from '../util/interfaces'
+import { ICallDevice, IMakeCallParams, DeepArray, ICallingRecord, IRelayCallingRecord, IRelayCallingPlay, ICallingPlay, ICallingPlayParams, ICallingCollect, IRelayCallingCollect, ICallingCollectAudio, ICallingPlayTTS, ICallingCollectTTS, ICallingTapTap, ICallingTapFlat, IRelayCallingTapTap, IRelayCallingTapDevice, ICallingTapDevice, ICallingCollectRingtone, ICallingPlayRingtone, ICallingConnectParams, IDialCallParams } from '../util/interfaces'
 import { CallPlayType, DEFAULT_CALL_TIMEOUT } from '../util/constants/relay'
 import { deepCopy, objEmpty } from '../util/helpers'
 
 interface DeviceAccumulator {
   devices: DeepArray<ICallDevice>,
   nested: boolean
+  options?: {
+    defaultFromNumber?: string
+    defaultTimeout?: number
+    validate?: boolean
+  }
 }
 
 export const prepareConnectParams = (params: [ICallingConnectParams] | DeepArray<IMakeCallParams>, callDevice: ICallDevice): [DeepArray<ICallDevice>, IRelayCallingPlay] => {
@@ -38,48 +43,12 @@ export const reduceConnectParams = (peers: DeepArray<IMakeCallParams>, callDevic
     defaultFromNumber = callDevice.params.from
   }
   // const { params: { from_number: defaultFromNumber, timeout: defaultTimeout } } = callDevice
-  const _reducer = (accumulator: DeviceAccumulator, peer: IMakeCallParams) => {
-    let tmp: ICallDevice = null
-    if (peer instanceof Array) {
-      tmp = peer.reduce(_reducer, { devices: [], nested: true }).devices
-    } else if (typeof peer === 'object') {
-      const { from, to, timeout } = peer
-      if (peer.type === 'phone') {
-        tmp = {
-          type: peer.type,
-          params: {
-            to_number: to,
-            from_number: from || defaultFromNumber,
-            timeout: timeout || defaultTimeout,
-          }
-        }
-      } else if (peer.type === 'sip') {
-        const { headers, codecs, webrtc_media } = peer
-        tmp = { type: peer.type, params: { to, from: from || defaultFromNumber } }
-
-        if (headers instanceof Array && headers.length) {
-          tmp.params.headers = headers
-        }
-
-        if (codecs) {
-          tmp.params.codecs = codecs
-        }
-
-        if (typeof webrtc_media === 'boolean') {
-          tmp.params.webrtc_media = webrtc_media
-        }
-
-        tmp.params.timeout = timeout || defaultTimeout
-      }
-    }
-    if (tmp) {
-      const castArray = accumulator.nested || peer instanceof Array
-      castArray ? accumulator.devices.push(tmp) : accumulator.devices.push([tmp])
-    }
-    return accumulator
-  }
   // @ts-ignore
-  const { devices } = peers.reduce(_reducer, { devices: [], nested: false })
+  const { devices } = peers.reduce(_reducer, {
+    devices: [],
+    nested: false,
+    options: { defaultFromNumber, defaultTimeout, validate: false }
+  })
   return devices
 }
 
@@ -233,10 +202,20 @@ export const prepareTapParams = (params: ICallingTapTap | ICallingTapFlat, devic
   return { tap, device: newDevice }
 }
 
-export const prepareDevice = (params: IMakeCallParams): ICallDevice => {
-  const { type, from, to, timeout = DEFAULT_CALL_TIMEOUT } = params
-  if (!type || !from || !to || !timeout) {
-    throw new TypeError(`Invalid parameters to create a new Call.`)
+export const prepareDialDevices = (params: DeepArray<IMakeCallParams>): DeepArray<ICallDevice> => {
+  // @ts-ignore
+  return params.reduce(_reducer, { devices: [], nested: false, options: { validate: true } }).devices
+}
+
+export const prepareDevice = (params: IMakeCallParams,
+  defaultFromNumber: string = null,
+  originalCallTimeout: number = null,
+  validate: boolean): ICallDevice => {
+  const { type, from = defaultFromNumber, to, timeout = originalCallTimeout ?? DEFAULT_CALL_TIMEOUT } = params
+  if (validate) {
+    if (!type || !to || !timeout || !from) {
+      throw new TypeError(`Invalid parameters to create a new Call.`)
+    }
   }
 
   let device: ICallDevice
@@ -246,6 +225,9 @@ export const prepareDevice = (params: IMakeCallParams): ICallDevice => {
   } else if (params.type === 'sip') {
     const { headers, codecs, webrtc_media } = params
     device = { type: params.type, params: { from, to } }
+    if (timeout) {
+      device.params.timeout = timeout
+    }
     if (codecs) {
       device.params.codecs = codecs
     }
@@ -259,10 +241,35 @@ export const prepareDevice = (params: IMakeCallParams): ICallDevice => {
   return device
 }
 
+export const isIDialCallParams = (params: IDialCallParams | IMakeCallParams | DeepArray<IMakeCallParams>): params is IDialCallParams => {
+  return (params as IDialCallParams).devices !== undefined
+}
+
 const _isICallingPlayParams = (params: ICallingPlayParams | IRelayCallingPlay | ICallingPlay): params is ICallingPlayParams => {
   return (params as ICallingPlayParams).media !== undefined
 }
 
 const _isICallingConnectParams = (params: ICallingConnectParams | DeepArray<IMakeCallParams> | IMakeCallParams): params is ICallingConnectParams => {
   return (params as ICallingConnectParams).devices !== undefined
+}
+
+const _reducer = (accumulator: DeviceAccumulator, peer: IMakeCallParams) => {
+  let tmp: ICallDevice = null
+  if (peer instanceof Array) {
+    const nestedAccumulator: DeviceAccumulator = { devices: [], nested: true }
+
+    if (accumulator.options) {
+      nestedAccumulator.options = accumulator.options
+    }
+
+    tmp = peer.reduce(_reducer, nestedAccumulator).devices
+  } else if (typeof peer === 'object') {
+    const { defaultFromNumber, defaultTimeout, validate } = accumulator.options ?? {}
+    tmp = prepareDevice(peer, defaultFromNumber, defaultTimeout, validate)
+  }
+  if (tmp) {
+    const castArray = accumulator.nested || peer instanceof Array
+    castArray ? accumulator.devices.push(tmp) : accumulator.devices.push([tmp])
+  }
+  return accumulator
 }

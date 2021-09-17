@@ -41,6 +41,7 @@ export enum CallConnectState {
 }
 
 export enum CallNotification {
+  Dial = 'calling.call.dial',
   State = 'calling.call.state',
   Receive = 'calling.call.receive',
   Connect = 'calling.call.connect',
@@ -57,6 +58,7 @@ export enum CallMethod {
   Answer = 'calling.answer',
   Begin = 'calling.begin',
   Connect = 'calling.connect',
+  Dial = 'calling.dial',
   Disconnect = 'calling.disconnect',
   End = 'calling.end',
   Record = 'calling.record',
@@ -67,6 +69,12 @@ export enum CallMethod {
   Detect = 'calling.detect',
   Tap = 'calling.tap',
   SendDigits = 'calling.send_digits',
+}
+
+export enum DialState {
+  Dialing = 'dialing',
+  Failed = 'failed',
+  Answered = 'answered',
 }
 
 export enum SendDigitsState {

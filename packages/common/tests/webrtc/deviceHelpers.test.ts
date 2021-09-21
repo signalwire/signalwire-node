@@ -136,24 +136,24 @@ describe('Helpers browser functions', () => {
     })
 
     describe('without camera permissions', () => {
-      it('should return device list removing devices without deviceId and label', async done => {
+      it('should return device list of devices having deviceId', async done => {
         // @ts-ignore
         navigator.mediaDevices.enumerateDevices.mockResolvedValueOnce(DEVICES_CAMERA_NO_LABELS)
         const devices = await getDevices()
-        expect(devices).toHaveLength(3)
-        expect(devices.every((d: MediaDeviceInfo) => (d.deviceId && d.label))).toBe(true)
+        expect(devices).toHaveLength(5)
+        expect(devices.every((d: MediaDeviceInfo) => (d.deviceId))).toBe(true)
         done()
       })
     })
 
 
     describe('without microphone permissions', () => {
-      it('should return device list removing devices without deviceId and label', async done => {
+      it('should return device list of devices having deviceId', async done => {
         // @ts-ignore
         navigator.mediaDevices.enumerateDevices.mockResolvedValueOnce(DEVICES_MICROPHONE_NO_LABELS)
         const devices = await getDevices()
-        expect(devices).toHaveLength(3)
-        expect(devices.every((d: MediaDeviceInfo) => (d.deviceId && d.label))).toBe(true)
+        expect(devices).toHaveLength(5)
+        expect(devices.every((d: MediaDeviceInfo) => (d.deviceId))).toBe(true)
         done()
       })
     })

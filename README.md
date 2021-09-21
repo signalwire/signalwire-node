@@ -16,4 +16,4 @@ Refer to the README of each package for further details.
 
 ## License
 
-Copyright © 2018-2019 SignalWire. It is free software, and may be redistributed under the terms specified in the MIT-LICENSE file.
+Copyright © 2018-2021 SignalWire. It is free software, and may be redistributed under the terms specified in the MIT-LICENSE file.

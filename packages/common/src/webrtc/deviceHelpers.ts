@@ -48,8 +48,8 @@ export const getDevices = async (kind: string = null, fullList: boolean = false)
     return devices
   }
   const found = []
-  return devices.filter(({ deviceId, label, kind, groupId }) => {
-    if (!deviceId || !label) {
+  return devices.filter(({ deviceId, kind, groupId }) => {
+    if (!deviceId) {
       return false
     }
     if (!groupId) {

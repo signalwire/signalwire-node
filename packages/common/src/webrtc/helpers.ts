@@ -1,7 +1,7 @@
 import logger from '../util/logger'
 import * as WebRTC from '../util/webrtc'
 import { roundToFixed } from '../util/helpers'
-import { assureDeviceId } from './deviceHelpers'
+import { assureDeviceId, getDevices } from './deviceHelpers'
 import { DeviceType } from './constants'
 import { CallOptions, IVertoCanvasInfo, ICanvasInfo, ICanvasLayout, IConferenceInfo, ILayout, IVertoLayout } from './interfaces'
 
@@ -255,4 +255,32 @@ export const mungeLayoutList = (layouts: IVertoLayout[], layoutGroups: IVertoLay
   })
   const groupList = layoutGroups.reduce(_layoutReducer, [])
   return groupList.concat(normalList).sort(_layoutCompare)
+}
+
+
+export const getDeviceIdFromTrack = async (track: MediaStreamTrack) => {
+  const { deviceId, groupId } = track.getSettings()
+
+  if (groupId) {
+    // check against device list and if we found only one device, pick that device instead of deviceId
+    const kind = track.kind === 'audio' ? 'audioinput' : 'videoinput'
+    const devices = await getDevices(kind, true)
+
+    const deviceMap = new Map()
+
+    devices.forEach(device => {
+      if (device.groupId) {
+        const ids = deviceMap.get(device.groupId) ?? []
+        ids.push(device.deviceId)
+        deviceMap.set(device.groupId, ids)
+      }
+    })
+
+    const ids = deviceMap.get(groupId) ?? []
+    if (ids?.length === 1) {
+      return ids[0]
+    }
+  }
+
+  return deviceId
 }

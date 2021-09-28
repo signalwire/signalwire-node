@@ -200,12 +200,20 @@ export default abstract class WebRTCCall {
     return this.peer ? this.peer.getDeviceId('video') : null
   }
 
+  getCameraId(): Promise<string> {
+    return this.peer ? this.peer.getSaferDeviceId('video') : Promise.resolve(null)
+  }
+
   get cameraLabel() {
     return this.peer ? this.peer.getDeviceLabel('video') : null
   }
 
   get microphoneId() {
     return this.peer ? this.peer.getDeviceId('audio') : null
+  }
+
+  getMicrophoneId(): Promise<string> {
+    return this.peer ? this.peer.getSaferDeviceId('audio') : Promise.resolve(null)
   }
 
   get microphoneLabel() {

@@ -1,6 +1,6 @@
 import logger from '../util/logger'
 import SDPUtils from 'sdp'
-import { getUserMedia, getMediaConstraints } from './helpers'
+import { getUserMedia, getMediaConstraints, getDeviceIdFromTrack } from './helpers'
 import { sdpStereoHack, sdpBitrateHack, sdpMediaOrderHack } from './sdpHelpers'
 import { SwEvent } from '../util/constants'
 import { PeerType, State } from './constants'
@@ -132,6 +132,18 @@ export default class RTCPeer {
       }
       const { deviceId = null } = sender.track.getSettings()
       return deviceId
+    } catch (error) {
+      logger.error('RTCPeer getDeviceId error', kind, error)
+    }
+  }
+
+  async getSaferDeviceId(kind: string) {
+    try {
+      const sender = this._getSenderByKind(kind)
+      if (!sender || !sender.track) {
+        return null
+      }
+      return await getDeviceIdFromTrack(sender.track)
     } catch (error) {
       logger.error('RTCPeer getDeviceId error', kind, error)
     }

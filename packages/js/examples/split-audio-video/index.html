@@ -311,7 +311,7 @@
       const destinationNumber = document.getElementById('number').value
       const params = {
         destinationNumber: destinationNumber, // required!
-        audio: document.getElementById('audio').checked,
+        audio: { deviceId: "default" },
         video: document.getElementById('video').checked ? { width: { ideal: 1280 }, height: { ideal: 720 } } : false,
         experimental: true,  // want to try latests api
       };

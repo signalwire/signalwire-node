@@ -363,7 +363,8 @@ export default class RTCPeer {
         const errorObj = new Error(RTCErrorCode.DeviceError)
         // @ts-ignore
         errorObj.details = error
-        return this._rejectPeerStart(errorObj)
+        this._rejectPeerStart(errorObj)
+        return this.call.setState(State.Destroy)
       }
 
       const { localElement, localStream = null, screenShare } = this.options

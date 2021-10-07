@@ -51,6 +51,12 @@ export enum Notification {
   ConferenceListDelete = 'conferenceListDelete',
 }
 
+export enum RTCErrorCode {
+  IncompatibleDestination = 'INCOMPATIBLE_DESTINATION',
+  IceGatheringFailed = 'ICE_GATHERING_FAILED',
+  DeviceError = 'DEVICE_ERROR',
+}
+
 export const DEFAULT_CALL_OPTIONS: CallOptions = {
   destinationNumber: '',
   remoteCallerName: 'Outbound Call',

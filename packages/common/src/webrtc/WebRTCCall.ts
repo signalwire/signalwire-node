@@ -5,7 +5,7 @@ import BaseMessage from '../messages/BaseMessage'
 import RTCPeer from './RTCPeer'
 import { Bye, Info, Modify } from '../messages/Verto'
 import { SwEvent, VERTO_PROTOCOL } from '../util/constants'
-import { State, DEFAULT_CALL_OPTIONS, PeerType, VertoMethod, Notification, Direction, ConferenceAction } from './constants'
+import { State, DEFAULT_CALL_OPTIONS, PeerType, VertoMethod, Notification, Direction, ConferenceAction, RTCErrorCode } from './constants'
 import { trigger, register, deRegisterAll, deRegister } from '../services/Handler'
 import { enableAudioTracks, disableAudioTracks, toggleAudioTracks, enableVideoTracks, disableVideoTracks, toggleVideoTracks, checkIsDirectCall, mutateCanvasInfoData, destructSubscribeResponse } from './helpers'
 import { objEmpty, isFunction } from '../util/helpers'
@@ -340,13 +340,33 @@ export default abstract class WebRTCCall {
   }
 
   invite() {
-    this.direction = Direction.Outbound
-    this.peer = new RTCPeer(this, PeerType.Offer, this.options)
+    return new Promise(async (resolve, reject) => {
+      this.direction = Direction.Outbound
+      this.peer = new RTCPeer(this, PeerType.Offer, this.options)
+      try {
+        await this.peer.start()
+
+        resolve(this)
+      } catch (error) {
+        logger.error(`Invite failed ${this.id}`, error)
+        reject(error)
+      }
+    })
   }
 
   answer() {
-    this.direction = Direction.Inbound
-    this.peer = new RTCPeer(this, PeerType.Answer, this.options)
+    return new Promise(async (resolve, reject) => {
+      this.direction = Direction.Inbound
+      this.peer = new RTCPeer(this, PeerType.Answer, this.options)
+      try {
+        await this.peer.start()
+
+        resolve(this)
+      } catch (error) {
+        logger.error(`Answer failed ${this.id}`, error)
+        reject(error)
+      }
+    })
   }
 
   async hangup(params?: IHangupParams) {
@@ -777,11 +797,14 @@ export default abstract class WebRTCCall {
   }
 
   private _hangup(params: IHangupParams = {}) {
-    const { cause = 'NORMAL_CLEARING', code = '16', redirectDestination = null } = params
+    const { cause = 'NORMAL_CLEARING', causeCode, code = '16', redirectDestination = null } = params
     this.cause = cause
     this.causeCode = code
     if (redirectDestination && this.trying) {
       return this.peer.executeInvite()
+    }
+    if (causeCode || cause === RTCErrorCode.IncompatibleDestination) {
+      this.peer.stop()
     }
     this.setState(State.Hangup)
   }

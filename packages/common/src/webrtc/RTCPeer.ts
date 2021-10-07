@@ -364,7 +364,7 @@ export default class RTCPeer {
         // @ts-ignore
         errorObj.details = error
         this._rejectPeerStart(errorObj)
-        return this.call.setState(State.Destroy)
+        return this.call.setState(State.Hangup)
       }
 
       const { localElement, localStream = null, screenShare } = this.options

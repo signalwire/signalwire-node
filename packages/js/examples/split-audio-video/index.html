@@ -311,12 +311,20 @@
       const destinationNumber = document.getElementById('number').value
       const params = {
         destinationNumber: destinationNumber, // required!
-        audio: document.getElementById('audio').checked,
+        audio: document.getElementById('audio').checked ? { deviceId: { exact: 'default' } } : false,
         video: document.getElementById('video').checked ? { width: { ideal: 1280 }, height: { ideal: 720 } } : false,
         experimental: true,  // want to try latests api
       };
 
-      currentCall = client.newCall(params);
+      client.newCall(params)
+        .then(call => {
+          console.log('Call Success', call)
+          currentCall = call
+        })
+        .catch(error => {
+          console.error('Call Error', error.message, error.details)
+        })
+
     }
 
     /**

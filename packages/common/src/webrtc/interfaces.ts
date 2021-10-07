@@ -141,6 +141,7 @@ export interface ICanvasLayout {
 export interface IHangupParams {
   code?: string
   cause?: string
+  causeCode?: number
   redirectDestination?: any
 }
 

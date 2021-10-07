@@ -3,7 +3,7 @@ import SDPUtils from 'sdp'
 import { getUserMedia, getMediaConstraints } from './helpers'
 import { sdpStereoHack, sdpBitrateHack, sdpMediaOrderHack } from './sdpHelpers'
 import { SwEvent } from '../util/constants'
-import { PeerType, State } from './constants'
+import { PeerType, RTCErrorCode, State } from './constants'
 import WebRTCCall from './WebRTCCall'
 import { attachMediaStream, muteMediaElement, sdpToJsonHack, RTCPeerConnection, streamIsValid, buildAudioElementByTrack, buildVideoElementByTrack, stopTrack } from '../util/webrtc'
 import { CallOptions } from './interfaces'
@@ -16,6 +16,9 @@ export default class RTCPeer {
   private _iceTimeout = null
   private _negotiating = false
 
+  private _resolvePeerStart: (data?: unknown) => void
+  private _rejectPeerStart: (error: unknown) => void
+
   constructor(
     public call: WebRTCCall,
     public type: PeerType,
@@ -24,7 +27,6 @@ export default class RTCPeer {
     logger.info('New Peer with type:', this.type, 'Options:', this.options)
 
     this._onIce = this._onIce.bind(this)
-    this._init()
   }
 
   get isOffer() {
@@ -252,9 +254,19 @@ export default class RTCPeer {
     try {
       const type = this.isOffer ? PeerType.Answer : PeerType.Offer
       await this._setRemoteDescription({ sdp, type })
+
+      /**
+       * Resolve the start() method only for Offer
+       * because for Answer we need to reply to FS
+       * and wait for the success signaling
+       */
+      if (this.isOffer) {
+        this._resolvePeerStart()
+      }
     } catch (error) {
       logger.error(`Error handling remote SDP on call ${this.options.id}:`, error)
       this.call.hangup()
+      this._rejectPeerStart(error)
     }
   }
 
@@ -266,166 +278,186 @@ export default class RTCPeer {
     })
   }
 
-  private async _init() {
-    this.instance = RTCPeerConnection(this.config)
+  start() {
+    return new Promise(async (resolve, reject) => {
 
-    this.instance.onsignalingstatechange = event => {
-      logger.info('signalingState:', this.instance.signalingState)
+      this._resolvePeerStart = resolve
+      this._rejectPeerStart = reject
 
-      switch (this.instance.signalingState) {
-        case 'stable':
-          // Workaround to skip nested negotiations
-          // Chrome bug: https://bugs.chromium.org/p/chromium/issues/detail?id=740501
-          this._negotiating = false
-          break
-        case 'closed':
-          this.instance = null
-          break
-        default:
-          this._negotiating = true
-      }
+      this.instance = RTCPeerConnection(this.config)
 
-    }
+      this.instance.onsignalingstatechange = event => {
+        logger.info('signalingState:', this.instance.signalingState)
 
-    this.instance.addEventListener('connectionstatechange', (event) => {
-      logger.info('connectionState:', this.instance.connectionState)
-      // switch(this.instance.connectionState) {
-      //   case 'new':
-      //     // setOnlineStatus('Connecting...');
-      //     break
-      //   case 'connected':
-      //     // setOnlineStatus('Online');
-      //     break
-      //   case 'disconnected':
-      //     // setOnlineStatus('Disconnecting...');
-      //     break
-      //   case 'closed':
-      //     // setOnlineStatus('Offline');
-      //     break
-      //   case 'failed':
-      //     // setOnlineStatus('Error');
-      //     break
-      //   default:
-      //     // setOnlineStatus('Unknown');
-      //     break
-      // }
-    }, false)
-
-    this.instance.onnegotiationneeded = event => {
-      logger.info('Negotiation needed event')
-      this.startNegotiation()
-    }
-
-    this.instance.addEventListener('track', (event: RTCTrackEvent) => {
-      if (this.hasExperimentalFlag) {
-        this._buildMediaElementByTrack(event)
-        const notification = { type: 'trackAdd', event }
-        this.call._dispatchNotification(notification)
-      }
-
-      if (this.isSfu) {
-        const notification = { type: 'trackAdd', event }
-        this.call._dispatchNotification(notification)
-      }
-      this.options.remoteStream = event.streams[0]
-      const { remoteElement, remoteStream, screenShare } = this.options
-      if (screenShare === false) {
-        attachMediaStream(remoteElement, remoteStream)
-      }
-    })
-
-    // @ts-expect-error
-    this.instance.addEventListener('addstream', (event: MediaStreamEvent) => {
-      this.options.remoteStream = event.stream
-    })
-
-    this.options.localStream = await this._retrieveLocalStream().catch(error => {
-      trigger(this.options.id, error, SwEvent.MediaError)
-      return null
-    })
-
-    const { localElement, localStream = null, screenShare } = this.options
-    if (streamIsValid(localStream)) {
-
-      const audioTracks = localStream.getAudioTracks()
-      logger.info('Local audio tracks: ', audioTracks)
-      const videoTracks = localStream.getVideoTracks()
-      logger.info('Local video tracks: ', videoTracks)
-      // FIXME: use transceivers way only for offer - when answer gotta match mid from the ones from SRD
-      if (this.isOffer && typeof this.instance.addTransceiver === 'function') {
-        // Use addTransceiver
-
-        audioTracks.forEach(track => {
-          this.options.userVariables.microphoneLabel = track.label
-          this.instance.addTransceiver(track, {
-            direction: 'sendrecv',
-            streams: [ localStream ],
-          })
-        })
-
-        const transceiverParams: RTCRtpTransceiverInit = {
-          direction: 'sendrecv',
-          streams: [ localStream ],
+        switch (this.instance.signalingState) {
+          case 'stable':
+            // Workaround to skip nested negotiations
+            // Chrome bug: https://bugs.chromium.org/p/chromium/issues/detail?id=740501
+            this._negotiating = false
+            break
+          case 'closed':
+            this.instance = null
+            break
+          default:
+            this._negotiating = true
         }
-        if (this.isSimulcast) {
-          const rids = ['0', '1', '2']
-          transceiverParams.sendEncodings = rids.map(rid => ({
-            active: true,
-            rid: rid,
-            scaleResolutionDownBy: (Number(rid) * 6 || 1.0),
-          }))
+
+      }
+
+      this.instance.addEventListener('connectionstatechange', (event) => {
+        logger.info('connectionState:', this.instance.connectionState)
+        // switch(this.instance.connectionState) {
+        //   case 'new':
+        //     // setOnlineStatus('Connecting...');
+        //     break
+        //   case 'connected':
+        //     // setOnlineStatus('Online');
+        //     break
+        //   case 'disconnected':
+        //     // setOnlineStatus('Disconnecting...');
+        //     break
+        //   case 'closed':
+        //     // setOnlineStatus('Offline');
+        //     break
+        //   case 'failed':
+        //     // setOnlineStatus('Error');
+        //     break
+        //   default:
+        //     // setOnlineStatus('Unknown');
+        //     break
+        // }
+      }, false)
+
+      this.instance.onnegotiationneeded = event => {
+        logger.info('Negotiation needed event')
+        this.startNegotiation()
+      }
+
+      this.instance.addEventListener('track', (event: RTCTrackEvent) => {
+        if (this.hasExperimentalFlag) {
+          this._buildMediaElementByTrack(event)
+          const notification = { type: 'trackAdd', event }
+          this.call._dispatchNotification(notification)
         }
-        console.debug('Applying video transceiverParams', transceiverParams)
-        videoTracks.forEach(track => {
-          this.options.userVariables.cameraLabel = track.label
-          this.instance.addTransceiver(track, transceiverParams)
-        })
 
         if (this.isSfu) {
-          const { msStreamsNumber = 5 } = this.options
-          console.debug('Add ', msStreamsNumber, 'recvonly MS Streams')
-          transceiverParams.direction = 'recvonly'
-          for (let i = 0; i < Number(msStreamsNumber); i++) {
-            this.instance.addTransceiver('video', transceiverParams)
+          const notification = { type: 'trackAdd', event }
+          this.call._dispatchNotification(notification)
+        }
+        this.options.remoteStream = event.streams[0]
+        const { remoteElement, remoteStream, screenShare } = this.options
+        if (screenShare === false) {
+          attachMediaStream(remoteElement, remoteStream)
+        }
+      })
+
+      // @ts-expect-error
+      this.instance.addEventListener('addstream', (event: MediaStreamEvent) => {
+        this.options.remoteStream = event.stream
+      })
+
+      try {
+        this.options.localStream = await this._retrieveLocalStream()
+      } catch (error) {
+        // trigger(this.options.id, error, SwEvent.MediaError)
+        const errorObj = new Error(RTCErrorCode.DeviceError)
+        // @ts-ignore
+        errorObj.details = error
+        return this._rejectPeerStart(errorObj)
+      }
+
+      const { localElement, localStream = null, screenShare } = this.options
+      if (streamIsValid(localStream)) {
+
+        const audioTracks = localStream.getAudioTracks()
+        logger.info('Local audio tracks: ', audioTracks)
+        const videoTracks = localStream.getVideoTracks()
+        logger.info('Local video tracks: ', videoTracks)
+        // FIXME: use transceivers way only for offer - when answer gotta match mid from the ones from SRD
+        if (this.isOffer && typeof this.instance.addTransceiver === 'function') {
+          // Use addTransceiver
+
+          audioTracks.forEach(track => {
+            this.options.userVariables.microphoneLabel = track.label
+            this.instance.addTransceiver(track, {
+              direction: 'sendrecv',
+              streams: [ localStream ],
+            })
+          })
+
+          const transceiverParams: RTCRtpTransceiverInit = {
+            direction: 'sendrecv',
+            streams: [ localStream ],
           }
+          if (this.isSimulcast) {
+            const rids = ['0', '1', '2']
+            transceiverParams.sendEncodings = rids.map(rid => ({
+              active: true,
+              rid: rid,
+              scaleResolutionDownBy: (Number(rid) * 6 || 1.0),
+            }))
+          }
+          console.debug('Applying video transceiverParams', transceiverParams)
+          videoTracks.forEach(track => {
+            this.options.userVariables.cameraLabel = track.label
+            this.instance.addTransceiver(track, transceiverParams)
+          })
+
+          if (this.isSfu) {
+            const { msStreamsNumber = 5 } = this.options
+            console.debug('Add ', msStreamsNumber, 'recvonly MS Streams')
+            transceiverParams.direction = 'recvonly'
+            for (let i = 0; i < Number(msStreamsNumber); i++) {
+              this.instance.addTransceiver('video', transceiverParams)
+            }
+          }
+
+        } else if (typeof this.instance.addTrack === 'function') {
+          // Use addTrack
+
+          audioTracks.forEach(track => {
+            this.options.userVariables.microphoneLabel = track.label
+            this.instance.addTrack(track, localStream)
+          })
+
+          videoTracks.forEach(track => {
+            this.options.userVariables.cameraLabel = track.label
+            this.instance.addTrack(track, localStream)
+          })
+        } else {
+          // Fallback to legacy addStream ..
+          // @ts-ignore
+          this.instance.addStream(localStream)
         }
 
-      } else if (typeof this.instance.addTrack === 'function') {
-        // Use addTrack
+        if (screenShare === false) {
+          muteMediaElement(localElement)
+          attachMediaStream(localElement, localStream)
+        }
 
-        audioTracks.forEach(track => {
-          this.options.userVariables.microphoneLabel = track.label
-          this.instance.addTrack(track, localStream)
-        })
+      }
 
-        videoTracks.forEach(track => {
-          this.options.userVariables.cameraLabel = track.label
-          this.instance.addTrack(track, localStream)
-        })
+      if (this.isOffer) {
+        if (this.options.negotiateAudio) {
+          this._checkMediaToNegotiate('audio')
+        }
+        if (this.options.negotiateVideo) {
+          this._checkMediaToNegotiate('video')
+        }
       } else {
-        // Fallback to legacy addStream ..
-        // @ts-ignore
-        this.instance.addStream(localStream)
+        this.startNegotiation()
       }
 
-      if (screenShare === false) {
-        muteMediaElement(localElement)
-        attachMediaStream(localElement, localStream)
-      }
+    })
+  }
 
+  stop() {
+    if (this.instance) {
+      this.instance.close()
+      this.instance = null
     }
 
-    if (this.isOffer) {
-      if (this.options.negotiateAudio) {
-        this._checkMediaToNegotiate('audio')
-      }
-      if (this.options.negotiateVideo) {
-        this._checkMediaToNegotiate('video')
-      }
-    } else {
-      this.startNegotiation()
-    }
-    this._logTransceivers()
+    this._rejectPeerStart(new Error(RTCErrorCode.IncompatibleDestination))
   }
 
   private _checkMediaToNegotiate(kind: string) {
@@ -467,7 +499,7 @@ export default class RTCPeer {
     this.startNegotiation()
   }
 
-  private _sdpReady() {
+  private async _sdpReady() {
     clearTimeout(this._iceTimeout)
     this._iceTimeout = null
 
@@ -484,19 +516,25 @@ export default class RTCPeer {
       return
     }
     logger.info('LOCAL SDP \n', `Type: ${type}`, '\n\n', sdp)
-    switch (type) {
-      case PeerType.Offer:
-        if (this.call.active) {
-          this.executeUpdateMedia()
-        } else {
-          this.executeInvite()
+    try {
+      switch (type) {
+        case PeerType.Offer:
+          if (this.call.active) {
+            await this.executeUpdateMedia()
+          } else {
+            await this.executeInvite()
+          }
+          break
+        case PeerType.Answer: {
+          await this.executeAnswer()
+          this._resolvePeerStart()
         }
-        break
-      case PeerType.Answer:
-        this.executeAnswer()
-        break
-      default:
-        return logger.error(`Unknown SDP type: '${type}' on call ${this.options.id}`)
+          break
+        default:
+          throw new Error(`Unknown SDP type: '${type}' on call ${this.options.id}`)
+      }
+    } catch (error) {
+      this._rejectPeerStart(error)
     }
   }
 
@@ -553,6 +591,7 @@ export default class RTCPeer {
     const config = this.instance.getConfiguration()
     if (config.iceTransportPolicy === 'relay') {
       logger.info('RTCPeer already with `iceTransportPolicy: relay`')
+      this._rejectPeerStart(new Error(RTCErrorCode.IceGatheringFailed))
       this.call.setState(State.Destroy)
       return
     }

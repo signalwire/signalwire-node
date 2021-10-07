@@ -13,7 +13,7 @@ export default (instance: any) => {
       instance.sessionid = 'sessid'
       call = new Call(instance, { id: callId, destinationNumber: 'x3599', remoteCallerName: 'Js Client Test', remoteCallerNumber: '1234', callerName: 'Jest Client', callerNumber: '5678' })
       // @ts-ignore
-      call.peer = { onRemoteSdp: jest.fn() }
+      call.peer = { onRemoteSdp: jest.fn(), stop: jest.fn() }
       call.conferenceJoinHandler = jest.fn()
       call.conferencePartHandler = jest.fn()
       call.updateLogo = jest.fn()
@@ -73,6 +73,14 @@ export default (instance: any) => {
         VertoHandler(instance, payload)
         const msg = instance._wrapInExecute(new Result(44, 'verto.bye'))
         expect(Connection.mockSend).toHaveBeenLastCalledWith(msg)
+      })
+
+      it('should invoke peer.stop in case of INCOMPATIBLE_DESTINATION', () => {
+        const payload = JSON.parse(`{"jsonrpc":"2.0","id":44,"method":"verto.bye","params":{"callID":"${callId}","causeCode":16,"cause":"INCOMPATIBLE_DESTINATION"}}`)
+        VertoHandler(instance, payload)
+        const msg = instance._wrapInExecute(new Result(44, 'verto.bye'))
+        expect(Connection.mockSend).toHaveBeenLastCalledWith(msg)
+        expect(call.peer.stop).toHaveBeenCalled()
       })
     })
 

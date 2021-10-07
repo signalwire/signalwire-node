@@ -15,6 +15,7 @@ export const getUserMedia = async (constraints: MediaStreamConstraints): Promise
     return await WebRTC.getUserMedia(constraints)
   } catch (error) {
     logger.error('getUserMedia error: ', error)
+    error.triedConstraints = constraints
     throw error
   }
 }

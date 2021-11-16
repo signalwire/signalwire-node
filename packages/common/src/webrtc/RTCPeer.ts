@@ -265,6 +265,7 @@ export default class RTCPeer {
       }
     } catch (error) {
       logger.error(`Error handling remote SDP on call ${this.options.id}:`, error)
+      this.call.hangupError = error
       this.call.hangup()
       this._rejectPeerStart(error)
     }
@@ -363,7 +364,8 @@ export default class RTCPeer {
         const errorObj = new Error(RTCErrorCode.DeviceError)
         // @ts-ignore
         errorObj.details = error
-        this._rejectPeerStart(errorObj)
+        this.call.hangupError = errorObj
+        this._rejectPeerStart(this.call.hangupError)
         return this.call.setState(State.Hangup)
       }
 
@@ -458,7 +460,8 @@ export default class RTCPeer {
       this.instance = null
     }
 
-    this._rejectPeerStart(new Error(RTCErrorCode.IncompatibleDestination))
+    this.call.hangupError = new Error(RTCErrorCode.IncompatibleDestination)
+    this._rejectPeerStart(this.call.hangupError)
   }
 
   private _checkMediaToNegotiate(kind: string) {
@@ -535,7 +538,8 @@ export default class RTCPeer {
           throw new Error(`Unknown SDP type: '${type}' on call ${this.options.id}`)
       }
     } catch (error) {
-      this._rejectPeerStart(error)
+      this.call.hangupError = error
+      this._rejectPeerStart(this.call.hangupError)
     }
   }
 
@@ -592,7 +596,8 @@ export default class RTCPeer {
     const config = this.instance.getConfiguration()
     if (config.iceTransportPolicy === 'relay') {
       logger.info('RTCPeer already with `iceTransportPolicy: relay`')
-      this._rejectPeerStart(new Error(RTCErrorCode.IceGatheringFailed))
+      this.call.hangupError = new Error(RTCErrorCode.IceGatheringFailed)
+      this._rejectPeerStart(this.call.hangupError)
       this.call.setState(State.Destroy)
       return
     }

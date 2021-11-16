@@ -25,6 +25,7 @@ export default abstract class WebRTCCall {
   public options: CallOptions
   public cause: string
   public causeCode: string
+  public hangupError: Error
   public gotEarly = false
   public screenShare?: WebRTCCall
   public secondSource?: WebRTCCall

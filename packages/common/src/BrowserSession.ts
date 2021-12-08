@@ -410,6 +410,14 @@ export default abstract class BrowserSession extends BaseSession {
     }
   }
 
+  setVertoConference = (conf: IConferenceInfo) => {
+    this.conferences[conf.uuid] = new Conference(this, conf)
+  }
+
+  unsetVertoConference = (conf: IConferenceInfo) => {
+    delete this.conferences[conf.uuid]
+  }
+
   /**
    * @deprecated
    */

@@ -3,6 +3,10 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.8] - 2021-12-17
+### Fixed
+- Set the `sdpSemantics` value to "unified-plan" instead of legacy "plan-b".
+
 ## [1.2.7] - 2020-02-21
 ### Fixed
 - Remove default values for `googleMaxBitrate`, `googleMinBitrate` and `googleStartBitrate`.

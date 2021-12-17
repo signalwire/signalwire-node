@@ -141,7 +141,7 @@ export default class Peer {
   private _config(): RTCConfiguration {
     const { iceServers = [] } = this.options
     // @ts-ignore
-    const config: RTCConfiguration = { sdpSemantics: 'plan-b', bundlePolicy: 'max-compat', iceServers }
+    const config: RTCConfiguration = { sdpSemantics: 'unified-plan', bundlePolicy: 'max-compat', iceServers }
     logger.info('RTC config', config)
     return config
   }

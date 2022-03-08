@@ -166,15 +166,11 @@ export default class RTCPeer {
   restartIceWithRelayOnly() {
     try {
       const config = this.instance.getConfiguration()
-      if (config.iceTransportPolicy === 'relay') {
-        return console.warn('RTCPeer already with iceTransportPolicy relay only')
-      }
       const newConfig: RTCConfiguration = {
         ...config,
         iceTransportPolicy: 'relay',
       }
       this.instance.setConfiguration(newConfig)
-      // @ts-ignore
       this.instance.restartIce()
     } catch (error) {
       logger.error('RTCPeer restartIce error', error)
@@ -287,7 +283,15 @@ export default class RTCPeer {
 
       this.instance = RTCPeerConnection(this.config)
 
-      this.instance.onsignalingstatechange = event => {
+      this.instance.oniceconnectionstatechange = () => {
+        logger.info('iceConnectionState:', this.instance.iceConnectionState)
+      }
+
+      this.instance.onicegatheringstatechange = () => {
+        logger.info('iceGatheringState:', this.instance.iceGatheringState)
+      }
+
+      this.instance.onsignalingstatechange = () => {
         logger.info('signalingState:', this.instance.signalingState)
 
         switch (this.instance.signalingState) {
@@ -302,31 +306,33 @@ export default class RTCPeer {
           default:
             this._negotiating = true
         }
-
       }
 
+      let connectionStateTimer: ReturnType<typeof setTimeout>
+      const MAX_CONNECTION_STATE_TIMEOUT = 5000
       this.instance.addEventListener('connectionstatechange', (event) => {
         logger.info('connectionState:', this.instance.connectionState)
-        // switch(this.instance.connectionState) {
-        //   case 'new':
-        //     // setOnlineStatus('Connecting...');
-        //     break
-        //   case 'connected':
-        //     // setOnlineStatus('Online');
-        //     break
-        //   case 'disconnected':
-        //     // setOnlineStatus('Disconnecting...');
-        //     break
-        //   case 'closed':
-        //     // setOnlineStatus('Offline');
-        //     break
-        //   case 'failed':
-        //     // setOnlineStatus('Error');
-        //     break
-        //   default:
-        //     // setOnlineStatus('Unknown');
-        //     break
-        // }
+        switch (this.instance.connectionState) {
+          // case 'new':
+          //   break
+          case 'connecting':
+            connectionStateTimer = setTimeout(() => {
+              console.warn('connectionState timed out')
+              this.restartIceWithRelayOnly()
+            }, MAX_CONNECTION_STATE_TIMEOUT)
+            break
+          case 'connected':
+            clearTimeout(connectionStateTimer)
+            break
+          // case 'disconnected':
+          //   break
+          // case 'closed':
+          //   break
+          case 'failed':
+            clearTimeout(connectionStateTimer)
+            this.restartIceWithRelayOnly()
+            break
+        }
       }, false)
 
       this.instance.onnegotiationneeded = event => {
@@ -509,7 +515,7 @@ export default class RTCPeer {
 
     if (!this._sdpIsValid()) {
       logger.info('SDP ready but not valid')
-      this._forceNegotiation()
+      this._onIceTimeout()
       return
     }
 

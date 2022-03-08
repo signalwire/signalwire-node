@@ -171,6 +171,7 @@ export default class RTCPeer {
         iceTransportPolicy: 'relay',
       }
       this.instance.setConfiguration(newConfig)
+      // @ts-ignore
       this.instance.restartIce()
     } catch (error) {
       logger.error('RTCPeer restartIce error', error)

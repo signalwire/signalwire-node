@@ -336,7 +336,7 @@ export default class RTCPeer {
               this.restartIceWithRelayOnly()
             } else {
               logger.info('Half-open so force close our side')
-              // @ts-expect-error
+              // @ts-ignore
               this.call.session._closeConnection()
             }
             break

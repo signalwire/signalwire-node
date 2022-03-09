@@ -317,7 +317,7 @@ export default class RTCPeer {
           //   break
           case 'connecting':
             connectionStateTimer = setTimeout(() => {
-              console.warn('connectionState timed out')
+              logger.warn('connectionState timed out')
               this.restartIceWithRelayOnly()
             }, this.options.maxConnectionStateTimeout)
             break
@@ -329,10 +329,18 @@ export default class RTCPeer {
           //   break
           // case 'closed':
           //   break
-          case 'failed':
+          case 'failed': {
             clearTimeout(connectionStateTimer)
-            this.restartIceWithRelayOnly()
+            if (this.call.session.connected) {
+              logger.info('> Still connected so reinvite')
+              this.restartIceWithRelayOnly()
+            } else {
+              logger.info('Half-open so force close our side')
+              // @ts-expect-error
+              this.call.session._closeConnection()
+            }
             break
+          }
         }
       }, false)
 

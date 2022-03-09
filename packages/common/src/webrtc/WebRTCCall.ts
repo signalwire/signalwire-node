@@ -106,7 +106,7 @@ export default abstract class WebRTCCall {
   removeModeratorPin?(): void
   setConfLayoutMode?(value: string): void
 
-  constructor(protected session: BrowserSession, opts?: CallOptions) {
+  constructor(public session: BrowserSession, opts?: CallOptions) {
     const { iceServers, speaker: speakerId, micId, micLabel, camId, camLabel, localElement, remoteElement, mediaConstraints: { audio, video } } = session
     this.options = Object.assign({}, DEFAULT_CALL_OPTIONS, { audio, video, iceServers, localElement, remoteElement, micId, micLabel, camId, camLabel, speakerId }, opts)
 

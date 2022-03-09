@@ -45,6 +45,7 @@ export interface CallOptions {
   rtcPeerConfig?: { [key: string]: any }
   iceGatheringTimeout?: number
   maxIceGatheringTimeout?: number
+  maxConnectionStateTimeout?: number
 }
 
 export interface ICantinaUser {

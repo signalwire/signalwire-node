@@ -835,7 +835,7 @@ export default abstract class WebRTCCall {
       await this.peer.onRemoteSdp(params.sdp)
     }
     this.isDirect = checkIsDirectCall(params)
-    this.setState(State.Active)
+    // this.setState(State.Active)
   }
 
   private async _onVertoMedia(params: any) {

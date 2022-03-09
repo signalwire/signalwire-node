@@ -310,7 +310,6 @@ export default class RTCPeer {
       }
 
       let connectionStateTimer: ReturnType<typeof setTimeout>
-      const MAX_CONNECTION_STATE_TIMEOUT = 5000
       this.instance.addEventListener('connectionstatechange', (event) => {
         logger.info('connectionState:', this.instance.connectionState)
         switch (this.instance.connectionState) {
@@ -320,10 +319,11 @@ export default class RTCPeer {
             connectionStateTimer = setTimeout(() => {
               console.warn('connectionState timed out')
               this.restartIceWithRelayOnly()
-            }, MAX_CONNECTION_STATE_TIMEOUT)
+            }, this.options.maxConnectionStateTimeout)
             break
           case 'connected':
             clearTimeout(connectionStateTimer)
+            this.call.setState(State.Active)
             break
           // case 'disconnected':
           //   break

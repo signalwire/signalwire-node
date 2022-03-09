@@ -538,10 +538,11 @@ export default class RTCPeer {
     try {
       switch (type) {
         case PeerType.Offer:
-          if (this.call.active) {
-            await this.executeUpdateMedia()
-          } else {
+          // if (this.instance.connectionState === 'new') {
+          if (!this.instance.remoteDescription) {
             await this.executeInvite()
+          } else {
+            await this.executeUpdateMedia()
           }
           break
         case PeerType.Answer: {

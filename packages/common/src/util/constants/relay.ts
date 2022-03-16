@@ -52,6 +52,7 @@ export enum CallNotification {
   Detect = 'calling.call.detect',
   Tap = 'calling.call.tap',
   SendDigits = 'calling.call.send_digits',
+  Refer = 'calling.call.refer',
 }
 
 export enum CallMethod {
@@ -69,6 +70,7 @@ export enum CallMethod {
   Detect = 'calling.detect',
   Tap = 'calling.tap',
   SendDigits = 'calling.send_digits',
+  Refer = 'calling.refer',
 }
 
 export enum DialState {
@@ -129,6 +131,15 @@ export enum CallDetectState {
   Unknown = 'UNKNOWN',
   Ready = 'READY',
   NotReady = 'NOT_READY',
+}
+
+export enum CallReferState {
+  InProgress = 'inProgress',
+  Cancel = 'cancel',
+  Busy = 'busy',
+  NoAnswer = 'noAnswer',
+  Error = 'error',
+  Finished = 'finished',
 }
 
 export enum CallDetectType {

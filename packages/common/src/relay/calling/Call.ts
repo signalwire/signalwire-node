@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from 'uuid'
 import logger from '../../util/logger'
 import { Execute } from '../../messages/Blade'
 import { CallState, DisconnectReason, DEFAULT_CALL_TIMEOUT, CallNotification, CallRecordState, CallPlayState, CallPlayType, CallPromptState, CallConnectState, CALL_STATES, CallFaxState, CallDetectState, CallDetectType, CallTapState, SendDigitsState, DialState, CallReferState } from '../../util/constants/relay'
-import { ICall, ICallOptions, ICallDevice, IMakeCallParams, ICallingPlay, ICallingPlayParams, ICallingCollect, DeepArray, ICallingDetect, ICallingTapTap, ICallingTapDevice, ICallingRecord, IRelayCallingPlay, ICallingPlayRingtone, ICallingPlayTTS, ICallingCollectAudio, ICallingCollectTTS, ICallingTapFlat, ICallingCollectRingtone, ICallingConnectParams, ICallPeer, SipHeader } from '../../util/interfaces'
+import { ICall, ICallOptions, ICallDevice, IMakeCallParams, ICallingPlay, ICallingPlayParams, ICallingCollect, DeepArray, ICallingDetect, ICallingTapTap, ICallingTapDevice, ICallingRecord, IRelayCallingPlay, ICallingPlayRingtone, ICallingPlayTTS, ICallingCollectAudio, ICallingCollectTTS, ICallingTapFlat, ICallingCollectRingtone, ICallingConnectParams, ICallPeer, SipHeader, ReferParams } from '../../util/interfaces'
 import { prepareRecordParams, preparePlayParams, preparePlayAudioParams, preparePromptParams, preparePromptAudioParams, preparePromptTTSParams, prepareTapParams, preparePromptRingtoneParams, prepareConnectParams } from '../helpers'
 import Calling from './Calling'
 import { isFunction } from '../../util/helpers'
@@ -496,12 +496,8 @@ export default class Call implements ICall {
     return new SendDigitsAction(component)
   }
 
-  // FIXME: types
-  async refer(params: any): Promise<ReferResult> {
-    const device = {
-
-    }
-    const component = new Refer(this, device)
+  async refer(params: ReferParams): Promise<ReferResult> {
+    const component = new Refer(this, params)
     this._addComponent(component)
     /**
      * FIXME: Check for the events to wait for
@@ -511,7 +507,13 @@ export default class Call implements ICall {
     return new ReferResult(component)
   }
 
-  // FIXME: expose async version
+  async referAsync(params: ReferParams): Promise<ReferAction> {
+    const component = new Refer(this, params)
+    this._addComponent(component)
+    await component.execute()
+
+    return new ReferAction(component)
+  }
 
   /**
    * Registers a callback to dispatch when the 'event' occur.
@@ -633,22 +635,9 @@ export default class Call implements ICall {
   }
 
   _referChange(params: any) {
-    const { state
-    //  , sip_refer_to, sip_refer_response_code, sip_notify_response_code
-    } = params
-    // switch (state) {
-    //   case CallConnectState.Connected:
-    //     if (peer) {
-    //       this.setOptions({ peer })
-    //     }
-    //     break
-    //   case CallConnectState.Disconnected:
-    //     this.setOptions({ peer: undefined })
-    //     break
-    // }
     this._notifyComponents(CallNotification.Refer, this.tag, params)
     this._dispatchCallback('refer.stateChange')
-    this._dispatchCallback(`refer.${state}`)
+    this._dispatchCallback(`refer.${params.state}`)
   }
 
   private _notifyComponents(eventType: string, controlId: string, params: any): void {

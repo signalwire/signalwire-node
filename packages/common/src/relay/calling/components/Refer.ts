@@ -1,5 +1,5 @@
 import { BaseComponent } from './BaseComponent'
-import { CallingSipDevice } from '../../../util/interfaces'
+import { ReferParams } from '../../../util/interfaces'
 import { CallNotification, CallReferState, CallMethod } from '../../../util/constants/relay'
 import Call from '../Call'
 import Event from '../Event'
@@ -15,7 +15,7 @@ export class Refer extends BaseComponent {
 
   constructor(
     public call: Call,
-    public device: CallingSipDevice,
+    public params: ReferParams,
   ) {
     super(call)
   }
@@ -24,7 +24,10 @@ export class Refer extends BaseComponent {
     const tmp: any = {
       node_id: this.call.nodeId,
       call_id: this.call.id,
-      device: this.device
+      device: {
+        type: 'sip',
+        params: this.params
+      }
     }
     return tmp
   }

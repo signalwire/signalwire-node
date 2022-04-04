@@ -16,9 +16,9 @@ const WS_STATE = {
   CLOSING: 2,
   CLOSED: 3
 }
-const TIMEOUT_MS = 10 * 1000
 
 export default class Connection {
+  private _rpcTimeout = 10 * 1000
   private _wsClient: any = null
   private _host: string = 'wss://relay.signalwire.com'
   private _timers: { [id: string]: any } = {}
@@ -100,6 +100,9 @@ export default class Connection {
   }
 
   close() {
+    // Remove all the timers
+    Object.keys(this._timers).forEach(this._unsetTimer)
+
     if (this._wsClient) {
       isFunction(this._wsClient._beginClose) ? this._wsClient._beginClose() : this._wsClient.close()
     }
@@ -115,7 +118,7 @@ export default class Connection {
     this._timers[id] = setTimeout(() => {
       trigger(id, { error: { code: this.session.timeoutErrorCode, message: 'Timeout' } })
       this._unsetTimer(id)
-    }, TIMEOUT_MS)
+    }, this._rpcTimeout)
   }
 
   private _handleStringResponse(response: string) {

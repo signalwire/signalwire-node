@@ -101,7 +101,9 @@ export default class Connection {
 
   close() {
     // Remove all the timers
-    Object.keys(this._timers).forEach(this._unsetTimer)
+    Object.keys(this._timers).forEach((id) => {
+      this._unsetTimer(id)
+    })
 
     if (this._wsClient) {
       isFunction(this._wsClient._beginClose) ? this._wsClient._beginClose() : this._wsClient.close()

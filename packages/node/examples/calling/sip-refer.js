@@ -9,8 +9,6 @@ const consumer = new RelayConsumer({
     console.log('Consumer teardown. Cleanup..')
   },
   ready: async ({ client }) => {
-    client.__logger.setLevel(consumer.client.__logger.levels.DEBUG)
-
     const params = {
       type: 'sip',
       from: 'sip:user-2@example.com',
@@ -30,11 +28,11 @@ const consumer = new RelayConsumer({
     })
 
     // Refer to another SIP device
-    const { successful, event, referResponseCode, referNotifyCode } = await call.refer({ to: 'sip:user-3@example.com' })
-    if (successful) {
-      console.log('Success:', referNotifyCode, referResponseCode, event)
+    const referResult = await call.refer({ to: 'sip:user-3@example.com' })
+    if (referResult.successful) {
+      console.log('Success:', referResult.referTo, referResult.referNotifyCode, referResult.referResponseCode)
     } else {
-      console.error('Refer Error', event)
+      console.error('Refer Error', referResult.referNotifyCode, referResult.referResponseCode, referResult.event)
     }
 
     await call.hangup()

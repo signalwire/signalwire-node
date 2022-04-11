@@ -139,7 +139,7 @@ export enum CallReferState {
   Busy = 'busy',
   NoAnswer = 'noAnswer',
   Error = 'error',
-  Finished = 'finished',
+  Success = 'success',
 }
 
 export enum CallDetectType {

@@ -39,13 +39,9 @@ export class Refer extends BaseComponent {
     this.referResponseCode = params.sip_refer_response_code
     this.referNotifyCode = params.sip_notify_response_code
 
-    /**
-     * FIXME: check for a specific sip_notify_response_code in here.
-     */
-    this.completed = this.state !== CallReferState.Finished
+    this.completed = this.state !== CallReferState.InProgress
     if (this.completed) {
-      // FIXME: check for a specific sip_notify_response_code in here.
-      this.successful = params.sip_notify_response_code === '202'
+      this.successful = this.state === CallReferState.Success
       this.event = new Event(this.state, params)
     }
 

@@ -502,7 +502,7 @@ export default class Call implements ICall {
     /**
      * FIXME: Check for the events to wait for
      */
-    await component._waitFor(CallReferState.Finished, CallReferState.Error)
+    await component._waitFor(CallReferState.NoAnswer, CallReferState.Busy, CallReferState.Cancel, CallReferState.Success, CallReferState.Error)
 
     return new ReferResult(component)
   }

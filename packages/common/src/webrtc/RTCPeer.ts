@@ -38,7 +38,7 @@ export default class RTCPeer {
   }
 
   get isSimulcast() {
-    return this.options.simulcast === true
+    return this.options.simulcast !== false
   }
 
   get isSfu() {
@@ -408,12 +408,14 @@ export default class RTCPeer {
             streams: [ localStream ],
           }
           if (this.isSimulcast) {
-            const rids = ['0', '1', '2']
-            transceiverParams.sendEncodings = rids.map(rid => ({
-              active: true,
-              rid: rid,
-              scaleResolutionDownBy: (Number(rid) * 6 || 1.0),
-            }))
+            const rids = Array.isArray(this.options.simulcast) ? this.options.simulcast : [1, 4, 0]
+            transceiverParams.sendEncodings = rids
+              .filter(rid => Number(rid) >= 1)
+              .map((rid, index) => ({
+                active: true,
+                rid: String(index),
+                scaleResolutionDownBy: Number(rid),
+              }))
           }
           console.debug('Applying video transceiverParams', transceiverParams)
           videoTracks.forEach(track => {

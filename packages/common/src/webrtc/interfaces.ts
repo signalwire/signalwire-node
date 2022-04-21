@@ -35,7 +35,7 @@ export interface CallOptions {
   negotiateAudio?: boolean
   negotiateVideo?: boolean
   sfu?: boolean
-  simulcast?: boolean
+  simulcast?: boolean | number[]
   msStreamsNumber?: number
   requestTimeout?: number
   shakenCheck?: string

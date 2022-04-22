@@ -499,9 +499,6 @@ export default class Call implements ICall {
   async refer(params: ReferParams): Promise<ReferResult> {
     const component = new Refer(this, params)
     this._addComponent(component)
-    /**
-     * FIXME: Check for the events to wait for
-     */
     await component._waitFor(CallReferState.NoAnswer, CallReferState.Busy, CallReferState.Cancel, CallReferState.Success, CallReferState.Error)
 
     return new ReferResult(component)

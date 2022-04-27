@@ -226,7 +226,7 @@ export default class RTCPeer {
       if (this.isAnswer) {
         logger.info('Trying to generate answer')
         await this._setRemoteDescription({ sdp: this.options.remoteSdp, type: PeerType.Offer })
-        this._logTransceivers()
+        // this._logTransceivers()
         const answer = await this.instance.createAnswer({ voiceActivityDetection: false })
         await this._setLocalDescription(answer)
       }
@@ -268,13 +268,13 @@ export default class RTCPeer {
     }
   }
 
-  private _logTransceivers() {
-    logger.info('Number of transceivers:', this.instance.getTransceivers().length)
-    this.instance.getTransceivers().forEach((tr, index) => {
-      logger.info(`>> Transceiver [${index}]:`, tr.mid, tr.direction, tr.stopped)
-      logger.info(`>> Sender Params [${index}]:`, JSON.stringify(tr.sender.getParameters(), null, 2))
-    })
-  }
+  // private _logTransceivers() {
+  //   logger.info('Number of transceivers:', this.instance.getTransceivers().length)
+  //   this.instance.getTransceivers().forEach((tr, index) => {
+  //     logger.info(`>> Transceiver [${index}]:`, tr.mid, tr.direction, tr.stopped)
+  //     logger.info(`>> Sender Params [${index}]:`, JSON.stringify(tr.sender.getParameters(), null, 2))
+  //   })
+  // }
 
   start() {
     return new Promise(async (resolve, reject) => {

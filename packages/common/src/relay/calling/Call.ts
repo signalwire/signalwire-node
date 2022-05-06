@@ -1,14 +1,14 @@
 import { v4 as uuidv4 } from 'uuid'
 import logger from '../../util/logger'
 import { Execute } from '../../messages/Blade'
-import { CallState, DisconnectReason, DEFAULT_CALL_TIMEOUT, CallNotification, CallRecordState, CallPlayState, CallPlayType, CallPromptState, CallConnectState, CALL_STATES, CallFaxState, CallDetectState, CallDetectType, CallTapState, SendDigitsState, DialState } from '../../util/constants/relay'
-import { ICall, ICallOptions, ICallDevice, IMakeCallParams, ICallingPlay, ICallingPlayParams, ICallingCollect, DeepArray, ICallingDetect, ICallingTapTap, ICallingTapDevice, ICallingRecord, IRelayCallingPlay, ICallingPlayRingtone, ICallingPlayTTS, ICallingCollectAudio, ICallingCollectTTS, ICallingTapFlat, ICallingCollectRingtone, ICallingConnectParams, ICallPeer, SipHeader } from '../../util/interfaces'
+import { CallState, DisconnectReason, DEFAULT_CALL_TIMEOUT, CallNotification, CallRecordState, CallPlayState, CallPlayType, CallPromptState, CallConnectState, CALL_STATES, CallFaxState, CallDetectState, CallDetectType, CallTapState, SendDigitsState, DialState, CallReferState } from '../../util/constants/relay'
+import { ICall, ICallOptions, ICallDevice, IMakeCallParams, ICallingPlay, ICallingPlayParams, ICallingCollect, DeepArray, ICallingDetect, ICallingTapTap, ICallingTapDevice, ICallingRecord, IRelayCallingPlay, ICallingPlayRingtone, ICallingPlayTTS, ICallingCollectAudio, ICallingCollectTTS, ICallingTapFlat, ICallingCollectRingtone, ICallingConnectParams, ICallPeer, SipHeader, ReferParams } from '../../util/interfaces'
 import { prepareRecordParams, preparePlayParams, preparePlayAudioParams, preparePromptParams, preparePromptAudioParams, preparePromptTTSParams, prepareTapParams, preparePromptRingtoneParams, prepareConnectParams } from '../helpers'
 import Calling from './Calling'
 import { isFunction } from '../../util/helpers'
-import { Answer, Await, BaseComponent, Connect, Detect, Dial, FaxReceive, FaxSend, Hangup, Play, Prompt, Record, SendDigits, Tap, Disconnect } from './components'
-import { RecordAction, PlayAction, PromptAction, ConnectAction, FaxAction, DetectAction, TapAction, SendDigitsAction } from './actions'
-import { HangupResult, RecordResult, AnswerResult, PlayResult, PromptResult, ConnectResult, DialResult, FaxResult, DetectResult, TapResult, SendDigitsResult, DisconnectResult } from './results'
+import { Answer, Await, BaseComponent, Connect, Detect, Dial, FaxReceive, FaxSend, Hangup, Play, Prompt, Record, SendDigits, Tap, Disconnect, Refer } from './components'
+import { RecordAction, PlayAction, PromptAction, ConnectAction, FaxAction, DetectAction, TapAction, SendDigitsAction, ReferAction } from './actions'
+import { HangupResult, RecordResult, AnswerResult, PlayResult, PromptResult, ConnectResult, DialResult, FaxResult, DetectResult, TapResult, SendDigitsResult, DisconnectResult, ReferResult } from './results'
 export default class Call implements ICall {
   public id: string
   public tag: string = uuidv4()
@@ -496,6 +496,22 @@ export default class Call implements ICall {
     return new SendDigitsAction(component)
   }
 
+  async refer(params: ReferParams): Promise<ReferResult> {
+    const component = new Refer(this, params)
+    this._addComponent(component)
+    await component._waitFor(CallReferState.NoAnswer, CallReferState.Busy, CallReferState.Cancel, CallReferState.Success, CallReferState.Error)
+
+    return new ReferResult(component)
+  }
+
+  async referAsync(params: ReferParams): Promise<ReferAction> {
+    const component = new Refer(this, params)
+    this._addComponent(component)
+    await component.execute()
+
+    return new ReferAction(component)
+  }
+
   /**
    * Registers a callback to dispatch when the 'event' occur.
    * @param event - Event to listen to.
@@ -613,6 +629,12 @@ export default class Call implements ICall {
     this._notifyComponents(CallNotification.SendDigits, params.control_id, params)
     this._dispatchCallback(`sendDigits.stateChange`, params)
     this._dispatchCallback(`sendDigits.${params.state}`, params)
+  }
+
+  _referChange(params: any) {
+    this._notifyComponents(CallNotification.Refer, this.tag, params)
+    this._dispatchCallback('refer.stateChange', params)
+    this._dispatchCallback(`refer.${params.state}`, params)
   }
 
   private _notifyComponents(eventType: string, controlId: string, params: any): void {

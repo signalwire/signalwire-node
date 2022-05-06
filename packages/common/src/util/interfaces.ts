@@ -454,3 +454,8 @@ export interface DialPayload {
   devices: DeepArray<ICallDevice>
   region?: string
 }
+
+export interface ReferParams {
+  to: string
+  headers?: SipHeader[]
+}

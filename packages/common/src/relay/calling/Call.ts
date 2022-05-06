@@ -633,8 +633,8 @@ export default class Call implements ICall {
 
   _referChange(params: any) {
     this._notifyComponents(CallNotification.Refer, this.tag, params)
-    this._dispatchCallback('refer.stateChange')
-    this._dispatchCallback(`refer.${params.state}`)
+    this._dispatchCallback('refer.stateChange', params)
+    this._dispatchCallback(`refer.${params.state}`, params)
   }
 
   private _notifyComponents(eventType: string, controlId: string, params: any): void {

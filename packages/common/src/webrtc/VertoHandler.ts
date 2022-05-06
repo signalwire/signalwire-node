@@ -48,6 +48,9 @@ const _handleSessionEvent = (session: BrowserSession, eventData: any) => {
     case 'conference-info':
       call.handleConferenceInfo(eventData)
       break
+    case 'member-ms-state':
+      call.handleMemberMsState(eventData)
+      break
   }
 }
 

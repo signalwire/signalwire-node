@@ -30,6 +30,9 @@ export default function infoChannelHandler(session: BrowserSession, params: any)
     case 'member-talk-state':
       const { callID, memberID, talking } = eventData
       return _dispatch(session, { action: ConferenceAction.MemberTalkState, eventChannel, eventSerno, callID, memberID, talking }, callIds)
+    case 'member-ms-state':
+      console.warn('InfoChannel member-ms-state', params)
+      break
     case 'caption-info': {
       if (callIds.length) {
         callIds.forEach(callId => {

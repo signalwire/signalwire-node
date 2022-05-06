@@ -115,6 +115,7 @@ export enum ConferenceAction {
   ConferenceInfo = 'conferenceInfo',
   CaptionInfo = 'captionInfo',
   MemberTalkState = 'memberTalkState',
+  MemberMsState = 'memberMsState',
 }
 
 export enum DeviceType {

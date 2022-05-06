@@ -758,6 +758,10 @@ export default abstract class WebRTCCall {
     this._dispatchConferenceUpdate({ action: ConferenceAction.ConferenceInfo, conferenceState: destructConferenceState(conferenceState), messages })
   }
 
+  handleMemberMsState(params: any) {
+    this._dispatchConferenceUpdate({ action: ConferenceAction.MemberMsState, ...params })
+  }
+
   updateFromLaChannel(muted: boolean, vmuted: boolean) {
     this._laChannelAudioMuted = muted
     if (this._laChannelVideoMuted !== vmuted) {

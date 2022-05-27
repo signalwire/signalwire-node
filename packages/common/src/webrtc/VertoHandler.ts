@@ -3,10 +3,10 @@ import BrowserSession from '../BrowserSession'
 import Call from './Call'
 import { Result } from '../messages/Verto'
 import { SwEvent } from '../util/constants'
-import { VertoMethod, Notification, Direction } from './constants'
+import { VertoMethod, Notification, Direction, ConferenceAction } from './constants'
 import { trigger } from '../services/Handler'
 import { State } from './constants'
-import { checkIsDirectCall } from './helpers'
+import { checkIsDirectCall, destructConferenceState } from './helpers'
 
 const _handlePvtEvent = async (session: BrowserSession, pvtData: any) => {
   const { action, callID } = pvtData
@@ -31,8 +31,15 @@ const _handlePvtEvent = async (session: BrowserSession, pvtData: any) => {
 const _handleSessionEvent = (session: BrowserSession, eventData: any) => {
   const { contentType, callID } = eventData
   if (!callID || !session.calls.hasOwnProperty(callID)) {
+    switch (contentType) {
+      case 'conference-info': {
+        const { conferenceState, messages = [] } = eventData
+        return session.dispatchConferenceUpdate({ action: ConferenceAction.ConferenceInfo, conferenceState: destructConferenceState(conferenceState), messages })
+      }
+    }
     return logger.debug('Unhandled session event:', eventData)
   }
+
   const call = session.calls[callID]
   switch (contentType) {
     case 'layout-info':

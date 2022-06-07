@@ -4,7 +4,7 @@ import { setAgentName } from '../common/src/messages/blade/Connect'
 import CantinaAuth from '../common/src/webrtc/CantinaAuth'
 import VertoConference from '../common/src/webrtc/Conference'
 
-export const VERSION = '1.3.0-cantina.52'
+export const VERSION = '1.3.0-cantina.53'
 setAgentName(`JavaScript SDK/${VERSION}`)
 
 export {

@@ -38,7 +38,8 @@ export default class RTCPeer {
   }
 
   get isSimulcast() {
-    return this.options.simulcast !== false
+    const { simulcast } = this.options
+    return Array.isArray(simulcast) || simulcast === true
   }
 
   get isSfu() {

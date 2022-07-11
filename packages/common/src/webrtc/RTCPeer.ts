@@ -195,11 +195,15 @@ export default class RTCPeer {
   }
 
   private _getSenderByKind(kind: string) {
-    return this.instance.getSenders().find(({ track }) => (track && track.kind === kind))
+    if (this.instance) {
+      return this.instance.getSenders().find(({ track }) => (track && track.kind === kind))
+    }
   }
 
   private _getReceiverByKind(kind: string) {
-    return this.instance.getReceivers().find(({ track }) => (track && track.kind === kind))
+    if (this.instance) {
+      return this.instance.getReceivers().find(({ track }) => (track && track.kind === kind))
+    }
   }
 
   async startNegotiation(force = false) {

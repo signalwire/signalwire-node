@@ -11,12 +11,13 @@ type LoginOptions = {
     [key: string]: any
   }
   callIds?: string[]
+  resume?: any
 }
 
 class Login extends BaseRequest {
   method: string = 'login'
 
-  constructor({ login, passwd, sessionid, userVariables = {}, loginParams = {}, callIds = [] }: LoginOptions) {
+  constructor({ login, passwd, sessionid, userVariables = {}, loginParams = {}, callIds = [], resume }: LoginOptions) {
     super()
 
     const params: any = { login, passwd, userVariables, loginParams }
@@ -25,6 +26,9 @@ class Login extends BaseRequest {
     }
     if (callIds?.length) {
       params.callIds = callIds
+    }
+    if (resume) {
+      params.resume = resume
     }
     this.buildRequest({ method: this.method, params })
   }

@@ -166,20 +166,25 @@ export default class RTCPeer {
 
   restartIceWithRelayOnly() {
     try {
-      // Type must be Offer to send reinvite.
-      this.type = PeerType.Offer
-
+      logger.debug('Set iceTransportPolicy to "relay"')
       const config = this.instance.getConfiguration()
       const newConfig: RTCConfiguration = {
         ...config,
         iceTransportPolicy: 'relay',
       }
       this.instance.setConfiguration(newConfig)
-      // @ts-ignore
-      this.instance.restartIce()
+      this.restartIce()
     } catch (error) {
       logger.error('RTCPeer restartIce error', error)
     }
+  }
+
+  restartIce() {
+    logger.debug('Restart ICE')
+    // Type must be Offer to send reinvite.
+    this.type = PeerType.Offer
+
+    this.instance.restartIce()
   }
 
   async applyMediaConstraints(kind: string, constraints: MediaTrackConstraints) {
@@ -339,14 +344,9 @@ export default class RTCPeer {
           //   break
           case 'failed': {
             clearTimeout(connectionStateTimer)
-            if (this.call.session.connected) {
-              logger.info('> Still connected so reinvite')
-              this.restartIceWithRelayOnly()
-            } else {
-              logger.info('Half-open so force close our side')
-              // @ts-ignore
-              this.call.session._closeConnection()
-            }
+            logger.info('Probably half-open so force close from client')
+            // @ts-ignore
+            this.call.session._closeConnection()
             break
           }
         }

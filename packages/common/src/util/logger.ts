@@ -1,23 +1,16 @@
 import log from 'loglevel'
 
-const datetime = () => new Date().toISOString().replace('T', ' ').replace('Z', '')
-const logger = log.getLogger('signalwire')
+const datetime = () => new Date().toISOString()
+const logger = log.getLogger('cantina')
 
 const originalFactory = logger.methodFactory
 logger.methodFactory = (methodName, logLevel, loggerName) => {
   const rawMethod = originalFactory(methodName, logLevel, loggerName)
+
   // tslint:disable-next-line
-  return function () {
-
-    const messages = []
-    if (typeof window === 'undefined') {
-      messages.push(datetime() + ' -')
-    }
-
-    for (let i = 0; i < arguments.length; i++) {
-      messages.push(arguments[i])
-    }
-    rawMethod.apply(undefined, messages)
+  return function (...args: any[]) {
+    args.unshift(datetime(), '-')
+    rawMethod.apply(undefined, args)
   }
 }
 logger.setLevel(logger.getLevel())

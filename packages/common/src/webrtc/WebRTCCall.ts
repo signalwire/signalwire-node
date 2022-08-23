@@ -770,6 +770,22 @@ export default abstract class WebRTCCall {
     this._laChannelVideoMuted = vmuted
   }
 
+  async resume() {
+    logger.debug(`[resume] Call ${this.id}`)
+    if (this.peer?.instance) {
+      const { connectionState } = this.peer.instance
+      logger.debug(`[resume] connectionState for ${this.id} is '${connectionState}'`)
+      if (connectionState === 'failed') {
+        this.peer.restartIce()
+      }
+    }
+
+    if (this.pvtData) {
+      logger.debug('[resume] Bootstrap data from verto channels', this.pvtData)
+      await this.conferenceJoinHandler(this.pvtData)
+    }
+  }
+
   private _removeConferenceChannels() {
     if (!this.conferenceChannels?.length) {
       return

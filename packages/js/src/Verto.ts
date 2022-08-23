@@ -9,6 +9,7 @@ import { localStorage } from '../../common/src/util/storage/'
 import VertoHandler from '../../common/src/webrtc/VertoHandler'
 import BaseMessage from '../../common/src/messages/BaseMessage'
 import { Notification } from '../../common/src/webrtc/constants'
+import logger from '../../common/src/util/logger'
 
 export default class Verto extends BrowserSession {
 
@@ -77,11 +78,11 @@ export default class Verto extends BrowserSession {
 
         const { reattached_sessions = [] } = params
         if (reattached_sessions?.length) {
-          console.debug('FS clientReady', params)
-          reattached_sessions.forEach((callId: string) => {
+          logger.debug('FS clientReady', params)
+          reattached_sessions.forEach(async (callId: string) => {
             const call = this.calls[callId]
-            if (call?.pvtData) {
-              call.conferenceJoinHandler(call.pvtData)
+            if (call) {
+              await call.resume()
             }
           })
         }

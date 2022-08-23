@@ -183,7 +183,7 @@ export default class RTCPeer {
     logger.debug('Restart ICE')
     // Type must be Offer to send reinvite.
     this.type = PeerType.Offer
-
+    // @ts-ignore
     this.instance.restartIce()
   }
 

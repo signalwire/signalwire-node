@@ -8,6 +8,7 @@ import { trigger } from '../../common/src/services/Handler'
 import { localStorage } from '../../common/src/util/storage/'
 import VertoHandler from '../../common/src/webrtc/VertoHandler'
 import BaseMessage from '../../common/src/messages/BaseMessage'
+import { Notification } from '../../common/src/webrtc/constants'
 
 export default class Verto extends BrowserSession {
 
@@ -52,6 +53,13 @@ export default class Verto extends BrowserSession {
     return message
   }
 
+  get vertoLoginResume() {
+    const callIds = this.callIds
+    return callIds.length && callIds.every(callId => {
+      return this.calls[callId]?.peer?.instance.connectionState !== 'closed'
+    })
+  }
+
   async vertoLogin() {
     const { login, password, passwd, userVariables, loginParams } = this.options
     const msg = new Login({
@@ -61,7 +69,26 @@ export default class Verto extends BrowserSession {
       userVariables,
       loginParams,
       callIds: this._experimental ? this.callIds : [],
+      resume: this.vertoLoginResume,
     })
+    const clientReadyHandler = (params: any) => {
+      if (params.type === Notification.VertoClientReady) {
+        this.off(SwEvent.Notification, clientReadyHandler)
+
+        const { reattached_sessions = [] } = params
+        if (reattached_sessions?.length) {
+          console.debug('FS clientReady', params)
+          reattached_sessions.forEach((callId: string) => {
+            const call = this.calls[callId]
+            if (call?.pvtData) {
+              call.conferenceJoinHandler(call.pvtData)
+            }
+          })
+        }
+      }
+    }
+    this.on(SwEvent.Notification, clientReadyHandler)
+
     const response = await this.execute(msg).catch(this._handleLoginError)
     if (response) {
       this._autoReconnect = true

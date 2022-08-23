@@ -41,6 +41,7 @@
               <input type="text" class="form-control" id="token" placeholder="Enter passwd" onchange="saveInLocalStorage(event)">
             </div>
             <button id="btnConnect" class="btn btn-block btn-success" onclick="connect()">Connect</button>
+            <button id="btnTrigger" class="btn btn-block btn-warning d-none" onclick="triggerReconnect()">Trigger Reconnect</button>
             <button id="btnDisconnect" class="btn btn-block btn-danger d-none" onclick="disconnect()">Disconnect</button>
 
             <div class="text-center mt-3 text-muted">
@@ -117,6 +118,10 @@
       document.getElementById('video').checked = video === '1';
     });
 
+    function triggerReconnect() {
+      client._closeConnection()
+    }
+
     /**
      * Connect with Relay creating a client and attaching all the event handler.
     */
@@ -126,6 +131,7 @@
         login: document.getElementById('project').value,
         passwd: document.getElementById('token').value
       });
+      client.__logger.setLevel(this.client.__logger.levels.DEBUG)
 
       // client.autoRecoverCalls = false;
       // client.remoteElement = 'remoteVideo';
@@ -144,6 +150,7 @@
 
       client.on('signalwire.ready', function() {
         btnConnect.classList.add('d-none');
+        btnTrigger.classList.remove('d-none');
         btnDisconnect.classList.remove('d-none');
         connectStatus.innerHTML = 'Connected';
 
@@ -153,6 +160,7 @@
       // Update UI on socket close
       client.on('signalwire.socket.close', function() {
         btnConnect.classList.remove('d-none');
+        btnTrigger.classList.add('d-none');
         btnDisconnect.classList.add('d-none');
         connectStatus.innerHTML = 'Disconnected';
       });

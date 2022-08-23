@@ -243,7 +243,7 @@ export default abstract class BaseSession {
    * @return void
    */
   async connect(): Promise<void> {
-    if (!this.connection) {
+    if (!this.connection || this.connection.isDead) {
       this.connection = new Connection(this)
     }
 
@@ -410,11 +410,12 @@ export default abstract class BaseSession {
    * @return void
    */
   private _closeConnection() {
+    logger.debug('Force close connection')
     this._idle = true
     clearTimeout(this._keepAliveTimeout)
     if (this.connection) {
       this.connection.close()
-      this.connection = null
+      trigger(SwEvent.SocketClose, { type: 'close', message: 'Client-side closed' }, this.uuid)
     }
   }
 

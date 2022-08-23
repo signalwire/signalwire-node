@@ -132,7 +132,7 @@
         passwd: document.getElementById('token').value
       });
       client.__logger.setLevel(this.client.__logger.levels.DEBUG)
-
+      client._experimental = true
       // client.autoRecoverCalls = false;
       // client.remoteElement = 'remoteVideo';
       // client.localElement = 'localVideo';

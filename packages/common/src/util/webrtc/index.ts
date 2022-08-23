@@ -105,7 +105,10 @@ const buildVideoElementByTrack = (videoTrack: MediaStreamTrack, streamIds: strin
   const video = document.createElement('video')
   video.muted = true
   video.autoplay = true
+  // @ts-ignore
   video.playsInline = true
+  // @ts-ignore
+  video.playsinline = true
   // @ts-ignore
   video._streamIds = streamIds
 

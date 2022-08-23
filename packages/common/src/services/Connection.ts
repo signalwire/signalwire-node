@@ -78,7 +78,7 @@ export default class Connection {
         return
       }
       this._unsetTimer(msg.id)
-      logger.debug('RECV: \n', JSON.stringify(msg, null, 2), '\n')
+      logger.trace('RECV: \n', JSON.stringify(msg, null, 2), '\n')
       if (!trigger(msg.id, msg)) {
         // If there is not an handler for this message, dispatch an incoming!
         trigger(SwEvent.SocketMessage, msg, this.session.uuid)
@@ -102,7 +102,7 @@ export default class Connection {
       })
       this._setTimer(request.id)
     })
-    logger.debug('SEND: \n', JSON.stringify(request, null, 2), '\n')
+    logger.trace('SEND: \n', JSON.stringify(request, null, 2), '\n')
     this._wsClient.send(JSON.stringify(request))
 
     return promise

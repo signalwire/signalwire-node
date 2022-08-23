@@ -18,7 +18,7 @@ const WS_STATE = {
 }
 
 export default class Connection {
-  private _rpcTimeout = 10 * 1000
+  private _rpcTimeout = 5 * 1000
   private _wsClient: any = null
   private _host: string = 'wss://relay.signalwire.com'
   private _timers: { [id: string]: any } = {}

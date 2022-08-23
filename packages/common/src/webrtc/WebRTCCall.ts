@@ -277,12 +277,12 @@ export default abstract class WebRTCCall {
 
   async updateDevices(constraints: MediaStreamConstraints): Promise<void> {
     try {
-      console.debug('updateDevices trying constraints', this.id, constraints)
+      logger.trace('updateDevices trying constraints', this.id, constraints)
       if (!Object.keys(constraints).length) {
         return console.warn('Invalid constraints:', constraints)
       }
       const newStream = await getUserMedia(constraints)
-      console.debug('updateDevices got stream', newStream)
+      logger.trace('updateDevices got stream', newStream)
       if (!this.options.localStream) {
         this.options.localStream = new MediaStream()
       }
@@ -290,49 +290,49 @@ export default abstract class WebRTCCall {
       const tracks = newStream.getTracks()
       for (let i = 0; i < tracks.length; i++) {
         const newTrack = tracks[i]
-        console.debug('updateDevices apply track: ', newTrack)
+        logger.trace('updateDevices apply track: ', newTrack)
         const transceiver = instance.getTransceivers().find(({ mid, sender, receiver }) => {
           if (sender.track && sender.track.kind === newTrack.kind) {
-            console.debug('Found transceiver by sender')
+            logger.trace('Found transceiver by sender')
             return true
           }
           if (receiver.track && receiver.track.kind === newTrack.kind) {
-            console.debug('Found transceiver by receiver')
+            logger.trace('Found transceiver by receiver')
             return true
           }
           if (mid === null) {
-            console.debug('Found disassociated transceiver')
+            logger.trace('Found disassociated transceiver')
             return true
           }
           return false
         })
         if (transceiver && transceiver.sender) {
-          console.debug('updateDevices FOUND - replaceTrack on it and on localStream')
+          logger.trace('updateDevices FOUND - replaceTrack on it and on localStream')
           await transceiver.sender.replaceTrack(newTrack)
           this.options.localStream.addTrack(newTrack)
-          console.debug('updateDevices replaceTrack SUCCESS')
+          logger.trace('updateDevices replaceTrack SUCCESS')
           this.options.localStream.getTracks().forEach(track => {
             if (track.kind === newTrack.kind && track.id !== newTrack.id) {
-              console.debug('updateDevices stop old track and apply new one - ')
+              logger.trace('updateDevices stop old track and apply new one - ')
               stopTrack(track)
               this.options.localStream.removeTrack(track)
             }
           })
         } else {
-          console.debug('updateDevices NOT FOUND - addTrack and start dancing!')
+          logger.trace('updateDevices NOT FOUND - addTrack and start dancing!')
           this.peer.type = PeerType.Offer
           this.doReinvite = true
           this.options.localStream.addTrack(newTrack)
           instance.addTrack(newTrack, this.options.localStream)
         }
-        console.debug('updateDevices Simply update mic/cam')
+        logger.trace('updateDevices Simply update mic/cam')
         if (newTrack.kind === 'audio') {
           this.options.micId = newTrack.getSettings().deviceId
         } else if (newTrack.kind === 'video') {
           this.options.camId = newTrack.getSettings().deviceId
         }
       }
-      console.debug('updateDevices done!')
+      logger.trace('updateDevices done!')
       this._dispatchNotification({ type: Notification.DeviceUpdated })
     } catch (error) {
       console.error('updateDevices', error)
@@ -913,7 +913,7 @@ export default abstract class WebRTCCall {
   private async _onVertoAttach(params: any) {
 
     if (this.options.simulcast === true) {
-      console.debug('Handle verto.attach for a simulcast call?', params)
+      logger.warn('Handle verto.attach for a simulcast call?', params)
     }
 
     // FIXME: need to dispatch a participantData notification??

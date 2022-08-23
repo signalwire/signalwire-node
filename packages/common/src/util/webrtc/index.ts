@@ -105,16 +105,15 @@ const buildVideoElementByTrack = (videoTrack: MediaStreamTrack, streamIds: strin
   const video = document.createElement('video')
   video.muted = true
   video.autoplay = true
-  // @ts-ignore
-  video.playsinline = true
+  video.playsInline = true
   // @ts-ignore
   video._streamIds = streamIds
 
   const mediaStream = new MediaStream([ videoTrack ])
   video.srcObject = mediaStream
 
-  const onCanPlay = () => console.debug('video can play!')
-  const onPlay = () => console.debug('video is now playing...')
+  const onCanPlay = () => logger.debug('MCU can play')
+  const onPlay = () => logger.debug('MCU is playing')
   video.addEventListener('play', onPlay)
   video.addEventListener('canplay', onCanPlay)
   videoTrack.addEventListener('ended', () => {
@@ -132,15 +131,15 @@ const buildAudioElementByTrack = (audioTrack: MediaStreamTrack, streamIds: strin
   const audio = new Audio()
   audio.autoplay = true
   // @ts-ignore
-  audio.playsinline = true
+  audio.playsInline = true
   // @ts-ignore
   audio._streamIds = streamIds
 
   const mediaStream = new MediaStream([ audioTrack ])
   audio.srcObject = mediaStream
 
-  const onCanPlay = () => console.debug('audio can play!')
-  const onPlay = () => console.debug('audio is now playing...')
+  const onCanPlay = () => logger.debug('Audio can play')
+  const onPlay = () => logger.debug('Audio is playing')
   audio.addEventListener('play', onPlay)
   audio.addEventListener('canplay', onCanPlay)
   audioTrack.addEventListener('ended', () => {

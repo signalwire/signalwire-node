@@ -425,7 +425,7 @@ export default class RTCPeer {
                 scaleResolutionDownBy: Number(rid),
               }))
           }
-          console.debug('Applying video transceiverParams', transceiverParams)
+          // console.debug('Applying video transceiverParams', transceiverParams)
           videoTracks.forEach(track => {
             this.options.userVariables.cameraLabel = track.label
             this.instance.addTransceiver(track, transceiverParams)
@@ -715,7 +715,7 @@ export default class RTCPeer {
   }
 
   private _buildMediaElementByTrack(event: RTCTrackEvent) {
-    console.debug('_buildMediaElementByTrack', event.track.kind, event.track.id, event.streams, event)
+    // console.debug('_buildMediaElementByTrack', event.track.kind, event.track.id, event.streams, event)
     const streamIds = event.streams.map(stream => stream.id)
     switch (event.track.kind) {
       case 'audio': {

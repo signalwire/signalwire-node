@@ -532,18 +532,19 @@ export default class RTCPeer {
     clearTimeout(this._iceTimeout)
     this._iceTimeout = null
 
-    if (!this._sdpIsValid()) {
-      logger.info('SDP ready but not valid')
-      this._onIceTimeout()
-      return
-    }
-
     const { sdp, type } = this.instance.localDescription
     if (sdp.indexOf('candidate') === -1) {
       logger.info('No candidate - retry \n')
       this.startNegotiation(true)
       return
     }
+
+    if (!this._sdpIsValid()) {
+      logger.info('SDP ready but not valid')
+      this._onIceTimeout()
+      return
+    }
+
     logger.info('LOCAL SDP \n', `Type: ${type}`, '\n\n', sdp)
     try {
       switch (type) {

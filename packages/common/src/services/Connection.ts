@@ -59,9 +59,18 @@ export default class Connection {
 
   connect() {
     this._wsClient = new WebSocketClass(this._host)
-    this._wsClient.onopen = (event): boolean => trigger(SwEvent.SocketOpen, event, this.session.uuid)
-    this._wsClient.onclose = (event): boolean => trigger(SwEvent.SocketClose, event, this.session.uuid)
-    this._wsClient.onerror = (event): boolean => trigger(SwEvent.SocketError, event, this.session.uuid)
+    this._wsClient.onopen = (event): boolean => {
+      logger.debug('[WS] open', event)
+      return trigger(SwEvent.SocketOpen, event, this.session.uuid)
+    }
+    this._wsClient.onclose = (event): boolean => {
+      logger.debug('[WS] close', event)
+      return trigger(SwEvent.SocketClose, event, this.session.uuid)
+    }
+    this._wsClient.onerror = (event): boolean => {
+      logger.debug('[WS] error', event)
+      return trigger(SwEvent.SocketError, event, this.session.uuid)
+    }
     this._wsClient.onmessage = (event): void => {
       const msg: any = safeParseJson(event.data)
       if (typeof msg === 'string') {
@@ -108,7 +117,11 @@ export default class Connection {
     if (this._wsClient) {
       isFunction(this._wsClient._beginClose) ? this._wsClient._beginClose() : this._wsClient.close()
     }
-    this._wsClient = null
+
+    this._wsClient.onopen = () => logger.debug('[prev ws] open skipped')
+    this._wsClient.onclose = () => logger.debug('[prev ws] close skipped')
+    this._wsClient.onerror = () => logger.debug('[prev ws] error skipped')
+    this._wsClient.onmessage = () => logger.debug('[prev ws] message skipped')
   }
 
   private _unsetTimer(id: string) {

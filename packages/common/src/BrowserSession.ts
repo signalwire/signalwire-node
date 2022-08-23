@@ -536,15 +536,7 @@ export default abstract class BrowserSession extends BaseSession {
   }
 
   protected _onSocketCloseOrError(event: any): void {
-    if (this._experimental) {
-      /**
-       * Wait for 10seconds before purge all the calls
-       */
-      const waitFor = 10 * 1000 // 10seconds
-      this._purgeTimeout = setTimeout(() => {
-        this.purge()
-      }, waitFor)
-    } else {
+    if (this._experimental === false) {
       this.purge()
     }
     const channels = ['conference-info', 'conference-liveArray', 'conference-mod']

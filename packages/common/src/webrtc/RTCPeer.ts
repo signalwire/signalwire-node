@@ -166,6 +166,9 @@ export default class RTCPeer {
 
   restartIceWithRelayOnly() {
     try {
+      // Type must be Offer to send reinvite.
+      this.type = PeerType.Offer
+
       const config = this.instance.getConfiguration()
       const newConfig: RTCConfiguration = {
         ...config,

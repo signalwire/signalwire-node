@@ -119,6 +119,8 @@ export default abstract class WebRTCCall {
     this._hangup = this._hangup.bind(this)
     this._onParticipantData = this._onParticipantData.bind(this)
     this._onGenericEvent = this._onGenericEvent.bind(this)
+    this._offlineHandler = this._offlineHandler.bind(this)
+    this._onlineHandler = this._onlineHandler.bind(this)
 
     this._init()
   }
@@ -939,6 +941,15 @@ export default abstract class WebRTCCall {
     }
   }
 
+  private _offlineHandler(event: Event) {
+    logger.info('Offline - navigator.onLine:', navigator.onLine, event)
+    this.peer.triggerResume()
+  }
+
+  private _onlineHandler(event: Event) {
+    logger.info('Online - navigator.onLine:', navigator.onLine, event)
+  }
+
   private _init() {
     const { id, userVariables, remoteCallerNumber, onNotification } = this.options
     if (!id) {
@@ -968,11 +979,17 @@ export default abstract class WebRTCCall {
     register(this.id, this._onGenericEvent, VertoMethod.Info)
     register(this.id, this._onGenericEvent, VertoMethod.Event)
 
+    window.addEventListener('offline', this._offlineHandler)
+    window.addEventListener('online', this._onlineHandler)
+
     this.setState(State.New)
     logger.info('New Call with Options:', this.options)
   }
 
   protected _finalize() {
+    window.removeEventListener('offline', this._offlineHandler)
+    window.removeEventListener('online', this._onlineHandler)
+
     if (this.peer && this.peer.instance) {
       this.peer.instance.close()
       this.peer = null

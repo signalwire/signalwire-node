@@ -775,7 +775,7 @@ export default abstract class WebRTCCall {
     if (this.peer?.instance) {
       const { connectionState } = this.peer.instance
       logger.debug(`[resume] connectionState for ${this.id} is '${connectionState}'`)
-      if (connectionState === 'failed') {
+      if (connectionState !== 'closed') {
         this.peer.restartIce()
       }
     }

@@ -13,6 +13,7 @@ import BaseMessage from '../messages/BaseMessage'
 
 export default class RTCPeer {
   public instance: RTCPeerConnection
+  public needResume = false
   private _iceTimeout = null
   private _negotiating = false
 
@@ -289,6 +290,12 @@ export default class RTCPeer {
   //   })
   // }
 
+  triggerResume() {
+    this.needResume = true
+    // @ts-ignore
+    this.call.session._closeConnection()
+  }
+
   start() {
     return new Promise(async (resolve, reject) => {
 
@@ -338,15 +345,13 @@ export default class RTCPeer {
             clearTimeout(connectionStateTimer)
             this.call.setState(State.Active)
             break
-          // case 'disconnected':
-          //   break
           // case 'closed':
           //   break
+          case 'disconnected':
           case 'failed': {
             clearTimeout(connectionStateTimer)
             logger.info('Probably half-open so force close from client')
-            // @ts-ignore
-            this.call.session._closeConnection()
+            this.triggerResume()
             break
           }
         }

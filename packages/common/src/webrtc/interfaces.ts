@@ -46,6 +46,8 @@ export interface CallOptions {
   iceGatheringTimeout?: number
   maxIceGatheringTimeout?: number
   maxConnectionStateTimeout?: number
+  watchAudioPackets?: boolean
+  watchAudioPacketsTimeout?: number
 }
 
 export interface ICantinaUser {

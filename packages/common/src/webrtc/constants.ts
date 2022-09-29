@@ -76,6 +76,8 @@ export const DEFAULT_CALL_OPTIONS: CallOptions = {
   iceGatheringTimeout: 2 * 1000,
   maxIceGatheringTimeout: 5 * 1000,
   maxConnectionStateTimeout: 3 * 1000,
+  watchAudioPackets: false,
+  watchAudioPacketsTimeout: 2 * 1000,
 }
 
 export enum State {

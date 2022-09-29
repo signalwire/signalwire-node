@@ -14,6 +14,7 @@ export default class RTCPeer {
   public needResume = false
   private _iceTimeout = null
   private _negotiating = false
+  private _watchAudioPacketsTimer: ReturnType<typeof setTimeout>
   private _connectionStateTimer: ReturnType<typeof setTimeout>
 
   private _resolvePeerStart: (data?: unknown) => void
@@ -295,10 +296,50 @@ export default class RTCPeer {
       return
     }
     logger.info('Probably half-open so force close from client')
+    this.clearWatchAudioPacketsTimer()
     clearTimeout(this._connectionStateTimer)
     this.needResume = true
     // @ts-ignore
     this.call.session._closeConnection()
+  }
+
+  private clearWatchAudioPacketsTimer() {
+    clearTimeout(this._watchAudioPacketsTimer)
+  }
+
+  private watchAudioPackets() {
+    logger.debug('Start watching audio packets')
+    let previousValue = 0
+
+    const meter = async () => {
+      let packetsReceived = 0
+      try {
+        const stats = await this.instance.getStats(null)
+        stats.forEach((report) => {
+          if (report.type === 'inbound-rtp' && report.kind === 'audio') {
+            logger.debug(`inbound-rtp audio:
+              packetsReceived: ${report.packetsReceived}
+              lastPacketReceivedTimestamp: ${report.lastPacketReceivedTimestamp}
+            `)
+            packetsReceived = report.packetsReceived
+          }
+        })
+      } catch (error) {
+        logger.warn('getStats error', error)
+      } finally {
+        if (packetsReceived && packetsReceived <= previousValue) {
+          logger.warn(`packetsReceived: ${packetsReceived} - previousValue: ${previousValue}`)
+          this.triggerResume()
+        } else {
+          previousValue = packetsReceived ?? previousValue
+          this.clearWatchAudioPacketsTimer()
+          this._watchAudioPacketsTimer = setTimeout(() => meter(), this.options.watchAudioPacketsTimeout)
+        }
+      }
+    }
+
+    meter()
+
   }
 
   start() {
@@ -366,6 +407,9 @@ export default class RTCPeer {
       }
 
       this.instance.addEventListener('track', (event: RTCTrackEvent) => {
+        if (this.options.watchAudioPackets && event.track.kind === 'audio') {
+          this.watchAudioPackets()
+        }
         if (this.hasExperimentalFlag) {
           this._buildMediaElementByTrack(event)
           const notification = { type: 'trackAdd', event }

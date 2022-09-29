@@ -2,12 +2,10 @@ import logger from '../util/logger'
 import SDPUtils from 'sdp'
 import { getUserMedia, getMediaConstraints } from './helpers'
 import { sdpStereoHack, sdpBitrateHack, sdpMediaOrderHack } from './sdpHelpers'
-import { SwEvent } from '../util/constants'
 import { PeerType, RTCErrorCode, State } from './constants'
 import WebRTCCall from './WebRTCCall'
 import { attachMediaStream, muteMediaElement, sdpToJsonHack, RTCPeerConnection, streamIsValid, buildAudioElementByTrack, buildVideoElementByTrack, stopTrack } from '../util/webrtc'
 import { CallOptions } from './interfaces'
-import { trigger } from '../services/Handler'
 import { Invite, Attach, Answer, Modify } from '../messages/Verto'
 import BaseMessage from '../messages/BaseMessage'
 
@@ -16,6 +14,7 @@ export default class RTCPeer {
   public needResume = false
   private _iceTimeout = null
   private _negotiating = false
+  private _connectionStateTimer: ReturnType<typeof setTimeout>
 
   private _resolvePeerStart: (data?: unknown) => void
   private _rejectPeerStart: (error: unknown) => void
@@ -291,6 +290,12 @@ export default class RTCPeer {
   // }
 
   triggerResume() {
+    if (this.needResume) {
+      logger.info('[skipped] Already in "resume" state')
+      return
+    }
+    logger.info('Probably half-open so force close from client')
+    clearTimeout(this._connectionStateTimer)
     this.needResume = true
     // @ts-ignore
     this.call.session._closeConnection()
@@ -329,28 +334,26 @@ export default class RTCPeer {
         }
       }
 
-      let connectionStateTimer: ReturnType<typeof setTimeout>
       this.instance.addEventListener('connectionstatechange', (event) => {
         logger.info('connectionState:', this.instance.connectionState)
         switch (this.instance.connectionState) {
           // case 'new':
           //   break
           case 'connecting':
-            connectionStateTimer = setTimeout(() => {
+            this._connectionStateTimer = setTimeout(() => {
               logger.warn('connectionState timed out')
               this.restartIceWithRelayOnly()
             }, this.options.maxConnectionStateTimeout)
             break
           case 'connected':
-            clearTimeout(connectionStateTimer)
+            clearTimeout(this._connectionStateTimer)
             this.call.setState(State.Active)
+            this.needResume = false
             break
           // case 'closed':
           //   break
           case 'disconnected':
           case 'failed': {
-            clearTimeout(connectionStateTimer)
-            logger.info('Probably half-open so force close from client')
             this.triggerResume()
             break
           }

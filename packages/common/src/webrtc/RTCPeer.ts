@@ -297,10 +297,14 @@ export default class RTCPeer {
     }
     logger.info('Probably half-open so force close from client')
     this.clearWatchAudioPacketsTimer()
-    clearTimeout(this._connectionStateTimer)
+    this.clearconnectionStateTimer()
     this.needResume = true
     // @ts-ignore
     this.call.session._closeConnection()
+  }
+
+  private clearconnectionStateTimer() {
+    clearTimeout(this._connectionStateTimer)
   }
 
   private clearWatchAudioPacketsTimer() {
@@ -342,6 +346,14 @@ export default class RTCPeer {
 
   }
 
+  resetNeedResume() {
+    this.needResume = false
+
+    if (this.options.watchAudioPackets && this._getReceiverByKind('audio')) {
+      this.watchAudioPackets()
+    }
+  }
+
   start() {
     return new Promise(async (resolve, reject) => {
 
@@ -366,6 +378,7 @@ export default class RTCPeer {
             // Workaround to skip nested negotiations
             // Chrome bug: https://bugs.chromium.org/p/chromium/issues/detail?id=740501
             this._negotiating = false
+            this.resetNeedResume()
             break
           case 'closed':
             this.instance = null
@@ -387,9 +400,9 @@ export default class RTCPeer {
             }, this.options.maxConnectionStateTimeout)
             break
           case 'connected':
-            clearTimeout(this._connectionStateTimer)
+            this.clearconnectionStateTimer()
             this.call.setState(State.Active)
-            this.needResume = false
+            this.resetNeedResume()
             break
           // case 'closed':
           //   break
@@ -407,9 +420,6 @@ export default class RTCPeer {
       }
 
       this.instance.addEventListener('track', (event: RTCTrackEvent) => {
-        if (this.options.watchAudioPackets && event.track.kind === 'audio') {
-          this.watchAudioPackets()
-        }
         if (this.hasExperimentalFlag) {
           this._buildMediaElementByTrack(event)
           const notification = { type: 'trackAdd', event }
@@ -536,6 +546,8 @@ export default class RTCPeer {
       this.instance.close()
       this.instance = null
     }
+    this.clearWatchAudioPacketsTimer()
+    this.clearconnectionStateTimer()
 
     this.call.hangupError = new Error(RTCErrorCode.IncompatibleDestination)
     this._rejectPeerStart(this.call.hangupError)

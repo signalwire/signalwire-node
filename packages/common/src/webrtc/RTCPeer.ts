@@ -274,6 +274,8 @@ export default class RTCPeer {
       if (this.isOffer) {
         this._resolvePeerStart()
       }
+
+      this.resetNeedResume()
     } catch (error) {
       logger.error(`Error handling remote SDP on call ${this.options.id}:`, error)
       this.call.hangupError = error
@@ -341,9 +343,8 @@ export default class RTCPeer {
         }
       }
     }
-
+    this.clearWatchAudioPacketsTimer()
     meter()
-
   }
 
   resetNeedResume() {
@@ -402,7 +403,6 @@ export default class RTCPeer {
           case 'connected':
             this.clearconnectionStateTimer()
             this.call.setState(State.Active)
-            this.resetNeedResume()
             break
           // case 'closed':
           //   break

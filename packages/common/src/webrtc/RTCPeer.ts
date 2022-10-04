@@ -14,8 +14,10 @@ export default class RTCPeer {
   public needResume = false
   private _iceTimeout = null
   private _negotiating = false
+  private _restartingIce = false
   private _watchAudioPacketsTimer: ReturnType<typeof setTimeout>
   private _connectionStateTimer: ReturnType<typeof setTimeout>
+  private _restartingIceTimer: ReturnType<typeof setTimeout>
 
   private _resolvePeerStart: (data?: unknown) => void
   private _rejectPeerStart: (error: unknown) => void
@@ -181,11 +183,21 @@ export default class RTCPeer {
   }
 
   restartIce() {
+    if (this._negotiating || this._restartingIce) {
+      logger.warn('Skip restartIce')
+    }
+    this._restartingIce = true
+
     logger.debug('Restart ICE')
     // Type must be Offer to send reinvite.
     this.type = PeerType.Offer
     // @ts-ignore
     this.instance.restartIce()
+
+    this.clearRestartingIceTimer()
+    this._restartingIceTimer = setTimeout(() => {
+      this._restartingIce = false
+    }, this.options.watchAudioPacketsTimeout * 2)
   }
 
   async applyMediaConstraints(kind: string, constraints: MediaTrackConstraints) {
@@ -216,7 +228,7 @@ export default class RTCPeer {
   }
 
   async startNegotiation(force = false) {
-    if (this._negotiating) {
+    if (this._negotiating || this._restartingIce) {
       return logger.warn('Skip twice onnegotiationneeded!')
     }
     this._negotiating = true
@@ -298,11 +310,21 @@ export default class RTCPeer {
       return
     }
     logger.info('Probably half-open so force close from client')
-    this.clearWatchAudioPacketsTimer()
-    this.clearconnectionStateTimer()
+    this.clearTimers()
     this.needResume = true
     // @ts-ignore
     this.call.session._closeConnection()
+  }
+
+  private clearTimers() {
+    this.clearWatchAudioPacketsTimer()
+    this.clearconnectionStateTimer()
+    this.clearRestartingIceTimer()
+  }
+
+  private clearRestartingIceTimer() {
+    clearTimeout(this._restartingIceTimer)
+    this._restartingIce = false
   }
 
   private clearconnectionStateTimer() {
@@ -546,8 +568,7 @@ export default class RTCPeer {
       this.instance.close()
       this.instance = null
     }
-    this.clearWatchAudioPacketsTimer()
-    this.clearconnectionStateTimer()
+    this.clearTimers()
 
     this.call.hangupError = new Error(RTCErrorCode.IncompatibleDestination)
     this._rejectPeerStart(this.call.hangupError)

@@ -10,7 +10,16 @@ const _getCodecPayloadType = (line: string) => {
  * Add stereo support hacking the SDP
  * @return the SDP modified
  */
-export const sdpStereoHack = (sdp: string) => {
+export const sdpStereoHack = (sdp: string, useStereo: boolean) => {
+  if (!useStereo) {
+    /**
+     * Firefox always offer with stereo so we strip it from the SDP
+     * if useStereo is false.
+     * @see https://bugzilla.mozilla.org/show_bug.cgi?id=1793491
+     */
+    return sdp.replace(';stereo=1;', ';')
+  }
+
   const endOfLine = '\r\n'
   const sdpLines = sdp.split(endOfLine)
 

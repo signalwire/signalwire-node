@@ -766,9 +766,7 @@ export default class RTCPeer {
 
   private _setLocalDescription(localDescription: RTCSessionDescriptionInit) {
     const { useStereo, googleMaxBitrate, googleMinBitrate, googleStartBitrate } = this.options
-    if (useStereo) {
-      localDescription.sdp = sdpStereoHack(localDescription.sdp)
-    }
+    localDescription.sdp = sdpStereoHack(localDescription.sdp, useStereo)
     if (googleMaxBitrate && googleMinBitrate && googleStartBitrate) {
       localDescription.sdp = sdpBitrateHack(localDescription.sdp, googleMaxBitrate, googleMinBitrate, googleStartBitrate)
     }
@@ -780,9 +778,8 @@ export default class RTCPeer {
   }
 
   private _setRemoteDescription(remoteDescription: RTCSessionDescriptionInit) {
-    if (this.options.useStereo) {
-      remoteDescription.sdp = sdpStereoHack(remoteDescription.sdp)
-    }
+    const { useStereo } = this.options
+    remoteDescription.sdp = sdpStereoHack(remoteDescription.sdp, useStereo)
     if (this.instance.localDescription) {
       remoteDescription.sdp = sdpMediaOrderHack(remoteDescription.sdp, this.instance.localDescription.sdp)
     }

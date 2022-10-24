@@ -215,6 +215,35 @@ export default class RTCPeer {
     }
   }
 
+  async setVideoSenderParameters(params: { height: number, rate: number, scaleResolutionDownBy: number }) {
+    try {
+      const { height, rate, scaleResolutionDownBy } = params
+      const sender = this._getSenderByKind('video')
+      if (!sender || !sender.track) {
+        return logger.info('No sender to setParameters to', params)
+      }
+      if (sender.track.readyState === 'live') {
+        const currentParams: RTCRtpParameters & { encodings?: any } = sender.getParameters()
+        if (currentParams.encodings) {
+          const currentHeight = sender.track.getSettings().height
+          if (currentHeight && height) {
+            currentParams.encodings[0].scaleResolutionDownBy = Math.max((currentHeight / height), 1)
+          }
+          if (scaleResolutionDownBy) {
+            currentParams.encodings[0].scaleResolutionDownBy = scaleResolutionDownBy
+          }
+          if (rate) {
+            currentParams.encodings[0].maxBitrate = rate
+          }
+        }
+        logger.info('Apply video parameters', currentParams)
+        await sender.setParameters(currentParams)
+      }
+    } catch (error) {
+      logger.error('Error applying video parameters', params)
+    }
+  }
+
   private _getSenderByKind(kind: string) {
     if (this.instance) {
       return this.instance.getSenders().find(({ track }) => (track && track.kind === kind))

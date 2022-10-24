@@ -22,7 +22,8 @@
       "es2017",
       "dom",
       "scripthost"
-    ]
+    ],
+    "skipLibCheck": true
   },
   "include": [
     "index.ts"

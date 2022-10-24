@@ -56,7 +56,7 @@ export default class Verto extends BrowserSession {
 
   get vertoLoginResume() {
     const callIds = this.callIds
-    return callIds.length && callIds.every(callId => {
+    return callIds.length && callIds.some(callId => {
       return this.calls[callId]?.peer?.needResume
     })
   }

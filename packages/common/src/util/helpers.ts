@@ -93,6 +93,7 @@ export const roundToFixed = (value: number, num = 2) => {
 type Timer =
   | 'cantina:sdpReady'
   | 'cantina:vertoLogin'
+  | 'cantina:negotiation'
 
 export const sdkTimer = (label?: Timer) => {
   const tmp: string = label ?? uuidv4()

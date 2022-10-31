@@ -1,6 +1,7 @@
 import logger from '../util/logger'
 import SDPUtils from 'sdp'
 import { getUserMedia, getMediaConstraints } from './helpers'
+import { sdkTimer } from '../util/helpers'
 import { sdpStereoHack, sdpBitrateHack, sdpMediaOrderHack } from './sdpHelpers'
 import { PeerType, RTCErrorCode, State } from './constants'
 import WebRTCCall from './WebRTCCall'
@@ -12,7 +13,7 @@ import BaseMessage from '../messages/BaseMessage'
 export default class RTCPeer {
   public instance: RTCPeerConnection
   public needResume = false
-  private _iceTimeout = null
+  private _iceTimeout: ReturnType<typeof setTimeout>
   private _negotiating = false
   private _restartingIce = false
   private _watchAudioPacketsTimer: ReturnType<typeof setTimeout>
@@ -21,6 +22,8 @@ export default class RTCPeer {
 
   private _resolvePeerStart: (data?: unknown) => void
   private _rejectPeerStart: (error: unknown) => void
+  private _sdpReadyTimer: ReturnType<typeof sdkTimer>
+  private _rtcNegotiationTimer: ReturnType<typeof sdkTimer>
 
   constructor(
     public call: WebRTCCall,
@@ -83,7 +86,7 @@ export default class RTCPeer {
   }
 
   get localSdp() {
-    return this.instance.localDescription.sdp
+    return this.instance.localDescription?.sdp
   }
 
   get hasIceServers() {
@@ -102,7 +105,7 @@ export default class RTCPeer {
       }
       if (sender.track) {
         stopTrack(sender.track)
-        this.options.localStream.removeTrack(sender.track)
+        this.options.localStream?.removeTrack(sender.track)
       }
     } catch (error) {
       logger.error('RTCPeer stopTrackSender error', kind, error)
@@ -120,10 +123,12 @@ export default class RTCPeer {
       }
       const constraints = await getMediaConstraints(this.options)
       const stream = await getUserMedia({ [kind]: constraints[kind] })
-      if (streamIsValid(stream)) {
+      if (stream && streamIsValid(stream)) {
         const newTrack = stream.getTracks().find(t => t.kind === kind)
-        await sender.replaceTrack(newTrack)
-        this.options.localStream.addTrack(newTrack)
+        if (newTrack) {
+          await sender.replaceTrack(newTrack)
+          this.options.localStream?.addTrack(newTrack)
+        }
       }
     } catch (error) {
       logger.error('RTCPeer restoreTrackSender error', kind, error)
@@ -197,7 +202,7 @@ export default class RTCPeer {
     this.clearRestartingIceTimer()
     this._restartingIceTimer = setTimeout(() => {
       this._restartingIce = false
-    }, this.options.watchAudioPacketsTimeout * 2)
+    }, this.options.watchAudioPacketsTimeout ?? 2_000 * 2)
   }
 
   async applyMediaConstraints(kind: string, constraints: MediaTrackConstraints) {
@@ -260,6 +265,8 @@ export default class RTCPeer {
     if (this._negotiating || this._restartingIce) {
       return logger.warn('Skip twice onnegotiationneeded!')
     }
+    this._sdpReadyTimer = sdkTimer('cantina:sdpReady')
+    this._sdpReadyTimer.start()
     this._negotiating = true
     try {
 
@@ -454,12 +461,14 @@ export default class RTCPeer {
           case 'connected':
             this.clearconnectionStateTimer()
             this.call.setState(State.Active)
+            this._rtcNegotiationTimer.stop()
             break
           // case 'closed':
           //   break
           case 'disconnected':
           case 'failed': {
             this.triggerResume()
+            this._rtcNegotiationTimer.stop()
             break
           }
         }
@@ -467,6 +476,8 @@ export default class RTCPeer {
 
       this.instance.onnegotiationneeded = event => {
         logger.info('Negotiation needed event')
+        this._rtcNegotiationTimer = sdkTimer('cantina:negotiation')
+        this._rtcNegotiationTimer.start()
         this.startNegotiation()
       }
 
@@ -506,7 +517,7 @@ export default class RTCPeer {
       }
 
       const { localElement, localStream = null, screenShare } = this.options
-      if (streamIsValid(localStream)) {
+      if (localStream && streamIsValid(localStream)) {
 
         const audioTracks = localStream.getAudioTracks()
         logger.info('Local audio tracks: ', audioTracks)
@@ -644,7 +655,11 @@ export default class RTCPeer {
 
   private async _sdpReady() {
     clearTimeout(this._iceTimeout)
-    this._iceTimeout = null
+
+    if (!this.instance.localDescription) {
+      logger.error('Missing localDescription', this.instance)
+      return
+    }
 
     const { sdp, type } = this.instance.localDescription
     if (sdp.indexOf('candidate') === -1) {
@@ -660,6 +675,7 @@ export default class RTCPeer {
     }
 
     logger.info('LOCAL SDP \n', `Type: ${type}`, '\n\n', sdp)
+    this._sdpReadyTimer.stop()
     try {
       switch (type) {
         case PeerType.Offer:
@@ -734,6 +750,8 @@ export default class RTCPeer {
     if (this._sdpIsValid()) {
       return this._sdpReady()
     }
+    logger.info('ICE gathering timeout')
+    this._sdpReadyTimer.stop()
     const config = this.instance.getConfiguration()
     if (config.iceTransportPolicy === 'relay') {
       logger.info('RTCPeer already with `iceTransportPolicy: relay`')
@@ -756,7 +774,6 @@ export default class RTCPeer {
      */
     if (this._iceTimeout) {
       clearTimeout(this._iceTimeout)
-      this._iceTimeout = null
     }
 
     /**

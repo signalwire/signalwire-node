@@ -1,4 +1,4 @@
-import { findElementByType } from '../helpers'
+import { findElementByType, SDKTimer, sdkTimer } from '../helpers'
 import logger from '../logger'
 
 const RTCPeerConnection = (config: RTCPeerConnectionConfig) => new window.RTCPeerConnection(config)
@@ -101,7 +101,7 @@ const stopTrack = (track: MediaStreamTrack) => {
 
 const getHostname = () => window.location.hostname
 
-const buildVideoElementByTrack = (videoTrack: MediaStreamTrack, streamIds: string[] = []) => {
+const buildVideoElementByTrack = (videoTrack: MediaStreamTrack, streamIds: string[] = [], sdkTimer?: SDKTimer) => {
   const video = document.createElement('video')
   video.muted = true
   video.autoplay = true
@@ -116,7 +116,10 @@ const buildVideoElementByTrack = (videoTrack: MediaStreamTrack, streamIds: strin
   video.srcObject = mediaStream
 
   const onCanPlay = () => logger.debug('MCU can play')
-  const onPlay = () => logger.debug('MCU is playing')
+  const onPlay = () => {
+    logger.debug('MCU is playing')
+    sdkTimer?.stop()
+  }
   video.addEventListener('play', onPlay)
   video.addEventListener('canplay', onCanPlay)
   videoTrack.addEventListener('ended', () => {
@@ -130,7 +133,7 @@ const buildVideoElementByTrack = (videoTrack: MediaStreamTrack, streamIds: strin
   return video
 }
 
-const buildAudioElementByTrack = (audioTrack: MediaStreamTrack, streamIds: string[] = []) => {
+const buildAudioElementByTrack = (audioTrack: MediaStreamTrack, streamIds: string[] = [], sdkTimer?: SDKTimer) => {
   const audio = new Audio()
   audio.autoplay = true
   // @ts-ignore
@@ -142,7 +145,10 @@ const buildAudioElementByTrack = (audioTrack: MediaStreamTrack, streamIds: strin
   audio.srcObject = mediaStream
 
   const onCanPlay = () => logger.debug('Audio can play')
-  const onPlay = () => logger.debug('Audio is playing')
+  const onPlay = () => {
+    logger.debug('Audio is playing')
+    sdkTimer?.stop()
+  }
   audio.addEventListener('play', onPlay)
   audio.addEventListener('canplay', onCanPlay)
   audioTrack.addEventListener('ended', () => {

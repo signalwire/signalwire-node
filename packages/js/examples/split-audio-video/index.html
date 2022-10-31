@@ -127,9 +127,13 @@
     */
     function connect() {
       client = new Verto({
-        host: document.getElementById('host').value,
-        login: document.getElementById('project').value,
-        passwd: document.getElementById('token').value
+        host: 'dev.cantina.video/freeswitch',
+        login: '48f077bd-47ba-46c0-aaa8-f7798feb2b6e',
+        passwd: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJpYXQiOjE2NjcyMzE1NDQsImlzcyI6IlNpZ25hbFdpcmUgVmlkZW8gSldUIiwianRpIjoieDhiQzJWVUtMeUpEQUc3WTJTTHNHT2I4anJvIiwic3ViIjoiMWZiOGQ2NjQtNmYyZC00NGY4LTg3YzEtMWQwNGRlOTY4ZDA1IiwidXNlcl9pZCI6IjQ4ZjA3N2JkLTQ3YmEtNDZjMC1hYWE4LWY3Nzk4ZmViMmI2ZSIsInVzZXJfdHlwZSI6ImF1dGhlbnRpY2F0ZWQiLCJyZXNvdXJjZSI6ImVkb2FyZG9Ac2lnbmFsd2lyZS5jb20iLCJleHAiOjE2NjczMDM1NDR9.p9EGueJAy8R4dlDDXthptLmfUNFrYcQp6QLVACz7Y58jvZD8j3MKooz1-Nn_3Ierc8rtKuAyY8IPg1htjtcKTw',
+        loginParams: {
+          cantinaId: '1fb8d664-6f2d-44f8-87c1-1d04de968d05',
+          userType: 'authenticated',
+        },
       });
       client.__logger.setLevel(this.client.__logger.levels.DEBUG)
       client._experimental = true
@@ -199,7 +203,7 @@
           break;
         case 'conferenceUpdate':
           // Handle new peer track
-          handleConferenceUpdate(notification);
+          // handleConferenceUpdate(notification);
           break;
       }
     }
@@ -319,9 +323,10 @@
       const destinationNumber = document.getElementById('number').value
       const params = {
         destinationNumber: destinationNumber, // required!
-        audio: document.getElementById('audio').checked ? { deviceId: { exact: 'default' } } : false,
+        audio: document.getElementById('audio').checked ? { deviceId: 'default' } : false,
         video: document.getElementById('video').checked ? { width: { ideal: 1280 }, height: { ideal: 720 } } : false,
         experimental: true,  // want to try latests api
+        watchAudioPackets: true,
       };
 
       client.newCall(params)

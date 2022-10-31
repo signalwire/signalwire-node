@@ -94,7 +94,10 @@ type Timer =
   | 'cantina:sdpReady'
   | 'cantina:vertoLogin'
   | 'cantina:negotiation'
-
+  | 'cantina:waitAnswer'
+  | 'cantina:audioMedia'
+  | 'cantina:videoMedia'
+export type SDKTimer = ReturnType<typeof sdkTimer>
 export const sdkTimer = (label?: Timer) => {
   const tmp: string = label ?? uuidv4()
 

@@ -24,6 +24,9 @@ export default class RTCPeer {
   private _rejectPeerStart: (error: unknown) => void
   private _sdpReadyTimer: ReturnType<typeof sdkTimer>
   private _rtcNegotiationTimer: ReturnType<typeof sdkTimer>
+  private _waitAnswerTimer: ReturnType<typeof sdkTimer>
+  private _rtcAudioTimer: ReturnType<typeof sdkTimer>
+  private _rtcVideoTimer: ReturnType<typeof sdkTimer>
 
   constructor(
     public call: WebRTCCall,
@@ -324,6 +327,7 @@ export default class RTCPeer {
       }
 
       this.resetNeedResume()
+      this._waitAnswerTimer.stop()
     } catch (error) {
       logger.error(`Error handling remote SDP on call ${this.options.id}:`, error)
       this.call.hangupError = error
@@ -478,6 +482,11 @@ export default class RTCPeer {
         logger.info('Negotiation needed event')
         this._rtcNegotiationTimer = sdkTimer('cantina:negotiation')
         this._rtcNegotiationTimer.start()
+
+        this._rtcAudioTimer = sdkTimer('cantina:audioMedia')
+        this._rtcAudioTimer.start()
+        this._rtcVideoTimer = sdkTimer('cantina:videoMedia')
+        this._rtcVideoTimer.start()
         this.startNegotiation()
       }
 
@@ -706,6 +715,8 @@ export default class RTCPeer {
       ...this.call.messagePayload,
       sdp: this.localSdp,
     })
+    this._waitAnswerTimer = sdkTimer('cantina:waitAnswer')
+    this._waitAnswerTimer.start()
     return this._execute(msg)
   }
 
@@ -847,7 +858,7 @@ export default class RTCPeer {
     const streamIds = event.streams.map(stream => stream.id)
     switch (event.track.kind) {
       case 'audio': {
-        const audio = buildAudioElementByTrack(event.track, streamIds)
+        const audio = buildAudioElementByTrack(event.track, streamIds, this._rtcAudioTimer)
         if (this.options.speakerId) {
           try {
             // @ts-ignore
@@ -860,7 +871,7 @@ export default class RTCPeer {
         break
       }
       case 'video':
-        this.call.videoElements.push(buildVideoElementByTrack(event.track, streamIds))
+        this.call.videoElements.push(buildVideoElementByTrack(event.track, streamIds, this._rtcVideoTimer))
         break
     }
   }

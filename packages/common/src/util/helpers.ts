@@ -1,4 +1,4 @@
-import logger from './logger'
+import { v4 as uuidv4 } from 'uuid'
 import { STORAGE_PREFIX } from './constants'
 
 // hack to remove undefined values from the object
@@ -88,4 +88,17 @@ export const randomInt = (min: number, max: number) => {
 
 export const roundToFixed = (value: number, num = 2) => {
   return Number(value.toFixed(num))
+}
+
+type Timer =
+  | 'cantina:sdpReady'
+  | 'cantina:vertoLogin'
+
+export const sdkTimer = (label?: Timer) => {
+  const tmp: string = label ?? uuidv4()
+
+  return {
+    start: () => console.time(tmp),
+    stop: () => console.timeEnd(tmp),
+  }
 }

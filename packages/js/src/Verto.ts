@@ -10,6 +10,7 @@ import VertoHandler from '../../common/src/webrtc/VertoHandler'
 import BaseMessage from '../../common/src/messages/BaseMessage'
 import { Notification } from '../../common/src/webrtc/constants'
 import logger from '../../common/src/util/logger'
+import { sdkTimer } from '../../common/src/util/helpers'
 
 export default class Verto extends BrowserSession {
 
@@ -122,7 +123,10 @@ export default class Verto extends BrowserSession {
 
   protected async _onSocketOpen() {
     this._idle = false
+    const timer = sdkTimer('cantina:vertoLogin')
+    timer.start()
     const response = await this.vertoLogin()
+    timer.stop()
     if (response) {
       trigger(SwEvent.Ready, this, this.uuid)
     }

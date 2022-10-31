@@ -360,6 +360,12 @@ export default class RTCPeer {
     this.clearWatchAudioPacketsTimer()
     this.clearconnectionStateTimer()
     this.clearRestartingIceTimer()
+
+    this._sdpReadyTimer?.stop()
+    this._rtcNegotiationTimer?.stop()
+    this._waitAnswerTimer?.stop()
+    this._rtcAudioTimer?.stop()
+    this._rtcVideoTimer?.stop()
   }
 
   private clearRestartingIceTimer() {

@@ -1,6 +1,6 @@
 {
   "name": "@signalwire/node",
-  "version": "2.5.0",
+  "version": "2.5.1",
   "description": "Client library for connecting to SignalWire.",
   "author": "SignalWire Team <open.source@signalwire.com>",
   "main": "dist/node/index.js",
@@ -40,7 +40,7 @@
     "dotenv": "^8.2.0",
     "faye-websocket": "^0.11.3",
     "loglevel": "^1.6.8",
-    "twilio": "3.29.2",
+    "twilio": "~3.73",
     "uuid": "^7.0.3"
   },
   "devDependencies": {

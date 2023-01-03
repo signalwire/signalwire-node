@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Signalwire Call Demo</title>
+  <title>Signalwire Call Harness</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
@@ -19,19 +19,12 @@
   <div class="container">
     <div class="row pt-5">
       <div class="col-12 pb-3">
-        <h1>SignalWire Relay JavaScript Call Demo</h1>
+        <h1>SignalWire Relay Call Test Harness</h1>
         <p>
-          This demo allows you to make calls to other browsers, SIP Endpoints or Phone Numbers from your SignalWire project in your browser.
+          This harness allows you to make calls to other browsers, SIP Endpoints or Phone Numbers from your SignalWire project in your browser.
           <br />
           Visit <a href="https://docs.signalwire.com/topics/relay-sdk-js">Relay SDK for JavaScript Documentation</a> for more information and documentation.
         </p>
-
-        <h3 class="mb-3">Instructions</h3>
-        <ol>
-          <li>Follow the <a href="https://docs.signalwire.com/topics/relay-sdk-js#relay-sdk-for-javascript-using-the-sdk">Getting Started</a> steps in the JavaScript SDK Documentation to generate a JSON Web Token for your project.</li>
-          <li>Load the index.html file in your browser. You don't need to setup or run any HTTP servers, just double clicking the file or open it directly in your browser.</li>
-          <li>Fill in your Project ID and JWT. Click Connect and thats it! You'll now be able to dial other web browsers and SIP endpoints from your SignalWire project, as well as dial out to phone numbers.</li>
-        </ol>
       </div>
     </div>
     <hr />
@@ -58,6 +51,12 @@
             </div>
           </div>
         </div>
+        <div class="card">
+          <div class="card-body">
+            <h5>Call State</h5>
+            <small>Status: <span id='callStatus'>None</span></small>
+          </div>
+        </div>
       </div>
 
       <div class="col-12 col-md-8 mt-4 mt-md-1">
@@ -75,7 +74,10 @@
         <div class="form-group">
           <label for="number">Call To:</label>
           <input type="text" class="form-control" id="number" placeholder="Enter Resource or Number to Dial" onchange="saveInLocalStorage(event)">
+          <label for="numberFrom">Call From:</label>
+          <input type="text" class="form-control" id="numberFrom" placeholder="Enter Source number to Call From" onchange="saveInLocalStorage(event)">
         </div>
+
         <div>Call Options:</div>
         <div class="form-check">
           <input type="checkbox" id="audio" value="1" onchange="saveInLocalStorage(event)">
@@ -91,117 +93,168 @@
         </div>
         <button id="startCall" class="btn btn-primary px-5 mt-4" onClick="makeCall()" disabled="true">Call</button>
         <button id="hangupCall" class="btn btn-danger px-5 mt-4 d-none" onClick="hangup()" disabled="true">Hang up</button>
+        <div class="form-group" id="dtmfKeys" hidden="false">
+          <button id="dtmf_1" class="btn btn-primary px-2 mt-4" onClick="dtmf()">1</button>
+          <button id="dtmf_2" class="btn btn-primary px-2 mt-4" onClick="dtmf()">2</button>
+          <button id="dtmf_3" class="btn btn-primary px-2 mt-4" onClick="dtmf()">3</button>
+          <button id="dtmf_4" class="btn btn-primary px-2 mt-4" onClick="dtmf()">4</button>
+          <button id="dtmf_5" class="btn btn-primary px-2 mt-4" onClick="dtmf()">5</button>
+          <button id="dtmf_6" class="btn btn-primary px-2 mt-4" onClick="dtmf()">6</button>
+          <button id="dtmf_7" class="btn btn-primary px-2 mt-4" onClick="dtmf()">7</button>
+          <button id="dtmf_8" class="btn btn-primary px-2 mt-4" onClick="dtmf()">8</button>
+          <button id="dtmf_9" class="btn btn-primary px-2 mt-4" onClick="dtmf()">9</button>
+          <button id="dtmf_0" class="btn btn-primary px-2 mt-4" onClick="dtmf()">0</button>
+          <button id="dtmf_hash" class="btn btn-primary px-2 mt-4" onClick="dtmf()">#</button>
+          <button id="dtmf_star" class="btn btn-primary px-2 mt-4" onClick="dtmf()">*</button>
+          <button id="dtmf_a" class="btn btn-primary px-2 mt-4" onClick="dtmf()">A</button>
+          <button id="dtmf_b" class="btn btn-primary px-2 mt-4" onClick="dtmf()">B</button>
+          <button id="dtmf_c" class="btn btn-primary px-2 mt-4" onClick="dtmf()">C</button>
+          <button id="dtmf_d" class="btn btn-primary px-2 mt-4" onClick="dtmf()">D</button>
+        </div>
+
       </div>
     </div>
     <hr />
     <div class="row pt-3 pb-5">
+      <h3 class="mb-3">Instructions</h3>
+      <ol>
+        <li>Follow the <a href="https://docs.signalwire.com/topics/relay-sdk-js#relay-sdk-for-javascript-using-the-sdk">Getting Started</a> steps in the JavaScript SDK Documentation to generate a JSON Web Token for your project.</li>
+        <li>Load the index.html file in your browser. While you don't need to setup or run any HTTP servers it is recommended that you run a simple web server to accomodate browser permission policies. You can also just double clicking the file or open it directly but you may be prompted repeatedly for camera and mic permissions.<br>The easiest way to do this is by starting a light weight python server: <code>python3 -m http.server 9898</code><br>Then you can point your browser to <a href="http://localhost:9898/signalwirecall.html">http://localhost:9898/index.html</a></li>
+        <li>Fill in your Project ID and JWT. Click Connect and thats it! You'll now be able to dial other web browsers and SIP endpoints from your SignalWire project, as well as dial out to phone numbers.</li>
+      </ol>
+
       <div class="col-12">
         <h4>Troubleshooting</h4>
         <p>If you notice any JavaScript errors in the console relating to <code>localStorage</code>, try unblocking 3rd Party Cookies. Some browsers mark localStorage Cookies as 3rd Party when being run from <code>file://</code>.</p>
       </div>
     </div>
 
-  <script type="text/javascript">
-    var client;
-    var currentCall = null;
+    <script type="text/javascript">
+      var client;
+      var currentCall = null;
 
-    var project = localStorage.getItem('relay.example.project') || '';
-    var token = localStorage.getItem('relay.example.token') || '';
-    var number = localStorage.getItem('relay.example.number') || '';
-    var audio = localStorage.getItem('relay.example.audio') || '1';
-    var video = localStorage.getItem('relay.example.video') || '1';
+      var project = localStorage.getItem('relay.example.project') || '';
+      var token = localStorage.getItem('relay.example.token') || '';
+      var number = localStorage.getItem('relay.example.number') || '';
+      var numberFrom = localStorage.getItem('relay.example.numberFrom') || '';
+      var audio = localStorage.getItem('relay.example.audio') || '1';
+      var video = localStorage.getItem('relay.example.video') || '1';
+
+      const getCircularReplacer = () => {
+        const seen = new WeakSet();
+        return (key, value) => {
+          if (typeof value === "object" && value !== null) {
+            if (seen.has(value)) {
+              return;
+            }
+            seen.add(value);
+          }
+          return value;
+        };
+      };
+
 
     /**
      * On document ready auto-fill the input values from the localStorage.
     */
-    ready(function() {
-      document.getElementById('project').value = project;
-      document.getElementById('token').value = token;
-      document.getElementById('number').value = number;
-      document.getElementById('audio').checked = audio === '1';
-      document.getElementById('video').checked = video === '1';
-    });
+      ready(function() {
+        document.getElementById('project').value = project;
+        document.getElementById('token').value = token;
+        document.getElementById('number').value = number;
+        document.getElementById('numberFrom').value = numberFrom;
+        document.getElementById('audio').checked = audio === '1';
+        document.getElementById('video').checked = video === '1';
+      });
 
     /**
      * Connect with Relay creating a client and attaching all the event handler.
     */
-    function connect() {
-      client = new Relay({
-        project: document.getElementById('project').value,
-        token: document.getElementById('token').value
-      });
+      function connect() {
+        client = new Relay({
+          project: document.getElementById('project').value,
+          token: document.getElementById('token').value
+        });
 
       // client.autoRecoverCalls = false;
-      client.remoteElement = 'remoteVideo';
-      client.localElement = 'localVideo';
-      client.iceServers = [{ urls: ['stun:stun.l.google.com:19302'] }];
-      if (document.getElementById('audio').checked) {
-        client.enableMicrophone()
-      } else {
-        client.disableMicrophone()
-      }
-      if (document.getElementById('video').checked) {
-        client.enableWebcam()
-      } else {
-        client.disableWebcam()
-      }
+        client.remoteElement = 'remoteVideo';
+        client.localElement = 'localVideo';
+        client.iceServers = [{ urls: ['stun:stun.l.google.com:19302'] }];
+        if (document.getElementById('audio').checked) {
+          client.enableMicrophone()
+        } else {
+          client.disableMicrophone()
+        }
+        if (document.getElementById('video').checked) {
+          client.enableWebcam()
+        } else {
+          client.disableWebcam()
+        }
 
-      client.on('signalwire.ready', function() {
-        btnConnect.classList.add('d-none');
-        btnDisconnect.classList.remove('d-none');
-        connectStatus.innerHTML = 'Connected';
+        client.on('signalwire.ready', function() {
+          btnConnect.classList.add('d-none');
+          btnDisconnect.classList.remove('d-none');
+          connectStatus.innerHTML = 'Connected';
 
-        startCall.disabled = false;
-      });
+          startCall.disabled = false;
+        });
 
       // Update UI on socket close
-      client.on('signalwire.socket.close', function() {
-        btnConnect.classList.remove('d-none');
-        btnDisconnect.classList.add('d-none');
-        connectStatus.innerHTML = 'Disconnected';
-      });
+        client.on('signalwire.socket.close', function() {
+          btnConnect.classList.remove('d-none');
+          btnDisconnect.classList.add('d-none');
+          connectStatus.innerHTML = 'Disconnected';
+        });
 
       // Handle error...
-      client.on('signalwire.error', function(error){
-        console.error("SignalWire error:", error);
-      });
+        client.on('signalwire.error', function(error){
+          console.error("SignalWire error:", error);
+        });
 
-      client.on('signalwire.notification', handleNotification);
+        client.on('signalwire.notification', handleNotification);
 
-      connectStatus.innerHTML = 'Connecting...';
-      client.connect();
-    }
+        connectStatus.innerHTML = 'Connecting...';
+        client.connect();
+      }
 
-    function disconnect() {
-      connectStatus.innerHTML = 'Disconnecting...';
-      client.disconnect();
-    }
+      function disconnect() {
+        connectStatus.innerHTML = 'Disconnecting...';
+        client.disconnect();
+      }
 
     /**
      * Handle notification from the client.
     */
-    function handleNotification(notification) {
-      console.log("notification", notification.type, notification);
-      switch (notification.type) {
+      function handleNotification(notification) {
+        console.log("notification", notification.type, notification);
+        switch (notification.type) {
         case 'callUpdate':
           handleCallUpdate(notification.call);
           break;
         case 'userMediaError':
           // Permission denied or invalid audio/video params on `getUserMedia`
           break;
+        }
       }
-    }
 
     /**
      * Update the UI when the call's state change
     */
-    function handleCallUpdate(call) {
-      currentCall = call;
+      function handleCallUpdate(call) {
+        currentCall = call;
+        let ccallState = JSON.parse(JSON.stringify(call,getCircularReplacer()));
+        console.log(currentCall.state,currentCall.cause,currentCall.causeCode);
+        console.log("Call State: " ,ccallState);
+        let msg =  currentCall.causeCode ? `Code:${currentCall.causeCode} Reason: ${currentCall.cause}` : `Early Media:${currentCall.gotEarly} Answered: ${currentCall.gotAnswer}`;
+        callStatus.innerHTML = `${currentCall.prevState} -> ${currentCall.state} </br> ${msg}`;
 
-      switch (call.state) {
+        switch (call.state) {
         case 'new': // Setup the UI
           break;
         case 'trying': // You are trying to call someone and he's ringing now
+          startCall.classList.add('d-none');
+          hangupCall.classList.remove('d-none');
+          hangupCall.disabled = false;
+          dtmfKeys.hidden=false;
           break;
         case 'recovering': // Call is recovering from a previous session
           if (confirm('Recover the previous call?')) {
@@ -221,29 +274,94 @@
           startCall.classList.add('d-none');
           hangupCall.classList.remove('d-none');
           hangupCall.disabled = false;
+          dtmfKeys.hidden=false;
           break;
         case 'hangup': // Call is over
           startCall.classList.remove('d-none');
           hangupCall.classList.add('d-none');
           hangupCall.disabled = true;
+          dtmfKeys.hidden=true;
           break;
         case 'destroy': // Call has been destroyed
           currentCall = null;
           break;
+        }
       }
-    }
 
     /**
      * Make a new outbound call
     */
-    function makeCall() {
-      const params = {
+      function makeCall() {
+        const params = {
         destinationNumber: document.getElementById('number').value, // required!
+        callerNumber: document.getElementById('numberFrom').value, // required!
         audio: document.getElementById('audio').checked,
         video: document.getElementById('video').checked ? { aspectRatio: 16/9 } : false,
       };
 
       currentCall = client.newCall(params);
+    }
+
+    /**
+     * Send a DTMF to currentCall if present
+    */
+    function dtmf() {
+      if (currentCall) {
+        let dtmfkey = event.srcElement.id;
+        console.log(dtmfkey);
+        switch (dtmfkey) {
+        case 'dtmf_0':
+          currentCall.dtmf('0');
+          break;
+        case 'dtmf_1':
+          currentCall.dtmf('1');
+          break;
+        case 'dtmf_2':
+          currentCall.dtmf('2');
+          break;
+        case 'dtmf_3':
+          currentCall.dtmf('3');
+          break;
+        case 'dtmf_4':
+          currentCall.dtmf('4');
+          break;
+        case 'dtmf_5':
+          currentCall.dtmf('5');
+          break;
+        case 'dtmf_6':
+          currentCall.dtmf('6');
+          break;
+        case 'dtmf_7':
+          currentCall.dtmf('7');
+          break;
+        case 'dtmf_8':
+          currentCall.dtmf('8');
+          break;
+        case 'dtmf_9':
+          currentCall.dtmf('9');
+          break;
+        case 'dtmf_hash':
+          currentCall.dtmf('#');
+          break;
+        case 'dtmf_star':
+          currentCall.dtmf('*');
+          break;
+        case 'dtmf_a':
+          currentCall.dtmf('a');
+          break;
+        case 'dtmf_b':
+          currentCall.dtmf('b');
+          break;
+        case 'dtmf_c':
+          currentCall.dtmf('c');
+          break;
+        case 'dtmf_d':
+          currentCall.dtmf('d');
+          break;
+        default:
+          console.log("unknown dtmf");
+        }
+      }
     }
 
     /**

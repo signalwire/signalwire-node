@@ -23,7 +23,7 @@ async function main() {
     {
       title: 'Installing AsyncStorage..',
       task: async () => {
-        await execa('npm', [ 'install', '@react-native-community/async-storage' ], { cwd: cwd() })
+        await execa('npm', [ 'install', '@react-native-async-storage/async-storage' ], { cwd: cwd() })
       },
     },
   ]

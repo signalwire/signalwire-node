@@ -20,12 +20,6 @@ async function main() {
         await execa('npm', [ 'install', 'react-native-incall-manager' ], { cwd: cwd() })
       },
     },
-    {
-      title: 'Installing AsyncStorage..',
-      task: async () => {
-        await execa('npm', [ 'install', '@react-native-async-storage/async-storage' ], { cwd: cwd() })
-      },
-    },
   ]
 
   await new Listr(mainTasks, { showSubtasks: true }).run().catch(e => console.error(e.message))

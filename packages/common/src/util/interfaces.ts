@@ -187,6 +187,7 @@ export interface CallingSipDevice {
     timeout?: number
     codecs?: SipCodec[]
     webrtc_media?: boolean
+    from_name?: string
   }
 }
 
@@ -218,6 +219,7 @@ export interface MakePhoneCallParams {
 export interface MakeSipCallParams {
   type: 'sip'
   from: string
+  from_name?: string
   to: string
   timeout?: number
   headers?: SipHeader[]

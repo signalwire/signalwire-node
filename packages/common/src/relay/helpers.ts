@@ -207,10 +207,10 @@ export const prepareDialDevices = (params: DeepArray<IMakeCallParams>): DeepArra
   return params.reduce(_reducer, { devices: [], nested: false, options: { validate: true } }).devices
 }
 
-export const prepareDevice = (params: IMakeCallParams,
+const prepareDevice = (params: IMakeCallParams,
   defaultFromNumber: string = null,
   originalCallTimeout: number = null,
-  validate: boolean): ICallDevice => {
+  validate: boolean): ICallDevice | undefined => {
   const { type, from = defaultFromNumber, to, timeout = originalCallTimeout ?? DEFAULT_CALL_TIMEOUT } = params
   if (validate) {
     if (!type || !to || !timeout || !from) {
@@ -218,13 +218,11 @@ export const prepareDevice = (params: IMakeCallParams,
     }
   }
 
-  let device: ICallDevice
-
   if (params.type === 'phone') {
-    device = { type: params.type, params: { from_number: from, to_number: to, timeout } }
+    return { type: params.type, params: { from_number: from, to_number: to, timeout } }
   } else if (params.type === 'sip') {
-    const { headers, codecs, webrtc_media } = params
-    device = { type: params.type, params: { from, to } }
+    const { headers, codecs, webrtc_media, from_name } = params
+    const device: ICallDevice = { type: params.type, params: { from, to } }
     if (timeout) {
       device.params.timeout = timeout
     }
@@ -237,8 +235,11 @@ export const prepareDevice = (params: IMakeCallParams,
     if (headers instanceof Array && headers.length) {
       device.params.headers = headers
     }
+    if (from_name) {
+      device.params.from_name = from_name
+    }
+    return device
   }
-  return device
 }
 
 export const isIDialCallParams = (params: IDialCallParams | IMakeCallParams | DeepArray<IMakeCallParams>): params is IDialCallParams => {
@@ -254,7 +255,7 @@ const _isICallingConnectParams = (params: ICallingConnectParams | DeepArray<IMak
 }
 
 const _reducer = (accumulator: DeviceAccumulator, peer: IMakeCallParams) => {
-  let tmp: ICallDevice = null
+  let tmp: ICallDevice | undefined = undefined
   if (peer instanceof Array) {
     const nestedAccumulator: DeviceAccumulator = { devices: [], nested: true }
 

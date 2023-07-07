@@ -3,6 +3,12 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.6.0] - 2023-07-03
+
+### Added
+- Ability to set `from_name` when dialing SIP devices.
+- Ability to _pass_ an inbound Call to another consumer using `await call.pass()`
+
 ## [2.5.0] - 2022-04-22
 
 ### Added

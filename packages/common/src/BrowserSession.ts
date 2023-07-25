@@ -32,8 +32,8 @@ export default abstract class BrowserSession extends BaseSession {
   get reconnectDelay() {
     return 1000
   }
-  
-  protected override _handleBladeConnectResponse(response: IBladeConnectResult) {
+
+  protected _handleBladeConnectResponse(response: IBladeConnectResult) {
     const { ice_servers = [] } = response
     this._iceServers = ice_servers
   }

@@ -35,7 +35,7 @@ export default abstract class BrowserSession extends BaseSession {
 
   protected _handleBladeConnectResponse(response: IBladeConnectResult) {
     const { ice_servers = [] } = response
-    this._iceServers = ice_servers
+    this.iceServers = ice_servers
   }
 
   async connect(): Promise<void> {

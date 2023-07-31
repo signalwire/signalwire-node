@@ -1,6 +1,6 @@
 import logger from './util/logger'
 import BaseSession from './BaseSession'
-import { ICacheDevices, IAudioSettings, IVideoSettings, BroadcastParams, SubscribeParams } from './util/interfaces'
+import { ICacheDevices, IAudioSettings, IVideoSettings, BroadcastParams, SubscribeParams, IBladeConnectResult } from './util/interfaces'
 import { registerOnce, trigger } from './services/Handler'
 import { SwEvent, SESSION_ID } from './util/constants'
 import { State, DeviceType } from './webrtc/constants'
@@ -31,6 +31,11 @@ export default abstract class BrowserSession extends BaseSession {
 
   get reconnectDelay() {
     return 1000
+  }
+
+  protected _handleBladeConnectResponse(response: IBladeConnectResult) {
+    const { ice_servers = [] } = response
+    this.iceServers = ice_servers
   }
 
   async connect(): Promise<void> {

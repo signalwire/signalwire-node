@@ -27,6 +27,7 @@ export interface IBladeConnectResult extends IMessageBase {
     expires_at: number
     signature: string
   }
+  ice_servers?: RTCIceServer[]
 }
 
 export interface IBladeExecuteRequest extends IMessageBase {

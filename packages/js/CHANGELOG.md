@@ -3,6 +3,10 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.9] - 2023-07-26
+### Changed
+- Read and use `iceServers` from the server after the authentication.
+
 ## [1.2.8] - 2021-12-17
 ### Fixed
 - Set the `sdpSemantics` value to "unified-plan" instead of legacy "plan-b".

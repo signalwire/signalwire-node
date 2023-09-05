@@ -725,6 +725,10 @@ export default abstract class BaseCall implements IWebRTCCall {
     }
     this.id = this.options.id
 
+    if (this.options.steeringId) {
+      this.nodeId = this.options.steeringId
+    }
+
     if (!userVariables || objEmpty(userVariables)) {
       this.options.userVariables = this.session.options.userVariables || {}
     }

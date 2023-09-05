@@ -28,6 +28,7 @@ export interface CallOptions {
   googleMaxBitrate?: number
   googleMinBitrate?: number
   googleStartBitrate?: number
+  steeringId?: string
 }
 
 export interface IWebRTCCall {

@@ -62,6 +62,11 @@ export default abstract class BaseCall implements IWebRTCCall {
   get memberChannel() {
     return `conference-member.${this.id}`
   }
+  
+  get dialogParams() {
+    const { steeringId, ...rest } = this.options
+    return rest
+  }
 
   invite() {
     this.direction = Direction.Outbound
@@ -85,7 +90,7 @@ export default abstract class BaseCall implements IWebRTCCall {
     }
 
     if (execute) {
-      const bye = new Bye({ sessid: this.session.sessionid, dialogParams: this.options })
+      const bye = new Bye({ sessid: this.session.sessionid, dialogParams: this.dialogParams})
       this._execute(bye)
         .catch(error => logger.error('verto.bye failed!', error))
         .then(_close.bind(this))
@@ -95,44 +100,44 @@ export default abstract class BaseCall implements IWebRTCCall {
   }
 
   transfer(destination: string) {
-    const msg = new Modify({ sessid: this.session.sessionid, action: 'transfer', destination, dialogParams: this.options })
+    const msg = new Modify({ sessid: this.session.sessionid, action: 'transfer', destination, dialogParams: this.dialogParams})
     this._execute(msg)
   }
 
   replace(replaceCallID: string) {
-    const msg = new Modify({ sessid: this.session.sessionid, action: 'replace', replaceCallID, dialogParams: this.options })
+    const msg = new Modify({ sessid: this.session.sessionid, action: 'replace', replaceCallID, dialogParams: this.dialogParams})
     this._execute(msg)
   }
 
   hold() {
-    const msg = new Modify({ sessid: this.session.sessionid, action: 'hold', dialogParams: this.options })
+    const msg = new Modify({ sessid: this.session.sessionid, action: 'hold', dialogParams: this.dialogParams})
     return this._execute(msg)
       .then(this._handleChangeHoldStateSuccess.bind(this))
       .catch(this._handleChangeHoldStateError.bind(this))
   }
 
   unhold() {
-    const msg = new Modify({ sessid: this.session.sessionid, action: 'unhold', dialogParams: this.options })
+    const msg = new Modify({ sessid: this.session.sessionid, action: 'unhold', dialogParams: this.dialogParams})
     return this._execute(msg)
       .then(this._handleChangeHoldStateSuccess.bind(this))
       .catch(this._handleChangeHoldStateError.bind(this))
   }
 
   toggleHold() {
-    const msg = new Modify({ sessid: this.session.sessionid, action: 'toggleHold', dialogParams: this.options })
+    const msg = new Modify({ sessid: this.session.sessionid, action: 'toggleHold', dialogParams: this.dialogParams})
     return this._execute(msg)
       .then(this._handleChangeHoldStateSuccess.bind(this))
       .catch(this._handleChangeHoldStateError.bind(this))
   }
 
   dtmf(dtmf: string) {
-    const msg = new Info({ sessid: this.session.sessionid, dtmf, dialogParams: this.options })
+    const msg = new Info({ sessid: this.session.sessionid, dtmf, dialogParams: this.dialogParams})
     this._execute(msg)
   }
 
   message(to: string, body: string) {
     const msg = { from: this.session.options.login, to, body }
-    const info = new Info({ sessid: this.session.sessionid, msg, dialogParams: this.options })
+    const info = new Info({ sessid: this.session.sessionid, msg, dialogParams: this.dialogParams})
     this._execute(info)
   }
 
@@ -629,7 +634,7 @@ export default abstract class BaseCall implements IWebRTCCall {
       return
     }
     let msg = null
-    const tmpParams = { sessid: this.session.sessionid, sdp, dialogParams: this.options }
+    const tmpParams = { sessid: this.session.sessionid, sdp, dialogParams: this.dialogParams }
     switch (type) {
       case PeerType.Offer:
         this.setState(State.Requesting)

@@ -9,8 +9,8 @@
   <script type="text/javascript" src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
 
   <!-- Include the SignalWire Relay JS SDK -->
-  <script type="text/javascript" src="https://unpkg.com/@signalwire/js@^1"></script>
-  <!-- <script type="text/javascript" src="index.min.js"></script> -->
+  <!-- <script type="text/javascript" src="https://unpkg.com/@signalwire/js@^1"></script> -->
+  <script type="text/javascript" src="index.min.js"></script>
 
   <!-- To style up the demo a little -->
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" />
@@ -77,6 +77,8 @@
           <input type="text" class="form-control" id="number" placeholder="Enter Resource or Number to Dial" onchange="saveInLocalStorage(event)">
           <label for="numberFrom">Call From:</label>
           <input type="text" class="form-control" id="numberFrom" placeholder="Enter Source number to Call From" onchange="saveInLocalStorage(event)">
+          <label for="steeringId">Steering ID:</label>
+          <input type="text" class="form-control" id="steeringId" placeholder="Steering ID" onchange="saveInLocalStorage(event)">
         </div>
 
         <div>Call Options:</div>
@@ -138,6 +140,7 @@
       var token = localStorage.getItem('relay.example.token') || '';
       var number = localStorage.getItem('relay.example.number') || '';
       var numberFrom = localStorage.getItem('relay.example.numberFrom') || '';
+      var steeringId = localStorage.getItem('relay.example.steeringId') || '';
       var audio = localStorage.getItem('relay.example.audio') || '1';
       var video = localStorage.getItem('relay.example.video') || '1';
 
@@ -163,6 +166,7 @@
         document.getElementById('token').value = token;
         document.getElementById('number').value = number;
         document.getElementById('numberFrom').value = numberFrom;
+        document.getElementById('steeringId').value = steeringId;
         document.getElementById('audio').checked = audio === '1';
         document.getElementById('video').checked = video === '1';
       });
@@ -172,10 +176,12 @@
     */
       function connect() {
         client = new Relay({
-          // host: 'relay.swire.io',
+          host: 'relay.swire.io',
           project: document.getElementById('project').value,
           token: document.getElementById('token').value
         });
+
+        // client.__logger.setLevel(client.__logger.levels.DEBUG)
 
         // client.autoRecoverCalls = false;
         client.remoteElement = 'remoteVideo';
@@ -293,12 +299,13 @@
     /**
      * Make a new outbound call
     */
-      function makeCall() {
-        const params = {
+    function makeCall() {
+      const params = {
         destinationNumber: document.getElementById('number').value, // required!
         callerNumber: document.getElementById('numberFrom').value, // required!
         audio: document.getElementById('audio').checked,
         video: document.getElementById('video').checked ? { aspectRatio: 16/9 } : false,
+        steeringId: document.getElementById('steeringId').value,
       };
 
       currentCall = client.newCall(params);

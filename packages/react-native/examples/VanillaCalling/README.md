@@ -16,7 +16,7 @@ Visit [Relay SDK for React Native Documentation](https://docs.signalwire.com/top
 
 3. Follow the [Getting Started](https://docs.signalwire.com/topics/relay-sdk-react-native#relay-sdk-for-react-native-using-the-sdk) steps in the SDK Documentation to generate a JSON Web Token for your project.
 
-4. Fill in your Project ID and JWT in `App.js`: https://github.com/signalwire/signalwire-node/blob/0585ea646908ea1768c1f228230bfe4de0b8d700/packages/react-native/examples/VanillaCalling/App.js#L21-L24
+4. Fill in your Project ID and JWT in `App.js`: https://github.com/signalwire/signalwire-node/blob/master/packages/react-native/examples/VanillaCalling/App.tsx#L21-L24
 
 5. Run the demo on your device. Follow the [official instructions](https://reactnative.dev/docs/running-on-device).
 

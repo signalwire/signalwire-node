@@ -19,9 +19,8 @@ import {Relay} from '@signalwire/react-native';
 export default function App(): JSX.Element {
   const {client, connected, call} = useRelayClient(
     {
-      project: '90389dd8-514c-4a1b-8445-772bbdcc889d',
-      token:
-        'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJpYXQiOjE2OTU3NDY2MjYsImlzcyI6IlNpZ25hbFdpcmUgSldUIiwianRpIjoiMTFNbkdqV3JsRTR5aWFNNWdHUzVVTnBaR2hBIiwic2NvcGUiOiJ3ZWJydGMiLCJzdWIiOiI5MDM4OWRkOC01MTRjLTRhMWItODQ0NS03NzJiYmRjYzg4OWQiLCJyZXNvdXJjZSI6IjkzODFmMGZmLTgyOGMtNDJlNC1hZjEwLTcwNjIyODg3ZTM2MyIsImV4cCI6MTY5NTc0NzUyNn0.uEvQLRaXFrvm_hhQn2buCzf-GATj-n1q04lh7_OHNWFDXNfeFn-HSdUxDvEaoXsVrAothrhdRydk0Ff5Lvi1ow',
+      project: '',
+      token: '',
     },
     function onRinging(call) {
       const {remoteCallerName, remoteCallerNumber} = call.options;

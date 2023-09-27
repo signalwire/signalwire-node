@@ -9,13 +9,14 @@ Visit [Relay SDK for React Native Documentation](https://docs.signalwire.com/top
 1. Follow the [React Native CLI Quickstart](https://facebook.github.io/react-native/docs/getting-started#installing-dependencies) steps to setup your React Native environment. Follow the proper steps if you are on _macOS_, _Windows_ or _Linux_ and for the target OS: _iOS_ or _Android_.
 
 2. Run the following command to install the project dependencies:
-    ```sh
-    npm install
-    ```
+
+   ```sh
+   npm install
+   ```
 
 3. Follow the [Getting Started](https://docs.signalwire.com/topics/relay-sdk-react-native#relay-sdk-for-react-native-using-the-sdk) steps in the SDK Documentation to generate a JSON Web Token for your project.
 
-4. Fill in your Project ID and JWT in `App.js`: https://github.com/signalwire/signalwire-node/blob/0585ea646908ea1768c1f228230bfe4de0b8d700/packages/react-native/examples/VanillaCalling/App.js#L41-L44
+4. Fill in your Project ID and JWT in `App.js`: https://github.com/signalwire/signalwire-node/blob/0585ea646908ea1768c1f228230bfe4de0b8d700/packages/react-native/examples/VanillaCalling/App.js#L21-L24
 
 5. Run the demo on your device. Follow the [official instructions](https://reactnative.dev/docs/running-on-device).
 

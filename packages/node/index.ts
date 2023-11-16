@@ -7,7 +7,7 @@ import { setWebSocket } from '../common/src/services/Connection'
 import Task from '../common/src/relay/tasking/Task'
 import { setAgentName } from '../common/src/messages/blade/Connect'
 
-export const VERSION = '2.5.1'
+export const VERSION = '2.7.0'
 setAgentName(`Node.js SDK/${VERSION}`)
 setWebSocket(Client)
 

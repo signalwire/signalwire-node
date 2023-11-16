@@ -249,9 +249,18 @@ export default abstract class BaseSession {
       this._emptyExecuteQueues()
       this._pong = null
       this._keepAlive()
+      this._handleBladeConnectResponse(response)
       trigger(SwEvent.Ready, this, this.uuid)
       logger.info('Session Ready!')
     }
+  }
+
+  /**
+   * Allow to override the method and consume the blade.connect response
+   * @return void
+   */
+  protected _handleBladeConnectResponse(response: IBladeConnectResult) {
+    // noop for now
   }
 
   /**

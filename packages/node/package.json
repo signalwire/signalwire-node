@@ -43,6 +43,9 @@
     "twilio": "~3.73",
     "uuid": "^7.0.3"
   },
+  "overrides": {
+    "jsonwebtoken": "9.0.0"
+  },
   "devDependencies": {
     "@types/dotenv": "^8.2.0",
     "@types/jest": "^25.2.1",

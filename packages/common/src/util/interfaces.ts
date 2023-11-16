@@ -27,6 +27,7 @@ export interface IBladeConnectResult extends IMessageBase {
     expires_at: number
     signature: string
   }
+  ice_servers?: RTCIceServer[]
 }
 
 export interface IBladeExecuteRequest extends IMessageBase {
@@ -187,6 +188,7 @@ export interface CallingSipDevice {
     timeout?: number
     codecs?: SipCodec[]
     webrtc_media?: boolean
+    from_name?: string
   }
 }
 
@@ -218,6 +220,7 @@ export interface MakePhoneCallParams {
 export interface MakeSipCallParams {
   type: 'sip'
   from: string
+  from_name?: string
   to: string
   timeout?: number
   headers?: SipHeader[]

@@ -11,6 +11,7 @@ export * from './TapResult'
 export * from './SendDigitsResult'
 export * from './DisconnectResult'
 export * from './ReferResult'
+export * from './PassResult'
 
 export class StopResult {
   public code: string

@@ -71,6 +71,7 @@ export enum CallMethod {
   Tap = 'calling.tap',
   SendDigits = 'calling.send_digits',
   Refer = 'calling.refer',
+  Pass = 'calling.pass',
 }
 
 export enum DialState {

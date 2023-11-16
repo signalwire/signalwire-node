@@ -6,9 +6,11 @@ import { ICall, ICallOptions, ICallDevice, IMakeCallParams, ICallingPlay, ICalli
 import { prepareRecordParams, preparePlayParams, preparePlayAudioParams, preparePromptParams, preparePromptAudioParams, preparePromptTTSParams, prepareTapParams, preparePromptRingtoneParams, prepareConnectParams } from '../helpers'
 import Calling from './Calling'
 import { isFunction } from '../../util/helpers'
-import { Answer, Await, BaseComponent, Connect, Detect, Dial, FaxReceive, FaxSend, Hangup, Play, Prompt, Record, SendDigits, Tap, Disconnect, Refer } from './components'
+import { Answer, Await, BaseComponent, Connect, Detect, Dial, FaxReceive, FaxSend, Hangup, Play, Prompt, Record, SendDigits, Tap, Disconnect, Refer, Pass } from './components'
 import { RecordAction, PlayAction, PromptAction, ConnectAction, FaxAction, DetectAction, TapAction, SendDigitsAction, ReferAction } from './actions'
-import { HangupResult, RecordResult, AnswerResult, PlayResult, PromptResult, ConnectResult, DialResult, FaxResult, DetectResult, TapResult, SendDigitsResult, DisconnectResult, ReferResult } from './results'
+import { HangupResult, RecordResult, AnswerResult, PlayResult, PromptResult, ConnectResult, DialResult, FaxResult, DetectResult, TapResult, SendDigitsResult, DisconnectResult, ReferResult, PassResult } from './results'
+import Event from './Event'
+
 export default class Call implements ICall {
   public id: string
   public tag: string = uuidv4()
@@ -161,6 +163,17 @@ export default class Call implements ICall {
     await component._waitFor(CallState.Answered, CallState.Ending, CallState.Ended)
 
     return new AnswerResult(component)
+  }
+
+  async pass() {
+    const component = new Pass(this)
+    this._addComponent(component)
+    const { code, message } = await component.execute()
+
+    component.completed = true
+    component.successful = code === '200'
+    component.event = new Event('response', { code, message })
+    return new PassResult(component)
   }
 
   async record(record: ICallingRecord = {}) {

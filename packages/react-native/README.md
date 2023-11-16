@@ -6,7 +6,13 @@ The Relay SDK for React Native enables developers to connect and use SignalWire'
 
 ## Getting Started
 
-Coming soon..
+To install this package in your project, use the following command:
+
+```
+npm install @signalwire/react-native @react-native-async-storage/async-storage
+```
+
+The `@react-native-async-storage/async-storage` package is a peerDependency so it must be manually installed.
 
 ## WebRTC Engine
 

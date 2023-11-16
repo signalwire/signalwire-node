@@ -1,5 +1,5 @@
 import RelayClient from '../../src/relay'
-import { ICallDevice, ICallingPlay, IRelayCallingTapDevice, ICallingTapTap, ICallingTapDevice, IRelayCallingPlay, ICallingTapFlat } from '../../../common/src/util/interfaces'
+import { ICallDevice, ICallingPlay, IRelayCallingTapDevice, ICallingTapTap, ICallingTapDevice, IRelayCallingPlay, ICallingTapFlat, MakePhoneCallParams, MakeSipCallParams, IDialCallParams } from '../../../common/src/util/interfaces'
 import Call from '../../../common/src/relay/calling/Call'
 import { CallState } from '../../../common/src/util/constants/relay'
 import { Execute } from '../../../common/src/messages/Blade'
@@ -17,7 +17,7 @@ describe('Call', () => {
   session.connection = Connection.default()
   session.relayProtocol = 'signalwire_service_random_uuid'
 
-  let call: Call = null
+  let call: Call
 
   beforeEach(() => {
     Connection.mockSend.mockClear()
@@ -302,22 +302,22 @@ describe('Call', () => {
     describe('connect methods', () => {
       const PHONE = 'phone' as const
       const SIP = 'sip' as const
-      const _tmpPhoneDevices = [
+      const _tmpPhoneDevices: MakePhoneCallParams[] = [
         { type: PHONE, to: '999', from: '231', timeout: 10 },
         { type: PHONE, to: '888', from: '234', timeout: 20 }
       ]
 
-      const _tmpSipDevices = [
-        { type: SIP, to: 'sip:aaa.sip.example.com', from: 'sip:bbb.sip.example.com', timeout: 10 },
+      const _tmpSipDevices: MakeSipCallParams[] = [
+        { type: SIP, to: 'sip:aaa.sip.example.com', from: 'sip:bbb.sip.example.com', timeout: 10, from_name: 'foo' },
         { type: SIP, to: 'sip:ccc.sip.example.com', from: 'sip:ddd.sip.example.com', timeout: 20 }
       ]
       const getMsg = (serial: boolean, ringback: any = null, sip: boolean = false) => {
-        let devices = []
+        let devices: DeepArray<ICallDevice> = []
         if (serial) {
           if (sip) {
             devices = [
-              [ { type: 'sip', params: { to: 'sip:aaa.sip.example.com', from: 'sip:bbb.sip.example.com', timeout: 10 } } ],
-              [ { type: 'sip', params: { to: 'sip:ccc.sip.example.com', from: 'sip:ddd.sip.example.com', timeout: 20 } } ]
+              [ { type: SIP, params: { to: 'sip:aaa.sip.example.com', from: 'sip:bbb.sip.example.com', timeout: 10, from_name: 'foo' } } ],
+              [ { type: SIP, params: { to: 'sip:ccc.sip.example.com', from: 'sip:ddd.sip.example.com', timeout: 20 } } ]
             ]
           } else {
             devices = [
@@ -329,7 +329,7 @@ describe('Call', () => {
           if (sip) {
             devices = [
               [
-                { type: 'sip', params: { to: 'sip:aaa.sip.example.com', from: 'sip:bbb.sip.example.com', timeout: 10 } },
+                { type: 'sip', params: { to: 'sip:aaa.sip.example.com', from: 'sip:bbb.sip.example.com', timeout: 10, from_name: 'foo' } },
                 { type: 'sip', params: { to: 'sip:ccc.sip.example.com', from: 'sip:ddd.sip.example.com', timeout: 20 } }
               ]
             ]
@@ -1553,7 +1553,7 @@ describe('Call', () => {
         { type: PHONE, to: '888', from: '234', timeout: 20 }
       ]
       const getMsg = (serial: boolean) => {
-        let devices = []
+        let devices: DeepArray<ICallDevice> = []
         if (serial) {
           devices = [
             [{ type: 'phone', params: { to_number: '999', from_number: '231', timeout: 10 } }],

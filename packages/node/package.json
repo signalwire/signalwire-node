@@ -56,7 +56,7 @@
     "mockttp": "^0.19.3",
     "nock": "^12.0.3",
     "ts-jest": "^25.3.1",
-    "ts-loader": "^6.2.2",
+    "ts-loader": "^9.5.1",
     "tslint": "^6.1.1",
     "typescript": "^3.8.3"
   }

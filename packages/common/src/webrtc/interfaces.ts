@@ -28,6 +28,7 @@ export interface CallOptions {
   googleMaxBitrate?: number
   googleMinBitrate?: number
   googleStartBitrate?: number
+  iceTransportPolicy?: RTCConfiguration['iceTransportPolicy']
 }
 
 export interface IWebRTCCall {
@@ -44,7 +45,7 @@ export interface IWebRTCCall {
   localStream: MediaStream
   remoteStream: MediaStream
   invite: () => void
-  answer: () => void
+  answer: (params?: { iceTransportPolicy?: RTCConfiguration['iceTransportPolicy'] }) => void
   hangup: (params: any, execute: boolean) => void
   transfer: (destination: string) => void
   replace: (replaceCallID: string) => void

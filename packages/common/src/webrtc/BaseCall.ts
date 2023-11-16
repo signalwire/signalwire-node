@@ -69,7 +69,10 @@ export default abstract class BaseCall implements IWebRTCCall {
     this._registerPeerEvents()
   }
 
-  answer() {
+  answer(params?: { iceTransportPolicy?: RTCConfiguration['iceTransportPolicy'] }) {
+    if (params && params?.iceTransportPolicy) {
+      this.options.iceTransportPolicy = params?.iceTransportPolicy
+    }
     this.direction = Direction.Inbound
     this.peer = new Peer(PeerType.Answer, this.options)
     this._registerPeerEvents()
@@ -680,6 +683,7 @@ export default abstract class BaseCall implements IWebRTCCall {
       }
     })
 
+    // @ts-expect-error
     instance.addEventListener('addstream', (event: MediaStreamEvent) => {
       this.options.remoteStream = event.stream
     })

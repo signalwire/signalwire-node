@@ -29,6 +29,7 @@ export interface CallOptions {
   googleMinBitrate?: number
   googleStartBitrate?: number
   iceTransportPolicy?: RTCConfiguration['iceTransportPolicy']
+  disableIceUDP?: boolean
 }
 
 export interface IWebRTCCall {

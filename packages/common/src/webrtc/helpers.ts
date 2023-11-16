@@ -290,6 +290,23 @@ const sdpBitrateHack = (sdp: string, max: number, min: number, start: number) =>
   return lines.join(endOfLine)
 }
 
+const filterIceServers = (servers: RTCIceServer[], disableUDP= false): RTCIceServer[] => {
+  const filterNonTransportTCP = (urls: string | string[]): string | string[] => {
+      const  transportParam = 'transport=tcp'
+
+      if (urls instanceof Array) {
+        return urls.filter(url => url.includes(transportParam))
+      } else {
+        return urls.includes(transportParam) ? urls : ''
+      }
+    }
+
+    return servers.map(server => ({
+      ...server,
+      urls: disableUDP ? filterNonTransportTCP(server.urls) : server.urls
+    }))
+}
+
 export {
   getUserMedia,
   getDevices,
@@ -309,4 +326,5 @@ export {
   enableVideoTracks,
   disableVideoTracks,
   toggleVideoTracks,
+  filterIceServers
 }

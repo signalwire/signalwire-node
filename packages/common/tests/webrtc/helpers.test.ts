@@ -1,5 +1,5 @@
 import { findElementByType } from '../../../common/src/util/helpers'
-import { sdpStereoHack, sdpMediaOrderHack, sdpBitrateHack, getDevices, assureDeviceId } from '../../src/webrtc/helpers'
+import { sdpStereoHack, sdpMediaOrderHack, sdpBitrateHack, getDevices, assureDeviceId, filterIceServers } from '../../src/webrtc/helpers'
 
 describe('Helpers browser functions', () => {
   describe('findElementByType', () => {
@@ -206,5 +206,72 @@ describe('Helpers browser functions', () => {
       done()
     })
 
+  })
+
+  describe('', () => {
+    it('Should not filter by default', () => {
+      const iceServers = [
+        {
+          "urls": [
+            "turn:turn.swire.io:443",
+            "turn:turn.swire.io:443?transport=tcp", 
+          ],
+          "credential": "secret",
+          "credentialType": "password",
+          "username": "1686088155:5b4b11d6-0824-4a66-b3f9-d5aabdf6ab8e"
+        }
+      ]
+
+      const filteredIceServer = filterIceServers(iceServers)
+
+      expect(filterIceServers).toEqual(iceServers)
+
+    })
+
+    it('Should not filter if nothing is to filter', () => {
+      const iceServers = [
+        {
+          "urls": [
+            "turn:turn.swire.io:443?transport=tcp", 
+          ],
+          "credential": "secret",
+          "credentialType": "password",
+          "username": "1686088155:5b4b11d6-0824-4a66-b3f9-d5aabdf6ab8e"
+        }
+      ]
+
+      const filteredIceServer = filterIceServers(iceServers, true)
+
+      expect(filterIceServers).toEqual(iceServers)
+    })
+
+    it('Should filter only non transport=tcp URI', () => {
+
+      const iceServers = [
+        {
+          "urls": [
+            "turn:turn.swire.io:443",
+            "turn:turn.swire.io:443?transport=tcp", 
+          ],
+          "credential": "secret",
+          "credentialType": "password",
+          "username": "1686088155:5b4b11d6-0824-4a66-b3f9-d5aabdf6ab8e"
+        }
+      ]
+
+      const filteredIceServer = filterIceServers(iceServers, true)
+
+      expect(filterIceServers).toEqual([
+        {
+          "urls": [
+            "turn:turn.swire.io:443?transport=tcp", 
+          ],
+          "credential": "secret",
+          "credentialType": "password",
+          "username": "1686088155:5b4b11d6-0824-4a66-b3f9-d5aabdf6ab8e"
+        }
+      ])
+
+    })
   })
 })

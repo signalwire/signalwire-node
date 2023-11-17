@@ -1,5 +1,6 @@
 module.exports = {
 	moduleFileExtensions: ['ts', 'js'],
+	testEnvironment: 'jsdom',
 	rootDir: '../',
 	globals: {
 		'ts-jest': {

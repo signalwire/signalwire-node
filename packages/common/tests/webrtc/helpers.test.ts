@@ -3,7 +3,7 @@ import { sdpStereoHack, sdpMediaOrderHack, sdpBitrateHack, getDevices, assureDev
 
 describe('Helpers browser functions', () => {
   describe('findElementByType', () => {
-    it.skip('should return null if there is no document global object', () => {
+    it('should return null if there is no document global object', () => {
       // @ts-ignore
       document = null
       expect(findElementByType('fakeElement')).toEqual(null)

@@ -38,7 +38,7 @@ export default (klass: any) => {
     })
 
     describe('verto.invite', () => {
-      it('should create a new Call in ringing state', async done => {
+      it('should create a new Call in ringing state', async () => {
         await instance.connect()
         const callId = 'cd35e65f-a507-4bd2-8d21-80f36d134a2e'
         const msg = JSON.parse(`{"jsonrpc":"2.0","id":4402,"method":"verto.invite","params":{"callID":"${callId}","sdp":"SDP","caller_id_name":"Extension 1004","caller_id_number":"1004","callee_id_name":"Outbound Call","callee_id_number":"1003","display_direction":"outbound"}}`)
@@ -47,17 +47,15 @@ export default (klass: any) => {
         expect(instance.calls[callId].id).toEqual(callId)
         expect(instance.calls[callId].state).toEqual('ringing')
         expect(instance.calls[callId].prevState).toEqual('new')
-        done()
       })
     })
 
     describe('with an active outbound Call', () => {
-      beforeEach(async done => {
+      beforeEach(async () => {
         await instance.connect()
         _setupCall({ id: 'e2fda6dc-fc9d-4d77-8096-53bb502443b6' })
         call.handleMessage = jest.fn()
         Connection.mockSend.mockClear()
-        done()
       })
 
       describe('verto.media', () => {

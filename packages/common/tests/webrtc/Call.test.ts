@@ -16,11 +16,10 @@ describe('Call', () => {
   }
   const noop = (): void => {}
 
-  beforeEach(async done => {
+  beforeEach(async () => {
     session = new Verto({ host: 'example.fs.edo', login: 'login', passwd: 'passwd' })
     await session.connect().catch(console.error)
     call = new Call(session, defaultParams)
-    done()
   })
 
   describe('with required parameters', () => {
@@ -140,7 +139,7 @@ describe('Call', () => {
 
     describe('on bootObj', () => {
       const packet = JSON.parse('{"action":"bootObj","name":"3599","wireSerno":-1,"data":[["ab077699-540b-c370-fc74-62d5a6d4f300",["0067","email@test.com","Jest client JS","opus@48000","{\\"audio\\":{\\"muted\\":false,\\"deaf\\":false,\\"onHold\\":false,\\"talking\\":false,\\"floor\\":true,\\"energyScore\\":16},\\"video\\":{\\"visible\\":true,\\"videoOnly\\":false,\\"avatarPresented\\":false,\\"mediaFlow\\":\\"sendRecv\\",\\"muted\\":false,\\"floor\\":true,\\"reservationID\\":null,\\"roleID\\":null,\\"videoLayerID\\":1},\\"oldStatus\\":\\"FLOOR VIDEO (FLOOR)\\"}",{"email":"email@test.com","avatar":"avatar"},null]],["3327dda8-b7c6-482c-b692-8f0d8c6d911f",["0069","edoardo@signalwire.com","SW JS client","opus@48000","{\\"audio\\":{\\"muted\\":false,\\"deaf\\":false,\\"onHold\\":false,\\"talking\\":false,\\"floor\\":false,\\"energyScore\\":0},\\"video\\":{\\"visible\\":true,\\"videoOnly\\":false,\\"avatarPresented\\":false,\\"mediaFlow\\":\\"sendRecv\\",\\"muted\\":false,\\"floor\\":false,\\"reservationID\\":null,\\"roleID\\":null,\\"videoLayerID\\":0},\\"oldStatus\\":\\"ACTIVE VIDEO\\"}",{},null]]]}')
-      it('should setup liveArray as a participant', async done => {
+      it('should setup liveArray as a participant', async () => {
         _mockResponse()
         await call.handleConferenceUpdate(packet, pvtData)
         const channels = ['conference-chat-channel', 'conference-info-channel']
@@ -149,10 +148,9 @@ describe('Call', () => {
         expect(call.channels.sort()).toEqual(channels.sort())
         expect(call).toHaveProperty('hangup')
         expect(call).toHaveProperty('sendChatMessage')
-        done()
       })
 
-      it('should setup liveArray as a moderator with modChannel', async done => {
+      it('should setup liveArray as a moderator with modChannel', async () => {
         _mockResponse(true)
         pvtData = JSON.parse('{"action":"conference-liveArray-join","laChannel":"conference-liveArray-channel","laName":"3599","role":"moderator","chatID":"conf+3599@188.166.44.156","conferenceMemberID":"80","canvasCount":1,"modChannel":"conference-mod-channel","chatChannel":"conference-chat-channel","infoChannel":"conference-info-channel"}')
         await call.handleConferenceUpdate(packet, pvtData)
@@ -164,13 +162,12 @@ describe('Call', () => {
         expect(call).toHaveProperty('kick')
         expect(call).toHaveProperty('listVideoLayouts')
         expect(call.role).toEqual('moderator')
-        done()
       })
     })
 
     describe('on add', () => {
       const packet = JSON.parse('{"action":"add","arrIndex":1,"name":"3599","hashKey":"19e4f1b5-17a9-9456-b117-57f6bb114ce3","wireSerno":8,"data":["0069","1011","User","opus@48000","{\\"audio\\":{\\"muted\\":false,\\"deaf\\":false,\\"onHold\\":false,\\"talking\\":false,\\"floor\\":false,\\"energyScore\\":0},\\"video\\":{\\"visible\\":false,\\"videoOnly\\":false,\\"avatarPresented\\":false,\\"mediaFlow\\":\\"sendRecv\\",\\"muted\\":false,\\"floor\\":false,\\"reservationID\\":null,\\"videoLayerID\\":-1},\\"oldStatus\\":\\"ACTIVE VIDEO\\"}",{},null]}')
-      it('should dispatch a structured notification', async done => {
+      it('should dispatch a structured notification', async () => {
         await call.handleConferenceUpdate(packet, pvtData)
         expect(onNotification).toHaveBeenLastCalledWith({
           type: 'conferenceUpdate',
@@ -189,13 +186,12 @@ describe('Call', () => {
           },
           participantData: {}
         })
-        done()
       })
     })
 
     describe('on modify', () => {
       const packet = JSON.parse('{"action":"modify","name":"3599","hashKey":"255c02a2-7387-a25e-7862-bdfccfee8c4e","wireSerno":6,"data":["0068","1011","User","opus@48000","{\\"audio\\":{\\"muted\\":false,\\"deaf\\":false,\\"onHold\\":false,\\"talking\\":true,\\"floor\\":true,\\"energyScore\\":736},\\"video\\":{\\"visible\\":true,\\"videoOnly\\":false,\\"avatarPresented\\":false,\\"mediaFlow\\":\\"sendRecv\\",\\"muted\\":false,\\"floor\\":true,\\"floorLocked\\":true,\\"reservationID\\":null,\\"videoLayerID\\":0},\\"oldStatus\\":\\"TALKING (FLOOR) VIDEO (FLOOR)\\"}",{},null]}')
-      it('should dispatch a structured notification', async done => {
+      it('should dispatch a structured notification', async () => {
         await call.handleConferenceUpdate(packet, pvtData)
         expect(onNotification).toHaveBeenLastCalledWith({
           type: 'conferenceUpdate',
@@ -214,13 +210,12 @@ describe('Call', () => {
           },
           participantData: {}
         })
-        done()
       })
     })
 
     describe('on del', () => {
       const packet = JSON.parse('{"name":"3599","action":"del","hashKey":"f9ea4d7e-d55e-7dce-0cc2-ae48ec33abce","wireSerno":11,"data":["0083","email@test.com","Jest client JS","opus@48000","{\\"audio\\":{\\"muted\\":false,\\"deaf\\":false,\\"onHold\\":false,\\"talking\\":false,\\"floor\\":false,\\"energyScore\\":0},\\"video\\":{\\"visible\\":false,\\"videoOnly\\":false,\\"avatarPresented\\":false,\\"mediaFlow\\":\\"sendRecv\\",\\"muted\\":false,\\"floor\\":false,\\"reservationID\\":null,\\"roleID\\":null,\\"videoLayerID\\":-1},\\"oldStatus\\":\\"ACTIVE VIDEO\\"}",{"email":"email@test.com","avatar":"avatar"},null]}')
-      it('should do something', async done => {
+      it('should do something', async () => {
         await call.handleConferenceUpdate(packet, pvtData)
         expect(onNotification).toHaveBeenLastCalledWith({
           type: 'conferenceUpdate',
@@ -242,40 +237,36 @@ describe('Call', () => {
             email: 'email@test.com'
           }
         })
-        done()
       })
     })
 
     describe('on clear', () => {
       const packet = JSON.parse('{"action":"clear","name":"3599","wireSerno":-1,"data":{}}')
-      it('should dispatch a very simple notification', async done => {
+      it('should dispatch a very simple notification', async () => {
         await call.handleConferenceUpdate(packet, pvtData)
         expect(onNotification).toHaveBeenLastCalledWith(expect.objectContaining({ type: 'conferenceUpdate', action: 'clear', call }))
-        done()
       })
     })
   })
 
   describe('.hold()', () => {
-    it('should change the call state', async done => {
+    it('should change the call state', async () => {
       Connection.mockResponse.mockImplementationOnce(() => JSON.parse('{"jsonrpc":"2.0","id":"3a42b89f-3c37-4e5f-874f-ac8a9c021c9d","result":{"callID":"f5552e28-405a-4ebc-93f3-355b01e2df4e","action":"hold","holdState":"held","sessid":"sessid"}}'))
       await call.hold()
       expect(call.state).toEqual('held')
-      done()
     })
   })
 
   describe('.unhold()', () => {
-    it('should change the call state', async done => {
+    it('should change the call state', async () => {
       Connection.mockResponse.mockImplementationOnce(() => JSON.parse('{"jsonrpc":"2.0","id":"a8dcd71d-d473-4d43-b517-87b175ba7ed7","result":{"callID":"f5552e28-405a-4ebc-93f3-355b01e2df4e","action":"unhold","holdState":"active","sessid":"sessid"}}'))
       await call.unhold()
       expect(call.state).toEqual('active')
-      done()
     })
   })
 
   describe('.toggleHold()', () => {
-    it('should change the call state', async done => {
+    it('should change the call state', async () => {
       Connection.mockResponse.mockImplementationOnce(() => JSON.parse('{"jsonrpc":"2.0","id":"61a9d32b-d241-40d1-87b0-0d8384936ae8","result":{"callID":"f5552e28-405a-4ebc-93f3-355b01e2df4e","action":"toggleHold","holdState":"held","sessid":"sessid"}}'))
       await call.toggleHold()
       expect(call.state).toEqual('held')
@@ -283,7 +274,6 @@ describe('Call', () => {
       Connection.mockResponse.mockImplementationOnce(() => JSON.parse('{"jsonrpc":"2.0","id":"a8dcd71d-d473-4d43-b517-87b175ba7ed7","result":{"callID":"f5552e28-405a-4ebc-93f3-355b01e2df4e","action":"toggleHold","holdState":"active","sessid":"sessid"}}'))
       await call.toggleHold()
       expect(call.state).toEqual('active')
-      done()
     })
   })
 
@@ -306,19 +296,18 @@ describe('Call', () => {
       expect(Connection.mockSend).not.toHaveBeenCalled()
     })
 
-    it('should hangup SS if present', async done => {
+    it('should hangup SS if present', async () => {
       Connection.mockSend.mockClear()
       const ss = await call.startScreenShare()
       ss.hangup = jest.fn()
       call.hangup()
       expect(call.state).toEqual('hangup')
       expect(ss.hangup).toHaveBeenCalledTimes(1)
-      done()
     })
   })
 
   describe('.startScreenShare()', () => {
-    it('should attach a new screenShareCall to the originator', async done => {
+    it('should attach a new screenShareCall to the originator', async () => {
       call.extension = '3599'
       const ss = await call.startScreenShare()
       expect(ss).toEqual(call.screenShare)
@@ -326,20 +315,17 @@ describe('Call', () => {
       expect(ss.options.screenShare).toEqual(true)
       expect(ss.peer.type).toEqual('offer')
       expect(ss).toBeInstanceOf(Call)
-
-      done()
     })
   })
 
   describe('.stopScreenShare()', () => {
-    it('should hangup screenShare if present', async done => {
+    it('should hangup screenShare if present', async () => {
       const ss = await call.startScreenShare()
       ss.hangup = jest.fn()
 
       call.stopScreenShare()
 
       expect(ss.hangup).toHaveBeenCalledTimes(1)
-      done()
     })
   })
 })

@@ -3,6 +3,7 @@ import VertoHandler from '../../common/tests/webrtc/VertoHandler'
 import LayoutHandler from '../../common/tests/webrtc/LayoutHandler'
 import { isQueued } from '../../common/src/services/Handler'
 import Verto, { VERTO_PROTOCOL } from '../src/Verto'
+// @ts-ignore
 const Connection = require('../../common/src/services/Connection')
 
 describe('Verto', () => {
@@ -12,15 +13,15 @@ describe('Verto', () => {
     instance.connection = Connection.default()
     return instance
   }
-  let instance: Verto = null
+  let instance: Verto
 
   const noop = (): void => { }
 
-  beforeAll(() => {
+  // beforeAll(() => {
     behaveLikeBaseSession.call(this, _buildInstance())
     VertoHandler.call(this, Verto)
     LayoutHandler.call(this, Verto)
-  })
+  // })
 
   beforeEach(() => {
     instance = _buildInstance()
@@ -37,7 +38,7 @@ describe('Verto', () => {
   describe('.validateOptions()', () => {
     it('should return false with invalid options', () => {
       instance.options = { host: 'example.fs.edo', project: 'project', token: 'token' }
-      expect(instance.validateOptions()).toEqual(false)
+      expect(instance?.validateOptions()).toEqual(false)
     })
 
     it('should return false with invalid options', () => {
@@ -64,20 +65,18 @@ describe('Verto', () => {
     })
 
     describe('with an already established connection', () => {
-      it('should do nothing', async done => {
+      it('should do nothing', async () => {
         await instance.connect()
         expect(Connection.mockClose).not.toHaveBeenCalled()
-        done()
       })
     })
 
     describe('with an invalid connection (closed/closing state)', () => {
-      it('should close the previous one and create another', async done => {
+      it('should close the previous one and create another', async () => {
         Connection.mockConnect.mockClear()
         Connection.isAlive.mockReturnValueOnce(false)
         await instance.connect()
         expect(Connection.mockConnect).toHaveBeenCalledTimes(1)
-        done()
       })
     })
   })

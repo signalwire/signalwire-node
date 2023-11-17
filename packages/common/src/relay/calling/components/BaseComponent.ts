@@ -10,7 +10,7 @@ export abstract class BaseComponent {
   public abstract eventType: string
 
   /** ControlId to identify the component among the notifications */
-  public abstract controlId: string = uuidv4()
+  public controlId: string = uuidv4()
 
   /** Blocker to wait some evens */
   public blocker: Blocker
@@ -37,7 +37,7 @@ export abstract class BaseComponent {
   }
 
   /** Relay method to execute */
-  abstract method: string = null
+  method: string | null = null
 
   /** Payload sent to Relay in requests */
   abstract get payload(): any

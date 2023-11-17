@@ -13,13 +13,12 @@ export default (instance: any) => {
         .mockImplementationOnce(() => JSON.parse('{"id":"24f9b545-8bed-49e1-8214-5dbadb545f7d","jsonrpc":"2.0","result":{"command":"add","failed_channels":[],"protocol":"signalwire_service_random_uuid","subscribe_channels":["notifications"]}}'))
     })
 
-    it('should setup a new protocol', async done => {
+    it('should setup a new protocol', async () => {
       instance.connection = Connection.default()
       const protocol = await Setup(instance)
       expect(protocol).toEqual('signalwire_service_random_uuid')
       expect(instance.subscriptions).toHaveProperty(protocol)
       expect(Connection.mockSend).toHaveBeenCalledTimes(2)
-      done()
     })
   })
 }

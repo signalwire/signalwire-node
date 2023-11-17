@@ -1,9 +1,9 @@
 module.exports = {
-  moduleFileExtensions: [ 'ts', 'js' ],
+  moduleFileExtensions: ['ts', 'js'],
   rootDir: '../',
   globals: {
     'ts-jest': {
-      tsConfig: '<rootDir>/node/tsconfig.json'
+      tsconfig: '<rootDir>/node/tsconfig.json'
     }
   },
   coverageDirectory: '<rootDir>/node/coverage',
@@ -20,5 +20,5 @@ module.exports = {
   testEnvironment: 'node',
   setupFiles: [
     '<rootDir>/common/tests/setup/connection.ts'
-  ]
-}
+  ],
+};

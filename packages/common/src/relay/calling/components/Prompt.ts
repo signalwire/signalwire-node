@@ -7,7 +7,6 @@ import Event from '../Event'
 export class Prompt extends Controllable {
   public eventType: string = CallNotification.Collect
   public method: string = CallMethod.PlayAndCollect
-  public controlId: string = this.controlId
 
   public type: string
   public input: string

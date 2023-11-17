@@ -6,7 +6,6 @@ import Event from '../Event'
 export class SendDigits extends BaseComponent {
   public eventType: string = CallNotification.SendDigits
   public method: string = CallMethod.SendDigits
-  public controlId: string = this.controlId
 
   constructor(public call: Call, public digits: string) {
     super(call)

@@ -4,7 +4,6 @@ import { CallNotification, CallMethod } from '../../../util/constants/relay'
 export class Pass extends BaseComponent {
   public eventType: string = CallNotification.State
   public method: string = CallMethod.Pass
-  public controlId: string = this.controlId
 
   get payload(): any {
     return {

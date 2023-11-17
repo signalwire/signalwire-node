@@ -1,5 +1,5 @@
-import { RestClient } from "@signalwire/compatibility-api"
+import { RestClient } from '@signalwire/compatibility-api'
 
-export default RestClient;
+export default RestClient
 
-export * from '@signalwire/compatibility-api';
+export * from '@signalwire/compatibility-api'

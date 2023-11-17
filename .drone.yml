@@ -3,7 +3,7 @@ name: default
 
 steps:
 - name: test
-  image: node:11-alpine
+  image: node:16-alpine
   commands:
   - npm install
   - npm run setup

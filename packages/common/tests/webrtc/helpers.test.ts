@@ -2,8 +2,8 @@ import { findElementByType } from '../../../common/src/util/helpers'
 import { sdpStereoHack, sdpMediaOrderHack, sdpBitrateHack, getDevices, assureDeviceId } from '../../src/webrtc/helpers'
 
 describe('Helpers browser functions', () => {
-  describe.skip('findElementByType', () => {
-    it('should return null if there is no document global object', () => {
+  describe('findElementByType', () => {
+    it.skip('should return null if there is no document global object', () => {
       // @ts-ignore
       document = null
       expect(findElementByType('fakeElement')).toEqual(null)

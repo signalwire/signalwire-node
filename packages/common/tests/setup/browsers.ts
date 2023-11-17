@@ -20,7 +20,12 @@ global.window = {
 
 global.document = {
   getElementById: jest.fn(),
-  createElement: jest.fn(),
+  createElement: jest.fn((tagName) => {
+    const element = { tagName };
+    // @ts-expect-error
+    element.id = '';
+    return element;
+  }),
 }
 
 global.location = { hostname: 'localhost' }

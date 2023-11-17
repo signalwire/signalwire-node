@@ -1,9 +1,10 @@
 module.exports = {
-	moduleFileExtensions: [ 'ts', 'js' ],
+	moduleFileExtensions: ['ts', 'js'],
+	testEnvironment: 'jsdom',
 	rootDir: '../',
 	globals: {
 		'ts-jest': {
-			tsConfig: '<rootDir>/js/tsconfig.json'
+			tsconfig: '<rootDir>/js/tsconfig.json'
 		}
 	},
 	coverageDirectory: '<rootDir>/js/coverage',

@@ -75,6 +75,7 @@ const stopStream = (stream: MediaStream) => {
   if (streamIsValid(stream)) {
     stream.getTracks().forEach(t => t.stop())
   }
+  // @ts-ignore
   stream = null
 }
 

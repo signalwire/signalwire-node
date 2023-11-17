@@ -2,6 +2,34 @@ import * as webrtcMocks from './webrtcMocks'
 
 declare var global: any;
 
+global.window = {
+  RTCPeerConnection: webrtcMocks.RTCPeerConnectionMock,
+  localStorage: {
+    getItem: jest.fn(),
+    setItem: jest.fn(),
+    removeItem: jest.fn(),
+    clear: jest.fn(),
+  },
+  sessionStorage: {
+    getItem: jest.fn(),
+    setItem: jest.fn(),
+    removeItem: jest.fn(),
+    clear: jest.fn(),
+  },
+};
+
+global.document = {
+  getElementById: jest.fn(),
+  createElement: jest.fn(),
+}
+
+global.location = { hostname: 'localhost' }
+
+global.HTMLMediaElement = class {
+  play() {}
+  pause() {}
+};
+
 if (typeof RTCPeerConnection === 'undefined') {
   global.RTCPeerConnection = webrtcMocks.RTCPeerConnectionMock
 }

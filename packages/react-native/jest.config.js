@@ -1,10 +1,11 @@
 module.exports = {
-	moduleFileExtensions: [ 'ts', 'js' ],
+	moduleFileExtensions: ['ts', 'js'],
+	testEnvironment: 'jsdom',
 	rootDir: '../',
 	globals: {
 		'ts-jest': {
-			tsConfig: '<rootDir>/react-native/tsconfig.json'
-		}
+			tsconfig: '<rootDir>/react-native/tsconfig.json'
+		},
 	},
 	coverageDirectory: '<rootDir>/react-native/coverage',
 	testMatch: [

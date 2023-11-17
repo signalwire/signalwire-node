@@ -23,8 +23,8 @@ export default class Connection {
   private _host: string = 'wss://relay.signalwire.com'
   private _timers: { [id: string]: any } = {}
 
-  public upDur: number = null
-  public downDur: number = null
+  public upDur: number | null = null
+  public downDur: number | null = null
 
   constructor(public session: BaseSession) {
     const { host } = session.options
@@ -83,7 +83,7 @@ export default class Connection {
 
   send(bladeObj: any): Promise<any> {
     const { request } = bladeObj
-    const promise = new Promise((resolve, reject) => {
+    const promise = new Promise<void>((resolve, reject) => {
       if (request.hasOwnProperty('result')) {
         return resolve()
       }

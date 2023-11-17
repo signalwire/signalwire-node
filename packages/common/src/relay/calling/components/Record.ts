@@ -7,7 +7,6 @@ import { IRelayCallingRecord } from '../../../util/interfaces'
 export class Record extends Controllable {
   public eventType: string = CallNotification.Record
   public method: string = CallMethod.Record
-  public controlId: string = this.controlId
 
   public url: string
   public duration: number

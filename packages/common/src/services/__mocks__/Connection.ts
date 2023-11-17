@@ -6,7 +6,7 @@ export const mockSendRawText = jest.fn((str: string) => {})
 
 export const mockSend = jest.fn((bladeObj: any) => {
   const { request } = bladeObj
-  return new Promise((resolve, reject) => {
+  return new Promise<void>((resolve, reject) => {
     if (!request.hasOwnProperty('result')) {
       const response = mockResponse()
       const { result, error } = destructResponse(response)

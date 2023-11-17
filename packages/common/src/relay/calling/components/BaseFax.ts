@@ -4,7 +4,6 @@ import Event from '../Event'
 
 export abstract class BaseFax extends Controllable {
   public eventType: string = CallNotification.Fax
-  public controlId: string = this.controlId
 
   public direction: string
   public identity: string

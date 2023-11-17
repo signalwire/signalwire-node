@@ -683,7 +683,7 @@ export default abstract class BaseCall implements IWebRTCCall {
       }
     })
 
-    // @ts-expect-error
+    // @ts-ignore
     instance.addEventListener('addstream', (event: MediaStreamEvent) => {
       this.options.remoteStream = event.stream
     })

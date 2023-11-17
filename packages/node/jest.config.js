@@ -1,9 +1,9 @@
 module.exports = {
-  moduleFileExtensions: [ 'ts', 'js' ],
+  moduleFileExtensions: ['ts', 'js'],
   rootDir: '../',
   globals: {
     'ts-jest': {
-      tsConfig: '<rootDir>/node/tsconfig.json'
+      tsconfig: '<rootDir>/node/tsconfig.json'
     }
   },
   coverageDirectory: '<rootDir>/node/coverage',
@@ -15,10 +15,10 @@ module.exports = {
     '<rootDir>/(common|node)/tests/**/*.test.(ts|js)'
   ],
   transform: {
-    '^.+\\.tsx?$': ['./node/node_modules/ts-jest/dist/']
+    '^.+\\.tsx?$': './node/node_modules/ts-jest/dist/'
   },
   testEnvironment: 'node',
   setupFiles: [
     '<rootDir>/common/tests/setup/connection.ts'
   ],
-}
+};

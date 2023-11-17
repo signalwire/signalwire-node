@@ -17,20 +17,18 @@ export default (instance: any) => {
       describe('execute', () => {
         const payload = { request: { fake: 'data' } }
 
-        it('should send the message through the socket if the connection is live', async done => {
+        it('should send the message through the socket if the connection is live', async () => {
           const response = await instance.execute(payload)
           expect(Connection.mockSend).toHaveBeenLastCalledWith(payload)
           expect(response).toEqual({ message: 'fake' })
-          done()
         })
 
-        it('should queue the message if the connection went down', async done => {
+        it('should queue the message if the connection went down', async () => {
           await instance.disconnect()
           instance.execute(payload)
             .then(response => {
               expect(instance.connected).toEqual(true)
               expect(response).toEqual({ message: 'fake' })
-              done()
             })
           expect(Connection.mockSend).not.toHaveBeenCalled()
           expect(instance._executeQueue).toHaveLength(1)
@@ -39,11 +37,10 @@ export default (instance: any) => {
           instance._emptyExecuteQueues()
         })
 
-        it('should queue the message if the connection is idle', async done => {
+        it('should queue the message if the connection is idle', async () => {
           instance._idle = true
           instance.execute(payload).then(response => {
             expect(response).toEqual({ message: 'fake' })
-            done()
           })
           expect(Connection.mockSend).not.toHaveBeenCalled()
           expect(instance._executeQueue).toHaveLength(1)
@@ -56,11 +53,10 @@ export default (instance: any) => {
 
       describe('executeRaw', () => {
         const payload = '#TEST'
-        it('should send the message through the socket if the connection is live', async done => {
+        it('should send the message through the socket if the connection is live', async () => {
           await instance.connect()
           instance.executeRaw(payload)
           expect(Connection.mockSendRawText).toHaveBeenLastCalledWith(payload)
-          done()
         })
 
         it('should NOT send the message through the socket if the connection is idle', () => {
@@ -79,13 +75,12 @@ export default (instance: any) => {
       describe('broadcast', () => { })
 
       describe('.disconnect()', () => {
-        it('should close the connection', async done => {
+        it('should close the connection', async () => {
           await instance.disconnect()
           expect(Connection.mockClose).toHaveBeenCalled()
           expect(instance.calls || {}).toMatchObject({})
           expect(instance.subscriptions).toMatchObject({})
           expect(instance.contexts).toMatchObject([])
-          done()
         })
       })
     })

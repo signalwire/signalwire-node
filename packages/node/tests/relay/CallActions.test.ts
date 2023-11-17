@@ -37,7 +37,7 @@ describe('Calling Actions', () => {
         params: { node_id: 'node-id', call_id: 'call-id', control_id: 'mocked-uuid' }
       })
 
-      it('should execute the proper method and return the result', async done => {
+      it('should execute the proper method and return the result', async () => {
         _mockReturnSuccess()
 
         const result = await action.stop()
@@ -45,10 +45,9 @@ describe('Calling Actions', () => {
         expect(result).toBeInstanceOf(StopResult)
         expect(result.successful).toBe(true)
         expect(result.code).toEqual('200')
-        done()
       })
 
-      it('should execute the proper method and return the result with a failure response', async done => {
+      it('should execute the proper method and return the result with a failure response', async () => {
         _mockReturnFail()
 
         const result = await action.stop()
@@ -56,7 +55,6 @@ describe('Calling Actions', () => {
         expect(result).toBeInstanceOf(StopResult)
         expect(result.successful).toBe(false)
         expect(result.code).toEqual('400')
-        done()
       })
     })
 
@@ -67,24 +65,22 @@ describe('Calling Actions', () => {
         params: { node_id: 'node-id', call_id: 'call-id', control_id: 'mocked-uuid' }
       })
 
-      it('with success response should return a PlayResumeResult object with successful true', async done => {
+      it('with success response should return a PlayResumeResult object with successful true', async () => {
         _mockReturnSuccess()
 
         const result = await action.pause()
         expect(Connection.mockSend).nthCalledWith(1, pauseMessage)
         expect(result).toBeInstanceOf(PlayPauseResult)
         expect(result.successful).toBe(true)
-        done()
       })
 
-      it('with success response should return a PlayResumeResult object with successful false', async done => {
+      it('with success response should return a PlayResumeResult object with successful false', async () => {
         _mockReturnFail()
 
         const result = await action.pause()
         expect(Connection.mockSend).nthCalledWith(1, pauseMessage)
         expect(result).toBeInstanceOf(PlayPauseResult)
         expect(result.successful).toBe(false)
-        done()
       })
     })
 
@@ -95,24 +91,22 @@ describe('Calling Actions', () => {
         params: { node_id: 'node-id', call_id: 'call-id', control_id: 'mocked-uuid' }
       })
 
-      it('with success response should return a PlayResumeResult object with successful true', async done => {
+      it('with success response should return a PlayResumeResult object with successful true', async () => {
         _mockReturnSuccess()
 
         const result = await action.resume()
         expect(Connection.mockSend).nthCalledWith(1, resumeMessage)
         expect(result).toBeInstanceOf(PlayResumeResult)
         expect(result.successful).toBe(true)
-        done()
       })
 
-      it('with success response should return a PlayResumeResult object with successful false', async done => {
+      it('with success response should return a PlayResumeResult object with successful false', async () => {
         _mockReturnFail()
 
         const result = await action.resume()
         expect(Connection.mockSend).nthCalledWith(1, resumeMessage)
         expect(result).toBeInstanceOf(PlayResumeResult)
         expect(result.successful).toBe(false)
-        done()
       })
     })
 
@@ -123,24 +117,22 @@ describe('Calling Actions', () => {
         params: { node_id: 'node-id', call_id: 'call-id', control_id: 'mocked-uuid', volume: -4.3 }
       })
 
-      it('with success response should return a PlayVolumeResult object with successful true', async done => {
+      it('with success response should return a PlayVolumeResult object with successful true', async () => {
         _mockReturnSuccess()
 
         const result = await action.volume(-4.3)
         expect(Connection.mockSend).nthCalledWith(1, volumeMessage)
         expect(result).toBeInstanceOf(PlayVolumeResult)
         expect(result.successful).toBe(true)
-        done()
       })
 
-      it('with success response should return a PlayVolumeResult object with successful false', async done => {
+      it('with success response should return a PlayVolumeResult object with successful false', async () => {
         _mockReturnFail()
 
         const result = await action.volume(-4.3)
         expect(Connection.mockSend).nthCalledWith(1, volumeMessage)
         expect(result).toBeInstanceOf(PlayVolumeResult)
         expect(result.successful).toBe(false)
-        done()
       })
     })
   })
@@ -161,7 +153,7 @@ describe('Calling Actions', () => {
         params: { node_id: 'node-id', call_id: 'call-id', control_id: 'mocked-uuid' }
       })
 
-      it('should execute the proper method and return the result', async done => {
+      it('should execute the proper method and return the result', async () => {
         _mockReturnSuccess()
 
         const result = await action.stop()
@@ -169,10 +161,9 @@ describe('Calling Actions', () => {
         expect(result).toBeInstanceOf(StopResult)
         expect(result.successful).toBe(true)
         expect(result.code).toEqual('200')
-        done()
       })
 
-      it('should execute the proper method and return the result with a failure response', async done => {
+      it('should execute the proper method and return the result with a failure response', async () => {
         _mockReturnFail()
 
         const result = await action.stop()
@@ -180,7 +171,6 @@ describe('Calling Actions', () => {
         expect(result).toBeInstanceOf(StopResult)
         expect(result.successful).toBe(false)
         expect(result.code).toEqual('400')
-        done()
       })
     })
 
@@ -191,24 +181,22 @@ describe('Calling Actions', () => {
         params: { node_id: 'node-id', call_id: 'call-id', control_id: 'mocked-uuid', volume: 5.0 }
       })
 
-      it('with success response should return a PromptVolumeResult object with successful true', async done => {
+      it('with success response should return a PromptVolumeResult object with successful true', async () => {
         _mockReturnSuccess()
 
         const result = await action.volume(5.0)
         expect(Connection.mockSend).nthCalledWith(1, volumeMessage)
         expect(result).toBeInstanceOf(PromptVolumeResult)
         expect(result.successful).toBe(true)
-        done()
       })
 
-      it('with success response should return a PromptVolumeResult object with successful false', async done => {
+      it('with success response should return a PromptVolumeResult object with successful false', async () => {
         _mockReturnFail()
 
         const result = await action.volume(5.0)
         expect(Connection.mockSend).nthCalledWith(1, volumeMessage)
         expect(result).toBeInstanceOf(PromptVolumeResult)
         expect(result.successful).toBe(false)
-        done()
       })
     })
   })

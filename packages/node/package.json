@@ -13,11 +13,10 @@
     "build": "npm run check_versions && tsc",
     "watch": "tsc -w",
     "tslint": "tslint -p tsconfig.json",
-    "test": "jest --forceExit --detectOpenHandles /tests/rest/integration.test.ts",
+    "test": "jest --forceExit --detectOpenHandles",
     "test:watch": "npm run test -- --watchAll",
     "validate": "npm i && npm run tslint && npm run test && npm run clean-build",
-    "check_versions": "node ../../.scripts/check_package_version.js",
-    "migrate-jest": "ts-jest config:migrate jest.config.js"
+    "check_versions": "node ../../.scripts/check_package_version.js"
   },
   "keywords": [
     "signalwire",

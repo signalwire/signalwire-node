@@ -199,7 +199,7 @@ describe('Helpers browser functions', () => {
 
   })
 
-  describe('', () => {
+  describe('Filter UDP(Defaults) Tests', () => {
     it('Should not filter by default', () => {
       const iceServers = [
         {

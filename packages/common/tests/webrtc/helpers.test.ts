@@ -213,9 +213,9 @@ describe('Helpers browser functions', () => {
         }
       ]
 
-      const filteredIceServer = filterIceServers(iceServers)
+      const filteredIceServers = filterIceServers(iceServers)
 
-      expect(filterIceServers).toEqual(iceServers)
+      expect(filteredIceServers).toEqual(iceServers)
 
     })
 
@@ -231,9 +231,9 @@ describe('Helpers browser functions', () => {
         }
       ]
 
-      const filteredIceServer = filterIceServers(iceServers, true)
+      const filteredIceServers = filterIceServers(iceServers, true)
 
-      expect(filterIceServers).toEqual(iceServers)
+      expect(filteredIceServers).toEqual(iceServers)
     })
 
     it('Should filter only non transport=tcp URI', () => {
@@ -252,7 +252,7 @@ describe('Helpers browser functions', () => {
 
       const filteredIceServer = filterIceServers(iceServers, true)
 
-      expect(filterIceServers).toEqual([
+      expect(filteredIceServer).toEqual([
         {
           "urls": [
             "turn:turn.swire.io:443?transport=tcp", 

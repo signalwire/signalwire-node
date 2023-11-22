@@ -231,7 +231,7 @@ describe('Helpers browser functions', () => {
         }
       ]
 
-      const filteredIceServers = filterIceServers(iceServers, true)
+      const filteredIceServers = filterIceServers(iceServers, {disableUDP: true})
 
       expect(filteredIceServers).toEqual(iceServers)
     })
@@ -250,7 +250,7 @@ describe('Helpers browser functions', () => {
         }
       ]
 
-      const filteredIceServer = filterIceServers(iceServers, true)
+      const filteredIceServer = filterIceServers(iceServers, {disableUDP: true})
 
       expect(filteredIceServer).toEqual([
         {

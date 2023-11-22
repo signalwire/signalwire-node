@@ -290,9 +290,12 @@ const sdpBitrateHack = (sdp: string, max: number, min: number, start: number) =>
   return lines.join(endOfLine)
 }
 
-const filterIceServers = (servers: RTCIceServer[], disableUDP= false): RTCIceServer[] => {
+interface FilterIceServersOptions { disableUDP: boolean}
+const filterIceServers = (servers: RTCIceServer[], options: FilterIceServersOptions = {disableUDP: false}): RTCIceServer[] => {
+  const { disableUDP = false } = options
   const filterNonTransportTCP = (urls: string | string[]): string | string[] => {
       const  transportParam = 'transport=tcp'
+
 
       if (urls instanceof Array) {
         return urls.filter(url => url.includes(transportParam))

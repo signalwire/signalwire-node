@@ -7,8 +7,6 @@ import Event from '../Event'
 export class Refer extends BaseComponent {
   public eventType: string = CallNotification.Refer
   public method: string = CallMethod.Refer
-  public controlId: string = this.call.tag
-
   public referTo: string
   public referResponseCode: string
   public referNotifyCode: string
@@ -18,6 +16,8 @@ export class Refer extends BaseComponent {
     public params: ReferParams,
   ) {
     super(call)
+
+    this.controlId = this.call.tag
   }
 
   get payload(): any {

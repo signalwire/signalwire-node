@@ -58,7 +58,7 @@ class MediaStreamMock implements MediaStream {
   }
 }
 
-class MediaStreamTrackMock implements MediaStreamTrack {
+class MediaStreamTrackMock implements Partial<MediaStreamTrack> {
   enabled: boolean = true
   id: string = uuidv4()
   isolated: boolean
@@ -68,10 +68,10 @@ class MediaStreamTrackMock implements MediaStreamTrack {
   readonly: boolean
   readyState: MediaStreamTrackState
   remote: boolean
-  onended: (this: MediaStreamTrack, ev: MediaStreamErrorEvent) => any
+  onended: (this: MediaStreamTrack, ev: Event) => any
   onisolationchange: (this: MediaStreamTrack, ev: Event) => any
   onmute: (this: MediaStreamTrack, ev: Event) => any
-  onoverconstrained: (this: MediaStreamTrack, ev: MediaStreamErrorEvent) => any
+  onoverconstrained: (this: MediaStreamTrack, ev: Event) => any
   onunmute: (this: MediaStreamTrack, ev: Event) => any
 
   applyConstraints(constraints: any): Promise<void> {
@@ -140,7 +140,7 @@ class RTCRtpSenderMock implements RTCRtpSender {
   }
 }
 
-class RTCPeerConnectionMock implements RTCPeerConnection {
+class RTCPeerConnectionMock implements Partial<RTCPeerConnection> {
   canTrickleIceCandidates: boolean
   connectionState: RTCPeerConnectionState
   currentLocalDescription: RTCSessionDescription
@@ -153,13 +153,14 @@ class RTCPeerConnectionMock implements RTCPeerConnection {
   onconnectionstatechange: (this: RTCPeerConnection, ev: Event) => any
   ondatachannel: (this: RTCPeerConnection, ev: RTCDataChannelEvent) => any
   onicecandidate: (this: RTCPeerConnection, ev: RTCPeerConnectionIceEvent) => any
-  onicecandidateerror: (this: RTCPeerConnection, ev: RTCPeerConnectionIceErrorEvent) => any
+  onicecandidateerror: (this: RTCPeerConnection, ev: Event) => any
   oniceconnectionstatechange: (this: RTCPeerConnection, ev: Event) => any
   onicegatheringstatechange: (this: RTCPeerConnection, ev: Event) => any
   onnegotiationneeded: (this: RTCPeerConnection, ev: Event) => any
   onsignalingstatechange: (this: RTCPeerConnection, ev: Event) => any
-  onstatsended: (this: RTCPeerConnection, ev: RTCStatsEvent) => any
+  onstatsended: (this: RTCPeerConnection, ev: Event) => any
   ontrack: (this: RTCPeerConnection, ev: RTCTrackEvent) => any
+  // @ts-ignore
   peerIdentity: Promise<RTCIdentityAssertion>
   pendingLocalDescription: RTCSessionDescription
   pendingRemoteDescription: RTCSessionDescription
@@ -213,7 +214,7 @@ class RTCPeerConnectionMock implements RTCPeerConnection {
   }
   getStats(selector?: MediaStreamTrack): Promise<RTCStatsReport>
   getStats(selector?: MediaStreamTrack): Promise<RTCStatsReport>
-  getStats(selector: MediaStreamTrack, successCallback: RTCStatsCallback, failureCallback: RTCPeerConnectionErrorCallback): Promise<void>
+  getStats(selector: MediaStreamTrack, successCallback: Function, failureCallback: RTCPeerConnectionErrorCallback): Promise<void>
   getStats(selector?: any, successCallback?: any, failureCallback?: any): Promise<RTCStatsReport | void> {
     throw new Error('Method not implemented.')
   }
@@ -230,6 +231,7 @@ class RTCPeerConnectionMock implements RTCPeerConnection {
   setConfiguration(configuration: any) {
     throw new Error('Method not implemented.')
   }
+  // @ts-ignore
   setIdentityProvider(provider: string, options?: RTCIdentityProviderOptions): void {
     throw new Error('Method not implemented.')
   }
@@ -245,12 +247,12 @@ class RTCPeerConnectionMock implements RTCPeerConnection {
   setRemoteDescription(description: any, successCallback?: any, failureCallback?: any): Promise<void> {
     throw new Error('Method not implemented.')
   }
-  addEventListener<K extends 'connectionstatechange' | 'datachannel' | 'icecandidate' | 'icecandidateerror' | 'iceconnectionstatechange' | 'icegatheringstatechange' | 'negotiationneeded' | 'signalingstatechange' | 'statsended' | 'track'>(type: K, listener: (this: RTCPeerConnection, ev: RTCPeerConnectionEventMap[K]) => void, options?: boolean | AddEventListenerOptions): void
+  addEventListener<K extends 'connectionstatechange' | 'datachannel' | 'icecandidate' | 'icecandidateerror' | 'iceconnectionstatechange' | 'icegatheringstatechange' | 'negotiationneeded' | 'signalingstatechange' | 'track'>(type: K, listener: (this: RTCPeerConnection, ev: RTCPeerConnectionEventMap[K]) => void, options?: boolean | AddEventListenerOptions): void
   addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void
   addEventListener(type: any, listener: any, options?: any) {
     // throw new Error('Method not implemented.')
   }
-  removeEventListener<K extends 'connectionstatechange' | 'datachannel' | 'icecandidate' | 'icecandidateerror' | 'iceconnectionstatechange' | 'icegatheringstatechange' | 'negotiationneeded' | 'signalingstatechange' | 'statsended' | 'track'>(type: K, listener: (this: RTCPeerConnection, ev: RTCPeerConnectionEventMap[K]) => void, options?: boolean | EventListenerOptions): void
+  removeEventListener<K extends 'connectionstatechange' | 'datachannel' | 'icecandidate' | 'icecandidateerror' | 'iceconnectionstatechange' | 'icegatheringstatechange' | 'negotiationneeded' | 'signalingstatechange' | 'track'>(type: K, listener: (this: RTCPeerConnection, ev: RTCPeerConnectionEventMap[K]) => void, options?: boolean | EventListenerOptions): void
   removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void
   removeEventListener(type: any, listener: any, options?: any) {
     throw new Error('Method not implemented.')

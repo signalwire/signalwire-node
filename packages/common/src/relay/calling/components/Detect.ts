@@ -10,7 +10,6 @@ const _machineStateEvents: string[] = [CallDetectState.Ready, CallDetectState.No
 export class Detect extends Controllable {
   public eventType: string = CallNotification.Detect
   public method: string = CallMethod.Detect
-  public controlId: string = this.controlId
 
   public type: string
   public result: string
@@ -21,7 +20,7 @@ export class Detect extends Controllable {
   constructor(
     public call: Call,
     private _detect: IRelayCallingDetect,
-    private _timeout: number = null,
+    private _timeout: number | null = null,
     private _waitForBeep: boolean = false
   ) {
     super(call)

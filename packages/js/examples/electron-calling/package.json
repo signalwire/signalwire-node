@@ -18,12 +18,12 @@
     "@babel/preset-env": "^7.1.0",
     "@babel/preset-react": "^7.0.0",
     "babel-loader": "^8.0.2",
-    "css-loader": "^1.0.0",
-    "electron": "^7.2.4",
+    "css-loader": "^6.8.1",
+    "electron": "^22.3.25",
     "style-loader": "^0.23.0",
-    "webpack": "^4.19.1",
+    "webpack": "^4.47.0",
     "webpack-cli": "^3.1.1",
-    "webpack-dev-server": "^3.7.2"
+    "webpack-dev-server": "^4.15.1"
   },
   "dependencies": {
     "@signalwire/js": "^1.1.2",

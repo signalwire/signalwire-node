@@ -7,7 +7,6 @@ import Event from '../Event'
 export class Play extends Controllable {
   public eventType: string = CallNotification.Play
   public method: string = CallMethod.Play
-  public controlId: string = this.controlId
 
   constructor(public call: Call, public play: IRelayCallingPlay[], public volumeValue: number = 0) {
     super(call)

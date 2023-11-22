@@ -6,10 +6,11 @@ import Event from '../Event'
 export class Hangup extends BaseComponent {
   public eventType: string = CallNotification.State
   public method: string = CallMethod.End
-  public controlId: string = this.call.tag
 
   constructor(public call: Call, public reason: string) {
     super(call)
+
+    this.controlId = this.call.tag
   }
 
   get payload(): any {

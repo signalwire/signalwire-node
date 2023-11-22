@@ -11,7 +11,7 @@ export default class Task {
   }
 
   deliver(context: string, message: any) {
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       const data = JSON.stringify({ context, message })
       const options = {
         host: this.host,

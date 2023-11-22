@@ -7,7 +7,6 @@ import Event from '../Event'
 export class Connect extends BaseComponent {
   public eventType: string = CallNotification.Connect
   public method: string = CallMethod.Connect
-  public controlId: string = this.call.tag
 
   constructor(
     public call: Call,

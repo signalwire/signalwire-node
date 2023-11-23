@@ -141,7 +141,6 @@ export default class Peer {
 
   private _config(): RTCConfiguration {
 
-
     const { iceServers = [], iceTransportPolicy = 'all', disableUdpIceServers = false } = this.options
     const filteredIceServers = filterIceServers(iceServers, {disableUdpIceServers})
 

@@ -231,7 +231,7 @@ describe('Helpers browser functions', () => {
         }
       ]
 
-      const filteredIceServers = filterIceServers(iceServers, {disableUDP: true})
+      const filteredIceServers = filterIceServers(iceServers, {disableUdpIceServers: true})
 
       expect(filteredIceServers).toEqual(iceServers)
     })
@@ -250,7 +250,7 @@ describe('Helpers browser functions', () => {
         }
       ]
 
-      const filteredIceServer = filterIceServers(iceServers, {disableUDP: true})
+      const filteredIceServer = filterIceServers(iceServers, {disableUdpIceServers: true})
 
       expect(filteredIceServer).toEqual([
         {
@@ -262,6 +262,55 @@ describe('Helpers browser functions', () => {
           "username": "1686088155:5b4b11d6-0824-4a66-b3f9-d5aabdf6ab8e"
         }
       ])
+
+    })
+
+    it('Should filter explicit transport=udp URI', () => {
+
+      const iceServers = [
+        {
+          "urls": [
+            "turn:turn.swire.io:443?transport=udp",
+            "turn:turn.swire.io:443?transport=tcp", 
+          ],
+          "credential": "secret",
+          "credentialType": "password",
+          "username": "1686088155:5b4b11d6-0824-4a66-b3f9-d5aabdf6ab8e"
+        }
+      ]
+
+      const filteredIceServer = filterIceServers(iceServers, {disableUdpIceServers: true})
+
+      expect(filteredIceServer).toEqual([
+        {
+          "urls": [
+            "turn:turn.swire.io:443?transport=tcp", 
+          ],
+          "credential": "secret",
+          "credentialType": "password",
+          "username": "1686088155:5b4b11d6-0824-4a66-b3f9-d5aabdf6ab8e"
+        }
+      ])
+
+    })
+
+    it('Should not filter explicit transport=udp URI', () => {
+
+      const iceServers = [
+        {
+          "urls": [
+            "turn:turn.swire.io:443?transport=udp",
+            "turn:turn.swire.io:443?transport=tcp", 
+          ],
+          "credential": "secret",
+          "credentialType": "password",
+          "username": "1686088155:5b4b11d6-0824-4a66-b3f9-d5aabdf6ab8e"
+        }
+      ]
+
+      const filteredIceServer = filterIceServers(iceServers)
+
+      expect(filteredIceServer).toEqual(iceServers)
 
     })
   })

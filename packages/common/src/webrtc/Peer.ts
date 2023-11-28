@@ -6,6 +6,7 @@ import { attachMediaStream, muteMediaElement, sdpToJsonHack, RTCPeerConnection, 
 import { isFunction } from '../util/helpers'
 import { CallOptions } from './interfaces'
 import { trigger } from '../services/Handler'
+import { filterIceServers } from './helpers'
 
 export default class Peer {
   public instance: RTCPeerConnection
@@ -139,13 +140,16 @@ export default class Peer {
   }
 
   private _config(): RTCConfiguration {
-    const { iceServers = [], iceTransportPolicy = 'all' } = this.options
+
+    const { iceServers = [], iceTransportPolicy = 'all', disableUdpIceServers = false } = this.options
+    const filteredIceServers = filterIceServers(iceServers, {disableUdpIceServers})
+
     const config: RTCConfiguration = {
       iceTransportPolicy,
       // @ts-ignore
       sdpSemantics: 'unified-plan',
       bundlePolicy: 'max-compat',
-      iceServers,
+      iceServers: filteredIceServers,
     }
     logger.info('RTC config', config)
     return config

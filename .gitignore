@@ -33,3 +33,5 @@ Thumbs.db
 
 # Dist folder
 dist
+.devcontainer/devcontainer.json
+.devcontainer/Dockerfile

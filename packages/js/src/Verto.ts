@@ -135,4 +135,15 @@ export default class Verto extends BrowserSession {
   protected _onSocketMessage(msg: any) {
     VertoHandler(this, msg)
   }
+
+  protected _onSocketCloseOrError(event: any): void {
+    // we need to flag each that peer potentily needResume,
+    // otherwise we won't be allowed to resume at login
+    Object.values(this.calls).forEach(call => {
+      if (call.peer) {
+        call.peer.needResume = true
+      }
+    })
+    super._onSocketCloseOrError(event)
+  }
 }

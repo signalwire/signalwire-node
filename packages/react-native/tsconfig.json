@@ -3,6 +3,7 @@
     "module": "ESNext",
     "target": "es6",
     "moduleResolution": "node",
+    "skipLibCheck": true,
     "outDir": "dist",
     "baseUrl": ".",
     "paths": {

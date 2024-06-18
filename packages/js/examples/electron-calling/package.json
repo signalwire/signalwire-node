@@ -22,7 +22,7 @@
     "electron": "^22.3.25",
     "style-loader": "^0.23.0",
     "webpack": "^5.92.0",
-    "webpack-cli": "^3.3.12",
+    "webpack-cli": "^5.1.4",
     "webpack-dev-server": "^4.15.1"
   },
   "dependencies": {

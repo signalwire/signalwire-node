@@ -85,6 +85,48 @@ export default (klass: any) => {
 
     // })
 
+    describe('verto.mediaParams', () => {
+      let handleMessageSpy 
+      beforeEach(async () => {
+        await instance.connect()
+        _setupCall({ id: 'e2fda6dc-fc9d-4d77-8096-53bb502443b6' })
+        const handleMessageSpy = jest.spyOn(call, 'handleMessage');
+        call.hangup = jest.fn()
+        Connection.mockSend.mockClear()
+      })
+
+      it('should pass the msg to the call and invoke the peer applyMediaConstraints for audio', () => {
+        //@ts-expect-error
+        call.peer = { applyMediaConstraints: jest.fn() }
+        const msg = JSON.parse('{"jsonrpc":"2.0","id":1682775,"method":"verto.mediaParams","params":{"callID":"e2fda6dc-fc9d-4d77-8096-53bb502443b6","mediaParams":{"audio":{"autoGainControl":true,"echoCancellation":true,"noiseSuppression":true}}}}')
+        handler.handleMessage(msg)
+        expect(call.handleMessage).toBeCalledTimes(1)
+        expect(call.peer.applyMediaConstraints)
+          .toHaveBeenCalledWith("audio", {"autoGainControl":true,"echoCancellation":true,"noiseSuppression":true})
+      })
+      it('should pass the msg to the call and invoke the peer applyMediaConstraints for video', () => {
+        //@ts-expect-error
+        call.peer = { applyMediaConstraints: jest.fn() }
+        const msg = JSON.parse('{"jsonrpc":"2.0","id":1682775,"method":"verto.mediaParams","params":{"callID":"e2fda6dc-fc9d-4d77-8096-53bb502443b6","mediaParams":{"video":{"autoGainControl":true,"echoCancellation":true,"noiseSuppression":true}}}}')
+        handler.handleMessage(msg)
+        expect(call.handleMessage).toBeCalledTimes(1)
+        expect(call.peer.applyMediaConstraints)
+          .toHaveBeenCalledWith("video", {"autoGainControl":true,"echoCancellation":true,"noiseSuppression":true})
+      })
+      it('should pass the msg to the call and invoke the peer applyMediaConstraints for both', () => {
+        //@ts-expect-error
+        call.peer = { applyMediaConstraints: jest.fn() }
+        const msg = JSON.parse('{"jsonrpc":"2.0","id":1682775,"method":"verto.mediaParams","params":{"callID":"e2fda6dc-fc9d-4d77-8096-53bb502443b6","mediaParams":{"video":{"autoGainControl":true,"echoCancellation":true,"noiseSuppression":true},"audio":{"autoGainControl":true,"echoCancellation":true,"noiseSuppression":true}}}}')
+        handler.handleMessage(msg)
+        expect(call.handleMessage).toBeCalledTimes(1)
+        expect(call.peer.applyMediaConstraints)
+          .toHaveBeenCalledWith("video", {"autoGainControl":true,"echoCancellation":true,"noiseSuppression":true})
+          expect(call.peer.applyMediaConstraints)
+          .toHaveBeenCalledWith("audio", {"autoGainControl":true,"echoCancellation":true,"noiseSuppression":true})
+      })
+    
+    });
+
     describe('verto.info', () => {
       it('should dispatch a notification', () => {
         handler.handleMessage(JSON.parse('{"jsonrpc":"2.0","id":37,"method":"verto.info","params":{"fake":"data", "test": "data"}}'))

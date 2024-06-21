@@ -103,6 +103,8 @@ class VertoHandler {
         params.type = NOTIFICATION_TYPE.vertoClientReady
         trigger(SwEvent.Notification, params, session.uuid)
         break
+
+
       default:
         logger.warn('Verto message unknown method:', msg)
     }

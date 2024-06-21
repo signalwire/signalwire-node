@@ -78,6 +78,15 @@ export default abstract class BaseCall implements IWebRTCCall {
     this._registerPeerEvents()
   }
 
+  applyMediaConstraints(params: {mediaParams: any}) {
+    const { mediaParams } = params
+    if (mediaParams) {
+
+      Object.keys(mediaParams)
+      .forEach(kind => this.peer.applyMediaConstraints(kind, mediaParams[kind]))
+    }
+  }
+
   hangup(params: any = {}, execute: boolean = true) {
     this.cause = params.cause || 'NORMAL_CLEARING'
     this.causeCode = params.causeCode || 16
@@ -280,6 +289,9 @@ export default abstract class BaseCall implements IWebRTCCall {
         }
         break
       }
+      case VertoMethod.MediaParams:
+        this.applyMediaConstraints(params)
+        break
       case VertoMethod.Bye:
         this.hangup(params, false)
         break

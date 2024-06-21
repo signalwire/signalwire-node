@@ -154,4 +154,26 @@ export default class Peer {
     logger.info('RTC config', config)
     return config
   }
+
+  private _getSenderByKind(kind: string) {
+    if (this.instance) {
+      return this.instance.getSenders().find(({ track }) => (track && track.kind === kind))
+    }
+  }
+
+  async applyMediaConstraints(kind: string, constraints: MediaTrackConstraints) {
+    try {
+      const sender = this._getSenderByKind(kind)
+      if (!sender || !sender.track) {
+        return logger.info('No sender to apply constraints', kind, constraints)
+      }
+      if (sender.track.readyState === 'live') {
+        logger.info(`Apply ${kind} constraints`, this.options.id, constraints)
+        await sender.track.applyConstraints(constraints)
+      }
+    } catch (error) {
+      logger.error('Error applying constraints', kind, constraints)
+    }
+
+  }
 }

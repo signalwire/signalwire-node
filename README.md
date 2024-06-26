@@ -1,5 +1,6 @@
 # SignalWire SDK for Node.js and JavaScript
 
+[![CI](https://github.com/signalwire/signalwire-node/actions/workflows/ci.yml/badge.svg)](https://github.com/signalwire/signalwire-node/actions/workflows/ci.yml)
 
 This package provides a client for Signalwire services and supports different Javascript environments.
 

@@ -621,12 +621,18 @@ export default abstract class BaseCall implements IWebRTCCall {
   }
 
   private _onIceSdp(data: RTCSessionDescription) {
+    console.log('________________ _onIceSdp ___________')
     if (this._iceTimeout) {
       clearTimeout(this._iceTimeout)
     }
     this._iceTimeout = null
     this._iceDone = true
     const { sdp, type } = data
+
+
+    console.log('________ SDP: ', sdp)
+
+
     if (sdp.indexOf('candidate') === -1) {
       this._requestAnotherLocalDescription()
       return
@@ -663,15 +669,19 @@ export default abstract class BaseCall implements IWebRTCCall {
     this._iceDone = false
     instance.onicecandidate = event => {
       if (this._iceDone) {
+        console.log('______iceDone, returning...')
         return
       }
-      if (this._iceTimeout === null) {
-        this._iceTimeout = setTimeout(() => this._onIceSdp(instance.localDescription), 1000)
-      }
+      // if (this._iceTimeout === null) {
+      //   console.log('______ set timeout for iceTimeout _____')
+      //   this._iceTimeout = setTimeout(() => this._onIceSdp(instance.localDescription), 1000)
+      // }
       if (event.candidate) {
-        logger.info('IceCandidate:', event.candidate)
+        logger.info('IceCandidate: address: ', event.candidate.address, ' - port: ', event.candidate.port, ' - type:', event.candidate.type)
       } else {
-        this._onIceSdp(instance.localDescription)
+        console.log('_________onicecandidate - doing nothing_______')
+        // console.log('______calling onIceSdp with local description:', instance.localDescription?.sdp)
+        // this._onIceSdp(instance.localDescription)
       }
     }
 
@@ -687,6 +697,22 @@ export default abstract class BaseCall implements IWebRTCCall {
     instance.addEventListener('addstream', (event: MediaStreamEvent) => {
       this.options.remoteStream = event.stream
     })
+
+    instance.addEventListener('icegatheringstatechange', (ev) => {
+      switch (instance.iceGatheringState) {
+       case 'new':
+        console.log('_______new_______')
+        break
+      case 'gathering':
+        console.log('_______gathering_______')
+        break
+      case 'complete':
+        console.log('_______complete_______ calling _onIceSdp with SDP: ', instance.localDescription?.sdp)
+        this._onIceSdp(instance.localDescription)
+        break
+      }
+    })
+
   }
 
   private _checkConferenceSerno = (serno: number) => {

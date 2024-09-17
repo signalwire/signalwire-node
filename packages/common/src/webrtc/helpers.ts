@@ -5,12 +5,21 @@ import { DeviceType } from './constants'
 import { CallOptions } from './interfaces'
 
 const getUserMedia = async (constraints: MediaStreamConstraints): Promise<MediaStream | null> => {
+
+
+// constraints = { audio: true, video: false}
+
+
   logger.info('RTCService.getUserMedia', constraints)
   const { audio, video } = constraints
   if (!audio && !video) {
     return null
   }
   try {
+
+
+console.log('__________ calling gUM with constraints: ', constraints)
+
     return await WebRTC.getUserMedia(constraints)
   } catch (error) {
     logger.error('getUserMedia error: ', error)
@@ -19,6 +28,7 @@ const getUserMedia = async (constraints: MediaStreamConstraints): Promise<MediaS
 }
 
 const _constraintsByKind = (kind: string = null): { audio: boolean, video: boolean } => {
+  console.log('________ kind:', kind)
   return {
     audio: !kind || kind === DeviceType.AudioIn,
     video: !kind || kind === DeviceType.Video
@@ -37,6 +47,11 @@ const getDevices = async (kind: string = null, fullList: boolean = false): Promi
   }
   const valid: boolean = devices.length && devices.every((d: MediaDeviceInfo) => (d.deviceId && d.label))
   if (!valid) {
+
+
+
+console.log('___________ calling gUM inside getDevices _________ kind:', kind)
+
     const stream = await WebRTC.getUserMedia(_constraintsByKind(kind))
     WebRTC.stopStream(stream)
     return getDevices(kind)
@@ -63,6 +78,11 @@ const getDevices = async (kind: string = null, fullList: boolean = false): Promi
 const resolutionList = [[320, 240], [640, 360], [640, 480], [1280, 720], [1920, 1080]]
 const scanResolutions = async (deviceId: string) => {
   const supported = []
+
+
+  console.log('___________ calling gUM inside scanResolutions _________')
+
+
   const stream = await getUserMedia({ video: { deviceId: { exact: deviceId } } })
   const videoTrack = stream.getVideoTracks()[0]
   for (let i = 0; i < resolutionList.length; i++) {
@@ -103,6 +123,8 @@ const getMediaConstraints = async (options: CallOptions): Promise<MediaStreamCon
       video.deviceId = { exact: camId }
     }
   }
+
+  console.log('_______INSIDE getMediaContraints________ audio: ', audio, ' - video: ', video)
 
   return { audio, video }
 }

@@ -171,6 +171,9 @@ export default abstract class BaseCall implements IWebRTCCall {
 
       const { localStream } = this.options
       localStream.getAudioTracks().forEach(t => t.stop())
+
+
+      console.log('____________ getting video tracks <-------------------- (audio)')
       localStream.getVideoTracks().forEach(t => newStream.addTrack(t))
       this.options.localStream = newStream
     }
@@ -200,6 +203,10 @@ export default abstract class BaseCall implements IWebRTCCall {
       this.options.camId = deviceId
 
       localStream.getAudioTracks().forEach(t => newStream.addTrack(t))
+
+      console.log('____________ getting video tracks <-------------------- (video)')
+
+
       localStream.getVideoTracks().forEach(t => t.stop())
       this.options.localStream = newStream
     }

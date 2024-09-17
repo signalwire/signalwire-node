@@ -310,6 +310,14 @@ const filterIceServers = (servers: RTCIceServer[], options: FilterIceServersOpti
     }))
 }
 
+const sdpHasAudio = (sdp: string = ''): boolean => {
+  return /m=audio/.test(sdp)
+}
+
+const sdpHasVideo = (sdp: string = ''): boolean => {
+  return /m=video/.test(sdp)
+}
+
 export {
   getUserMedia,
   getDevices,
@@ -329,5 +337,7 @@ export {
   enableVideoTracks,
   disableVideoTracks,
   toggleVideoTracks,
-  filterIceServers
+  filterIceServers,
+  sdpHasAudio,
+  sdpHasVideo
 }

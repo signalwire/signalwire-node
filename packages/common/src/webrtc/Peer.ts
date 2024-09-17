@@ -23,13 +23,11 @@ export default class Peer {
   }
 
   startNegotiation() {
-    console.log('________startNegotiation... - setting _negotiating to true! <---------------------------')
     this._negotiating = true
 
     if (this._isOffer()) {
       this._createOffer()
     } else {
-      console.log('________startNegotiation... - calling _createAnswer() <--------------------------- connection state: ', this.instance.connectionState)
       this._createAnswer()
     }
   }
@@ -40,73 +38,46 @@ export default class Peer {
     this.instance.onsignalingstatechange = event => {
       switch (this.instance.signalingState) {
         case 'stable':
-          console.log('________onsignalingstatechange ====== (stable) state: ', this.instance.signalingState, ' - setting _negotiating to false.\\\\')
           // Workaround to skip nested negotiations
           // Chrome bug: https://bugs.chromium.org/p/chromium/issues/detail?id=740501
           this._negotiating = false
-          console.log('________onsignalingstatechange ====== (stable) state: ', this.instance.signalingState, ' - negotiating: ', this._negotiating, '////')
           break
-        case 'have-remote-offer':
-          console.log('________onsignalingstatechange ====== have-remote-offer! setting _negotiating to true... ++++++++++++++++++++++++++')
-          // console.log(' - Current local SDP: ', this.instance.currentLocalDescription?.sdp)
-          // console.log(' - Current remote SDP: ', this.instance.currentRemoteDescription?.sdp)
-          // console.log('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
-          this._negotiating = true
+        case 'closed':
+          this.instance = null
           break
-          case 'closed':
-            this.instance = null
-            break
-          default:
-          console.log('________onsignalingstatechange ====== state: ', this.instance.signalingState, ' negotiating: ', this._negotiating, ' - setting it to true.')
+        default:
           this._negotiating = true
       }
     }
 
     this.instance.onnegotiationneeded = event => {
-      console.log('________________onnegotiationneeded________________ signalingState: ', this.instance.signalingState)
       if (this._negotiating) {
         logger.debug('Skip twice onnegotiationneeded..')
-        console.log('________________onnegotiationneeded_______________negotiating is TRUE, returning___ signalingState: ', this.instance.signalingState)
         return
       }
-      console.log('____onnegotiationneeded.... calling startNegotiation! - signalingState: ', this.instance.signalingState)
       this.startNegotiation()
     }
 
-    console.log('___________ calling _retrieveLocalStream ____________________ this.options: ', this.options)
     this.options.localStream = await this._retrieveLocalStream()
       .catch(error => {
         trigger(SwEvent.MediaError, error, this.options.id)
         return null
       })
-
     const { localElement, localStream = null, screenShare = false } = this.options
-
     if (streamIsValid(localStream)) {
-      console.log('____localStream is VALID!.... signalingState: ', this.instance.signalingState)
-
       if (typeof this.instance.addTrack === 'function') {
-        console.log('____localStream is VALID!....get all the tracks from the stream -  signalingState: ', this.instance.signalingState)
         localStream.getTracks().forEach(t => this.instance.addTrack(t, localStream))
       } else {
         // @ts-ignore
         this.instance.addStream(localStream)
       }
-
       if (screenShare !== true) {
         muteMediaElement(localElement)
-        console.log('____localStream is VALID!....attach localStream as media stream -  signalingState: ', this.instance.signalingState)
         attachMediaStream(localElement, localStream)
       }
-
-
     } else if (localStream === null) {
-      console.log('____localStream is nulll.... calling startNegotiation! - signalingState: ', this.instance.signalingState)
       this.startNegotiation()
-    } else {
-      console.log('____localStream is not valid and NOT null.... signaling state: ', this.instance.signalingState, ' connection state: ', this.instance.connectionState)
     }
-
   }
 
   private _createOffer() {
@@ -124,17 +95,9 @@ export default class Peer {
     if (!this._isAnswer()) {
       return
     }
-
-    console.log('>>>>>>>>>>>>>> _createAnswer <<<<<<<<<<<<<<<<< signaling state: ', this.instance.signalingState, ' connection state: ', this.instance.connectionState)
-
     const { remoteSdp, useStereo } = this.options
     const sdp = useStereo ? sdpStereoHack(remoteSdp) : remoteSdp
     const sessionDescr: RTCSessionDescription = sdpToJsonHack({ sdp, type: PeerType.Offer })
-
-
-    console.log('>>>>>>>>>>>>>> _createAnswer <<<<<<<<<<<<<<<<< remote description: ', sessionDescr.sdp)
-
-
     this.instance.setRemoteDescription(sessionDescr)
       .then(() => this.instance.createAnswer())
       .then(this._setLocalDescription.bind(this))
@@ -189,11 +152,16 @@ export default class Peer {
     const localConstraints = await getMediaConstraints(this.options)
     let sharedConstraints = localConstraints
 
+    // If the local stream is requested for an answer,
+    // then check whether the offer contains audio and/or video
+    // and only call getUserMedia with the capabilities that match
+    // local constraints with the offer constraints.
+    // The most typical scenario is an offer with audio only: we
+    // don't want to call getUserMedia with video.
     if (this._isOffer() === false) {
       const { remoteSdp, useStereo } = this.options
       const sdp = useStereo ? sdpStereoHack(remoteSdp) : remoteSdp
       const sessionDescr: RTCSessionDescription = sdpToJsonHack({ sdp, type: PeerType.Offer })
-      console.log(']]]]]]]]]]]]]]]]]]]]_____________ _retrieveLocalStream - remote description: ', sessionDescr.sdp)
       sharedConstraints = this._getSharedConstraints(localConstraints, sessionDescr.sdp)
     }
 

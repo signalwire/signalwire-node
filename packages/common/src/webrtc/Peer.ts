@@ -7,6 +7,7 @@ import { isFunction } from '../util/helpers'
 import { CallOptions } from './interfaces'
 import { trigger } from '../services/Handler'
 import { filterIceServers } from './helpers'
+import { sdpHasAudio, sdpHasVideo } from './helpers'
 
 export default class Peer {
   public instance: RTCPeerConnection
@@ -123,12 +124,41 @@ export default class Peer {
     }
   }
 
+  private _getSharedConstraints(localConstraints, sdp: string = '') {
+    const localAudio = localConstraints?.audio ?? false
+    const remoteAudio = sdp ? sdpHasAudio(sdp) : false
+    const localVideo = localConstraints?.video ?? false
+    const remoteVideo = sdp ? sdpHasVideo(sdp) : false
+
+    const sharedConstraints = {
+      audio: localAudio && remoteAudio,
+      video: localVideo && remoteVideo
+    }
+
+    return sharedConstraints
+  }
+
   private async _retrieveLocalStream() {
     if (streamIsValid(this.options.localStream)) {
       return this.options.localStream
     }
-    const constraints = await getMediaConstraints(this.options)
-    return getUserMedia(constraints)
+    const localConstraints = await getMediaConstraints(this.options)
+    let sharedConstraints = localConstraints
+
+    // If the local stream is requested for an answer,
+    // then check whether the offer contains audio and/or video
+    // and only call getUserMedia with the capabilities that match
+    // local constraints with the offer constraints.
+    // The most typical scenario is an offer with audio only: we
+    // don't want to call getUserMedia with video in this case.
+    if (this._isAnswer()) {
+      const { remoteSdp, useStereo } = this.options
+      const sdp = useStereo ? sdpStereoHack(remoteSdp) : remoteSdp
+      const sessionDescr: RTCSessionDescription = sdpToJsonHack({ sdp, type: PeerType.Offer })
+      sharedConstraints = this._getSharedConstraints(localConstraints, sessionDescr.sdp)
+    }
+
+    return getUserMedia(sharedConstraints)
   }
 
   private _isOffer(): boolean {

@@ -31,7 +31,7 @@
       "avoid-escape"
     ],
     "semicolon": [
-      true,
+      false,
       "never"
     ],
     "whitespace": [

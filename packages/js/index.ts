@@ -1,15 +1,11 @@
-import Relay from './src/SignalWire'
-import Verto from './src/Verto'
-import { setAgentName } from '../common/src/messages/blade/Connect'
-import CantinaAuth from '../common/src/webrtc/CantinaAuth'
+import Relay from './src/SignalWire';
+import Verto from './src/Verto';
+import { setAgentName } from '../common/src/messages/blade/Connect';
+import CantinaAuth from '../common/src/webrtc/CantinaAuth';
 
-export const VERSION = '1.4.0'
-setAgentName(`JavaScript SDK/${VERSION}`)
+export const VERSION = '1.4.1';
+setAgentName(`JavaScript SDK/${VERSION}`);
 
-export {
-  Relay,
-  Verto,
-  CantinaAuth
-}
+export { Relay, Verto, CantinaAuth };
 
-export * from '../common/src/util/interfaces'
+export * from '../common/src/util/interfaces';

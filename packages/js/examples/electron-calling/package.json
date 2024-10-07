@@ -30,5 +30,9 @@
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
     "react-hot-loader": "^4.12.10"
+  },
+  "overrides": {
+    "body-parser": "^1.20.3",
+    "send": "^0.19.0"
   }
 }

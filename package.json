@@ -17,5 +17,9 @@
     "fs-extra": "^7.0.1",
     "listr": "^0.14.3",
     "tslint": "^6.1.1"
+  },
+  "overrides": {
+    "express": "^4.20.0",
+    "serve-static": "^1.16.0"
   }
 }

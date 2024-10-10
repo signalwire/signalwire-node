@@ -44,7 +44,13 @@ export default class RelayClient extends BaseSession {
       await this.disconnect()
     }
 
-    process.on('SIGTERM', _gracefulDisconnect)
-    process.on('SIGINT', _gracefulDisconnect)
+    process.once('SIGTERM', async () => {
+      await _gracefulDisconnect()
+      process.kill(process.pid, `SIGTERM`)
+    })
+    process.once('SIGINT', async () => {
+      await _gracefulDisconnect()
+      process.kill(process.pid, `SIGINT`)
+    })
   }
 }

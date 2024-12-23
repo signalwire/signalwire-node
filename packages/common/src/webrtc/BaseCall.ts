@@ -623,6 +623,8 @@ export default abstract class BaseCall implements IWebRTCCall {
   }
 
   private _requestAnotherLocalDescription() {
+    logger.debug('_requestAnotherLocalDescription')
+
     if (isFunction(this.peer.onSdpReadyTwice)) {
       trigger(SwEvent.Error, new Error('SDP without candidates for the second time!'), this.session.uuid)
       return
@@ -633,11 +635,16 @@ export default abstract class BaseCall implements IWebRTCCall {
   }
 
   private _onIceSdp(data: RTCSessionDescription) {
+    logger.debug('_onIceSdp')
+
     if (this._iceTimeout) {
       clearTimeout(this._iceTimeout)
     }
     this._iceTimeout = null
     this._iceDone = true
+
+    this.peer.resetNegotiating()
+
     const { sdp, type } = data
     if (sdp.indexOf('candidate') === -1) {
       this._requestAnotherLocalDescription()
@@ -678,10 +685,11 @@ export default abstract class BaseCall implements IWebRTCCall {
         return
       }
       if (this._iceTimeout === null) {
+        logger.debug('Setting _iceTimeout to 1 second')
         this._iceTimeout = setTimeout(() => this._onIceSdp(instance.localDescription), 1000)
       }
       if (event.candidate) {
-        logger.info('IceCandidate:', event.candidate)
+        logger.debug('IceCandidate: address:', event.candidate.address, ' - port:', event.candidate.port, ' - type:', event.candidate.type)
       } else {
         this._onIceSdp(instance.localDescription)
       }

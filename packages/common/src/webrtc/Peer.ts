@@ -15,20 +15,20 @@ export default class Peer {
   private _constraints: { offerToReceiveAudio: boolean, offerToReceiveVideo: boolean }
   private _negotiating: boolean = false
 
-  resetNegotiating() {
-    this._negotiating = false
-  }
-
-  isNegotiating() {
-    return this._negotiating
-  }
-
   constructor(public type: PeerType, private options: CallOptions) {
     logger.info('New Peer with type:', this.type, 'Options:', this.options)
 
     this._constraints = { offerToReceiveAudio: true, offerToReceiveVideo: true }
     this._sdpReady = this._sdpReady.bind(this)
     this._init()
+  }
+
+  resetNegotiating() {
+    this._negotiating = false
+  }
+
+  get isNegotiating() {
+    return this._negotiating
   }
 
   startNegotiation() {

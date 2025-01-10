@@ -23,6 +23,14 @@ export default class Peer {
     this._init()
   }
 
+  resetNegotiating() {
+    this._negotiating = false
+  }
+
+  get isNegotiating() {
+    return this._negotiating
+  }
+
   startNegotiation() {
     this._negotiating = true
 
@@ -39,9 +47,6 @@ export default class Peer {
     this.instance.onsignalingstatechange = event => {
       switch (this.instance.signalingState) {
         case 'stable':
-          // Workaround to skip nested negotiations
-          // Chrome bug: https://bugs.chromium.org/p/chromium/issues/detail?id=740501
-          this._negotiating = false
           break
         case 'closed':
           this.instance = null
@@ -114,6 +119,7 @@ export default class Peer {
     if (googleMaxBitrate && googleMinBitrate && googleStartBitrate) {
       sessionDescription.sdp = sdpBitrateHack(sessionDescription.sdp, googleMaxBitrate, googleMinBitrate, googleStartBitrate)
     }
+    logger.debug('calling setLocalDescription with SDP:', sessionDescription.sdp)
     return this.instance.setLocalDescription(sessionDescription)
   }
 

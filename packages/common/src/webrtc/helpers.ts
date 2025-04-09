@@ -1,12 +1,14 @@
 import logger from '../util/logger'
-import * as WebRTC from '../util/webrtc'
-import { isDefined } from '../util/helpers'
-import { DeviceType } from './constants'
-import { CallOptions } from './interfaces'
+import * as WebRTC from './WebRTC'
+import {isDefined} from '../util/helpers'
+import {DeviceType} from './constants'
+import {CallOptions} from './interfaces'
 
-const getUserMedia = async (constraints: MediaStreamConstraints): Promise<MediaStream | null> => {
+const getUserMedia = async (
+  constraints: MediaStreamConstraints,
+): Promise<MediaStream | null> => {
   logger.info('RTCService.getUserMedia', constraints)
-  const { audio, video } = constraints
+  const {audio, video} = constraints
   if (!audio && !video) {
     return null
   }
@@ -18,10 +20,12 @@ const getUserMedia = async (constraints: MediaStreamConstraints): Promise<MediaS
   }
 }
 
-const _constraintsByKind = (kind: string = null): { audio: boolean, video: boolean } => {
+const _constraintsByKind = (
+  kind: string = null,
+): {audio: boolean; video: boolean} => {
   return {
     audio: !kind || kind === DeviceType.AudioIn,
-    video: !kind || kind === DeviceType.Video
+    video: !kind || kind === DeviceType.Video,
   }
 }
 
@@ -30,12 +34,17 @@ const _constraintsByKind = (kind: string = null): { audio: boolean, video: boole
  * If 'deviceId' or 'label' are missing it means we are on Safari (macOS or iOS)
  * so we must request permissions to the user and then refresh the device list.
  */
-const getDevices = async (kind: string = null, fullList: boolean = false): Promise<MediaDeviceInfo[]> => {
-  let devices = await WebRTC.enumerateDevices().catch(error => [])
+const getDevices = async (
+  kind: string = null,
+  fullList: boolean = false,
+): Promise<MediaDeviceInfo[]> => {
+  let devices = await WebRTC.enumerateDevices().catch((error) => [])
   if (kind) {
     devices = devices.filter((d: MediaDeviceInfo) => d.kind === kind)
   }
-  const valid: boolean = devices.length && devices.every((d: MediaDeviceInfo) => (d.deviceId && d.label))
+  const valid: boolean =
+    devices.length &&
+    devices.every((d: MediaDeviceInfo) => d.deviceId && d.label)
   if (!valid) {
     const stream = await WebRTC.getUserMedia(_constraintsByKind(kind))
     WebRTC.stopStream(stream)
@@ -45,7 +54,7 @@ const getDevices = async (kind: string = null, fullList: boolean = false): Promi
     return devices
   }
   const found = []
-  devices = devices.filter(({ kind, groupId }: MediaDeviceInfo) => {
+  devices = devices.filter(({kind, groupId}: MediaDeviceInfo) => {
     if (!groupId) {
       return true
     }
@@ -60,18 +69,27 @@ const getDevices = async (kind: string = null, fullList: boolean = false): Promi
   return devices
 }
 
-const resolutionList = [[320, 240], [640, 360], [640, 480], [1280, 720], [1920, 1080]]
+const resolutionList = [
+  [320, 240],
+  [640, 360],
+  [640, 480],
+  [1280, 720],
+  [1920, 1080],
+]
 const scanResolutions = async (deviceId: string) => {
   const supported = []
-  const stream = await getUserMedia({ video: { deviceId: { exact: deviceId } } })
+  const stream = await getUserMedia({
+    video: {deviceId: {exact: deviceId}},
+  })
   const videoTrack = stream.getVideoTracks()[0]
   for (let i = 0; i < resolutionList.length; i++) {
     const [width, height] = resolutionList[i]
-    const success = await videoTrack.applyConstraints({ width: { exact: width }, height: { exact: height } })
+    const success = await videoTrack
+      .applyConstraints({width: {exact: width}, height: {exact: height}})
       .then(() => true)
       .catch(() => false)
     if (success) {
-      supported.push({ resolution: `${width}x${height}`, width, height })
+      supported.push({resolution: `${width}x${height}`, width, height})
     }
   }
   WebRTC.stopStream(stream)
@@ -79,38 +97,48 @@ const scanResolutions = async (deviceId: string) => {
   return supported
 }
 
-const getMediaConstraints = async (options: CallOptions): Promise<MediaStreamConstraints> => {
-  let { audio = true, micId } = options
-  const { micLabel = '' } = options
+const getMediaConstraints = async (
+  options: CallOptions,
+): Promise<MediaStreamConstraints> => {
+  let {audio = true, micId} = options
+  const {micLabel = ''} = options
   if (micId) {
-    micId = await assureDeviceId(micId, micLabel, DeviceType.AudioIn).catch(error => null)
+    micId = await assureDeviceId(micId, micLabel, DeviceType.AudioIn).catch(
+      (error) => null,
+    )
     if (micId) {
       if (typeof audio === 'boolean') {
         audio = {}
       }
-      audio.deviceId = { exact: micId }
+      audio.deviceId = {exact: micId}
     }
   }
 
-  let { video = false, camId } = options
-  const { camLabel = '' } = options
+  let {video = false, camId} = options
+  const {camLabel = ''} = options
   if (camId) {
-    camId = await assureDeviceId(camId, camLabel, DeviceType.Video).catch(error => null)
+    camId = await assureDeviceId(camId, camLabel, DeviceType.Video).catch(
+      (error) => null,
+    )
     if (camId) {
       if (typeof video === 'boolean') {
         video = {}
       }
-      video.deviceId = { exact: camId }
+      video.deviceId = {exact: camId}
     }
   }
 
-  return { audio, video }
+  return {audio, video}
 }
 
-const assureDeviceId = async (id: string, label: string, kind: MediaDeviceInfo['kind']): Promise<string> => {
+const assureDeviceId = async (
+  id: string,
+  label: string,
+  kind: MediaDeviceInfo['kind'],
+): Promise<string> => {
   const devices = await getDevices(kind, true)
   for (let i = 0; i < devices.length; i++) {
-    const { deviceId, label: deviceLabel } = devices[i]
+    const {deviceId, label: deviceLabel} = devices[i]
     if (id === deviceId || label === deviceLabel) {
       return deviceId
     }
@@ -119,21 +147,34 @@ const assureDeviceId = async (id: string, label: string, kind: MediaDeviceInfo['
   return null
 }
 
-const removeUnsupportedConstraints = (constraints: MediaTrackConstraints): void => {
+const removeUnsupportedConstraints = (
+  constraints: MediaTrackConstraints,
+): void => {
   const supported = WebRTC.getSupportedConstraints()
-  Object.keys(constraints).map(key => {
-    if (!supported.hasOwnProperty(key) || constraints[key] === null || constraints[key] === undefined) {
+  Object.keys(constraints).map((key) => {
+    if (
+      !supported.hasOwnProperty(key) ||
+      constraints[key] === null ||
+      constraints[key] === undefined
+    ) {
       delete constraints[key]
     }
   })
 }
 
-const checkDeviceIdConstraints = async (id: string, label: string, kind: MediaDeviceInfo['kind'], constraints: MediaTrackConstraints) => {
-  const { deviceId } = constraints
+const checkDeviceIdConstraints = async (
+  id: string,
+  label: string,
+  kind: MediaDeviceInfo['kind'],
+  constraints: MediaTrackConstraints,
+) => {
+  const {deviceId} = constraints
   if (!isDefined(deviceId) && (id || label)) {
-    const deviceId = await assureDeviceId(id, label, kind).catch(error => null)
+    const deviceId = await assureDeviceId(id, label, kind).catch(
+      (error) => null,
+    )
     if (deviceId) {
-      constraints.deviceId = { exact: deviceId }
+      constraints.deviceId = {exact: deviceId}
     }
   }
   return constraints
@@ -147,7 +188,9 @@ const sdpStereoHack = (sdp: string) => {
   const endOfLine = '\r\n'
   const sdpLines = sdp.split(endOfLine)
 
-  const opusIndex = sdpLines.findIndex(s => /^a=rtpmap/.test(s) && /opus\/48000/.test(s))
+  const opusIndex = sdpLines.findIndex(
+    (s) => /^a=rtpmap/.test(s) && /opus\/48000/.test(s),
+  )
   if (opusIndex < 0) {
     return sdp
   }
@@ -160,14 +203,18 @@ const sdpStereoHack = (sdp: string) => {
   const opusPayload = getCodecPayloadType(sdpLines[opusIndex])
 
   const pattern = new RegExp(`a=fmtp:${opusPayload}`)
-  const fmtpLineIndex = sdpLines.findIndex(s => pattern.test(s))
+  const fmtpLineIndex = sdpLines.findIndex((s) => pattern.test(s))
 
   if (fmtpLineIndex >= 0) {
-    if (!/stereo=1;/.test(sdpLines[fmtpLineIndex])) { // Append stereo=1 to fmtp line if not already present
+    if (!/stereo=1;/.test(sdpLines[fmtpLineIndex])) {
+      // Append stereo=1 to fmtp line if not already present
       sdpLines[fmtpLineIndex] += '; stereo=1; sprop-stereo=1'
     }
-  } else { // create an fmtp line
-    sdpLines[opusIndex] += `${endOfLine}a=fmtp:${opusPayload} stereo=1; sprop-stereo=1`
+  } else {
+    // create an fmtp line
+    sdpLines[
+      opusIndex
+    ] += `${endOfLine}a=fmtp:${opusPayload} stereo=1; sprop-stereo=1`
   }
 
   return sdpLines.join(endOfLine)
@@ -189,7 +236,7 @@ const sdpMediaOrderHack = (answer: string, localOffer: string): string => {
   const answerAudioIndex = answerLines.findIndex(_isAudioLine)
   const answerVideoIndex = answerLines.findIndex(_isVideoLine)
   const audioLines = answerLines.slice(answerAudioIndex, answerVideoIndex)
-  const videoLines = answerLines.slice(answerVideoIndex, (answerLines.length - 1))
+  const videoLines = answerLines.slice(answerVideoIndex, answerLines.length - 1)
   const beginLines = answerLines.slice(0, answerAudioIndex)
   return [...beginLines, ...videoLines, ...audioLines, ''].join(endOfLine)
 }
@@ -198,11 +245,17 @@ const checkSubscribeResponse = (response: any, channel: string): boolean => {
   if (!response) {
     return false
   }
-  const { subscribed, alreadySubscribed } = destructSubscribeResponse(response)
+  const {subscribed, alreadySubscribed} = destructSubscribeResponse(response)
   return subscribed.includes(channel) || alreadySubscribed.includes(channel)
 }
 
-type DestructuredResult = { subscribed: string[], alreadySubscribed: string[], unauthorized: string[], unsubscribed: string[], notSubscribed: string[] }
+type DestructuredResult = {
+  subscribed: string[]
+  alreadySubscribed: string[]
+  unauthorized: string[]
+  unsubscribed: string[]
+  notSubscribed: string[]
+}
 
 const destructSubscribeResponse = (response: any): DestructuredResult => {
   const tmp = {
@@ -210,9 +263,11 @@ const destructSubscribeResponse = (response: any): DestructuredResult => {
     alreadySubscribed: [],
     unauthorized: [],
     unsubscribed: [],
-    notSubscribed: []
+    notSubscribed: [],
   }
-  Object.keys(tmp).forEach(k => { tmp[k] = response[`${k}Channels`] || [] })
+  Object.keys(tmp).forEach((k) => {
+    tmp[k] = response[`${k}Channels`] || []
+  })
   return tmp
 }
 
@@ -240,7 +295,11 @@ const toggleVideoTracks = (stream: MediaStream) => {
   _updateMediaStreamTracks(stream, 'video', null)
 }
 
-const _updateMediaStreamTracks = (stream: MediaStream, kind: string = null, enabled: boolean | string = null) => {
+const _updateMediaStreamTracks = (
+  stream: MediaStream,
+  kind: string = null,
+  enabled: boolean | string = null,
+) => {
   if (!WebRTC.streamIsValid(stream)) {
     return null
   }
@@ -277,12 +336,19 @@ const _updateMediaStreamTracks = (stream: MediaStream, kind: string = null, enab
  * Modify the SDP to increase video bitrate
  * @return the SDP modified
  */
-const sdpBitrateHack = (sdp: string, max: number, min: number, start: number) => {
+const sdpBitrateHack = (
+  sdp: string,
+  max: number,
+  min: number,
+  start: number,
+) => {
   const endOfLine = '\r\n'
   const lines = sdp.split(endOfLine)
   lines.forEach((line, i) => {
     if (/^a=fmtp:\d*/.test(line)) {
-      lines[i] += `;x-google-max-bitrate=${max};x-google-min-bitrate=${min};x-google-start-bitrate=${start}`
+      lines[
+        i
+      ] += `;x-google-max-bitrate=${max};x-google-min-bitrate=${min};x-google-start-bitrate=${start}`
     } else if (/^a=mid:(1|video)/.test(line)) {
       lines[i] += `\r\nb=AS:${max}`
     }
@@ -290,24 +356,32 @@ const sdpBitrateHack = (sdp: string, max: number, min: number, start: number) =>
   return lines.join(endOfLine)
 }
 
-interface FilterIceServersOptions { disableUdpIceServers: boolean}
-const filterIceServers = (servers: RTCIceServer[], options: FilterIceServersOptions = {disableUdpIceServers: false}): RTCIceServer[] => {
-  const { disableUdpIceServers = false } = options
-  const filterNonTransportTCP = (urls: string | string[]): string | string[] => {
-      const  transportParam = 'transport=tcp'
+interface FilterIceServersOptions {
+  disableUdpIceServers: boolean
+}
+const filterIceServers = (
+  servers: RTCIceServer[],
+  options: FilterIceServersOptions = {disableUdpIceServers: false},
+): RTCIceServer[] => {
+  const {disableUdpIceServers = false} = options
+  const filterNonTransportTCP = (
+    urls: string | string[],
+  ): string | string[] => {
+    const transportParam = 'transport=tcp'
 
-
-      if (urls instanceof Array) {
-        return urls.filter(url => url.includes(transportParam))
-      } else {
-        return urls.includes(transportParam) ? urls : ''
-      }
+    if (urls instanceof Array) {
+      return urls.filter((url) => url.includes(transportParam))
+    } else {
+      return urls.includes(transportParam) ? urls : ''
     }
+  }
 
-    return servers.map(server => ({
-      ...server,
-      urls: disableUdpIceServers ? filterNonTransportTCP(server.urls) : server.urls
-    }))
+  return servers.map((server) => ({
+    ...server,
+    urls: disableUdpIceServers
+      ? filterNonTransportTCP(server.urls)
+      : server.urls,
+  }))
 }
 
 const sdpHasAudio = (sdp: string = ''): boolean => {
@@ -339,5 +413,5 @@ export {
   toggleVideoTracks,
   filterIceServers,
   sdpHasAudio,
-  sdpHasVideo
+  sdpHasVideo,
 }

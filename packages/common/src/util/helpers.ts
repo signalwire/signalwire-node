@@ -1,5 +1,5 @@
 import logger from './logger'
-import { STORAGE_PREFIX } from './constants'
+import {STORAGE_PREFIX} from './constants'
 
 // hack to remove undefined values from the object
 export const deepCopy = (obj: Object) => JSON.parse(JSON.stringify(obj))
@@ -9,14 +9,28 @@ export const objEmpty = (obj: Object) => Object.keys(obj).length === 0
 export const mutateStorageKey = (key: string) => `${STORAGE_PREFIX}${key}`
 
 export const mutateLiveArrayData = (data: any) => {
-  const [participantId, participantNumber, participantName, codec, mediaJson, participantData] = data
+  const [
+    participantId,
+    participantNumber,
+    participantName,
+    codec,
+    mediaJson,
+    participantData,
+  ] = data
   let media = {}
   try {
     media = JSON.parse(mediaJson.replace(/ID"/g, 'Id"'))
   } catch (error) {
     logger.warn('Verto LA invalid media JSON string:', mediaJson)
   }
-  return { participantId: Number(participantId), participantNumber, participantName, codec, media, participantData }
+  return {
+    participantId: Number(participantId),
+    participantNumber,
+    participantName,
+    codec,
+    media,
+    participantData,
+  }
 }
 
 export const safeParseJson = (value: string): string | Object => {
@@ -30,11 +44,15 @@ export const safeParseJson = (value: string): string | Object => {
   }
 }
 
-export const isDefined = (variable: any): boolean => typeof variable !== 'undefined'
+export const isDefined = (variable: any): boolean =>
+  typeof variable !== 'undefined'
 
-export const isFunction = (variable: any): boolean => variable instanceof Function || typeof variable === 'function'
+export const isFunction = (variable: any): boolean =>
+  variable instanceof Function || typeof variable === 'function'
 
-export const findElementByType = (tag: HTMLMediaElement | string | Function): HTMLMediaElement => {
+export const findElementByType = (
+  tag: HTMLMediaElement | string | Function,
+): HTMLMediaElement => {
   if (typeof document !== 'object' || !('getElementById' in document)) {
     return null
   }
@@ -62,28 +80,56 @@ export const checkWebSocketHost = (host: string): string => {
  *
  * @returns Object with error | result key to identify success or fail
  */
-export const destructResponse = (response: any, nodeId: string = null): { [key: string]: any } => {
-  const { result = {}, error } = response
+export const destructResponse = (
+  response: any,
+  nodeId: string = null,
+): {[key: string]: any} => {
+  const {result = {}, error} = response
   if (error) {
-    return { error }
+    return {error}
   }
-  const { result: nestedResult = null } = result
+  const {result: nestedResult = null} = result
   if (nestedResult === null) {
     if (nodeId !== null) {
       result.node_id = nodeId
     }
-    return { result }
+    return {result}
   }
-  const { code = null, node_id = null, result: vertoResult = null } = nestedResult
+  const {code = null, node_id = null, result: vertoResult = null} = nestedResult
   if (code && code !== '200') {
-    return { error: nestedResult }
+    return {error: nestedResult}
   }
   if (vertoResult) {
     return destructResponse(vertoResult, node_id)
   }
-  return { result: nestedResult }
+  return {result: nestedResult}
 }
 
 export const randomInt = (min: number, max: number) => {
   return Math.floor(Math.random() * (max - min + 1) + min)
+}
+
+export const adaptToAsyncAPI = <T extends object>(
+  target: T,
+  toAsyncMethods: string[] = [],
+  methodShims: Record<string | symbol, Function> = {},
+) => {
+  const promisify = new Set(toAsyncMethods)
+
+  return new Proxy(target, {
+    get(obj, prop) {
+      if (typeof obj[prop] === 'function' || methodShims[prop]) {
+        const impl =
+          obj[`${String(prop)}Async`] || obj[prop] || methodShims[prop]
+
+        return (...args) => {
+          const result = impl.apply(obj, args)
+          if (promisify.has(String(prop)) && !(result instanceof Promise)) {
+            return Promise.resolve(result)
+          }
+          return result
+        }
+      }
+    },
+  })
 }

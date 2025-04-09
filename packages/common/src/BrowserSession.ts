@@ -1,18 +1,69 @@
 import logger from './util/logger'
 import BaseSession from './BaseSession'
-import { ICacheDevices, IAudioSettings, IVideoSettings, BroadcastParams, SubscribeParams, IBladeConnectResult } from './util/interfaces'
-import { registerOnce, trigger } from './services/Handler'
-import { SwEvent, SESSION_ID } from './util/constants'
-import { State, DeviceType } from './webrtc/constants'
-import { getDevices, scanResolutions, removeUnsupportedConstraints, checkDeviceIdConstraints, destructSubscribeResponse, getUserMedia, assureDeviceId } from './webrtc/helpers'
-import { findElementByType } from './util/helpers'
-import { Unsubscribe, Subscribe, Broadcast } from './messages/Verto'
-import { localStorage } from './util/storage/'
-import { stopStream } from './util/webrtc'
-import { IWebRTCCall } from './webrtc/interfaces'
+import {
+  ICacheDevices,
+  IAudioSettings,
+  IVideoSettings,
+  BroadcastParams,
+  SubscribeParams,
+  IBladeConnectResult,
+  ISignalWireBrowserOptions,
+} from './util/interfaces'
+import {registerOnce, trigger} from './services/Handler'
+import {SwEvent, SESSION_ID} from './util/constants'
+import {State, DeviceType} from './webrtc/constants'
+import {
+  getDevices,
+  scanResolutions,
+  removeUnsupportedConstraints,
+  checkDeviceIdConstraints,
+  destructSubscribeResponse,
+  getUserMedia,
+  assureDeviceId,
+} from './webrtc/helpers'
+import {findElementByType} from './util/helpers'
+import {Unsubscribe, Subscribe, Broadcast} from './messages/Verto'
+import {localStorage} from './util/storage/'
+import {stopStream} from './util/webrtc'
+import {IWebRTCCall} from './webrtc/interfaces'
+import {WebRTCOverridesManager} from './webrtc/WebRTC'
 
 export default abstract class BrowserSession extends BaseSession {
-  public calls: { [callId: string]: IWebRTCCall } = {}
+  constructor(public options: ISignalWireBrowserOptions) {
+    super(options)
+    WebRTCOverridesManager.getInstance().RTCPeerConnection =
+      options.RTCPeerConnection
+    WebRTCOverridesManager.getInstance().enumerateDevices =
+      options.enumerateDevices
+    WebRTCOverridesManager.getInstance().getUserMedia = options.getUserMedia
+    WebRTCOverridesManager.getInstance().getDisplayMedia =
+      options.getDisplayMedia
+    WebRTCOverridesManager.getInstance().getSupportedConstraints =
+      options.getSupportedConstraints
+  }
+
+  validateOptions() {
+    const {
+      RTCPeerConnection,
+      getDisplayMedia,
+      getSupportedConstraints,
+      getUserMedia,
+    } = this.options
+    return (
+      // All overrides should be either empty or not empty
+      ((!RTCPeerConnection &&
+        !getDisplayMedia &&
+        !getSupportedConstraints &&
+        !getUserMedia) ||
+        (!!RTCPeerConnection &&
+          !!getDisplayMedia &&
+          !!getSupportedConstraints &&
+          !!getUserMedia)) &&
+      super.validateOptions()
+    )
+  }
+
+  public calls: {[callId: string]: IWebRTCCall} = {}
   public micId: string
   public micLabel: string
   public camId: string
@@ -34,7 +85,7 @@ export default abstract class BrowserSession extends BaseSession {
   }
 
   protected _handleBladeConnectResponse(response: IBladeConnectResult) {
-    const { ice_servers = [] } = response
+    const {ice_servers = []} = response
     this.iceServers = ice_servers
   }
 
@@ -46,9 +97,12 @@ export default abstract class BrowserSession extends BaseSession {
   /**
    * Check if the browser has the permission to access mic and/or webcam
    */
-  async checkPermissions(audio: boolean = true, video: boolean = true): Promise<boolean> {
+  async checkPermissions(
+    audio: boolean = true,
+    video: boolean = true,
+  ): Promise<boolean> {
     try {
-      const stream = await getUserMedia({ audio, video })
+      const stream = await getUserMedia({audio, video})
       stopStream(stream)
       return true
     } catch {
@@ -68,7 +122,7 @@ export default abstract class BrowserSession extends BaseSession {
    * Disconnect all active calls
    */
   async disconnect() {
-    Object.keys(this.calls).forEach(k => this.calls[k].setState(State.Purge))
+    Object.keys(this.calls).forEach((k) => this.calls[k].setState(State.Purge))
     this.calls = {}
 
     await super.disconnect()
@@ -76,12 +130,21 @@ export default abstract class BrowserSession extends BaseSession {
 
   speedTest(bytes: number) {
     return new Promise((resolve, reject) => {
-      registerOnce(SwEvent.SpeedTest, speedTestResult => {
-        const { upDur, downDur } = speedTestResult
-        const upKps = upDur ? (((bytes * 8) / (upDur / 1000)) / 1024) : 0
-        const downKps = downDur ? (((bytes * 8) / (downDur / 1000)) / 1024) : 0
-        resolve({ upDur, downDur, upKps: upKps.toFixed(0), downKps: downKps.toFixed(0) })
-      }, this.uuid)
+      registerOnce(
+        SwEvent.SpeedTest,
+        (speedTestResult) => {
+          const {upDur, downDur} = speedTestResult
+          const upKps = upDur ? (bytes * 8) / (upDur / 1000) / 1024 : 0
+          const downKps = downDur ? (bytes * 8) / (downDur / 1000) / 1024 : 0
+          resolve({
+            upDur,
+            downDur,
+            upKps: upKps.toFixed(0),
+            downKps: downKps.toFixed(0),
+          })
+        },
+        this.uuid,
+      )
 
       bytes = Number(bytes)
       if (!bytes) {
@@ -105,7 +168,7 @@ export default abstract class BrowserSession extends BaseSession {
    * Return the device list supported by the browser
    */
   getDevices(): Promise<MediaDeviceInfo[]> {
-    return getDevices().catch(error => {
+    return getDevices().catch((error) => {
       trigger(SwEvent.MediaError, error, this.uuid)
       return []
     })
@@ -115,7 +178,7 @@ export default abstract class BrowserSession extends BaseSession {
    * Return the device list supported by the browser
    */
   getVideoDevices(): Promise<MediaDeviceInfo[]> {
-    return getDevices(DeviceType.Video).catch(error => {
+    return getDevices(DeviceType.Video).catch((error) => {
       trigger(SwEvent.MediaError, error, this.uuid)
       return []
     })
@@ -125,7 +188,7 @@ export default abstract class BrowserSession extends BaseSession {
    * Return the device list supported by the browser
    */
   getAudioInDevices(): Promise<MediaDeviceInfo[]> {
-    return getDevices(DeviceType.AudioIn).catch(error => {
+    return getDevices(DeviceType.AudioIn).catch((error) => {
       trigger(SwEvent.MediaError, error, this.uuid)
       return []
     })
@@ -135,13 +198,17 @@ export default abstract class BrowserSession extends BaseSession {
    * Return the device list supported by the browser
    */
   getAudioOutDevices(): Promise<MediaDeviceInfo[]> {
-    return getDevices(DeviceType.AudioOut).catch(error => {
+    return getDevices(DeviceType.AudioOut).catch((error) => {
       trigger(SwEvent.MediaError, error, this.uuid)
       return []
     })
   }
 
-  validateDeviceId(id: string, label: string, kind: MediaDeviceInfo['kind']): Promise<string> {
+  validateDeviceId(
+    id: string,
+    label: string,
+    kind: MediaDeviceInfo['kind'],
+  ): Promise<string> {
     return assureDeviceId(id, label, kind)
   }
 
@@ -151,13 +218,13 @@ export default abstract class BrowserSession extends BaseSession {
    */
   async refreshDevices() {
     logger.warn('This method has been deprecated. Use getDevices() instead.')
-    const cache = {};
-    ['videoinput', 'audioinput', 'audiooutput'].map((kind: string) => {
+    const cache = {}
+    ;['videoinput', 'audioinput', 'audiooutput'].map((kind: string) => {
       cache[kind] = {}
       Object.defineProperty(cache[kind], 'toArray', {
         value: function () {
-          return Object.keys(this).map(k => this[k])
-        }
+          return Object.keys(this).map((k) => this[k])
+        },
       })
     })
     const devices = await this.getDevices()
@@ -193,7 +260,9 @@ export default abstract class BrowserSession extends BaseSession {
    * @deprecated
    */
   get videoDevices() {
-    logger.warn('This property has been deprecated. Use getVideoDevices() instead.')
+    logger.warn(
+      'This property has been deprecated. Use getVideoDevices() instead.',
+    )
     return this._devices.videoinput || {}
   }
 
@@ -201,7 +270,9 @@ export default abstract class BrowserSession extends BaseSession {
    * @deprecated
    */
   get audioInDevices() {
-    logger.warn('This property has been deprecated. Use getAudioInDevices() instead.')
+    logger.warn(
+      'This property has been deprecated. Use getAudioInDevices() instead.',
+    )
     return this._devices.audioinput || {}
   }
 
@@ -209,18 +280,25 @@ export default abstract class BrowserSession extends BaseSession {
    * @deprecated
    */
   get audioOutDevices() {
-    logger.warn('This property has been deprecated. Use getAudioOutDevices() instead.')
+    logger.warn(
+      'This property has been deprecated. Use getAudioOutDevices() instead.',
+    )
     return this._devices.audiooutput || {}
   }
 
   get mediaConstraints() {
-    return { audio: this._audioConstraints, video: this._videoConstraints }
+    return {audio: this._audioConstraints, video: this._videoConstraints}
   }
 
   async setAudioSettings(settings: IAudioSettings) {
-    const { micId, micLabel, ...constraints } = settings
+    const {micId, micLabel, ...constraints} = settings
     removeUnsupportedConstraints(constraints)
-    this._audioConstraints = await checkDeviceIdConstraints(micId, micLabel, 'audioinput', constraints)
+    this._audioConstraints = await checkDeviceIdConstraints(
+      micId,
+      micLabel,
+      'audioinput',
+      constraints,
+    )
     this.micId = micId
     this.micLabel = micLabel
     return this._audioConstraints
@@ -235,9 +313,14 @@ export default abstract class BrowserSession extends BaseSession {
   }
 
   async setVideoSettings(settings: IVideoSettings) {
-    const { camId, camLabel, ...constraints } = settings
+    const {camId, camLabel, ...constraints} = settings
     removeUnsupportedConstraints(constraints)
-    this._videoConstraints = await checkDeviceIdConstraints(camId, camLabel, 'videoinput', constraints)
+    this._videoConstraints = await checkDeviceIdConstraints(
+      camId,
+      camLabel,
+      'videoinput',
+      constraints,
+    )
     this.camId = camId
     this.camLabel = camLabel
     return this._videoConstraints
@@ -253,7 +336,9 @@ export default abstract class BrowserSession extends BaseSession {
 
   set iceServers(servers: RTCIceServer[] | boolean) {
     if (typeof servers === 'boolean') {
-      this._iceServers = servers ? [{ urls: ['stun:stun.l.google.com:19302'] }] : []
+      this._iceServers = servers
+        ? [{urls: ['stun:stun.l.google.com:19302']}]
+        : []
     } else {
       this._iceServers = servers
     }
@@ -287,48 +372,71 @@ export default abstract class BrowserSession extends BaseSession {
     return this._remoteElement
   }
 
-  vertoBroadcast({ nodeId, channel: eventChannel = '', data }: BroadcastParams) {
+  vertoBroadcast({nodeId, channel: eventChannel = '', data}: BroadcastParams) {
     if (!eventChannel) {
       throw new Error('Invalid channel for broadcast: ' + eventChannel)
     }
-    const msg = new Broadcast({ sessid: this.sessionid, eventChannel, data })
+    const msg = new Broadcast({sessid: this.sessionid, eventChannel, data})
     if (nodeId) {
       msg.targetNodeId = nodeId
     }
-    this.execute(msg).catch(error => error)
+    this.execute(msg).catch((error) => error)
   }
 
-  async vertoSubscribe({ nodeId, channels: eventChannel = [], handler }: SubscribeParams) {
-    eventChannel = eventChannel.filter(channel => channel && !this._existsSubscription(this.relayProtocol, channel))
+  async vertoSubscribe({
+    nodeId,
+    channels: eventChannel = [],
+    handler,
+  }: SubscribeParams) {
+    eventChannel = eventChannel.filter(
+      (channel) =>
+        channel && !this._existsSubscription(this.relayProtocol, channel),
+    )
     if (!eventChannel.length) {
       return {}
     }
-    const msg = new Subscribe({ sessid: this.sessionid, eventChannel })
+    const msg = new Subscribe({sessid: this.sessionid, eventChannel})
     if (nodeId) {
       msg.targetNodeId = nodeId
     }
     const response = await this.execute(msg)
-    const { unauthorized = [], subscribed = [] } = destructSubscribeResponse(response)
+    const {unauthorized = [], subscribed = []} =
+      destructSubscribeResponse(response)
     if (unauthorized.length) {
-      unauthorized.forEach(channel => this._removeSubscription(this.relayProtocol, channel))
+      unauthorized.forEach((channel) =>
+        this._removeSubscription(this.relayProtocol, channel),
+      )
     }
-    subscribed.forEach(channel => this._addSubscription(this.relayProtocol, handler, channel))
+    subscribed.forEach((channel) =>
+      this._addSubscription(this.relayProtocol, handler, channel),
+    )
     return response
   }
 
-  async vertoUnsubscribe({ nodeId, channels: eventChannel = [] }: SubscribeParams) {
-    eventChannel = eventChannel.filter(channel => channel && this._existsSubscription(this.relayProtocol, channel))
+  async vertoUnsubscribe({
+    nodeId,
+    channels: eventChannel = [],
+  }: SubscribeParams) {
+    eventChannel = eventChannel.filter(
+      (channel) =>
+        channel && this._existsSubscription(this.relayProtocol, channel),
+    )
     if (!eventChannel.length) {
       return {}
     }
-    const msg = new Unsubscribe({ sessid: this.sessionid, eventChannel })
+    const msg = new Unsubscribe({sessid: this.sessionid, eventChannel})
     if (nodeId) {
       msg.targetNodeId = nodeId
     }
     const response = await this.execute(msg)
-    const { unsubscribed = [], notSubscribed = [] } = destructSubscribeResponse(response)
-    unsubscribed.forEach(channel => this._removeSubscription(this.relayProtocol, channel))
-    notSubscribed.forEach(channel => this._removeSubscription(this.relayProtocol, channel))
+    const {unsubscribed = [], notSubscribed = []} =
+      destructSubscribeResponse(response)
+    unsubscribed.forEach((channel) =>
+      this._removeSubscription(this.relayProtocol, channel),
+    )
+    notSubscribed.forEach((channel) =>
+      this._removeSubscription(this.relayProtocol, channel),
+    )
     return response
   }
 }

@@ -5,7 +5,7 @@ import {
   isDefined,
   checkWebSocketHost,
   destructResponse,
-  adaptToAsyncAPI,
+  normalizeAsyncAPIs,
 } from '../src/util/helpers'
 
 describe('Helpers functions', () => {
@@ -187,13 +187,13 @@ describe('Helpers functions', () => {
     })
   })
 
-  describe('adaptToAsyncAPI', () => {
+  describe('normalizeAsyncAPIs', () => {
     it('should wrap specified methods to return a Promise', async () => {
       const target = {
         returnValue: () => 'syncResult',
         returnPromise: async () => 'asyncResult',
       }
-      const proxy = adaptToAsyncAPI(target, ['returnValue'])
+      const proxy = normalizeAsyncAPIs(target, ['returnValue'])
 
       const promisifiedResult = proxy.returnValue()
       expect(promisifiedResult).toBeInstanceOf(Promise)
@@ -208,7 +208,7 @@ describe('Helpers functions', () => {
       const target = {
         returnValue: () => 'syncResult',
       }
-      const proxy = adaptToAsyncAPI(target, [])
+      const proxy = normalizeAsyncAPIs(target, [])
 
       const result = proxy.returnValue()
       expect(result).toEqual('syncResult')
@@ -221,7 +221,7 @@ describe('Helpers functions', () => {
         methodAsync: async () => 'result',
         anotherMethod: () => 'anotherResult',
       }
-      const proxy = adaptToAsyncAPI(target, ['method', 'anotherMethod'])
+      const proxy = normalizeAsyncAPIs(target, ['method', 'anotherMethod'])
 
       const result = await proxy.method()
       expect(mock).not.toBeCalled()
@@ -239,7 +239,7 @@ describe('Helpers functions', () => {
       method: () => {},
     }
 
-    const proxy = adaptToAsyncAPI(target, ['method', 'anotherMethod'])
+    const proxy = normalizeAsyncAPIs(target, ['method', 'anotherMethod'])
 
     proxy.method = mock
 
@@ -255,7 +255,7 @@ describe('Helpers functions', () => {
       }
     }
 
-    const proxy = adaptToAsyncAPI(new Target())
+    const proxy = normalizeAsyncAPIs(new Target())
     expect(proxy.getValue()).toEqual('test') // Ensure `this` is correct
   })
 
@@ -267,7 +267,7 @@ describe('Helpers functions', () => {
       }
     }
 
-    const proxy = adaptToAsyncAPI(new Target())
+    const proxy = normalizeAsyncAPIs(new Target())
 
     // Replace the method after proxy creation
     proxy.getValue = function () {
@@ -292,7 +292,7 @@ describe('Helpers functions', () => {
       }
     }
 
-    const proxy = adaptToAsyncAPI(new Target())
+    const proxy = normalizeAsyncAPIs(new Target())
     proxy.f = mock
     proxy.f()
     expect(mock).toBeCalled()
@@ -342,7 +342,7 @@ describe('Helpers functions', () => {
       }
     }
 
-    const proxy = adaptToAsyncAPI(new Target())
+    const proxy = normalizeAsyncAPIs(new Target())
     const wrapped = new Wrapper(proxy)
     wrapped.f()
     expect(mock).toBeCalledTimes(1)
@@ -350,7 +350,7 @@ describe('Helpers functions', () => {
     wrapped.v = 'newValue'
     expect(wrapped.v).toEqual('newValue')
     expect(proxy.v).toEqual('newValue')
-    const newProxy = adaptToAsyncAPI(wrapped)
+    const newProxy = normalizeAsyncAPIs(wrapped)
     newProxy.f = () => {}
     newProxy.f()
     expect(mock).toBeCalledTimes(1)

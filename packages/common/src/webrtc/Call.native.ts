@@ -1,12 +1,12 @@
 // @ts-ignore
 import InCallManager from 'react-native-incall-manager'
 import BaseCall from './BaseCall'
-import {State} from './constants'
-import {streamIsValid} from './WebRTC'
+import { State } from './constants'
+import { streamIsValid } from './WebRTC'
 
 export default class Call extends BaseCall {
   switchCamera() {
-    const {localStream} = this.options
+    const { localStream } = this.options
     if (streamIsValid(localStream)) {
       // @ts-ignore
       localStream.getVideoTracks().forEach((t) => t._switchCamera())

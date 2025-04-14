@@ -1,7 +1,7 @@
 import logger from '../util/logger'
 import BaseCall from './BaseCall'
-import {CallOptions} from './interfaces'
-import {getDisplayMedia, setMediaElementSinkId} from './WebRTC'
+import { CallOptions } from './interfaces'
+import { getDisplayMedia, setMediaElementSinkId } from './WebRTC'
 
 export default class Call extends BaseCall {
   public screenShare: Call

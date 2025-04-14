@@ -1,10 +1,10 @@
-import {v4 as uuidv4} from 'uuid'
+import { v4 as uuidv4 } from 'uuid'
 import logger from '../util/logger'
 import BrowserSession from '../BrowserSession'
 import BaseMessage from '../messages/BaseMessage'
-import {Invite, Answer, Attach, Bye, Modify, Info} from '../messages/Verto'
+import { Invite, Answer, Attach, Bye, Modify, Info } from '../messages/Verto'
 import Peer from './Peer'
-import {SwEvent} from '../util/constants'
+import { SwEvent } from '../util/constants'
 import {
   State,
   DEFAULT_CALL_OPTIONS,
@@ -15,7 +15,7 @@ import {
   NOTIFICATION_TYPE,
   Direction,
 } from './constants'
-import {trigger, register, deRegister} from '../services/Handler'
+import { trigger, register, deRegister } from '../services/Handler'
 import {
   sdpStereoHack,
   sdpMediaOrderHack,
@@ -27,8 +27,8 @@ import {
   disableVideoTracks,
   toggleVideoTracks,
 } from './helpers'
-import {objEmpty, mutateLiveArrayData, isFunction} from '../util/helpers'
-import {CallOptions, IWebRTCCall} from './interfaces'
+import { objEmpty, mutateLiveArrayData, isFunction } from '../util/helpers'
+import { CallOptions, IWebRTCCall } from './interfaces'
 import {
   attachMediaStream,
   detachMediaStream,
@@ -37,7 +37,7 @@ import {
   getUserMedia,
   setMediaElementSinkId,
 } from './WebRTC'
-import {MCULayoutEventHandler} from './LayoutHandler'
+import { MCULayoutEventHandler } from './LayoutHandler'
 
 export default abstract class BaseCall implements IWebRTCCall {
   public id: string = ''
@@ -71,7 +71,7 @@ export default abstract class BaseCall implements IWebRTCCall {
       camLabel,
       localElement,
       remoteElement,
-      mediaConstraints: {audio, video},
+      mediaConstraints: { audio, video },
     } = session
     this.options = Object.assign(
       {},
@@ -132,8 +132,8 @@ export default abstract class BaseCall implements IWebRTCCall {
     this._registerPeerEvents()
   }
 
-  applyMediaConstraints(params: {mediaParams: any}) {
-    const {mediaParams} = params
+  applyMediaConstraints(params: { mediaParams: any }) {
+    const { mediaParams } = params
     if (mediaParams) {
       Object.keys(mediaParams).forEach((kind) =>
         this.peer.applyMediaConstraints(kind, mediaParams[kind]),
@@ -226,7 +226,7 @@ export default abstract class BaseCall implements IWebRTCCall {
   }
 
   message(to: string, body: string) {
-    const msg = {from: this.session.options.login, to, body}
+    const msg = { from: this.session.options.login, to, body }
     const info = new Info({
       sessid: this.session.sessionid,
       msg,
@@ -248,20 +248,20 @@ export default abstract class BaseCall implements IWebRTCCall {
   }
 
   async setAudioInDevice(deviceId: string): Promise<void> {
-    const {instance} = this.peer
+    const { instance } = this.peer
     const senders = await instance.getSenders()
     const sender = senders.find(
-      ({track: {kind}}: RTCRtpSender) => kind === 'audio',
+      ({ track: { kind } }: RTCRtpSender) => kind === 'audio',
     )
     if (sender) {
       const newStream = await getUserMedia({
-        audio: {deviceId: {exact: deviceId}},
+        audio: { deviceId: { exact: deviceId } },
       })
       const audioTrack = newStream.getAudioTracks()[0]
       sender.replaceTrack(audioTrack)
       this.options.micId = deviceId
 
-      const {localStream} = this.options
+      const { localStream } = this.options
       localStream.getAudioTracks().forEach((t) => t.stop())
       localStream.getVideoTracks().forEach((t) => newStream.addTrack(t))
       this.options.localStream = newStream
@@ -281,18 +281,18 @@ export default abstract class BaseCall implements IWebRTCCall {
   }
 
   async setVideoDevice(deviceId: string): Promise<void> {
-    const {instance} = this.peer
+    const { instance } = this.peer
     const senders = await instance.getSenders()
     const sender = senders.find(
-      ({track: {kind}}: RTCRtpSender) => kind === 'video',
+      ({ track: { kind } }: RTCRtpSender) => kind === 'video',
     )
     if (sender) {
       const newStream = await getUserMedia({
-        video: {deviceId: {exact: deviceId}},
+        video: { deviceId: { exact: deviceId } },
       })
       const videoTrack = newStream.getVideoTracks()[0]
       sender.replaceTrack(videoTrack)
-      const {localElement, localStream} = this.options
+      const { localElement, localStream } = this.options
       attachMediaStream(localElement, newStream)
       this.options.camId = deviceId
 
@@ -323,15 +323,18 @@ export default abstract class BaseCall implements IWebRTCCall {
       `Call ${this.id} state change from ${this.prevState} to ${this.state}`,
     )
 
-    this._dispatchNotification({type: NOTIFICATION_TYPE.callUpdate, call: this})
+    this._dispatchNotification({
+      type: NOTIFICATION_TYPE.callUpdate,
+      call: this,
+    })
 
     switch (state) {
       case State.Purge:
-        this.hangup({cause: 'PURGE', causeCode: '01'}, false)
+        this.hangup({ cause: 'PURGE', causeCode: '01' }, false)
         break
       case State.Active: {
         setTimeout(() => {
-          const {remoteElement, speakerId} = this.options
+          const { remoteElement, speakerId } = this.options
           if (remoteElement && speakerId) {
             setMediaElementSinkId(remoteElement, speakerId)
           }
@@ -345,7 +348,7 @@ export default abstract class BaseCall implements IWebRTCCall {
   }
 
   handleMessage(msg: any) {
-    const {method, params} = msg
+    const { method, params } = msg
     switch (method) {
       case VertoMethod.Answer: {
         this.gotAnswer = true
@@ -496,12 +499,12 @@ export default abstract class BaseCall implements IWebRTCCall {
         })
         break
       case 'clear':
-        this._dispatchConferenceUpdate({action: ConferenceAction.Clear})
+        this._dispatchConferenceUpdate({ action: ConferenceAction.Clear })
         break
       // case 'reorder':
       //   break
       default:
-        this._dispatchConferenceUpdate({action, data, callId, index})
+        this._dispatchConferenceUpdate({ action, data, callId, index })
         break
     }
   }
@@ -554,7 +557,7 @@ export default abstract class BaseCall implements IWebRTCCall {
             this.session.vertoBroadcast({
               nodeId: this.nodeId,
               channel,
-              data: {action: 'send', message, type},
+              data: { action: 'send', message, type },
             })
           },
         },
@@ -567,7 +570,7 @@ export default abstract class BaseCall implements IWebRTCCall {
       nodeId: this.nodeId,
       channels: [channel],
       handler: (params: any) => {
-        const {eventData} = params
+        const { eventData } = params
         switch (eventData.contentType) {
           case 'layout-info':
             // FIXME: workaround to fix missing callID on payload
@@ -594,7 +597,7 @@ export default abstract class BaseCall implements IWebRTCCall {
       value: null,
       ...params,
     }
-    this.session.vertoBroadcast({nodeId: this.nodeId, channel, data})
+    this.session.vertoBroadcast({ nodeId: this.nodeId, channel, data })
   }
 
   private async _subscribeConferenceModerator(channel: string) {
@@ -604,11 +607,11 @@ export default abstract class BaseCall implements IWebRTCCall {
       value: any = null,
     ): void => {
       const id = parseInt(memberID) || null
-      this._confControl(channel, {command, id, value})
+      this._confControl(channel, { command, id, value })
     }
 
     const _videoRequired = (): void => {
-      const {video} = this.options
+      const { video } = this.options
       if (
         (typeof video === 'boolean' && !video) ||
         (typeof video === 'object' && objEmpty(video))
@@ -621,7 +624,7 @@ export default abstract class BaseCall implements IWebRTCCall {
       nodeId: this.nodeId,
       channels: [channel],
       handler: (params: any) => {
-        const {data} = params
+        const { data } = params
         switch (data['conf-command']) {
           case 'list-videoLayouts':
             if (data.responseData) {
@@ -852,7 +855,7 @@ export default abstract class BaseCall implements IWebRTCCall {
 
     this.peer.resetNegotiating()
 
-    const {sdp, type} = data
+    const { sdp, type } = data
     if (sdp.indexOf('candidate') === -1) {
       this._requestAnotherLocalDescription()
       return
@@ -881,7 +884,7 @@ export default abstract class BaseCall implements IWebRTCCall {
     }
     this._execute(msg)
       .then((response) => {
-        const {node_id = null} = response
+        const { node_id = null } = response
         this._targetNodeId = node_id
         type === PeerType.Offer
           ? this.setState(State.Trying)
@@ -894,7 +897,7 @@ export default abstract class BaseCall implements IWebRTCCall {
   }
 
   private _registerPeerEvents() {
-    const {instance} = this.peer
+    const { instance } = this.peer
     this._iceDone = false
     instance.onicecandidate = (event) => {
       if (this._iceDone) {
@@ -923,7 +926,7 @@ export default abstract class BaseCall implements IWebRTCCall {
 
     instance.addEventListener('track', (event: RTCTrackEvent) => {
       this.options.remoteStream = event.streams[0]
-      const {remoteElement, remoteStream, screenShare} = this.options
+      const { remoteElement, remoteStream, screenShare } = this.options
       if (screenShare === false) {
         attachMediaStream(remoteElement, remoteStream)
       }
@@ -947,7 +950,10 @@ export default abstract class BaseCall implements IWebRTCCall {
   }
 
   private _onMediaError(error: any) {
-    this._dispatchNotification({type: NOTIFICATION_TYPE.userMediaError, error})
+    this._dispatchNotification({
+      type: NOTIFICATION_TYPE.userMediaError,
+      error,
+    })
     this.hangup({}, false)
   }
 
@@ -976,7 +982,8 @@ export default abstract class BaseCall implements IWebRTCCall {
   }
 
   private _init() {
-    const {id, userVariables, remoteCallerNumber, onNotification} = this.options
+    const { id, userVariables, remoteCallerNumber, onNotification } =
+      this.options
     if (!id) {
       this.options.id = uuidv4()
     }
@@ -1000,7 +1007,7 @@ export default abstract class BaseCall implements IWebRTCCall {
   }
 
   protected _finalize() {
-    const {remoteStream, localStream, remoteElement, localElement} =
+    const { remoteStream, localStream, remoteElement, localElement } =
       this.options
     stopStream(remoteStream)
     stopStream(localStream)

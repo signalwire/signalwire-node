@@ -5,8 +5,8 @@ import {
   sdpStereoHack,
   sdpBitrateHack,
 } from './helpers'
-import {SwEvent} from '../util/constants'
-import {PeerType} from './constants'
+import { SwEvent } from '../util/constants'
+import { PeerType } from './constants'
 import {
   attachMediaStream,
   muteMediaElement,
@@ -14,11 +14,11 @@ import {
   RTCPeerConnection,
   streamIsValid,
 } from './WebRTC'
-import {isFunction} from '../util/helpers'
-import {CallOptions} from './interfaces'
-import {trigger} from '../services/Handler'
-import {filterIceServers} from './helpers'
-import {sdpHasAudio, sdpHasVideo} from './helpers'
+import {  isFunction } from '../util/helpers'
+import { CallOptions } from './interfaces'
+import { trigger } from '../services/Handler'
+import { filterIceServers } from './helpers'
+import { sdpHasAudio, sdpHasVideo } from './helpers'
 
 export default class Peer {
   public instance: RTCPeerConnection
@@ -91,7 +91,7 @@ export default class Peer {
     if (streamIsValid(localStream)) {
       if (typeof this.instance.addTrack === 'function') {
         const tracks = localStream.getTracks()
-        for (let track of tracks) {
+        for (const track of tracks) {
           await this.instance.addTrack(track, localStream)
         }
       } else {

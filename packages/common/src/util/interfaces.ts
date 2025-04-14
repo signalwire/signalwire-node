@@ -1,11 +1,11 @@
-import {IWebRTCOverridesManager} from '../webrtc/WebRTC'
+import { IWebRTCOverridesManager } from '../webrtc/WebRTC'
 
 interface IMessageBase {
   jsonrpc: string
   id: string
 }
 
-type TBladeVersion = {major: number; minor: number; revision: number}
+type TBladeVersion = { major: number; minor: number; revision: number }
 
 type SipCodec = 'PCMU' | 'PCMA' | 'OPUS' | 'G729' | 'G722' | 'VP8' | 'H264'
 
@@ -16,14 +16,14 @@ export interface ISubscription {
 }
 
 export interface IBladeResultError extends IMessageBase {
-  error: {code: number; message: string}
+  error: { code: number; message: string }
 }
 
 export interface IBladeConnectRequest extends IMessageBase {
   method: string
   params: {
     version: TBladeVersion
-    authentication: {project: string; token?: string; jwt_token?: string}
+    authentication: { project: string; token?: string; jwt_token?: string }
     sessionid?: string
     agent?: string
   }
@@ -98,9 +98,9 @@ export interface BroadcastParams {
 }
 
 export interface ICacheDevices {
-  videoinput?: {[deviceId: string]: MediaDeviceInfo}
-  audioinput?: {[deviceId: string]: MediaDeviceInfo}
-  audiooutput?: {[deviceId: string]: MediaDeviceInfo}
+  videoinput?: { [deviceId: string]: MediaDeviceInfo }
+  audioinput?: { [deviceId: string]: MediaDeviceInfo }
+  audiooutput?: { [deviceId: string]: MediaDeviceInfo }
 }
 
 export interface IAudioSettings extends MediaTrackConstraints {

@@ -1,5 +1,5 @@
 import logger from './logger'
-import {STORAGE_PREFIX} from './constants'
+import { STORAGE_PREFIX } from './constants'
 
 // hack to remove undefined values from the object
 export const deepCopy = (obj: Object) => JSON.parse(JSON.stringify(obj))
@@ -111,7 +111,7 @@ export const randomInt = (min: number, max: number) => {
 
 
 // Build a proxy intended to normalize RTCPeerConnection implementations
-// by forcing the usage of alternative async methods with the suffix `asyncAlternativeSuffix` 
+// by forcing the usage of alternative async methods with the suffix `asyncAlternativeSuffix`
 // and making `promisifyTargetMethods` to always return Promises
 export const normalizeAsyncAPIs = <T extends object>(
   target: T,

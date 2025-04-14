@@ -9,9 +9,9 @@ import {
   IBladeConnectResult,
   ISignalWireBrowserOptions,
 } from './util/interfaces'
-import {registerOnce, trigger} from './services/Handler'
-import {SwEvent, SESSION_ID} from './util/constants'
-import {State, DeviceType} from './webrtc/constants'
+import { registerOnce, trigger } from './services/Handler'
+import { SwEvent, SESSION_ID } from './util/constants'
+import { State, DeviceType } from './webrtc/constants'
 import {
   getDevices,
   scanResolutions,
@@ -21,12 +21,12 @@ import {
   getUserMedia,
   assureDeviceId,
 } from './webrtc/helpers'
-import {findElementByType} from './util/helpers'
-import {Unsubscribe, Subscribe, Broadcast} from './messages/Verto'
-import {localStorage} from './util/storage/'
-import {stopStream} from './util/webrtc'
-import {IWebRTCCall} from './webrtc/interfaces'
-import {WebRTCOverridesManager} from './webrtc/WebRTC'
+import { findElementByType } from './util/helpers'
+import { Unsubscribe, Subscribe, Broadcast } from './messages/Verto'
+import { localStorage } from './util/storage/'
+import { stopStream } from './util/webrtc'
+import { IWebRTCCall } from './webrtc/interfaces'
+import { WebRTCOverridesManager } from './webrtc/WebRTC'
 
 export default abstract class BrowserSession extends BaseSession {
   constructor(public options: ISignalWireBrowserOptions) {
@@ -69,7 +69,7 @@ export default abstract class BrowserSession extends BaseSession {
     )
   }
 
-  public calls: {[callId: string]: IWebRTCCall} = {}
+  public calls: { [callId: string]: IWebRTCCall } = {}
   public micId: string
   public micLabel: string
   public camId: string
@@ -91,7 +91,7 @@ export default abstract class BrowserSession extends BaseSession {
   }
 
   protected _handleBladeConnectResponse(response: IBladeConnectResult) {
-    const {ice_servers = []} = response
+    const { ice_servers = [] } = response
     this.iceServers = ice_servers
   }
 
@@ -108,7 +108,7 @@ export default abstract class BrowserSession extends BaseSession {
     video: boolean = true,
   ): Promise<boolean> {
     try {
-      const stream = await getUserMedia({audio, video})
+      const stream = await getUserMedia({ audio, video })
       stopStream(stream)
       return true
     } catch {
@@ -139,7 +139,7 @@ export default abstract class BrowserSession extends BaseSession {
       registerOnce(
         SwEvent.SpeedTest,
         (speedTestResult) => {
-          const {upDur, downDur} = speedTestResult
+          const { upDur, downDur } = speedTestResult
           const upKps = upDur ? (bytes * 8) / (upDur / 1000) / 1024 : 0
           const downKps = downDur ? (bytes * 8) / (downDur / 1000) / 1024 : 0
           resolve({
@@ -225,7 +225,7 @@ export default abstract class BrowserSession extends BaseSession {
   async refreshDevices() {
     logger.warn('This method has been deprecated. Use getDevices() instead.')
     const cache = {}
-    ;['videoinput', 'audioinput', 'audiooutput'].map((kind: string) => {
+      ; ['videoinput', 'audioinput', 'audiooutput' ].map((kind: string) => {
       cache[kind] = {}
       Object.defineProperty(cache[kind], 'toArray', {
         value: function () {
@@ -293,11 +293,11 @@ export default abstract class BrowserSession extends BaseSession {
   }
 
   get mediaConstraints() {
-    return {audio: this._audioConstraints, video: this._videoConstraints}
+    return { audio: this._audioConstraints, video: this._videoConstraints }
   }
 
   async setAudioSettings(settings: IAudioSettings) {
-    const {micId, micLabel, ...constraints} = settings
+    const { micId, micLabel, ...constraints } = settings
     removeUnsupportedConstraints(constraints)
     this._audioConstraints = await checkDeviceIdConstraints(
       micId,
@@ -319,7 +319,7 @@ export default abstract class BrowserSession extends BaseSession {
   }
 
   async setVideoSettings(settings: IVideoSettings) {
-    const {camId, camLabel, ...constraints} = settings
+    const { camId, camLabel, ...constraints } = settings
     removeUnsupportedConstraints(constraints)
     this._videoConstraints = await checkDeviceIdConstraints(
       camId,
@@ -343,7 +343,7 @@ export default abstract class BrowserSession extends BaseSession {
   set iceServers(servers: RTCIceServer[] | boolean) {
     if (typeof servers === 'boolean') {
       this._iceServers = servers
-        ? [{urls: ['stun:stun.l.google.com:19302']}]
+        ? [{ urls: ['stun:stun.l.google.com:19302'] }]
         : []
     } else {
       this._iceServers = servers
@@ -378,11 +378,15 @@ export default abstract class BrowserSession extends BaseSession {
     return this._remoteElement
   }
 
-  vertoBroadcast({nodeId, channel: eventChannel = '', data}: BroadcastParams) {
+  vertoBroadcast({
+    nodeId,
+    channel: eventChannel = '',
+    data,
+  }: BroadcastParams) {
     if (!eventChannel) {
       throw new Error('Invalid channel for broadcast: ' + eventChannel)
     }
-    const msg = new Broadcast({sessid: this.sessionid, eventChannel, data})
+    const msg = new Broadcast({ sessid: this.sessionid, eventChannel, data })
     if (nodeId) {
       msg.targetNodeId = nodeId
     }
@@ -401,12 +405,12 @@ export default abstract class BrowserSession extends BaseSession {
     if (!eventChannel.length) {
       return {}
     }
-    const msg = new Subscribe({sessid: this.sessionid, eventChannel})
+    const msg = new Subscribe({ sessid: this.sessionid, eventChannel })
     if (nodeId) {
       msg.targetNodeId = nodeId
     }
     const response = await this.execute(msg)
-    const {unauthorized = [], subscribed = []} =
+    const { unauthorized = [], subscribed = [] } =
       destructSubscribeResponse(response)
     if (unauthorized.length) {
       unauthorized.forEach((channel) =>
@@ -430,12 +434,12 @@ export default abstract class BrowserSession extends BaseSession {
     if (!eventChannel.length) {
       return {}
     }
-    const msg = new Unsubscribe({sessid: this.sessionid, eventChannel})
+    const msg = new Unsubscribe({ sessid: this.sessionid, eventChannel })
     if (nodeId) {
       msg.targetNodeId = nodeId
     }
     const response = await this.execute(msg)
-    const {unsubscribed = [], notSubscribed = []} =
+    const { unsubscribed = [], notSubscribed = [] } =
       destructSubscribeResponse(response)
     unsubscribed.forEach((channel) =>
       this._removeSubscription(this.relayProtocol, channel),

@@ -249,9 +249,10 @@ export default abstract class BaseCall implements IWebRTCCall {
 
   async setAudioInDevice(deviceId: string): Promise<void> {
     const {instance} = this.peer
-    const sender = instance
-      .getSenders()
-      .find(({track: {kind}}: RTCRtpSender) => kind === 'audio')
+    const senders = await instance.getSenders()
+    const sender = senders.find(
+      ({track: {kind}}: RTCRtpSender) => kind === 'audio',
+    )
     if (sender) {
       const newStream = await getUserMedia({
         audio: {deviceId: {exact: deviceId}},
@@ -281,9 +282,10 @@ export default abstract class BaseCall implements IWebRTCCall {
 
   async setVideoDevice(deviceId: string): Promise<void> {
     const {instance} = this.peer
-    const sender = instance
-      .getSenders()
-      .find(({track: {kind}}: RTCRtpSender) => kind === 'video')
+    const senders = await instance.getSenders()
+    const sender = senders.find(
+      ({track: {kind}}: RTCRtpSender) => kind === 'video',
+    )
     if (sender) {
       const newStream = await getUserMedia({
         video: {deviceId: {exact: deviceId}},

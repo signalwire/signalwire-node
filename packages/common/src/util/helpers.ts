@@ -112,15 +112,17 @@ export const randomInt = (min: number, max: number) => {
 export const adaptToAsyncAPI = <T extends object>(
   target: T,
   toAsyncMethods: string[] = [],
-  methodShims: Record<string | symbol, Function> = {},
 ) => {
   const promisify = new Set(toAsyncMethods)
 
   return new Proxy(target, {
     get(obj, prop) {
-      if (typeof obj[prop] === 'function' || methodShims[prop]) {
-        const impl =
-          obj[`${String(prop)}Async`] || obj[prop] || methodShims[prop]
+      const descriptor = Object.getOwnPropertyDescriptor(obj, prop)
+      if (descriptor && descriptor.get) {
+        return Reflect.get(obj, prop)
+      }
+      if (typeof obj[prop] === 'function') {
+        const impl = obj[`${String(prop)}Async`] || obj[prop]
 
         return (...args) => {
           const result = impl.apply(obj, args)
@@ -130,6 +132,10 @@ export const adaptToAsyncAPI = <T extends object>(
           return result
         }
       }
+      return Reflect.get(obj, prop)
+    },
+    set(obj, prop, value) {
+      return Reflect.set(obj, prop, value)
     },
   })
 }

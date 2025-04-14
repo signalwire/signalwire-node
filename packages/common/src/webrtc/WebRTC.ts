@@ -8,6 +8,7 @@ export interface IWebRTCOverridesManager {
   enumerateDevices: typeof WebRTC.enumerateDevices
   getSupportedConstraints: typeof WebRTC.getSupportedConstraints
   attachMediaStream: typeof WebRTC.attachMediaStream
+  streamIsValid: typeof WebRTC.streamIsValid
 }
 
 export class WebRTCOverridesManager implements IWebRTCOverridesManager {
@@ -20,6 +21,7 @@ export class WebRTCOverridesManager implements IWebRTCOverridesManager {
   private _enumerateDevices: typeof WebRTC.enumerateDevices
   private _getSupportedConstraints: typeof WebRTC.getSupportedConstraints
   private _attachMediaStream: typeof WebRTC.attachMediaStream
+  private _streamIsValid: typeof WebRTC.streamIsValid
 
   static getInstance() {
     if (!this._instance) {
@@ -65,8 +67,17 @@ export class WebRTCOverridesManager implements IWebRTCOverridesManager {
   set getSupportedConstraints(value) {
     this._getSupportedConstraints = value
   }
+  set attachMediaStream(value) {
+    this._attachMediaStream = value
+  }
   get attachMediaStream() {
     return this._attachMediaStream ?? WebRTC.attachMediaStream
+  }
+  set streamIsValid(value) {
+    this._streamIsValid = value
+  }
+  get streamIsValid() {
+    return this._streamIsValid ?? WebRTC.streamIsValid
   }
 }
 
@@ -85,10 +96,11 @@ const enumerateDevices = () =>
 const getSupportedConstraints = () =>
   WebRTCOverridesManager.getInstance().getSupportedConstraints()
 
-const streamIsValid = (stream) => WebRTC.streamIsValid(stream)
+const streamIsValid = (stream) =>
+  WebRTCOverridesManager.getInstance().streamIsValid(stream)
 
 const attachMediaStream = (tag: any, stream: MediaStream) =>
-  WebRTC.attachMediaStream(tag, stream)
+  WebRTCOverridesManager.getInstance().attachMediaStream(tag, stream)
 
 const detachMediaStream = (tag: any) => WebRTC.detachMediaStream(tag)
 

@@ -16,7 +16,9 @@ initWebRTCDependencies().then(() => {
     token: document.getElementById('token').value,
     // should return an instance of the RTCPeerConnection
     RTCPeerConnection: (params) => {
-      return new RTCPeerConnection(params)
+      const peerConnection = new RTCPeerConnection(params)
+      // customize the peer connection if needed
+      return peerConnection
     },
     // should return a promise of MediaStream
     getUserMedia: (params) => {
@@ -38,6 +40,10 @@ initWebRTCDependencies().then(() => {
       console.log('Calling custom getSupportedConstraints')
       return navigator.mediaDevices.getSupportedConstraints()
     },
+    // should return true if the stream is valid
+    streamIsValid: (stream) => !!stream,
+    // this should set the `srcObject` in element referenced by tag(HTMLElement or elementId)
+    attachMediaStream: (tag, stream) => {},
   })
 
   client.on('signalwire.ready', () => {
@@ -46,5 +52,119 @@ initWebRTCDependencies().then(() => {
     // expose the client instance
     windows.__swClient = client
   })
+})
+```
+
+## Citrix Example
+
+```javascript
+client = new Relay({
+  host: 'space.signalwire.com',
+  project: document.getElementById('project').value,
+  token: document.getElementById('token').value,
+  RTCPeerConnection: (params) => {
+    const peerConnection = new vdiCitrix.CitrixPeerConnection(params)
+    peerConnection.usingAsyncOnly = true
+    peerConnection.ontrack = (event) => {
+      // intercepts the ontrack event an emits an adapted payload 
+      const track = event.track
+      console.log(
+        '[############# CtxOrrides]: onTrack() entering for ' + track.kind,
+        track,
+      )
+
+      if (track.kind === 'audio') {
+
+        remoteAudio = document.getElementById('remoteVideo')
+
+        vdiCitrix.mapAudioElement(remoteAudio)
+
+        remoteAudio
+          .setSinkId(audioOutputVDI.deviceId)
+          .then(() => {
+            vdiCitrix
+              .createMediaStreamAsync([track]) // Create a  new stream using Citrix
+              .then((remoteAudioStream) => {
+                remoteStream = remoteAudioStream
+                if (trackListener && typeof trackListener === 'function') {
+                  // emits the adapted payload
+                  trackListener({streams: [remoteStream]})
+                }
+              })
+              .catch((e) => {
+                console.log(
+                  '[############# CtxOrrides]: onTrack failed to createMediaStreamAsync() for audio with error:',
+                  e,
+                )
+              })
+          })
+          .catch((e) =>
+            console.log(
+              '[############# CtxOrrides]: onTrack failed to setSinkId() for audio with error:',
+              e,
+            ),
+          )
+      }
+    }
+
+    // Peer Connection listeners must be implemented or signaling won't work
+    peerConnection.onicecandidate = (event) => {
+      console.log('[############# CtxOrrides]: onicecandidate', event)
+      peerConnection.onicecandidateOverride(event)
+    }
+    peerConnection.oniceconnectionstatechange = (event) => {
+      console.log(
+        '[############# CtxOrrides]: oniceconnectionstatechange',
+        event,
+      )
+    }
+    peerConnection.onicegatheringstatechange = (event) => {
+      console.log(
+        '[############# CtxOrrides]: onicegatheringstatechange',
+        event,
+      )
+    }
+    peerConnection.onsignalingstatechange = (event) => {
+      console.log('[############# CtxOrrides]: onsignalingstatechange', event)
+    }
+
+    // Citrix SDK don't support addEventListener.But we need to implement the track event adapter 
+    peerConnection.addEventListener = (eventName, cb) => {
+      if (eventName === 'track') {
+        notifyTrackListenner(cb)
+      }
+    }
+    return peerConnection
+  },
+  getUserMedia: (params) => {
+    return new Promise((res, rej) => {
+      vdiCitrix
+        .getUserMedia(params)
+        .then((stream) => {
+          res(stream)
+        })
+        .catch(rej)
+    })
+  },
+  getDisplayMedia: (params) => {
+    return vdiCitrix.getDisplayMedia(params)
+  },
+  enumerateDevices: () => {
+    return vdiCitrix.enumerateDevices()
+  },
+  getSupportedConstraints: !vdiCitrix
+    ? undefined
+    : () => {
+        return vdiCitrix.getSupportedConstraints()
+      },
+  streamIsValid: (stream) => {
+    return !!stream
+  },
+  attachMediaStream: (tag, stream) => {
+    const element = typeof tag === 'string' ? document.getElementById(tag) : tag
+    vdiCitrix.mapAudioElement(element)
+    element.srcObject = stream
+    element.play()
+  },
 })
 ```

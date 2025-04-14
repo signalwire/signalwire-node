@@ -40,6 +40,9 @@ export default abstract class BrowserSession extends BaseSession {
       options.getDisplayMedia
     WebRTCOverridesManager.getInstance().getSupportedConstraints =
       options.getSupportedConstraints
+    WebRTCOverridesManager.getInstance().attachMediaStream =
+      options.attachMediaStream
+    WebRTCOverridesManager.getInstance().streamIsValid = options.streamIsValid
   }
 
   validateOptions() {
@@ -48,17 +51,23 @@ export default abstract class BrowserSession extends BaseSession {
       getDisplayMedia,
       getSupportedConstraints,
       getUserMedia,
+      attachMediaStream,
+      streamIsValid,
     } = this.options
     return (
       // All overrides should be either empty or not empty
       ((!RTCPeerConnection &&
         !getDisplayMedia &&
         !getSupportedConstraints &&
-        !getUserMedia) ||
+        !getUserMedia &&
+        !attachMediaStream &&
+        !streamIsValid) ||
         (!!RTCPeerConnection &&
           !!getDisplayMedia &&
           !!getSupportedConstraints &&
-          !!getUserMedia)) &&
+          !!getUserMedia &&
+          !!attachMediaStream &&
+          !!streamIsValid)) &&
       super.validateOptions()
     )
   }

@@ -232,4 +232,131 @@ describe('Helpers functions', () => {
       expect(anotherResult).toEqual('anotherResult')
     })
   })
+
+  it('Should support mutation', () => {
+    const mock = jest.fn()
+    const target = {
+      method: () => {},
+    }
+
+    const proxy = adaptToAsyncAPI(target, ['method', 'anotherMethod'])
+
+    proxy.method = mock
+
+    proxy.method()
+    expect(mock).toBeCalled()
+  })
+
+  it('Should handle methods relying on `this` context', () => {
+    class Target {
+      value = 'test'
+      getValue() {
+        return this.value
+      }
+    }
+
+    const proxy = adaptToAsyncAPI(new Target())
+    expect(proxy.getValue()).toEqual('test') // Ensure `this` is correct
+  })
+
+  it('Should handle replacing methods that rely on `this` context', () => {
+    class Target {
+      value = 'original'
+      getValue() {
+        return this.value
+      }
+    }
+
+    const proxy = adaptToAsyncAPI(new Target())
+
+    // Replace the method after proxy creation
+    proxy.getValue = function () {
+      return this.value.toUpperCase()
+    }
+
+    expect(proxy.getValue()).toEqual('ORIGINAL') // Should work with the new method
+  })
+
+  it('Should support getter and setter', () => {
+    const mock = jest.fn()
+    class Target {
+      private _f = () => {}
+      get v() {
+        return 'value'
+      }
+      get f() {
+        return this._f
+      }
+      set f(value) {
+        this._f = value
+      }
+    }
+
+    const proxy = adaptToAsyncAPI(new Target())
+    proxy.f = mock
+    proxy.f()
+    expect(mock).toBeCalled()
+    expect(proxy.v).toEqual('value')
+  })
+
+  it('Should support being nested', () => {
+    const mock = jest.fn()
+    class Target {
+      private _f = () => {}
+      private _v = 'value'
+      get v() {
+        return this._v
+      }
+      set v(value) {
+        this._v = value
+      }
+      get f() {
+        return this._f
+      }
+      set f(value) {
+        this._f = value
+      }
+    }
+
+    class Wrapper {
+      constructor(private impl: Target) {
+        impl.f = mock
+      }
+
+      get f() {
+        return this.impl.f
+      }
+
+      set f(value) {
+        const {impl} = this
+        impl.f = value
+      }
+
+      get v() {
+        return this.impl.v
+      }
+
+      set v(value) {
+        const {impl} = this
+        impl.v = value
+      }
+    }
+
+    const proxy = adaptToAsyncAPI(new Target())
+    const wrapped = new Wrapper(proxy)
+    wrapped.f()
+    expect(mock).toBeCalledTimes(1)
+    expect(wrapped.v).toEqual('value')
+    wrapped.v = 'newValue'
+    expect(wrapped.v).toEqual('newValue')
+    expect(proxy.v).toEqual('newValue')
+    const newProxy = adaptToAsyncAPI(wrapped)
+    newProxy.f = () => {}
+    newProxy.f()
+    expect(mock).toBeCalledTimes(1)
+    wrapped.f()
+    expect(mock).toBeCalledTimes(1)
+    proxy.f()
+    expect(mock).toBeCalledTimes(1)
+  })
 })

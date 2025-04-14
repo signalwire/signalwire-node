@@ -5,6 +5,7 @@ import {
   enumerateDevices,
   getSupportedConstraints,
   WebRTCOverridesManager,
+  streamIsValid,
 } from '../../src/webrtc/WebRTC'
 import * as WebRTC from '../../src/util/webrtc'
 
@@ -42,6 +43,7 @@ describe('WebRTC Module', () => {
   const _getDisplayMedia = jest.fn()
   const _getUserMedia = jest.fn()
   const _getSupportedConstraints = jest.fn()
+  const _streamIsValid = jest.fn()
 
   describe('With overrides', () => {
     beforeAll(() => {
@@ -52,6 +54,7 @@ describe('WebRTC Module', () => {
       WebRTCOverridesManager.getInstance().getUserMedia = _getUserMedia
       WebRTCOverridesManager.getInstance().getSupportedConstraints =
         _getSupportedConstraints
+      WebRTCOverridesManager.getInstance().streamIsValid = _streamIsValid
     })
 
     afterAll(() => {
@@ -65,6 +68,8 @@ describe('WebRTC Module', () => {
       WebRTCOverridesManager.getInstance().getUserMedia = undefined
       //@ts-ignore
       WebRTCOverridesManager.getInstance().getSupportedConstraints = undefined
+      //@ts-ignore
+      WebRTCOverridesManager.getInstance().streamIsValid = undefined
     })
 
     it('should call RTCPeerConnection with correct parameters', async () => {
@@ -98,6 +103,11 @@ describe('WebRTC Module', () => {
     it('should call getSupportedConstraints', () => {
       getSupportedConstraints()
       expect(_getSupportedConstraints).toHaveBeenCalled()
+    })
+
+    it('should call getSupportedConstraints', () => {
+      streamIsValid({})
+      expect(_streamIsValid).toHaveBeenCalled()
     })
   })
 

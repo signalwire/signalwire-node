@@ -49,7 +49,6 @@ export default abstract class BrowserSession extends BaseSession {
     const {
       RTCPeerConnection,
       getDisplayMedia,
-      getSupportedConstraints,
       getUserMedia,
       attachMediaStream,
       streamIsValid,
@@ -58,13 +57,11 @@ export default abstract class BrowserSession extends BaseSession {
       // All overrides should be either empty or not empty
       ((!RTCPeerConnection &&
         !getDisplayMedia &&
-        !getSupportedConstraints &&
         !getUserMedia &&
         !attachMediaStream &&
         !streamIsValid) ||
         (!!RTCPeerConnection &&
           !!getDisplayMedia &&
-          !!getSupportedConstraints &&
           !!getUserMedia &&
           !!attachMediaStream &&
           !!streamIsValid)) &&

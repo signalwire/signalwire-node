@@ -35,7 +35,7 @@ app.get('/', async (req, res) => {
     expires_in: 120,
     resource: tokenName,
   });
-  var curlString = `curl -XPOST --location 'https://${process.env.SIGNALWIRE_SPACE}/api/laml/2010-04-01/Accounts/${process.env.SIGNALWIRE_PROJECT_KEY}/Calls' --user '${process.env.SIGNALWIRE_PROJECT_KEY}:${process.env.SIGNALWIRE_TOKEN}' --data-urlencode 'Url=https://lpradovera.signalwire.com/laml-bins/40db8a19-4c5b-41b6-9f62-b6c51e201a07' --data-urlencode 'From=${process.env.CALLER_ID}' --data-urlencode 'To=verto:${tokenName}@${process.env.SIGNALWIRE_VERTO_DOMAIN}'`;
+  var curlString = `curl -XPOST --location 'https://${process.env.SIGNALWIRE_SPACE}/api/laml/2010-04-01/Accounts/${process.env.SIGNALWIRE_PROJECT_KEY}/Calls' --user '${process.env.SIGNALWIRE_PROJECT_KEY}:${process.env.SIGNALWIRE_TOKEN}' --data-urlencode 'Url=${process.env.LAML_BIN}' --data-urlencode 'From=${process.env.CALLER_ID}' --data-urlencode 'To=verto:${tokenName}@${process.env.SIGNALWIRE_VERTO_DOMAIN}'`;
   console.log(curlString);
   res.render('index', {
     defaultDestination,

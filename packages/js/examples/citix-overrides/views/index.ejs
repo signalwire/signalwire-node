@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Signalwire Call Harness</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <!-- Cross Browser WebRTC Adapter -->
+  <script type="text/javascript" src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
+
+  <!-- Include the SignalWire Relay JS SDK -->
+  <script type="text/javascript" src="signalwire-citrix.umd.js"></script>
+  <!-- <script type="text/javascript" src="/signalwirev_1_5_0.js"></script> -->
+  <script type="text/javascript" src="/signalwireFromv1_3_0.js"></script>
+
+
+  <!-- To style up the demo a little -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" />
+  <link rel="shortcut icon" href="https://signalwire.com/assets/images/favicon.ico" />
+</head>
+
+<body class="bg-light">
+  <div class="container">
+    <div class="row pt-5">
+      <div class="col-12 pb-3">
+        <h1>SignalWire Citrix Integration Demo</h1>
+        <p>
+          This harness allows you to make calls to other browsers, SIP Endpoints or Phone Numbers from your SignalWire
+          project in your browser. Using the Citrix WebRTC SDK.
+          <br />
+          Visit <a href="https://docs.signalwire.com/topics/relay-sdk-js">Relay SDK for JavaScript Documentation</a> for
+          more information and documentation.
+          <br />
+          Visit <a href="https://community.citrix.com/tech-zone/learn/tech-briefs/ucssdk/">Citrix SDK</a> for
+          more information and documentation.
+        </p>
+      </div>
+    </div>
+    <hr />
+    <div class="row py-3">
+      <div class="col-12 col-md-4">
+        <div class="card">
+          <div class="card-body">
+            <h5>Connect</h5>
+            <div class="form-group">
+              <label for="project">Project</label>
+              <input type="text" class="form-control" id="project" placeholder="Enter Project ID"
+                onchange="saveInLocalStorage(event)">
+              <small id="projectHelp" class="form-text text-muted">Enter the Project ID found on your SignalWire Project
+                Dashboard.</small>
+            </div>
+            <div class="form-group">
+              <label for="token">Token</label>
+              <input type="text" class="form-control" id="token" placeholder="Enter your JWT"
+                onchange="saveInLocalStorage(event)">
+              <small id="tokenHelp" class="form-text text-muted">Generate a JWT and enter it here. For more information,
+                visit <a href="/topics/relay-sdk-js#relay-sdk-for-javascript-using-the-sdk">Using the JavaScript SDK
+                  Documentation</a></small>
+            </div>
+            <button id="btnConnect" class="btn btn-block btn-success" onclick="connect()">Connect</button>
+            <button id="btnDisconnect" class="btn btn-block btn-danger d-none"
+              onclick="disconnect()">Disconnect</button>
+
+            <div class="text-center mt-3 text-muted">
+              <small>Status: <span id='connectStatus'>Not Connected</span></small>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-body">
+            <h5>Call State</h5>
+            <small>Status: <span id='callStatus'>None</span></small>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 col-md-8 mt-4 mt-md-1">
+        <div class="row">
+          <div class="col-6">
+            <audio id="localVideo" autoplay="true" class="w-100"
+              style="background-color: #000; border: 1px solid #ccc; border-radius: 5px;"></audio>
+          </div>
+          <div class="col-6">
+            <audio id="remoteVideo" autoplay="true" class="w-100" playsinline
+              style="background-color: #000; border: 1px solid #ccc; border-radius: 5px;"></audio>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="number">Call To:</label>
+          <input type="text" class="form-control" id="number" placeholder="Enter Resource or Number to Dial"
+            onchange="saveInLocalStorage(event)">
+          <label for="numberFrom">Call From:</label>
+          <input type="text" class="form-control" id="numberFrom" placeholder="Enter Source number to Call From"
+            onchange="saveInLocalStorage(event)">
+        </div>
+
+        <div>Call Options:</div>
+        <div class="form-check">
+          <input type="checkbox" id="audio" value="1" onchange="saveInLocalStorage(event)">
+          <label class="form-check-label" for="audio">
+            Include Audio
+          </label>
+        </div>
+        <div class="form-check d-none">
+          <input type="checkbox" id="video" value="1" onchange="saveInLocalStorage(event)">
+          <label class="form-check-label" for="video">
+            Include Video
+          </label>
+        </div>
+        <button id="startCall" class="btn btn-primary px-5 mt-4" onClick="makeCall()" disabled="true">Call</button>
+        <button id="hangupCall" class="btn btn-danger px-5 mt-4 d-none" onClick="hangup()" disabled="true">Hang
+          up</button>
+        <div class="form-group" id="dtmfKeys" hidden="false">
+          <button id="dtmf_1" class="btn btn-primary px-2 mt-4" onClick="dtmf()">1</button>
+          <button id="dtmf_2" class="btn btn-primary px-2 mt-4" onClick="dtmf()">2</button>
+          <button id="dtmf_3" class="btn btn-primary px-2 mt-4" onClick="dtmf()">3</button>
+          <button id="dtmf_4" class="btn btn-primary px-2 mt-4" onClick="dtmf()">4</button>
+          <button id="dtmf_5" class="btn btn-primary px-2 mt-4" onClick="dtmf()">5</button>
+          <button id="dtmf_6" class="btn btn-primary px-2 mt-4" onClick="dtmf()">6</button>
+          <button id="dtmf_7" class="btn btn-primary px-2 mt-4" onClick="dtmf()">7</button>
+          <button id="dtmf_8" class="btn btn-primary px-2 mt-4" onClick="dtmf()">8</button>
+          <button id="dtmf_9" class="btn btn-primary px-2 mt-4" onClick="dtmf()">9</button>
+          <button id="dtmf_0" class="btn btn-primary px-2 mt-4" onClick="dtmf()">0</button>
+          <button id="dtmf_hash" class="btn btn-primary px-2 mt-4" onClick="dtmf()">#</button>
+          <button id="dtmf_star" class="btn btn-primary px-2 mt-4" onClick="dtmf()">*</button>
+          <button id="dtmf_a" class="btn btn-primary px-2 mt-4" onClick="dtmf()">A</button>
+          <button id="dtmf_b" class="btn btn-primary px-2 mt-4" onClick="dtmf()">B</button>
+          <button id="dtmf_c" class="btn btn-primary px-2 mt-4" onClick="dtmf()">C</button>
+          <button id="dtmf_d" class="btn btn-primary px-2 mt-4" onClick="dtmf()">D</button>
+        </div>
+
+      </div>
+    </div>
+    <hr />
+    <div class="row pt-3 pb-5">
+      <h3 class="mb-3">Instructions</h3>
+      <ol>
+        <li>Make sure you are using this app on a Citrix Virtual Desktop machine, and you are using the Citrix workspace
+          application to access the VD</li>
+      </ol>
+    </div>
+
+    <script type="text/javascript">
+      const vdiCitrix = window.CitrixWebRTC;
+      window.getCitrixWebrtcRedir = () => Promise.resolve("1")
+      let connectedEventTriggeredResolve = null;
+      let connectedEventReceived = false;
+      let remoteStream = null;
+      let trackListener = null;
+      let audioTransceiver = null;
+      let audioOutputVDI = null;
+
+      const getAudioOutputVDI = () => {
+        vdiCitrix
+          .enumerateDevices()
+          .then((deviceInfos) => {
+            console.log('[############# CtxOrrides]: getAudioOutputVDI', deviceInfos);
+            audioOutputVDI = deviceInfos.find(deviceInfo => deviceInfo.kind === 'audiooutput')
+            console.log('[############# CtxOrrides]: audioOutputVDI', audioOutputVDI);
+          })
+          .catch(console.err);
+      }
+
+      const ontrack = (event) => {
+        const track = event.track
+        console.log('[############# CtxOrrides]: onTrack() entering for ' + track.kind, track);
+        if (track.kind === 'audio') {
+          if (audioTransceiver === null) {
+            audioTransceiver = event.transceiver;
+          }
+          //injected test code
+          audioTransceiver.sender.getStats().then((stats) => {
+            console.log('audioTransceiver stats:\n' + JSON.stringify(stats, null, 2));
+          });
+
+          remoteAudio = document.getElementById('remoteVideo');
+
+          vdiCitrix.mapAudioElement(remoteAudio);
+
+          console.log('[CtxVDI]: onTrack setSinkId with ', audioOutputVDI);
+          remoteAudio.setSinkId(audioOutputVDI.deviceId).then(() => {
+            vdiCitrix.createMediaStreamAsync([track])
+              .then((remoteAudioStream) => {
+                remoteStream = remoteAudioStream;
+                if (trackListener && typeof trackListener === 'function') {
+                  trackListener({ streams: [remoteStream] });
+                }
+              })
+              .catch((e) => {
+                console.log(
+                  '[############# CtxOrrides]: onTrack failed to createMediaStreamAsync() for audio with error:', e
+                );
+              });
+          }).catch(e => console.log(
+            '[############# CtxOrrides]: onTrack failed to setSinkId() for audio with error:', e
+          ));
+        }
+      }
+
+
+      const notifyTrackListenner = (cb) => {
+        if (remoteStream) {
+          cb({ streams: [remoteStream] });
+        } else {
+          trackListener = cb;
+        }
+      }
+
+      const connectedEventTriggered = (event) => {
+        connectedEventReceived = true;
+        if (connectedEventTriggeredResolve) {
+          connectedEventTriggeredResolve();
+          connectedEventTriggeredResolve = null;
+        }
+      }
+
+      const waitForConnectedEvent = () => {
+        return new Promise((resolve) => {
+          if (connectedEventReceived) {
+            resolve();
+          } else {
+            connectedEventTriggeredResolve = resolve;
+          }
+        });
+      }
+
+      let client;
+      let currentCall = null;
+
+      let project = localStorage.getItem('relay.example.project') || '';
+      let token = localStorage.getItem('relay.example.token') || '';
+      let number = localStorage.getItem('relay.example.number') || '';
+      let numberFrom = localStorage.getItem('relay.example.numberFrom') || '';
+      let audio = localStorage.getItem('relay.example.audio') || '1';
+      let video = localStorage.getItem('relay.example.video') || '1';
+
+      const getCircularReplacer = () => {
+        const seen = new WeakSet();
+        return (key, value) => {
+          if (typeof value === "object" && value !== null) {
+            if (seen.has(value)) {
+              return;
+            }
+            seen.add(value);
+          }
+          return value;
+        };
+      };
+
+
+      /**
+       * On document ready auto-fill the input values from the localStorage.
+      */
+      ready(function () {
+        document.getElementById('project').value = '<%= projectId %>';
+        document.getElementById('token').value = '<%= token %>';
+        document.getElementById('number').value = '<%= defaultDestination %>';
+        document.getElementById('numberFrom').value = '<%= name %>';
+        document.getElementById('audio').checked = true;
+        document.getElementById('video').checked = false;
+      });
+
+      if (vdiCitrix) {
+        window.addEventListener('unload', (event) => {
+          CitrixVDI.onWindowClose();
+        });
+
+        vdiCitrix.setVMEventCallback((payload) => {
+          switch (payload.event) {
+            case 'vdiClientConnected':
+              connectedEventTriggered();
+            case 'vdiClientDisconnected':
+              break
+            case 'vdiE911DataChanged':
+            case 'vdiStreamConstraintsChanged':
+            default:
+              console.log(`[############# CtxOrrides]: ${payload.event}`, payload)
+          }
+        });
+      }
+
+      /**
+       * Connect with Relay creating a client and attaching all the event handler.
+      */
+      function connect() {
+        if (vdiCitrix) {
+          vdiCitrix.initUCSDK('Signalwire Citrix Demo');
+        }
+
+        const clientParams = {
+          host: '<%= relayHost %>',
+          project: document.getElementById('project').value,
+          token: document.getElementById('token').value,
+          RTCPeerConnection: !vdiCitrix ? undefined : (params) => {
+            console.log('[############# CtxOrrides]: Building custom RTCPeerConnection')
+            const peerConnection = new vdiCitrix.CitrixPeerConnection(params);
+            peerConnection.usingAsyncOnly = true;
+            peerConnection.ontrack = ontrack;
+            peerConnection.onicecandidateOverride = () => { }
+            peerConnection.onicecandidate = (event) => {
+              console.log("[############# CtxOrrides]: onicecandidate", event)
+              peerConnection.onicecandidateOverride(event)
+            };
+            peerConnection.oniceconnectionstatechange = (event) => { console.log("[############# CtxOrrides]: oniceconnectionstatechange", event) };
+            peerConnection.onicegatheringstatechange = (event) => { console.log("[############# CtxOrrides]: onicegatheringstatechange", event) };
+            peerConnection.onsignalingstatechange = (event) => { console.log("[############# CtxOrrides]: onsignalingstatechange", event) };
+            peerConnection.addEventListener = (eventName, cb) => {
+              if (eventName === 'track') {
+                notifyTrackListenner(cb)
+              }
+            }
+            return peerConnection;
+          },
+          getUserMedia: !vdiCitrix ? undefined : (params) => {
+            console.log('[############# CtxOrrides]: getUserMedia');
+            return new Promise((res, rej) => {
+              vdiCitrix.getUserMedia(params).then((stream) => {
+                console.log('[############# CtxOrrides]: getUserMedia resolved:', stream);
+                res(stream);
+              }).catch(rej)
+            })
+          },
+          getDisplayMedia: !vdiCitrix ? undefined : (params) => {
+            console.log('[############# CtxOrrides]: getDisplayMedia');
+            return vdiCitrix.getDisplayMedia(params);
+          },
+          enumerateDevices: !vdiCitrix ? undefined : () => {
+            console.log('[############# CtxOrrides]: enumerateDevices');
+            return vdiCitrix.enumerateDevices();
+          },
+          getSupportedConstraints: !vdiCitrix ? undefined : () => {
+            console.log('[############# CtxOrrides]: getSupportedConstraints');
+            return vdiCitrix.getSupportedConstraints();
+          },
+          streamIsValid: !vdiCitrix ? undefined : (stream) => {
+            console.log('[############# CtxOrrides]: streamIsValid=>true');
+            return !!stream
+          },
+          attachMediaStream: !vdiCitrix ? undefined : (tag, stream) => {
+            console.log('[############# CtxOrrides]: attachMediaStream', tag, stream);
+            const element = typeof tag === "string" ? document.getElementById(tag) : tag;
+            vdiCitrix.mapAudioElement(element)
+            element.srcObject = stream;
+            element.play();
+          }
+        }
+        client = new Relay(clientParams);
+        window.__client = client;
+        client.__logger.setLevel(client.__logger.levels.DEBUG)
+        // client.autoRecoverCalls = false;
+        client.remoteElement = 'remoteVideo';
+        client.localElement = 'localVideo';
+        // client.iceServers = [{ urls: ['stun:stun.l.google.com:19302'] }];
+        if (document.getElementById('audio').checked) {
+          client.enableMicrophone()
+        } else {
+          client.disableMicrophone()
+        }
+        if (document.getElementById('video').checked) {
+          client.enableWebcam()
+        } else {
+          client.disableWebcam()
+        }
+
+        client.on('signalwire.ready', function () {
+          btnConnect.classList.add('d-none');
+          btnDisconnect.classList.remove('d-none');
+          connectStatus.innerHTML = 'Connected';
+
+          if (vdiCitrix) {
+            waitForConnectedEvent().then(() => {
+              getAudioOutputVDI();
+              startCall.disabled = false;
+            })
+          } else { startCall.disabled = false; }
+        });
+
+        // Update UI on socket close
+        client.on('signalwire.socket.close', function () {
+          btnConnect.classList.remove('d-none');
+          btnDisconnect.classList.add('d-none');
+          connectStatus.innerHTML = 'Disconnected';
+        });
+
+        // Handle error...
+        client.on('signalwire.error', function (error) {
+          console.error("SignalWire error:", error);
+        });
+
+        client.on('signalwire.notification', handleNotification);
+
+        connectStatus.innerHTML = 'Connecting...';
+        console.log("Connecting now...");
+
+        client.connect();
+      }
+
+      function disconnect() {
+        connectStatus.innerHTML = 'Disconnecting...';
+        client.disconnect();
+      }
+
+      /**
+       * Handle notification from the client.
+      */
+      function handleNotification(notification) {
+        console.log("notification", notification.type, notification);
+        switch (notification.type) {
+          case 'callUpdate':
+            handleCallUpdate(notification.call);
+            break;
+          case 'userMediaError':
+            // Permission denied or invalid audio/video params on `getUserMedia`
+            break;
+        }
+      }
+
+      /**
+       * Update the UI when the call's state change
+      */
+      function handleCallUpdate(call) {
+        currentCall = call;
+        window.__currentCall = currentCall;
+        let ccallState = JSON.parse(JSON.stringify(call, getCircularReplacer()));
+        console.log(currentCall.state, currentCall.cause, currentCall.causeCode);
+
+        console.log("Call update - State: ", ccallState);
+
+        let msg = currentCall.causeCode ? `Code:${currentCall.causeCode} Reason: ${currentCall.cause}` : `Early Media:${currentCall.gotEarly} Answered: ${currentCall.gotAnswer}`;
+        callStatus.innerHTML = `${currentCall.prevState} -> ${currentCall.state} </br> ${msg}`;
+
+        console.log('State:', call.state)
+
+        switch (call.state) {
+          case 'new': // Setup the UI
+            break;
+          case 'trying': // You are trying to call someone and he's ringing now
+            startCall.classList.add('d-none');
+            hangupCall.classList.remove('d-none');
+            hangupCall.disabled = false;
+            dtmfKeys.hidden = false;
+            break;
+          case 'recovering': // Call is recovering from a previous session
+            if (confirm('Recover the previous call?')) {
+              currentCall.answer();
+            } else {
+              currentCall.hangup();
+            }
+            break;
+          case 'ringing': // Someone is calling you
+            //if (confirm('Pick up the call?')) {
+
+            answerParams = {}
+            itp = window.__iceTransportPolicy
+
+            if (itp === 'relay' || itp === 'all') {
+              answerParams.iceTransportPolicy = itp;
+            }
+
+            console.log("Answer params:", answerParams)
+            console.log("Answering: ", ccallState)
+            currentCall.answer(answerParams);
+            console.log("Answered.")
+            //} else {
+            //  currentCall.hangup();
+            //}
+            break;
+          case 'active': // Call has become active
+            startCall.classList.add('d-none');
+            hangupCall.classList.remove('d-none');
+            hangupCall.disabled = false;
+            dtmfKeys.hidden = false;
+            break;
+          case 'hangup': // Call is over
+            startCall.classList.remove('d-none');
+            hangupCall.classList.add('d-none');
+            hangupCall.disabled = true;
+            dtmfKeys.hidden = true;
+            break;
+          case 'destroy': // Call has been destroyed
+            currentCall = null;
+            break;
+        }
+      }
+
+      /**
+       * Make a new outbound call
+      */
+      function makeCall() {
+        const params = {
+          destinationNumber: document.getElementById('number').value, // required!
+          callerNumber: document.getElementById('numberFrom').value, // required!
+          audio: document.getElementById('audio').checked,
+          video: document.getElementById('video').checked ? { aspectRatio: 16 / 9 } : false,
+        };
+
+        currentCall = client.newCall(params);
+      }
+
+      /**
+       * Send a DTMF to currentCall if present
+      */
+      function dtmf() {
+        if (currentCall) {
+          let dtmfkey = event.srcElement.id;
+          console.log(dtmfkey);
+          switch (dtmfkey) {
+            case 'dtmf_0':
+              currentCall.dtmf('0');
+              break;
+            case 'dtmf_1':
+              currentCall.dtmf('1');
+              break;
+            case 'dtmf_2':
+              currentCall.dtmf('2');
+              break;
+            case 'dtmf_3':
+              currentCall.dtmf('3');
+              break;
+            case 'dtmf_4':
+              currentCall.dtmf('4');
+              break;
+            case 'dtmf_5':
+              currentCall.dtmf('5');
+              break;
+            case 'dtmf_6':
+              currentCall.dtmf('6');
+              break;
+            case 'dtmf_7':
+              currentCall.dtmf('7');
+              break;
+            case 'dtmf_8':
+              currentCall.dtmf('8');
+              break;
+            case 'dtmf_9':
+              currentCall.dtmf('9');
+              break;
+            case 'dtmf_hash':
+              currentCall.dtmf('#');
+              break;
+            case 'dtmf_star':
+              currentCall.dtmf('*');
+              break;
+            case 'dtmf_a':
+              currentCall.dtmf('a');
+              break;
+            case 'dtmf_b':
+              currentCall.dtmf('b');
+              break;
+            case 'dtmf_c':
+              currentCall.dtmf('c');
+              break;
+            case 'dtmf_d':
+              currentCall.dtmf('d');
+              break;
+            default:
+              console.log("unknown dtmf");
+          }
+        }
+      }
+
+      /**
+       * Hangup the currentCall if present
+      */
+      function hangup() {
+        if (currentCall) {
+          currentCall.hangup()
+        }
+      }
+
+      function saveInLocalStorage(e) {
+        let key = e.target.name || e.target.id
+        localStorage.setItem('relay.example.' + key, e.target.value);
+      }
+
+      // jQuery document.ready equivalent
+      function ready(callback) {
+        if (document.readyState != 'loading') {
+          callback();
+        } else if (document.addEventListener) {
+          document.addEventListener('DOMContentLoaded', callback);
+        } else {
+          document.attachEvent('onreadystatechange', function () {
+            if (document.readyState != 'loading') {
+              callback();
+            }
+          });
+        }
+      }
+    </script>
+</body>
+
+</html>

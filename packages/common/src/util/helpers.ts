@@ -109,11 +109,16 @@ export const randomInt = (min: number, max: number) => {
   return Math.floor(Math.random() * (max - min + 1) + min)
 }
 
-export const adaptToAsyncAPI = <T extends object>(
+
+// Build a proxy intended to normalize RTCPeerConnection implementations
+// by forcing the usage of alternative async methods with the suffix `asyncAlternativeSuffix` 
+// and making `promisifyTargetMethods` to always return Promises
+export const normalizeAsyncAPIs = <T extends object>(
   target: T,
-  toAsyncMethods: string[] = [],
+  promisifyTargetMethods: string[] = [],
+  asyncAlternativeSuffix = 'Async'
 ) => {
-  const promisify = new Set(toAsyncMethods)
+  const promisify = new Set(promisifyTargetMethods)
 
   return new Proxy(target, {
     get(obj, prop) {
@@ -122,7 +127,7 @@ export const adaptToAsyncAPI = <T extends object>(
         return Reflect.get(obj, prop)
       }
       if (typeof obj[prop] === 'function') {
-        const impl = obj[`${String(prop)}Async`] || obj[prop]
+        const impl = obj[`${String(prop)}${asyncAlternativeSuffix}`] || obj[prop]
 
         return (...args) => {
           const result = impl.apply(obj, args)

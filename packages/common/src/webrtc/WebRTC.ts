@@ -1,4 +1,4 @@
-import {adaptToAsyncAPI} from '../util/helpers'
+import {normalizeAsyncAPIs} from '../util/helpers'
 import * as WebRTC from '../util/webrtc'
 
 export interface IWebRTCOverridesManager {
@@ -11,6 +11,7 @@ export interface IWebRTCOverridesManager {
   streamIsValid: typeof WebRTC.streamIsValid
 }
 
+// An utility class to manage witch WebRTC implementation should be used
 export class WebRTCOverridesManager implements IWebRTCOverridesManager {
   private constructor() {}
 
@@ -36,7 +37,7 @@ export class WebRTCOverridesManager implements IWebRTCOverridesManager {
         this._RTCPeerConnection ?? WebRTC.RTCPeerConnection
       const peerConnectionInstance = peerConnectionBuilder(params)
 
-      return adaptToAsyncAPI(peerConnectionInstance, ['addTrack', 'getSender'])
+      return normalizeAsyncAPIs(peerConnectionInstance, ['addTrack', 'getSender'])
     }
   }
 

@@ -128,7 +128,7 @@ client = new Relay({
       console.log('[############# CtxOrrides]: onsignalingstatechange', event)
     }
 
-    // Citrix SDK don't support addEventListener.But we need to implement the track event adapter 
+    // The Citrix SDK doesn't support addEventListener, but we need to implement the track event adapter
     peerConnection.addEventListener = (eventName, cb) => {
       if (eventName === 'track') {
         notifyTrackListenner(cb)

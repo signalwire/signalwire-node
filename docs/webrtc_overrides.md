@@ -1,7 +1,7 @@
 # Browser WebRTC Overrides
 
 Developers are allowed to provide custom WebRTC implementations. Note that if you decide to override any implementation you're required to override all except the `getSupportedConstraints`.
-The SDK will replace the implementation for that client instance, and it not going to fallback to the default implementation when a override is defined. 
+The SDK will replace the implementation for that client instance, and it is not going to fallback to the default implementation when a override is defined. 
 
 ## Usage
 

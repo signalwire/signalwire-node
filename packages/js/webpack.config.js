@@ -1,9 +1,9 @@
-const webpack = require('webpack');
-const VERSION = require('./package.json').version;
+const webpack = require('webpack')
+const VERSION = require('./package.json').version
 
 module.exports = (env, argv) => {
-  const outputDir = __dirname + '/dist';
-  const mode = JSON.stringify(argv.mode);
+  const outputDir = __dirname + '/dist'
+  const mode = JSON.stringify(argv.mode)
   const config = {
     mode,
     entry: './index.ts',
@@ -49,7 +49,7 @@ module.exports = (env, argv) => {
         banner: `Relay SDK for JavaScript v${VERSION} (https://signalwire.com)\nCopyright 2018-2019 SignalWire\nLicensed under MIT(https://github.com/signalwire/signalwire-node/blob/master/LICENSE)`,
       }),
     ],
-  };
+  }
 
-  return config;
-};
+  return config
+}

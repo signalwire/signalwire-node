@@ -1,9 +1,20 @@
 import logger from '../util/logger'
-import { getUserMedia, getMediaConstraints, sdpStereoHack, sdpBitrateHack } from './helpers'
+import {
+  getUserMedia,
+  getMediaConstraints,
+  sdpStereoHack,
+  sdpBitrateHack,
+} from './helpers'
 import { SwEvent } from '../util/constants'
 import { PeerType } from './constants'
-import { attachMediaStream, muteMediaElement, sdpToJsonHack, RTCPeerConnection, streamIsValid } from '../util/webrtc'
-import { isFunction } from '../util/helpers'
+import {
+  attachMediaStream,
+  muteMediaElement,
+  sdpToJsonHack,
+  RTCPeerConnection,
+  streamIsValid,
+} from './WebRTC'
+import {  isFunction } from '../util/helpers'
 import { CallOptions } from './interfaces'
 import { trigger } from '../services/Handler'
 import { filterIceServers } from './helpers'
@@ -12,13 +23,19 @@ import { sdpHasAudio, sdpHasVideo } from './helpers'
 export default class Peer {
   public instance: RTCPeerConnection
   public onSdpReadyTwice: Function = null
-  private _constraints: { offerToReceiveAudio: boolean, offerToReceiveVideo: boolean }
+  private _constraints: {
+    offerToReceiveAudio: boolean
+    offerToReceiveVideo: boolean
+  }
   private _negotiating: boolean = false
 
   constructor(public type: PeerType, private options: CallOptions) {
     logger.info('New Peer with type:', this.type, 'Options:', this.options)
 
-    this._constraints = { offerToReceiveAudio: true, offerToReceiveVideo: true }
+    this._constraints = {
+      offerToReceiveAudio: true,
+      offerToReceiveVideo: true,
+    }
     this._sdpReady = this._sdpReady.bind(this)
     this._init()
   }
@@ -44,7 +61,7 @@ export default class Peer {
   private async _init() {
     this.instance = RTCPeerConnection(this._config())
 
-    this.instance.onsignalingstatechange = event => {
+    this.instance.onsignalingstatechange = (event) => {
       switch (this.instance.signalingState) {
         case 'stable':
           break
@@ -56,7 +73,7 @@ export default class Peer {
       }
     }
 
-    this.instance.onnegotiationneeded = event => {
+    this.instance.onnegotiationneeded = (event) => {
       if (this._negotiating) {
         logger.debug('Skip twice onnegotiationneeded..')
         return
@@ -64,15 +81,19 @@ export default class Peer {
       this.startNegotiation()
     }
 
-    this.options.localStream = await this._retrieveLocalStream()
-      .catch(error => {
+    this.options.localStream = await this._retrieveLocalStream().catch(
+      (error) => {
         trigger(SwEvent.MediaError, error, this.options.id)
         return null
-      })
-    const { localElement, localStream = null, screenShare = false } = this.options
+      },
+    )
+    const {localElement, localStream = null, screenShare = false} = this.options
     if (streamIsValid(localStream)) {
       if (typeof this.instance.addTrack === 'function') {
-        localStream.getTracks().forEach(t => this.instance.addTrack(t, localStream))
+        const tracks = localStream.getTracks()
+        for (const track of tracks) {
+          await this.instance.addTrack(track, localStream)
+        }
       } else {
         // @ts-ignore
         this.instance.addStream(localStream)
@@ -91,35 +112,49 @@ export default class Peer {
       return
     }
     // FIXME: Use https://developer.mozilla.org/en-US/docs/Web/API/RTCRtpTransceiver when available (M71)
-    this.instance.createOffer(this._constraints)
+    this.instance
+      .createOffer(this._constraints)
       .then(this._setLocalDescription.bind(this))
       .then(this._sdpReady)
-      .catch(error => logger.error('Peer _createOffer error:', error))
+      .catch((error) => logger.error('Peer _createOffer error:', error))
   }
 
   private _createAnswer() {
     if (!this._isAnswer()) {
       return
     }
-    const { remoteSdp, useStereo } = this.options
+    const {remoteSdp, useStereo} = this.options
     const sdp = useStereo ? sdpStereoHack(remoteSdp) : remoteSdp
-    const sessionDescr: RTCSessionDescription = sdpToJsonHack({ sdp, type: PeerType.Offer })
-    this.instance.setRemoteDescription(sessionDescr)
+    const sessionDescr: RTCSessionDescription = sdpToJsonHack({
+      sdp,
+      type: PeerType.Offer,
+    })
+    this.instance
+      .setRemoteDescription(sessionDescr)
       .then(() => this.instance.createAnswer())
       .then(this._setLocalDescription.bind(this))
       .then(this._sdpReady)
-      .catch(error => logger.error('Peer _createAnswer error:', error))
+      .catch((error) => logger.error('Peer _createAnswer error:', error))
   }
 
   private _setLocalDescription(sessionDescription: RTCSessionDescriptionInit) {
-    const { useStereo, googleMaxBitrate, googleMinBitrate, googleStartBitrate } = this.options
+    const {useStereo, googleMaxBitrate, googleMinBitrate, googleStartBitrate} =
+      this.options
     if (useStereo) {
       sessionDescription.sdp = sdpStereoHack(sessionDescription.sdp)
     }
     if (googleMaxBitrate && googleMinBitrate && googleStartBitrate) {
-      sessionDescription.sdp = sdpBitrateHack(sessionDescription.sdp, googleMaxBitrate, googleMinBitrate, googleStartBitrate)
+      sessionDescription.sdp = sdpBitrateHack(
+        sessionDescription.sdp,
+        googleMaxBitrate,
+        googleMinBitrate,
+        googleStartBitrate,
+      )
     }
-    logger.debug('calling setLocalDescription with SDP:', sessionDescription.sdp)
+    logger.debug(
+      'calling setLocalDescription with SDP:',
+      sessionDescription.sdp,
+    )
     return this.instance.setLocalDescription(sessionDescription)
   }
 
@@ -138,7 +173,7 @@ export default class Peer {
 
     const sharedConstraints = {
       audio: localAudio && remoteAudio,
-      video: localVideo && remoteVideo
+      video: localVideo && remoteVideo,
     }
 
     return sharedConstraints
@@ -158,10 +193,16 @@ export default class Peer {
     // The most typical scenario is an offer with audio only: we
     // don't want to call getUserMedia with video in this case.
     if (this._isAnswer()) {
-      const { remoteSdp, useStereo } = this.options
+      const {remoteSdp, useStereo} = this.options
       const sdp = useStereo ? sdpStereoHack(remoteSdp) : remoteSdp
-      const sessionDescr: RTCSessionDescription = sdpToJsonHack({ sdp, type: PeerType.Offer })
-      sharedConstraints = this._getSharedConstraints(localConstraints, sessionDescr.sdp)
+      const sessionDescr: RTCSessionDescription = sdpToJsonHack({
+        sdp,
+        type: PeerType.Offer,
+      })
+      sharedConstraints = this._getSharedConstraints(
+        localConstraints,
+        sessionDescr.sdp,
+      )
     }
 
     return getUserMedia(sharedConstraints)
@@ -176,9 +217,14 @@ export default class Peer {
   }
 
   private _config(): RTCConfiguration {
-
-    const { iceServers = [], iceTransportPolicy = 'all', disableUdpIceServers = false } = this.options
-    const filteredIceServers = filterIceServers(iceServers, {disableUdpIceServers})
+    const {
+      iceServers = [],
+      iceTransportPolicy = 'all',
+      disableUdpIceServers = false,
+    } = this.options
+    const filteredIceServers = filterIceServers(iceServers, {
+      disableUdpIceServers,
+    })
 
     const config: RTCConfiguration = {
       iceTransportPolicy,
@@ -191,15 +237,19 @@ export default class Peer {
     return config
   }
 
-  private _getSenderByKind(kind: string) {
+  private async _getSenderByKind(kind: string) {
     if (this.instance) {
-      return this.instance.getSenders().find(({ track }) => (track && track.kind === kind))
+      const senders = await this.instance.getSenders()
+      return senders.find(({track}) => track && track.kind === kind)
     }
   }
 
-  async applyMediaConstraints(kind: string, constraints: MediaTrackConstraints) {
+  async applyMediaConstraints(
+    kind: string,
+    constraints: MediaTrackConstraints,
+  ) {
     try {
-      const sender = this._getSenderByKind(kind)
+      const sender = await this._getSenderByKind(kind)
       if (!sender || !sender.track) {
         return logger.info('No sender to apply constraints', kind, constraints)
       }
@@ -210,6 +260,5 @@ export default class Peer {
     } catch (error) {
       logger.error('Error applying constraints', kind, constraints)
     }
-
   }
 }

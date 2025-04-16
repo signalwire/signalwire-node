@@ -9,7 +9,8 @@ type QueueMap = {
 const GLOBAL = 'GLOBAL'
 const queue: QueueMap = {}
 
-const isQueued = (eventName: string, uniqueId: string = GLOBAL) => queue.hasOwnProperty(eventName) && queue[eventName].hasOwnProperty(uniqueId)
+const isQueued = (eventName: string, uniqueId: string = GLOBAL) =>
+  queue.hasOwnProperty(eventName) && queue[eventName].hasOwnProperty(uniqueId)
 const queueLength = (eventName: string, uniqueId: string = GLOBAL): number => {
   if (!isQueued(eventName, uniqueId)) {
     return 0
@@ -20,7 +21,11 @@ const queueLength = (eventName: string, uniqueId: string = GLOBAL): number => {
 /**
  * Subscribes the callback to the passed eventName. Use uniqueId to render unique the event.
  */
-const register = (eventName: string, callback: Function, uniqueId: string = GLOBAL) => {
+const register = (
+  eventName: string,
+  callback: Function,
+  uniqueId: string = GLOBAL,
+) => {
   if (!queue.hasOwnProperty(eventName)) {
     queue[eventName] = {}
   }
@@ -33,9 +38,13 @@ const register = (eventName: string, callback: Function, uniqueId: string = GLOB
 /**
  * Subscribes the callback to the passed eventName only once. Use uniqueId to render unique the event.
  */
-const registerOnce = (eventName: string, callback: Function, uniqueId: string = GLOBAL) => {
+const registerOnce = (
+  eventName: string,
+  callback: Function,
+  uniqueId: string = GLOBAL,
+) => {
   /* tslint:disable-next-line */
-  const cb = function(data) {
+  const cb = function (data) {
     deRegister(eventName, cb, uniqueId)
     callback(data)
   }
@@ -46,7 +55,11 @@ const registerOnce = (eventName: string, callback: Function, uniqueId: string = 
 /**
  * Remove subscription by callback. If not callback is passed in, all subscription will be removed.
  */
-const deRegister = (eventName: string, callback?: Function | null, uniqueId: string = GLOBAL) => {
+const deRegister = (
+  eventName: string,
+  callback?: Function | null,
+  uniqueId: string = GLOBAL,
+) => {
   if (!isQueued(eventName, uniqueId)) {
     return false
   }
@@ -54,14 +67,18 @@ const deRegister = (eventName: string, callback?: Function | null, uniqueId: str
     const len = queue[eventName][uniqueId].length
     for (let i = len - 1; i >= 0; i--) {
       const fn = queue[eventName][uniqueId][i]
-      if (callback === fn || (fn.prototype && callback === fn.prototype.targetRef)) {
+      if (
+        callback === fn ||
+        (fn.prototype && callback === fn.prototype.targetRef)
+      ) {
         queue[eventName][uniqueId].splice(i, 1)
       }
     }
   } else {
     queue[eventName][uniqueId] = []
   }
-  if (queue[eventName][uniqueId].length === 0) { // Cleanup
+  if (queue[eventName][uniqueId].length === 0) {
+    // Cleanup
     delete queue[eventName][uniqueId]
     if (objEmpty(queue[eventName])) {
       delete queue[eventName]
@@ -73,21 +90,32 @@ const deRegister = (eventName: string, callback?: Function | null, uniqueId: str
 /**
  * Trigger the eventName, passing the data to it's subscribers. Use uniqueId to identify unique events.
  */
-const trigger = (eventName: string, data: any, uniqueId: string = GLOBAL, globalPropagation: boolean = true) => {
+const trigger = (
+  eventName: string,
+  data: any,
+  uniqueId: string = GLOBAL,
+  globalPropagation: boolean = true,
+) => {
   const _propagate: boolean = globalPropagation && uniqueId !== GLOBAL
   if (!isQueued(eventName, uniqueId)) {
-    if (_propagate) { trigger(eventName, data) }
+    if (_propagate) {
+      trigger(eventName, data)
+    }
     return false
   }
   const len = queue[eventName][uniqueId].length
   if (!len) {
-    if (_propagate) { trigger(eventName, data) }
+    if (_propagate) {
+      trigger(eventName, data)
+    }
     return false
   }
   for (let i = len - 1; i >= 0; i--) {
     queue[eventName][uniqueId][i](data)
   }
-  if (_propagate) { trigger(eventName, data) }
+  if (_propagate) {
+    trigger(eventName, data)
+  }
   return true
 }
 
@@ -105,5 +133,5 @@ export {
   deRegister,
   deRegisterAll,
   isQueued,
-  queueLength
+  queueLength,
 }

@@ -144,3 +144,6 @@ export const normalizeAsyncAPIs = <T extends object>(
     },
   })
 }
+
+export const stacktrace = () =>
+  (new Error().stack || '').split('\n').slice(2).join('\n')

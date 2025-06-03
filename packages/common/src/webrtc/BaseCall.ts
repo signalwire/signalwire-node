@@ -27,7 +27,12 @@ import {
   disableVideoTracks,
   toggleVideoTracks,
 } from './helpers'
-import { objEmpty, mutateLiveArrayData, isFunction } from '../util/helpers'
+import {
+  objEmpty,
+  mutateLiveArrayData,
+  isFunction,
+  stacktrace,
+} from '../util/helpers'
 import { CallOptions, IWebRTCCall } from './interfaces'
 import {
   attachMediaStream,
@@ -142,6 +147,7 @@ export default abstract class BaseCall implements IWebRTCCall {
   }
 
   hangup(params: any = {}, execute: boolean = true) {
+    logger.trace('hangup requested with execute:', execute)
     this.cause = params.cause || 'NORMAL_CLEARING'
     this.causeCode = params.causeCode || 16
     this.setState(State.Hangup)
@@ -151,10 +157,12 @@ export default abstract class BaseCall implements IWebRTCCall {
     }
 
     if (execute) {
+      logger.debug(`execute hangup on call ${this.id} with cause:`, this.cause)
       const bye = new Bye({
         sessid: this.session.sessionid,
         dialogParams: this.options,
       })
+      logger.trace('Verto Bye stacktrace:', stacktrace())
       this._execute(bye)
         .catch((error) => logger.error('verto.bye failed!', error))
         .then(_close.bind(this))
@@ -330,6 +338,7 @@ export default abstract class BaseCall implements IWebRTCCall {
 
     switch (state) {
       case State.Purge:
+        logger.debug(`Purging call ${this.id}`)
         this.hangup({ cause: 'PURGE', causeCode: '01' }, false)
         break
       case State.Active: {
@@ -412,6 +421,7 @@ export default abstract class BaseCall implements IWebRTCCall {
         this.applyMediaConstraints(params)
         break
       case VertoMethod.Bye:
+        logger.debug(`Hanging up call ${this.id}`)
         this.hangup(params, false)
         break
     }
@@ -954,6 +964,7 @@ export default abstract class BaseCall implements IWebRTCCall {
       type: NOTIFICATION_TYPE.userMediaError,
       error,
     })
+    logger.debug(`Call ${this.id} media error`)
     this.hangup({}, false)
   }
 

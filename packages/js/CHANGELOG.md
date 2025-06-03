@@ -2,6 +2,9 @@
 All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+## [1.5.1] -
+- Instrumented hangup request with debug and trace logs
+
 ## [1.5.0] -
 - Add WebRTC overrides params (`RTCPeerConnection` `getUserMedia` `getDisplayMedia` `enumerateDevices` `getSupportedConstraints` `attachMediaStream` `streamIsValid`) to the client constructor
 

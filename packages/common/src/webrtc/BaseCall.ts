@@ -31,7 +31,7 @@ import {
   objEmpty,
   mutateLiveArrayData,
   isFunction,
-  stacktrace,
+  stackTrace,
 } from '../util/helpers'
 import { CallOptions, IWebRTCCall } from './interfaces'
 import {
@@ -162,7 +162,7 @@ export default abstract class BaseCall implements IWebRTCCall {
         sessid: this.session.sessionid,
         dialogParams: this.options,
       })
-      logger.trace('Verto Bye stacktrace:', stacktrace())
+      logger.trace('Verto Bye stacktrace:', stackTrace())
       this._execute(bye)
         .catch((error) => logger.error('verto.bye failed!', error))
         .then(_close.bind(this))

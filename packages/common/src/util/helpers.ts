@@ -144,3 +144,12 @@ export const normalizeAsyncAPIs = <T extends object>(
     },
   })
 }
+
+export const stackTrace = () => {
+  const obj = { stack: null }
+
+  if (Boolean(Error.captureStackTrace)) {
+    Error.captureStackTrace(obj, stackTrace)
+  }
+  return (obj.stack || '').split('\n').slice(2).join('\n')
+}

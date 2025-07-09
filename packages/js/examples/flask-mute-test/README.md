@@ -155,19 +155,22 @@ Visit `http://localhost:3000/health` to verify:
 
 ### JWT Token Generation
 
-The Flask app generates JWT tokens according to the [SignalWire Browser SDK v2 documentation](https://developer.signalwire.com/sdks/browser-sdk/v2/):
+The Flask app generates JWT tokens using the SignalWire REST API endpoint:
 
 ```python
+# Request to SignalWire REST API
+url = f"https://{SIGNALWIRE_SPACE}/api/relay/rest/jwt"
 payload = {
-    "iss": SIGNALWIRE_PROJECT_ID,      # Issuer (your project)
-    "sub": f"user-{uuid.uuid4()}",     # Subject (unique user)
-    "iat": int(now.timestamp()),       # Issued at
-    "exp": int((now + timedelta(hours=1)).timestamp()),  # Expires in 1 hour
-    "jti": str(uuid.uuid4()),          # JWT ID (unique token)
-    "resource": "browser",             # Resource type
-    "scopes": ["webrtc"]              # Required scopes
+    "resource": f"browser-{uuid.uuid4()}",  # Unique resource identifier
+    "expires_in": 60  # Token expires in 60 minutes
 }
+
+# Authentication using project ID and token
+auth = (SIGNALWIRE_PROJECT_ID, SIGNALWIRE_TOKEN)
+response = requests.post(url, json=payload, auth=auth)
 ```
+
+This approach uses SignalWire's official JWT generation endpoint rather than manually creating JWT tokens.
 
 ### The Fix Implementation
 

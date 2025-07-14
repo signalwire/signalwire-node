@@ -832,8 +832,8 @@ export default abstract class BaseCall implements IWebRTCCall {
       })
       .catch((error) => {
         logger.error('Call setRemoteDescription Error: ', error)
-        this.hangup()
-      })
+        this._disconnectAndReconnect()
+    })
   }
 
   private _requestAnotherLocalDescription() {
@@ -902,7 +902,7 @@ export default abstract class BaseCall implements IWebRTCCall {
       })
       .catch((error) => {
         logger.error(`${this.id} - Sending ${type} error:`, error)
-        this.hangup()
+        this._disconnectAndReconnect()
       })
   }
 
@@ -983,6 +983,13 @@ export default abstract class BaseCall implements IWebRTCCall {
     if (!trigger(SwEvent.Notification, notification, this.id, false)) {
       trigger(SwEvent.Notification, notification, this.session.uuid)
     }
+  }
+
+  private _disconnectAndReconnect() {
+    logger.debug(`${this.id} - Triggering WebSocket reconnection due to error`)
+    // Trigger a socket error event which will cause the session to reconnect
+    // The BaseSession's _onSocketCloseOrError handler will automatically reconnect
+    trigger(SwEvent.SocketError, { type: 'error', message: 'Forced reconnection due to call error' }, this.session.uuid)
   }
 
   private _execute(msg: BaseMessage) {

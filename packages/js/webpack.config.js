@@ -1,3 +1,4 @@
+const path = require('path')
 const webpack = require('webpack')
 const VERSION = require('./package.json').version
 
@@ -34,10 +35,15 @@ module.exports = (env, argv) => {
       ],
     },
     devServer: {
-      contentBase: [outputDir, __dirname + '/examples/vanilla-calling'],
+      static: [
+        { directory: outputDir },
+        { directory: path.join(__dirname, 'examples/vanilla-calling') },
+      ],
       compress: true,
       port: 9000,
-      https: true,
+      server: {
+        type: 'https',
+      },
     },
     plugins: [
       new webpack.DefinePlugin({

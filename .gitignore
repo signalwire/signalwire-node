@@ -35,3 +35,5 @@ Thumbs.db
 dist
 .devcontainer/devcontainer.json
 .devcontainer/Dockerfile
+.claude/
+CLAUDE.md

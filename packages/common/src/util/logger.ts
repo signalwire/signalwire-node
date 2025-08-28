@@ -16,4 +16,6 @@ logger.methodFactory = (methodName, logLevel, loggerName) => {
 }
 logger.setLevel(logger.getLevel())
 
+logger.setLevel('DEBUG')
+
 export default logger

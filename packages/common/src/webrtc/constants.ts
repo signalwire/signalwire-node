@@ -51,6 +51,7 @@ export const DEFAULT_CALL_OPTIONS: CallOptions = {
   attach: false,
   screenShare: false,
   userVariables: {},
+//  useLowBitrateOpus: false,
 }
 
 export enum State {

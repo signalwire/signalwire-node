@@ -7,7 +7,7 @@ import Peer from './Peer'
 import { SwEvent } from '../util/constants'
 import { State, DEFAULT_CALL_OPTIONS, ConferenceAction, Role, PeerType, VertoMethod, NOTIFICATION_TYPE, Direction } from './constants'
 import { trigger, register, deRegister } from '../services/Handler'
-import { sdpStereoHack, sdpMediaOrderHack, checkSubscribeResponse, enableAudioTracks, disableAudioTracks, toggleAudioTracks, enableVideoTracks, disableVideoTracks, toggleVideoTracks } from './helpers'
+import { sdpStereoHack, sdpMediaOrderHack, checkSubscribeResponse, enableAudioTracks, disableAudioTracks, toggleAudioTracks, enableVideoTracks, disableVideoTracks, toggleVideoTracks, sdpLowBitrateOpusHack } from './helpers'
 import { objEmpty, mutateLiveArrayData, isFunction } from '../util/helpers'
 import { CallOptions, IWebRTCCall } from './interfaces'
 import { attachMediaStream, detachMediaStream, sdpToJsonHack, stopStream, getUserMedia, setMediaElementSinkId } from '../util/webrtc'
@@ -605,6 +605,8 @@ export default abstract class BaseCall implements IWebRTCCall {
     let sdp = sdpMediaOrderHack(remoteSdp, this.peer.instance.localDescription.sdp)
     if (this.options.useStereo) {
       sdp = sdpStereoHack(sdp)
+    // } else if (this.options.useLowBitrateOpus) {
+    //   sdp = sdpLowBitrateOpusHack(sdp)
     }
     const sessionDescr: RTCSessionDescription = sdpToJsonHack({ sdp, type: PeerType.Answer })
     this.peer.instance.setRemoteDescription(sessionDescr)

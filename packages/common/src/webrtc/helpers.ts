@@ -173,6 +173,47 @@ const sdpStereoHack = (sdp: string) => {
   return sdpLines.join(endOfLine)
 }
 
+/**
+ * Ask for low bitrate Opus, hacking the SDP
+ * @return the SDP modified
+ */
+const sdpLowBitrateOpusHack = (sdp: string) => {
+  const endOfLine = '\r\n'
+  const sdpLines = sdp.split(endOfLine)
+
+  const opusIndex = sdpLines.findIndex(s => /^a=rtpmap/.test(s) && /opus\/48000/.test(s))
+  if (opusIndex < 0) {
+    return sdp
+  }
+
+  const getCodecPayloadType = (line: string) => {
+    const pattern = new RegExp('a=rtpmap:(\\d+) \\w+\\/\\d+')
+    const result = line.match(pattern)
+    return result && result.length == 2 ? result[1] : null
+  }
+  const opusPayload = getCodecPayloadType(sdpLines[opusIndex])
+
+  const pattern = new RegExp(`a=fmtp:${opusPayload}`)
+//  const fmtpLineIndex = sdpLines.findIndex(s => pattern.test(s))
+//  const newFmtpLine = `a=fmtp:${opusPayload} stereo=0; sprop-stereo=0; maxaveragebitrate=6000; sprop-maxcapturerate=8000; useinbandfec=0; cbr=1; usedtx=0; ptime=40; maxptime=40`;
+  const newFmtpLine = `a=fmtp:${opusPayload} stereo=0; sprop-stereo=0; maxaveragebitrate=6000; maxplaybackrate=8000; sprop-maxcapturerate=8000; useinbandfec=0; cbr=1; usedtx=0; ptime=40; maxptime=40`;
+
+  const updatedSdpLines = sdpLines.map(line =>
+    pattern.test(line) ? newFmtpLine : line
+  );
+
+
+  // if (fmtpLineIndex >= 0) {
+  //   if (!/minptime=10;useinbandfec=1;stereo=1;/.test(sdpLines[fmtpLineIndex])) { // Append the desired settings
+  //     sdpLines[fmtpLineIndex] += '; stereo=0; sprop-stereo=0; maxaveragebitrate=6000; sprop-maxcapturerate=6000; useinbandfec=0; cbr=1; usedtx=0; ptime=40; maxptime=40; gino=1'
+  //   }
+  // } else { // create an fmtp line
+  //   sdpLines[opusIndex] += `${endOfLine}a=fmtp:${opusPayload} stereo=0; sprop-stereo=0; maxaveragebitrate=6000; sprop-maxcapturerate=6000; useinbandfec=0; cbr=1; usedtx=0; ptime=40; maxptime=40; gino=2`
+  // }
+
+  return updatedSdpLines.join(endOfLine)
+}
+
 const _isAudioLine = (line: string) => /^m=audio/.test(line)
 const _isVideoLine = (line: string) => /^m=video/.test(line)
 
@@ -339,5 +380,6 @@ export {
   toggleVideoTracks,
   filterIceServers,
   sdpHasAudio,
-  sdpHasVideo
+  sdpHasVideo,
+  sdpLowBitrateOpusHack
 }

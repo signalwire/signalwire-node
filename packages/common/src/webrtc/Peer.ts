@@ -1,5 +1,5 @@
 import logger from '../util/logger'
-import { getUserMedia, getMediaConstraints, sdpStereoHack, sdpBitrateHack } from './helpers'
+import { getUserMedia, getMediaConstraints, sdpStereoHack, sdpBitrateHack, sdpLowBitrateOpusHack } from './helpers'
 import { SwEvent } from '../util/constants'
 import { PeerType } from './constants'
 import { attachMediaStream, muteMediaElement, sdpToJsonHack, RTCPeerConnection, streamIsValid } from '../util/webrtc'
@@ -112,10 +112,17 @@ export default class Peer {
   }
 
   private _setLocalDescription(sessionDescription: RTCSessionDescriptionInit) {
+//    const { useStereo, googleMaxBitrate, googleMinBitrate, googleStartBitrate, useLowBitrateOpus } = this.options
     const { useStereo, googleMaxBitrate, googleMinBitrate, googleStartBitrate } = this.options
-    if (useStereo) {
-      sessionDescription.sdp = sdpStereoHack(sessionDescription.sdp)
-    }
+//    if (useStereo) {
+//      sessionDescription.sdp = sdpStereoHack(sessionDescription.sdp)
+
+if (!this._isAnswer()) {
+      sessionDescription.sdp = sdpLowBitrateOpusHack(sessionDescription.sdp)
+}
+
+//    }
+
     if (googleMaxBitrate && googleMinBitrate && googleStartBitrate) {
       sessionDescription.sdp = sdpBitrateHack(sessionDescription.sdp, googleMaxBitrate, googleMinBitrate, googleStartBitrate)
     }

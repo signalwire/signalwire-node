@@ -30,6 +30,7 @@ export interface CallOptions {
   googleStartBitrate?: number
   iceTransportPolicy?: RTCConfiguration['iceTransportPolicy']
   disableUdpIceServers?: boolean
+//  useLowBitrateOpus?: boolean
 }
 
 export interface IWebRTCCall {

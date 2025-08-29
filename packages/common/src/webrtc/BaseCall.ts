@@ -45,8 +45,8 @@ import {
 import { MCULayoutEventHandler } from './LayoutHandler'
 
 // Error code for hangup when caused by an error
-const HANGUP_CAUSE_CODE_ERROR = 666
-
+export const NORMAL_TEMPORARY_FAILURE_CODE = 666
+export const WRONG_CALL_STATE_CODE = 666
 export default abstract class BaseCall implements IWebRTCCall {
   public id: string = ''
   public state: string = State[State.New]
@@ -838,8 +838,8 @@ export default abstract class BaseCall implements IWebRTCCall {
       .catch((error) => {
         logger.error('Call setRemoteDescription Error: ', error)
         this.hangup({
-          cause: 'ERROR_SETTING_REMOTE_SDP',
-          causeCode: HANGUP_CAUSE_CODE_ERROR,
+          cause: 'WRONG_CALL_STATE',
+          causeCode: WRONG_CALL_STATE_CODE,
         })
       })
   }
@@ -910,19 +910,8 @@ export default abstract class BaseCall implements IWebRTCCall {
       })
       .catch((error) => {
         logger.error(`${this.id} - Sending ${type} error:`, error)
-        let cause = 'ERROR_SENDING_VERTO_MSG'
-        switch (msg.toString()) {
-          case VertoMethod.Invite:
-            cause = 'ERROR_SENDING_INVITE'
-            break
-          case VertoMethod.Answer:
-            cause = 'ERROR_SENDING_ANSWER'
-            break
-          case VertoMethod.Attach:
-            cause = 'ERROR_SENDING_ANSWER'
-            break
-        }
-        this.hangup({ cause, causeCode: HANGUP_CAUSE_CODE_ERROR })
+        let cause = 'NORMAL_TEMPORARY_FAILURE'
+        this.hangup({ cause, causeCode: NORMAL_TEMPORARY_FAILURE_CODE })
       })
   }
 

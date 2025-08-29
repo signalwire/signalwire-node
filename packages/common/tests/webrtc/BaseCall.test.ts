@@ -1,4 +1,4 @@
-import BaseCall from '../../src/webrtc/BaseCall'
+import BaseCall, { NORMAL_TEMPORARY_FAILURE_CODE, WRONG_CALL_STATE_CODE } from '../../src/webrtc/BaseCall'
 import { Bye } from '../../src/messages/Verto'
 import { State } from '../../src/webrtc/constants'
 
@@ -96,25 +96,25 @@ describe('BaseCall', () => {
         expect(call.causeCode).toBe(17)
       })
 
-      it('should use error cause and code for ERROR_SETTING_REMOTE_SDP', () => {
-        call.hangup({ cause: 'ERROR_SETTING_REMOTE_SDP', causeCode: 666 })
+      it('should use error cause and code for WRONG_CALL_STATE', () => {
+        call.hangup({ cause: 'WRONG_CALL_STATE', causeCode: WRONG_CALL_STATE_CODE })
 
-        expect(call.cause).toBe('ERROR_SETTING_REMOTE_SDP')
-        expect(call.causeCode).toBe(666)
+        expect(call.cause).toBe('WRONG_CALL_STATE')
+        expect(call.causeCode).toBe(NORMAL_TEMPORARY_FAILURE_CODE)
       })
 
-      it('should use error cause and code for ERROR_SENDING_ANSWER', () => {
-        call.hangup({ cause: 'ERROR_SENDING_ANSWER', causeCode: 666 })
+      it('should use error cause and code for NORMAL_TEMPORARY_FAILURE', () => {
+        call.hangup({ cause: 'NORMAL_TEMPORARY_FAILURE', causeCode: NORMAL_TEMPORARY_FAILURE_CODE })
 
-        expect(call.cause).toBe('ERROR_SENDING_ANSWER')
-        expect(call.causeCode).toBe(666)
+        expect(call.cause).toBe('NORMAL_TEMPORARY_FAILURE')
+        expect(call.causeCode).toBe(NORMAL_TEMPORARY_FAILURE_CODE)
       })
 
-      it('should use error cause and code for ERROR_SENDING_ATTACH', () => {
-        call.hangup({ cause: 'ERROR_SENDING_ATTACH', causeCode: 666 })
+      it('should use error cause and code for NORMAL_TEMPORARY_FAILURE', () => {
+        call.hangup({ cause: 'NORMAL_TEMPORARY_FAILURE', causeCode: NORMAL_TEMPORARY_FAILURE_CODE })
 
-        expect(call.cause).toBe('ERROR_SENDING_ATTACH')
-        expect(call.causeCode).toBe(666)
+        expect(call.cause).toBe('NORMAL_TEMPORARY_FAILURE')
+        expect(call.causeCode).toBe(NORMAL_TEMPORARY_FAILURE_CODE)
       })
     })
 

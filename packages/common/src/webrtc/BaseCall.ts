@@ -44,6 +44,9 @@ import {
 } from './WebRTC'
 import { MCULayoutEventHandler } from './LayoutHandler'
 
+// Error code for hangup when caused by an error
+const HANGUP_CAUSE_CODE_ERROR = 666
+
 export default abstract class BaseCall implements IWebRTCCall {
   public id: string = ''
   public state: string = State[State.New]
@@ -161,6 +164,8 @@ export default abstract class BaseCall implements IWebRTCCall {
       const bye = new Bye({
         sessid: this.session.sessionid,
         dialogParams: this.options,
+        cause: this.cause,
+        causeCode: this.causeCode,
       })
       logger.trace('Verto Bye stacktrace:', stackTrace())
       this._execute(bye)
@@ -832,7 +837,10 @@ export default abstract class BaseCall implements IWebRTCCall {
       })
       .catch((error) => {
         logger.error('Call setRemoteDescription Error: ', error)
-        this.hangup()
+        this.hangup({
+          cause: 'ERROR_SETTING_REMOTE_SDP',
+          causeCode: HANGUP_CAUSE_CODE_ERROR,
+        })
       })
   }
 
@@ -870,7 +878,7 @@ export default abstract class BaseCall implements IWebRTCCall {
       this._requestAnotherLocalDescription()
       return
     }
-    let msg = null
+    let msg
     const tmpParams = {
       sessid: this.session.sessionid,
       sdp,
@@ -902,7 +910,19 @@ export default abstract class BaseCall implements IWebRTCCall {
       })
       .catch((error) => {
         logger.error(`${this.id} - Sending ${type} error:`, error)
-        this.hangup()
+        let cause = 'ERROR_SENDING_VERTO_MSG'
+        switch (msg.toString()) {
+          case VertoMethod.Invite:
+            cause = 'ERROR_SENDING_INVITE'
+            break
+          case VertoMethod.Answer:
+            cause = 'ERROR_SENDING_ANSWER'
+            break
+          case VertoMethod.Attach:
+            cause = 'ERROR_SENDING_ANSWER'
+            break
+        }
+        this.hangup({ cause, causeCode: HANGUP_CAUSE_CODE_ERROR })
       })
   }
 

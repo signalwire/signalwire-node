@@ -1,4 +1,8 @@
-import BaseCall, { NORMAL_TEMPORARY_FAILURE_CODE, WRONG_CALL_STATE_CODE } from '../../src/webrtc/BaseCall'
+import BaseCall, {
+  EXECUTE_ANSWER_ERROR_CAUSE_CODE,
+  EXECUTE_ATTACH_ERROR_CAUSE_CODE,
+  REMOTE_SDP_ERROR_CAUSE_CODE,
+} from '../../src/webrtc/BaseCall'
 import { Bye } from '../../src/messages/Verto'
 import { State } from '../../src/webrtc/constants'
 
@@ -96,25 +100,34 @@ describe('BaseCall', () => {
         expect(call.causeCode).toBe(17)
       })
 
-      it('should use error cause and code for WRONG_CALL_STATE', () => {
-        call.hangup({ cause: 'WRONG_CALL_STATE', causeCode: WRONG_CALL_STATE_CODE })
+      it('should use error cause and code for REMOTE_SDP_ERROR_CAUSE_CODE', () => {
+        call.hangup({
+          cause: 'NORMAL_CLEARING',
+          causeCode: REMOTE_SDP_ERROR_CAUSE_CODE,
+        })
 
-        expect(call.cause).toBe('WRONG_CALL_STATE')
-        expect(call.causeCode).toBe(NORMAL_TEMPORARY_FAILURE_CODE)
+        expect(call.cause).toBe('NORMAL_CLEARING')
+        expect(call.causeCode).toBe(REMOTE_SDP_ERROR_CAUSE_CODE)
       })
 
-      it('should use error cause and code for NORMAL_TEMPORARY_FAILURE', () => {
-        call.hangup({ cause: 'NORMAL_TEMPORARY_FAILURE', causeCode: NORMAL_TEMPORARY_FAILURE_CODE })
+      it('should use error cause and code for EXECUTE_ANSWER_ERROR_CAUSE_CODE', () => {
+        call.hangup({
+          cause: 'NORMAL_CLEARING',
+          causeCode: EXECUTE_ANSWER_ERROR_CAUSE_CODE,
+        })
 
-        expect(call.cause).toBe('NORMAL_TEMPORARY_FAILURE')
-        expect(call.causeCode).toBe(NORMAL_TEMPORARY_FAILURE_CODE)
+        expect(call.cause).toBe('NORMAL_CLEARING')
+        expect(call.causeCode).toBe(EXECUTE_ANSWER_ERROR_CAUSE_CODE)
       })
 
-      it('should use error cause and code for NORMAL_TEMPORARY_FAILURE', () => {
-        call.hangup({ cause: 'NORMAL_TEMPORARY_FAILURE', causeCode: NORMAL_TEMPORARY_FAILURE_CODE })
+      it('should use error cause and code for EXECUTE_ATTACH_ERROR_CAUSE_CODE', () => {
+        call.hangup({
+          cause: 'NORMAL_CLEARING',
+          causeCode: EXECUTE_ATTACH_ERROR_CAUSE_CODE,
+        })
 
-        expect(call.cause).toBe('NORMAL_TEMPORARY_FAILURE')
-        expect(call.causeCode).toBe(NORMAL_TEMPORARY_FAILURE_CODE)
+        expect(call.cause).toBe('NORMAL_CLEARING')
+        expect(call.causeCode).toBe(EXECUTE_ATTACH_ERROR_CAUSE_CODE)
       })
     })
 

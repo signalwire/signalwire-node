@@ -46,8 +46,8 @@ The SDK now properly reports error causes when calls are terminated due to excep
     "dialogParams": {
       /* ... */
     },
-    "cause": "WRONG_CALL_STATE",
-    "causeCode": 666
+    "cause": "NORMAL_CLEARING",
+    "causeCode": 50004
   }
 }
 ```
@@ -62,8 +62,8 @@ The SDK now properly reports error causes when calls are terminated due to excep
     "dialogParams": {
       /* ... */
     },
-    "cause": "NORMAL_TEMPORARY_FAILURE",
-    "causeCode": 666
+    "cause": "NORMAL_CLEARING",
+    "causeCode": 50001
   }
 }
 ```
@@ -78,17 +78,18 @@ The SDK now properly reports error causes when calls are terminated due to excep
     "dialogParams": {
       /* ... */
     },
-    "cause": "NORMAL_TEMPORARY_FAILURE",
-    "causeCode": 666
+    "cause": "NORMAL_CLEARING",
+    "causeCode": 50002
   }
 }
 ```
 
-### Error Causes
+### Error Cause Codes
 
-- **WRONG_CALL_STATE**: Failed to set the remote session description during WebRTC negotiation
-- **NORMAL_TEMPORARY_FAILURE**: Failed to send an answer message to the server
-- **NORMAL_TEMPORARY_FAILURE**: Failed to send an attach message to the server
+- **REMOTE_SDP_ERROR_CAUSE_CODE 50004**: Failed to set the remote session description during WebRTC negotiation
+- **EXECUTE_ANSWER_ERROR_CAUSE_CODE 50001**: Failed to send an answer message to the server
+- **EXECUTE_ATTACH_ERROR_CAUSE_CODE 50002**: Failed to send an attach message to the server
+- **EXECUTE_INVITE_ERROR_CAUSE_CODE 50003**: Failed to send an invite message to the server
 
 All error causes use the special error code `666` to distinguish them from standard telephony cause codes.
 

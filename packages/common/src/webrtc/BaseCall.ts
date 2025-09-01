@@ -44,6 +44,11 @@ import {
 } from './WebRTC'
 import { MCULayoutEventHandler } from './LayoutHandler'
 
+// Error code for hangup when caused by an error
+export const EXECUTE_ANSWER_ERROR_CAUSE_CODE = 50001
+export const EXECUTE_ATTACH_ERROR_CAUSE_CODE = 50002
+export const EXECUTE_INVITE_ERROR_CAUSE_CODE = 50003
+export const REMOTE_SDP_ERROR_CAUSE_CODE = 50004
 export default abstract class BaseCall implements IWebRTCCall {
   public id: string = ''
   public state: string = State[State.New]
@@ -161,6 +166,8 @@ export default abstract class BaseCall implements IWebRTCCall {
       const bye = new Bye({
         sessid: this.session.sessionid,
         dialogParams: this.options,
+        cause: this.cause,
+        causeCode: this.causeCode,
       })
       logger.trace('Verto Bye stacktrace:', stackTrace())
       this._execute(bye)
@@ -832,7 +839,10 @@ export default abstract class BaseCall implements IWebRTCCall {
       })
       .catch((error) => {
         logger.error('Call setRemoteDescription Error: ', error)
-        this.hangup()
+        this.hangup({
+          cause: 'NORMAL_CLEARING',
+          causeCode: REMOTE_SDP_ERROR_CAUSE_CODE,
+        })
       })
   }
 
@@ -870,7 +880,7 @@ export default abstract class BaseCall implements IWebRTCCall {
       this._requestAnotherLocalDescription()
       return
     }
-    let msg = null
+    let msg
     const tmpParams = {
       sessid: this.session.sessionid,
       sdp,
@@ -902,7 +912,16 @@ export default abstract class BaseCall implements IWebRTCCall {
       })
       .catch((error) => {
         logger.error(`${this.id} - Sending ${type} error:`, error)
-        this.hangup()
+        let causeCode
+        switch (msg.toSring()) {
+          case VertoMethod.Answer:
+            causeCode = EXECUTE_ANSWER_ERROR_CAUSE_CODE
+          case VertoMethod.Attach:
+            causeCode = EXECUTE_ATTACH_ERROR_CAUSE_CODE
+          case VertoMethod.Invite:
+            causeCode = EXECUTE_INVITE_ERROR_CAUSE_CODE
+        }
+        this.hangup({ cause: 'NORMAL_CLEARING', causeCode })
       })
   }
 

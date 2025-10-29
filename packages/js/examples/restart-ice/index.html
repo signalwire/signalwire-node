@@ -354,8 +354,8 @@
          */
         function makeCall() {
             const params = {
-                destinationNumber: document.getElementById('number').value, // required!
-                callerNumber: document.getElementById('numberFrom').value, // required!
+                destinationNumber: document.getElementById('number').value,
+                callerNumber: document.getElementById('numberFrom').value,
                 audio: document.getElementById('audio').checked,
                 video: document.getElementById('video').checked ? { aspectRatio: 16/9 } : false,
             };

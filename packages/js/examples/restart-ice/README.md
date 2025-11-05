@@ -108,32 +108,53 @@ Visit [Relay SDK for JavaScript Documentation](https://docs.signalwire.com/topic
 
 If you see `ERR_CERT_COMMON_NAME_INVALID` or CORS errors when generating tokens:
 
-1. **Use curl to generate the token manually:**
-   ```sh
-   curl -X POST "https://YOUR_SPACE.signalwire.com/api/relay/rest/jwt" \
-     -H "Content-Type: application/json" \
-     -u "YOUR_PROJECT_ID:YOUR_API_TOKEN" \
-     -d '{"expires_in": 3600, "resource": "test-client"}'
-   ```
+**For custom domains (e.g., `dev.swire.io`):**
+- The certificate error may occur if the domain uses a self-signed certificate or has certificate issues
+- The code will automatically detect custom domains and use the correct API URL
+- **Solution:** Use curl to generate the token manually:
+  ```sh
+  curl -X POST "https://dev.swire.io/api/relay/rest/jwt" \
+    -H "Content-Type: application/json" \
+    -u "YOUR_PROJECT_ID:YOUR_API_TOKEN" \
+    -d '{"expires_in": 3600, "resource": "test-client"}'
+  ```
+  Then copy the `jwt_token` from the response and paste it into the Token field
 
-2. **Copy the `jwt_token` from the response and paste it into the Token field**
+**For standard SignalWire domains:**
+- If you see CORS errors, use curl to generate the token:
+  ```sh
+  curl -X POST "https://YOUR_SPACE.signalwire.com/api/relay/rest/jwt" \
+    -H "Content-Type: application/json" \
+    -u "YOUR_PROJECT_ID:YOUR_API_TOKEN" \
+    -d '{"expires_in": 3600, "resource": "test-client"}'
+  ```
 
 ### Authentication Errors
 
 If you see `Authentication service failed with status 401 Unauthorized`:
 
+**Important for custom domains:**
+- If you're using a custom domain (e.g., `dev.swire.io`), you **must** also configure the "Relay Host" field
+- Enter the Relay host in the format: `relay.dev.swire.io` (or the appropriate Relay host for your environment)
+- Without the correct Relay Host, the connection will fail with 401 errors
+
+**General troubleshooting:**
 - Verify your Project ID and API Token are correct
 - Ensure your JWT token hasn't expired
 - Check that the token was generated with the correct resource identifier
 - Make sure you're using the correct Space name
+- For custom domains, ensure both the Space and Relay Host are configured correctly
 
 ### Custom Domains
 
-For custom domains or development environments:
+For custom domains or development environments (e.g., `dev.swire.io`):
 
-1. Enter the full domain in the Space field (e.g., `dev.swire.io` or `custom.signalwire.com`)
-2. Optionally specify the Relay host in the "Relay Host" field (e.g., `relay.dev.swire.io`)
-3. The Space field will automatically handle domains that don't end with `.signalwire.com`
+1. **Enter the full domain in the Space field:** `dev.swire.io` (without `https://` or trailing slashes)
+2. **Configure the Relay Host:** This is **required** for custom domains. Enter the Relay host (e.g., `relay.dev.swire.io`) in the "Relay Host" field
+3. **The code automatically detects:** Domains that don't end with `.signalwire.com` are treated as custom domains
+4. **Generate token manually:** Due to certificate issues, you may need to generate the JWT token using curl (see Token Generation Errors above)
+
+> **Note:** For custom domains, both the Space field and Relay Host field must be configured correctly, otherwise you'll get 401 authentication errors.
 
 ### localStorage Issues
 

@@ -56,6 +56,11 @@
                         <input type="text" class="form-control" id="resource" value="test-client" onchange="saveInLocalStorage(event)">
                         <small class="form-text text-muted">Identifier for inbound calls (e.g., verto:resource@domain).</small>
                     </div>
+                    <div class="form-group">
+                        <label for="relayHost">Relay Host (Optional)</label>
+                        <input type="text" class="form-control" id="relayHost" placeholder="e.g., relay.swoffice.signalwire.com" onchange="saveInLocalStorage(event)">
+                        <small class="form-text text-muted">Custom Relay host (leave empty for default).</small>
+                    </div>
                     <button id="btnGenerateToken" class="btn btn-block btn-info" onclick="generateToken()">Generate Token</button>
                     <div class="form-group mt-3">
                         <label for="token">Token</label>
@@ -109,6 +114,11 @@
             <button id="startCall" class="btn btn-primary px-5 mt-4" onClick="makeCall()" disabled="true">Call</button>
             <button id="hangupCall" class="btn btn-danger px-5 mt-4 d-none" onClick="hangup()" disabled="true">Hang up</button>
             <button id="restartIce" class="btn btn-warning px-5 mt-4 d-none" onClick="restartIceCall()" disabled="true">Restart ICE</button>
+            <div class="form-group mt-4">
+                <label for="logArea">Logs</label>
+                <textarea id="logArea" class="form-control" rows="8" readonly style="font-family: monospace; font-size: 12px; background-color: #f8f9fa;"></textarea>
+                <button id="btnClearLogs" class="btn btn-sm btn-secondary mt-2" onclick="clearLogs()">Clear Logs</button>
+            </div>
             <div class="form-group" id="dtmfKeys" hidden="false">
                 <button id="dtmf_1" class="btn btn-primary px-2 mt-4" onClick="dtmf()">1</button>
                 <button id="dtmf_2" class="btn btn-primary px-2 mt-4" onClick="dtmf()">2</button>
@@ -157,6 +167,7 @@
         var apiToken = localStorage.getItem('relay.example.apiToken') || '';
         var expiresIn = localStorage.getItem('relay.example.expiresIn') || '3600';
         var resource = localStorage.getItem('relay.example.resource') || 'test-client';
+        var relayHost = localStorage.getItem('relay.example.relayHost') || '';
         const getCircularReplacer = () => {
             const seen = new WeakSet();
             return (key, value) => {
@@ -170,6 +181,28 @@
             };
         };
         /**
+         * Add a log entry to the log area
+         */
+        function addLog(message) {
+            const logArea = document.getElementById('logArea');
+            if (logArea) {
+                const timestamp = new Date().toLocaleTimeString();
+                const logEntry = `[${timestamp}] ${message}\n`;
+                logArea.value += logEntry;
+                logArea.scrollTop = logArea.scrollHeight;
+            }
+        }
+        /**
+         * Clear all logs
+         */
+        function clearLogs() {
+            const logArea = document.getElementById('logArea');
+            if (logArea) {
+                logArea.value = '';
+                addLog('Logs cleared');
+            }
+        }
+        /**
          * On document ready auto-fill the input values from the localStorage.
          */
         ready(function() {
@@ -178,11 +211,13 @@
             document.getElementById('apiToken').value = apiToken;
             document.getElementById('expiresIn').value = expiresIn;
             document.getElementById('resource').value = resource;
+            document.getElementById('relayHost').value = relayHost;
             document.getElementById('token').value = token;
             document.getElementById('number').value = number;
             document.getElementById('numberFrom').value = numberFrom;
             document.getElementById('audio').checked = audio === '1';
             document.getElementById('video').checked = video === '1';
+            addLog('Application initialized. Ready to connect.');
         });
         /**
          * Generate JWT token using fetch
@@ -195,22 +230,37 @@
             const resourceVal = document.getElementById('resource').value.trim();
 
             if (!spaceVal || !projectVal || !apiTokenVal) {
+                addLog('ERROR: Please fill in Space, Project ID, and API Token.');
                 alert('Please fill in Space, Project ID, and API Token.');
                 return;
             }
 
-            // Clean spaceVal if it has https:// or .signalwire.com
-            spaceVal = spaceVal.replace(/^https?:\/\//, '').replace(/\.signalwire\.com$/, '');
+            // Clean spaceVal if it has https://
+            spaceVal = spaceVal.replace(/^https?:\/\//, '');
+            
+            // Determine if it's a custom domain or needs .signalwire.com
+            let apiUrl;
+            if (spaceVal.includes('.') && !spaceVal.endsWith('.signalwire.com')) {
+                // Custom domain (e.g., dev.swire.io)
+                apiUrl = `https://${spaceVal}/api/relay/rest/jwt`;
+                addLog(`Using custom domain: ${spaceVal}`);
+            } else {
+                // Standard SignalWire domain
+                spaceVal = spaceVal.replace(/\.signalwire\.com$/, '');
+                apiUrl = `https://${spaceVal}.signalwire.com/api/relay/rest/jwt`;
+                addLog(`Using SignalWire domain: ${spaceVal}.signalwire.com`);
+            }
 
-            const url = `https://${spaceVal}.signalwire.com/api/relay/rest/jwt`;
             const body = {
                 expires_in: parseInt(expiresInVal),
                 resource: resourceVal
             };
             const auth = btoa(`${projectVal}:${apiTokenVal}`);
 
+            addLog(`Generating token for resource: ${resourceVal}, expires in: ${expiresInVal}s`);
+            
             try {
-                const response = await fetch(url, {
+                const response = await fetch(apiUrl, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -219,26 +269,48 @@
                     body: JSON.stringify(body)
                 });
                 if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    const errorText = await response.text();
+                    throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
                 }
                 const data = await response.json();
                 document.getElementById('token').value = data.jwt_token;
                 saveInLocalStorage({ target: { id: 'token', value: data.jwt_token } });
+                addLog('SUCCESS: Token generated successfully');
                 console.log('Token generated successfully');
             } catch (error) {
+                const errorMsg = `ERROR: Failed to generate token - ${error.message}`;
+                addLog(errorMsg);
                 console.error('Error generating token:', error);
-                alert('Failed to generate token. Check console for details. Note: This may be due to CORS restrictions; try using curl instead.');
+                alert('Failed to generate token. Check console and logs for details. Note: This may be due to CORS restrictions; try using curl instead.');
             }
         }
         /**
          * Connect with Relay creating a client and attaching all the event handler.
          */
         function connect() {
-            client = new Relay({
-                project: document.getElementById('project').value,
-                token: document.getElementById('token').value,
-                // host: 'relay.swoffice.signalwire.com'
-            });
+            const projectVal = document.getElementById('project').value;
+            const tokenVal = document.getElementById('token').value;
+            const relayHostVal = document.getElementById('relayHost').value.trim();
+            
+            if (!projectVal || !tokenVal) {
+                addLog('ERROR: Project ID and Token are required to connect.');
+                alert('Please fill in Project ID and Token.');
+                return;
+            }
+
+            const relayConfig = {
+                project: projectVal,
+                token: tokenVal
+            };
+
+            if (relayHostVal) {
+                relayConfig.host = relayHostVal;
+                addLog(`Using custom Relay host: ${relayHostVal}`);
+            } else {
+                addLog('Using default Relay host');
+            }
+
+            client = new Relay(relayConfig);
             // client.autoRecoverCalls = false;
             client.remoteElement = 'remoteVideo';
             client.localElement = 'localVideo';
@@ -258,23 +330,29 @@
                 btnDisconnect.classList.remove('d-none');
                 connectStatus.innerHTML = 'Connected';
                 startCall.disabled = false;
+                addLog('SUCCESS: Connected to SignalWire Relay');
             });
             // Update UI on socket close
             client.on('signalwire.socket.close', function() {
                 btnConnect.classList.remove('d-none');
                 btnDisconnect.classList.add('d-none');
                 connectStatus.innerHTML = 'Disconnected';
+                addLog('INFO: Disconnected from SignalWire Relay');
             });
             // Handle error...
             client.on('signalwire.error', function(error){
+                const errorMsg = `ERROR: SignalWire error - Code: ${error.code}, Message: ${error.message}`;
+                addLog(errorMsg);
                 console.error("SignalWire error:", error);
             });
             client.on('signalwire.notification', handleNotification);
             connectStatus.innerHTML = 'Connecting...';
+            addLog('Connecting to SignalWire Relay...');
             client.connect();
         }
         function disconnect() {
             connectStatus.innerHTML = 'Disconnecting...';
+            addLog('Disconnecting from SignalWire Relay...');
             client.disconnect();
         }
         /**
@@ -287,7 +365,7 @@
                     handleCallUpdate(notification.call);
                     break;
                 case 'userMediaError':
-                    // Permission denied or invalid audio/video params on `getUserMedia`
+                    addLog('ERROR: User media error - Permission denied or invalid audio/video params');
                     break;
             }
         }
@@ -301,6 +379,7 @@
             console.log("Call State: " ,ccallState);
             let msg = currentCall.causeCode ? `Code:${currentCall.causeCode} Reason: ${currentCall.cause}` : `Early Media:${currentCall.gotEarly} Answered: ${currentCall.gotAnswer}`;
             callStatus.innerHTML = `${currentCall.prevState} -> ${currentCall.state} </br> ${msg}`;
+            addLog(`Call state: ${currentCall.prevState} -> ${currentCall.state}${currentCall.causeCode ? ` (Code: ${currentCall.causeCode}, Reason: ${currentCall.cause})` : ''}`);
             switch (call.state) {
                 case 'new': // Setup the UI
                     break;
@@ -353,12 +432,25 @@
          * Make a new outbound call
          */
         function makeCall() {
+            const destination = document.getElementById('number').value;
+            const caller = document.getElementById('numberFrom').value;
+            const audioEnabled = document.getElementById('audio').checked;
+            const videoEnabled = document.getElementById('video').checked;
+            
+            if (!destination) {
+                addLog('ERROR: Please enter a destination number or resource');
+                alert('Please enter a destination number or resource');
+                return;
+            }
+
             const params = {
-                destinationNumber: document.getElementById('number').value,
-                callerNumber: document.getElementById('numberFrom').value,
-                audio: document.getElementById('audio').checked,
-                video: document.getElementById('video').checked ? { aspectRatio: 16/9 } : false,
+                destinationNumber: destination,
+                callerNumber: caller,
+                audio: audioEnabled,
+                video: videoEnabled ? { aspectRatio: 16/9 } : false,
             };
+            
+            addLog(`Initiating call to: ${destination}${caller ? ` from: ${caller}` : ''} (Audio: ${audioEnabled ? 'Yes' : 'No'}, Video: ${videoEnabled ? 'Yes' : 'No'})`);
             currentCall = client.newCall(params);
         }
         /**
@@ -366,8 +458,12 @@
          */
         function restartIceCall() {
             if (currentCall) {
+                addLog('INFO: Restarting ICE connection...');
                 currentCall.peer.instance.restartIce();
                 console.log("restartIce called");
+                addLog('SUCCESS: ICE restart initiated');
+            } else {
+                addLog('ERROR: No active call to restart ICE');
             }
         }
         /**
@@ -436,6 +532,7 @@
          */
         function hangup() {
             if (currentCall) {
+                addLog('Hanging up call...');
                 currentCall.hangup()
             }
         }

@@ -9,7 +9,7 @@ The JavaScript SDK transforms your standard browser into a realtime media engine
 
 ## Getting Started
 
-Read the implementation documentation, guides and API Reference at the official [Relay SDK for JavaScript Documentation](https://docs.signalwire.com/topics/relay-sdk-js) site.
+Read the implementation documentation, guides and API Reference at the official [Relay SDK for JavaScript Documentation](https://developer.signalwire.com/sdks/browser-sdk/v2/) site.
 
 ---
 

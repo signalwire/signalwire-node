@@ -7,7 +7,7 @@ The Relay SDK for Node.js enables Node.js developers to connect and use SignalWi
 
 ## Getting Started
 
-Read the implementation documentation, guides and API Reference at the official [Relay SDK for Node.js Documentation](https://docs.signalwire.com/topics/relay-sdk-nodejs) site.
+Read the implementation documentation, guides and API Reference at the official [Relay SDK for Node.js Documentation](https://developer.signalwire.com/sdks/realtime-sdk/v2/language/nodejs) site.
 
 ---
 

@@ -49,6 +49,7 @@ export default class Peer {
   }
 
   startNegotiation() {
+    logger.info('location=startNegotiation type=' + this.type + ' isOffer=' + this._isOffer())
     this._negotiating = true
 
     if (this._isOffer()) {
@@ -74,6 +75,7 @@ export default class Peer {
     }
 
     this.instance.onnegotiationneeded = (event) => {
+      logger.info('location=onnegotiationneeded signalingState=' + this.instance.signalingState + ' _negotiating=' + this._negotiating)
       if (this._negotiating) {
         logger.debug('Skip twice onnegotiationneeded..')
         return
@@ -108,6 +110,7 @@ export default class Peer {
   }
 
   private _createOffer() {
+    logger.info('location=_createOffer isOffer=' + this._isOffer())
     if (!this._isOffer()) {
       return
     }
@@ -160,6 +163,7 @@ export default class Peer {
 
   /** Workaround for ReactNative: first time SDP has no candidates */
   private _sdpReady(): void {
+    logger.info('location=_sdpReady hasCallback=' + isFunction(this.onSdpReadyTwice) + ' localDescriptionType=' + this.instance.localDescription?.type)
     if (isFunction(this.onSdpReadyTwice)) {
       this.onSdpReadyTwice(this.instance.localDescription)
     }

@@ -9,8 +9,9 @@
   <script type="text/javascript" src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
 
   <!-- Include the SignalWire Relay JS SDK -->
-  <script type="text/javascript" src="https://unpkg.com/@signalwire/js@^1"></script>
-  <!-- <script type="text/javascript" src="index.min.js"></script> -->
+  <!-- <script type="text/javascript" src="https://unpkg.com/@signalwire/js@^1"></script> -->
+  <script>localStorage.setItem('loglevel:signalwire', 'debug');</script>
+  <script type="text/javascript" src="index.min.js"></script>
 
   <!-- To style up the demo a little -->
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" />
@@ -43,6 +44,12 @@
               <label for="token">Token</label>
               <input type="text" class="form-control" id="token" placeholder="Enter your JWT" onchange="saveInLocalStorage(event)">
               <small id="tokenHelp" class="form-text text-muted">Generate a JWT and enter it here. For more information, visit <a href="/topics/relay-sdk-js#relay-sdk-for-javascript-using-the-sdk">Using the JavaScript SDK Documentation</a></small>
+            </div>
+            <div class="form-check mb-3">
+              <input type="checkbox" class="form-check-input" id="staging" onchange="saveInLocalStorage(event)">
+              <label class="form-check-label" for="staging">
+                Use Staging (relay.swire.io)
+              </label>
             </div>
             <button id="btnConnect" class="btn btn-block btn-success" onclick="connect()">Connect</button>
             <button id="btnDisconnect" class="btn btn-block btn-danger d-none" onclick="disconnect()">Disconnect</button>
@@ -94,6 +101,7 @@
         </div>
         <button id="startCall" class="btn btn-primary px-5 mt-4" onClick="makeCall()" disabled="true">Call</button>
         <button id="hangupCall" class="btn btn-danger px-5 mt-4 d-none" onClick="hangup()" disabled="true">Hang up</button>
+        <button id="restartIceBtn" class="btn btn-warning px-3 mt-4 d-none" onClick="restartIce()">Restart ICE</button>
         <div class="form-group" id="dtmfKeys" hidden="false">
           <button id="dtmf_1" class="btn btn-primary px-2 mt-4" onClick="dtmf()">1</button>
           <button id="dtmf_2" class="btn btn-primary px-2 mt-4" onClick="dtmf()">2</button>
@@ -140,6 +148,7 @@
       var numberFrom = localStorage.getItem('relay.example.numberFrom') || '';
       var audio = localStorage.getItem('relay.example.audio') || '1';
       var video = localStorage.getItem('relay.example.video') || '1';
+      var staging = localStorage.getItem('relay.example.staging') || '1';
 
       const getCircularReplacer = () => {
         const seen = new WeakSet();
@@ -165,17 +174,21 @@
         document.getElementById('numberFrom').value = numberFrom;
         document.getElementById('audio').checked = audio === '1';
         document.getElementById('video').checked = video === '1';
+        document.getElementById('staging').checked = staging === '1';
       });
 
     /**
      * Connect with Relay creating a client and attaching all the event handler.
     */
       function connect() {
-        client = new Relay({
-          // host: 'relay.swire.io',
+        const clientOptions = {
           project: document.getElementById('project').value,
           token: document.getElementById('token').value
-        });
+        };
+        if (document.getElementById('staging').checked) {
+          clientOptions.host = 'relay.swire.io';
+        }
+        client = new Relay(clientOptions);
 
         // client.autoRecoverCalls = false;
         client.remoteElement = 'remoteVideo';
@@ -276,12 +289,14 @@
           startCall.classList.add('d-none');
           hangupCall.classList.remove('d-none');
           hangupCall.disabled = false;
+          restartIceBtn.classList.remove('d-none');
           dtmfKeys.hidden=false;
           break;
         case 'hangup': // Call is over
           startCall.classList.remove('d-none');
           hangupCall.classList.add('d-none');
           hangupCall.disabled = true;
+          restartIceBtn.classList.add('d-none');
           dtmfKeys.hidden=true;
           break;
         case 'destroy': // Call has been destroyed
@@ -375,9 +390,93 @@
       }
     }
 
+    /**
+     * Restart ICE on the currentCall if present
+    */
+    function restartIce() {
+      if (currentCall && currentCall.peer && currentCall.peer.instance) {
+        var pc = currentCall.peer.instance;
+        console.log('=== RESTART ICE START ===');
+        console.log('callState:', currentCall.state);
+        console.log('peerType:', currentCall.peer.type);
+        console.log('signalingState:', pc.signalingState);
+        console.log('iceConnectionState:', pc.iceConnectionState);
+        console.log('iceGatheringState:', pc.iceGatheringState);
+
+        // Hook into events to trace what happens
+        var origOnnegotiationneeded = pc.onnegotiationneeded;
+        pc.onnegotiationneeded = function(event) {
+          console.log('>>> onnegotiationneeded fired! signalingState:', pc.signalingState);
+          if (origOnnegotiationneeded) origOnnegotiationneeded.call(pc, event);
+        };
+
+        var origOnicecandidate = pc.onicecandidate;
+        pc.onicecandidate = function(event) {
+          if (event.candidate) {
+            console.log('>>> onicecandidate:', event.candidate.type, event.candidate.address);
+          } else {
+            console.log('>>> onicecandidate: gathering complete (null candidate)');
+            console.log('>>> localDescription type:', pc.localDescription?.type);
+            console.log('>>> localDescription sdp (first 500 chars):', pc.localDescription?.sdp?.substring(0, 500));
+          }
+          console.log('>>> Calling original onicecandidate handler...');
+          var callStateBefore = currentCall.state;
+          if (origOnicecandidate) {
+            origOnicecandidate.call(pc, event);
+            console.log('>>> Original handler completed');
+            console.log('>>> Call state before:', callStateBefore, 'after:', currentCall.state);
+          } else {
+            console.log('>>> WARNING: No original onicecandidate handler!');
+          }
+
+          // After gathering complete, check what happens
+          if (!event.candidate) {
+            setTimeout(function() {
+              console.log('>>> [After 500ms] callState:', currentCall.state);
+              console.log('>>> [After 500ms] signalingState:', pc.signalingState);
+              console.log('>>> [After 500ms] iceConnectionState:', pc.iceConnectionState);
+            }, 500);
+            setTimeout(function() {
+              console.log('>>> [After 2s] callState:', currentCall.state);
+              console.log('>>> [After 2s] signalingState:', pc.signalingState);
+              console.log('>>> [After 2s] iceConnectionState:', pc.iceConnectionState);
+            }, 2000);
+          }
+        };
+
+        pc.onicegatheringstatechange = function() {
+          console.log('>>> iceGatheringState changed:', pc.iceGatheringState);
+        };
+
+        pc.oniceconnectionstatechange = function() {
+          console.log('>>> iceConnectionState changed:', pc.iceConnectionState);
+        };
+
+        pc.onsignalingstatechange = function() {
+          console.log('>>> signalingState changed:', pc.signalingState);
+        };
+
+        // Force peer type to 'offer' for ICE restart
+        var originalPeerType = currentCall.peer.type;
+        console.log('Forcing peer type from', originalPeerType, 'to "offer"');
+        currentCall.peer.type = 'offer';
+
+        // Reset _iceDone flag so SDK will process the new SDP
+        console.log('Resetting _iceDone from', currentCall._iceDone, 'to false');
+        currentCall._iceDone = false;
+
+        console.log('Calling restartIce()...');
+        pc.restartIce();
+        console.log('restartIce() called. Waiting for onnegotiationneeded...');
+      } else {
+        console.log('No active call or peer instance');
+      }
+    }
+
     function saveInLocalStorage(e) {
-      var key = e.target.name || e.target.id
-      localStorage.setItem('relay.example.' + key, e.target.value);
+      var key = e.target.name || e.target.id;
+      var value = e.target.type === 'checkbox' ? (e.target.checked ? '1' : '0') : e.target.value;
+      localStorage.setItem('relay.example.' + key, value);
     }
 
     // jQuery document.ready equivalent

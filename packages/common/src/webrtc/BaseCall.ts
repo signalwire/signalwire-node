@@ -865,7 +865,7 @@ export default abstract class BaseCall implements IWebRTCCall {
   }
 
   private _onIceSdp(data: RTCSessionDescription) {
-    logger.debug('_onIceSdp')
+    logger.info('location=_onIceSdp callState=' + this._state + ' sdpType=' + data?.type + ' hasCandidates=' + (data?.sdp?.indexOf('candidate') !== -1))
 
     if (this._iceTimeout) {
       clearTimeout(this._iceTimeout)
@@ -886,12 +886,29 @@ export default abstract class BaseCall implements IWebRTCCall {
       sdp,
       dialogParams: this.options,
     }
+    // Check if this is an ICE restart (offer on an already active call)
+    const isIceRestart = type === PeerType.Offer && (this._state === State.Active || this._state === State.Held)
+
     switch (type) {
       case PeerType.Offer:
-        this.setState(State.Requesting)
-        msg = new Invite(tmpParams)
+        if (isIceRestart) {
+          logger.info('location=_onIceSdp action=sendingModify (ICE restart) callState=' + this._state)
+          const modifyParams = {
+            sessid: this.session.sessionid,
+            action: 'updateMedia',
+            sdp,
+            dialogParams: this.options,
+          }
+          logger.info('location=_onIceSdp modifyParams=' + JSON.stringify(modifyParams))
+          msg = new Modify(modifyParams)
+        } else {
+          logger.info('location=_onIceSdp action=sendingInvite callState=' + this._state)
+          this.setState(State.Requesting)
+          msg = new Invite(tmpParams)
+        }
         break
       case PeerType.Answer:
+        logger.info('location=_onIceSdp action=sendingAnswer callState=' + this._state + ' attach=' + this.options.attach)
         this.setState(State.Answering)
         msg =
           this.options.attach === true
@@ -902,18 +919,36 @@ export default abstract class BaseCall implements IWebRTCCall {
         logger.error(`${this.id} - Unknown local SDP type:`, data)
         return this.hangup({}, false)
     }
+    logger.info('location=_onIceSdp action=executing msgType=' + msg.toString())
     this._execute(msg)
       .then((response) => {
+        logger.info('location=_onIceSdp action=executeSuccess response=' + JSON.stringify(response))
         const { node_id = null } = response
         this._targetNodeId = node_id
-        type === PeerType.Offer
-          ? this.setState(State.Trying)
-          : this.setState(State.Active)
+        if (isIceRestart) {
+          // For ICE restart, handle the response SDP if provided
+          if (response.sdp) {
+            logger.info('location=_onIceSdp action=settingRemoteDescription (ICE restart answer)')
+            const sessionDescr = sdpToJsonHack({ sdp: response.sdp, type: PeerType.Answer })
+            this.peer.instance.setRemoteDescription(sessionDescr)
+              .then(() => logger.info('location=_onIceSdp ICE restart remote description set'))
+              .catch((err) => logger.error('location=_onIceSdp ICE restart setRemoteDescription error:', err))
+          }
+        } else {
+          type === PeerType.Offer
+            ? this.setState(State.Trying)
+            : this.setState(State.Active)
+        }
       })
       .catch((error) => {
-        logger.error(`${this.id} - Sending ${type} error:`, error)
+        logger.error('location=_onIceSdp action=executeError error=', error)
+        // Don't hangup on ICE restart failure, just log
+        if (isIceRestart) {
+          logger.error('location=_onIceSdp ICE restart failed, call continues')
+          return
+        }
         let causeCode
-        switch (msg.toSring()) {
+        switch (msg.toString()) {
           case VertoMethod.Answer:
             causeCode = EXECUTE_ANSWER_ERROR_CAUSE_CODE
           case VertoMethod.Attach:

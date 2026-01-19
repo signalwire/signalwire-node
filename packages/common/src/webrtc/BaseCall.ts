@@ -913,7 +913,7 @@ export default abstract class BaseCall implements IWebRTCCall {
       .catch((error) => {
         logger.error(`${this.id} - Sending ${type} error:`, error)
         let causeCode
-        switch (msg.toSring()) {
+        switch (msg.toString()) {
           case VertoMethod.Answer:
             causeCode = EXECUTE_ANSWER_ERROR_CAUSE_CODE
           case VertoMethod.Attach:

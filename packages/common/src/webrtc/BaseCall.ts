@@ -865,7 +865,7 @@ export default abstract class BaseCall implements IWebRTCCall {
   }
 
   private _onIceSdp(data: RTCSessionDescription) {
-    logger.info('location=_onIceSdp callState=' + this._state + ' sdpType=' + data?.type + ' hasCandidates=' + (data?.sdp?.indexOf('candidate') !== -1))
+    logger.debug('location=_onIceSdp callState=' + this._state + ' sdpType=' + data?.type + ' hasCandidates=' + (data?.sdp?.indexOf('candidate') !== -1))
 
     if (this._iceTimeout) {
       clearTimeout(this._iceTimeout)
@@ -899,7 +899,7 @@ export default abstract class BaseCall implements IWebRTCCall {
             sdp,
             dialogParams: this.options,
           }
-          logger.info('location=_onIceSdp modifyParams=' + JSON.stringify(modifyParams))
+          logger.debug('location=_onIceSdp modifyParams=' + JSON.stringify(modifyParams))
           msg = new Modify(modifyParams)
         } else {
           logger.info('location=_onIceSdp action=sendingInvite callState=' + this._state)
@@ -908,7 +908,7 @@ export default abstract class BaseCall implements IWebRTCCall {
         }
         break
       case PeerType.Answer:
-        logger.info('location=_onIceSdp action=sendingAnswer callState=' + this._state + ' attach=' + this.options.attach)
+        logger.debug('location=_onIceSdp action=sendingAnswer callState=' + this._state + ' attach=' + this.options.attach)
         this.setState(State.Answering)
         msg =
           this.options.attach === true
@@ -919,10 +919,10 @@ export default abstract class BaseCall implements IWebRTCCall {
         logger.error(`${this.id} - Unknown local SDP type:`, data)
         return this.hangup({}, false)
     }
-    logger.info('location=_onIceSdp action=executing msgType=' + msg.toString())
+    logger.debug('location=_onIceSdp action=executing msgType=' + msg.toString())
     this._execute(msg)
       .then((response) => {
-        logger.info('location=_onIceSdp action=executeSuccess response=' + JSON.stringify(response))
+        logger.debug('location=_onIceSdp action=executeSuccess response=' + JSON.stringify(response))
         const { node_id = null } = response
         this._targetNodeId = node_id
         if (isIceRestart) {

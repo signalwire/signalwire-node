@@ -45,12 +45,6 @@
               <input type="text" class="form-control" id="token" placeholder="Enter your JWT" onchange="saveInLocalStorage(event)">
               <small id="tokenHelp" class="form-text text-muted">Generate a JWT and enter it here. For more information, visit <a href="/topics/relay-sdk-js#relay-sdk-for-javascript-using-the-sdk">Using the JavaScript SDK Documentation</a></small>
             </div>
-            <div class="form-check mb-3">
-              <input type="checkbox" class="form-check-input" id="staging" onchange="saveInLocalStorage(event)">
-              <label class="form-check-label" for="staging">
-                Use Staging (relay.swire.io)
-              </label>
-            </div>
             <button id="btnConnect" class="btn btn-block btn-success" onclick="connect()">Connect</button>
             <button id="btnDisconnect" class="btn btn-block btn-danger d-none" onclick="disconnect()">Disconnect</button>
 
@@ -148,7 +142,6 @@
       var numberFrom = localStorage.getItem('relay.example.numberFrom') || '';
       var audio = localStorage.getItem('relay.example.audio') || '1';
       var video = localStorage.getItem('relay.example.video') || '1';
-      var staging = localStorage.getItem('relay.example.staging') || '1';
 
       const getCircularReplacer = () => {
         const seen = new WeakSet();
@@ -174,21 +167,17 @@
         document.getElementById('numberFrom').value = numberFrom;
         document.getElementById('audio').checked = audio === '1';
         document.getElementById('video').checked = video === '1';
-        document.getElementById('staging').checked = staging === '1';
       });
 
     /**
      * Connect with Relay creating a client and attaching all the event handler.
     */
       function connect() {
-        const clientOptions = {
+        client = new Relay({
+          // host: 'relay.swire.io',
           project: document.getElementById('project').value,
           token: document.getElementById('token').value
-        };
-        if (document.getElementById('staging').checked) {
-          clientOptions.host = 'relay.swire.io';
-        }
-        client = new Relay(clientOptions);
+        });
 
         // client.autoRecoverCalls = false;
         client.remoteElement = 'remoteVideo';
@@ -474,9 +463,8 @@
     }
 
     function saveInLocalStorage(e) {
-      var key = e.target.name || e.target.id;
-      var value = e.target.type === 'checkbox' ? (e.target.checked ? '1' : '0') : e.target.value;
-      localStorage.setItem('relay.example.' + key, value);
+      var key = e.target.name || e.target.id
+      localStorage.setItem('relay.example.' + key, e.target.value);
     }
 
     // jQuery document.ready equivalent

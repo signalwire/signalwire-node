@@ -132,17 +132,17 @@ describe('BaseCall', () => {
     })
 
     describe('Bye message creation', () => {
-      it('should create Bye message without cause and causeCode when execute is true', () => {
+      it('should create Bye message with cause and causeCode when execute is true', () => {
         const mockByeInstance = { method: 'verto.bye' } as any
         MockedBye.mockImplementation(() => mockByeInstance)
 
         call.hangup({ cause: 'TEST_CAUSE', causeCode: 999 })
 
-        // cause and causeCode are stored on the call instance but NOT sent in the Bye message
-        // because FreeSWitch doesn't support these fields in verto.bye
         expect(MockedBye).toHaveBeenCalledWith({
           sessid: 'test-session-id',
           dialogParams: call.options,
+          cause: 'TEST_CAUSE',
+          causeCode: 999,
         })
       })
 
@@ -164,24 +164,19 @@ describe('BaseCall', () => {
   })
 
   describe('verto.bye message payload', () => {
-    it('should NOT include cause and causeCode in the Bye message parameters', () => {
+    it('should include cause and causeCode in the Bye message parameters', () => {
       const mockByeInstance = { method: 'verto.bye' } as any
       MockedBye.mockImplementation(() => mockByeInstance)
 
       call.hangup({ cause: 'CUSTOM_CAUSE', causeCode: 123 })
 
-      // cause and causeCode should be stored on call instance, not in Bye message
-      expect(call.cause).toBe('CUSTOM_CAUSE')
-      expect(call.causeCode).toBe(123)
-
-      // Bye message should only contain sessid and dialogParams
       const byeCallArgs = MockedBye.mock.calls[0][0]
       expect(byeCallArgs).toEqual({
         sessid: 'test-session-id',
         dialogParams: call.options,
+        cause: 'CUSTOM_CAUSE',
+        causeCode: 123,
       })
-      expect(byeCallArgs.cause).toBeUndefined()
-      expect(byeCallArgs.causeCode).toBeUndefined()
     })
 
     it('should include session ID and dialog parameters', () => {
@@ -195,20 +190,15 @@ describe('BaseCall', () => {
       expect(byeCallArgs.dialogParams).toBe(call.options)
     })
 
-    it('should store default cause values on call instance when no parameters provided', () => {
+    it('should use default values when no parameters provided', () => {
       const mockByeInstance = { method: 'verto.bye' } as any
       MockedBye.mockImplementation(() => mockByeInstance)
 
       call.hangup()
 
-      // Default values should be stored on the call instance
-      expect(call.cause).toBe('NORMAL_CLEARING')
-      expect(call.causeCode).toBe(16)
-
-      // But not sent in the Bye message
       const byeCallArgs = MockedBye.mock.calls[0][0]
-      expect(byeCallArgs.cause).toBeUndefined()
-      expect(byeCallArgs.causeCode).toBeUndefined()
+      expect(byeCallArgs.cause).toBe('NORMAL_CLEARING')
+      expect(byeCallArgs.causeCode).toBe(16)
     })
   })
 })

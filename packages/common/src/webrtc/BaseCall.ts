@@ -166,8 +166,6 @@ export default abstract class BaseCall implements IWebRTCCall {
       const bye = new Bye({
         sessid: this.session.sessionid,
         dialogParams: this.options,
-        cause: this.cause,
-        causeCode: this.causeCode,
       })
       logger.trace('Verto Bye stacktrace:', stackTrace())
       this._execute(bye)

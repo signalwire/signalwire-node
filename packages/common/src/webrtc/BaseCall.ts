@@ -929,7 +929,7 @@ export default abstract class BaseCall implements IWebRTCCall {
     switch (type) {
       case PeerType.Offer:
         if (needsRenegotiation) {
-          logger.info('location=_onIceSdp action=sendingModify (ICE restart) callState=' + this._state)
+          logger.info('location=_onIceSdp action=sendingModify (needs renegotiation) callState=' + this._state)
           const modifyParams = {
             sessid: this.session.sessionid,
             action: 'updateMedia',

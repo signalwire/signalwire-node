@@ -963,13 +963,13 @@ export default abstract class BaseCall implements IWebRTCCall {
         const { node_id = null } = response
         this._targetNodeId = node_id
         if (needsRenegotiation) {
-          // For ICE restart, handle the response SDP if provided
+          // For renegotiations, handle the response SDP if provided
           if (response.sdp) {
-            logger.info('location=_onIceSdp action=settingRemoteDescription (ICE restart answer)')
+            logger.info('location=_onIceSdp action=settingRemoteDescription (renegotiation answer)')
             const sessionDescr = sdpToJsonHack({ sdp: response.sdp, type: PeerType.Answer })
             this.peer.instance.setRemoteDescription(sessionDescr)
               .then(() => logger.info('location=_onIceSdp ICE restart remote description set'))
-              .catch((err) => logger.error('location=_onIceSdp ICE restart setRemoteDescription error:', err))
+              .catch((err) => logger.error('location=_onIceSdp renegotiation setRemoteDescription error:', err))
           }
         } else {
           type === PeerType.Offer

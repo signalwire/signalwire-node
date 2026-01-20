@@ -198,6 +198,43 @@ export default abstract class BaseCall implements IWebRTCCall {
     this._execute(msg)
   }
 
+  /**
+   * Initiates an ICE restart to refresh the ICE connection.
+   * This creates a new offer and sends it via verto.modify.
+   */
+  restartIce() {
+    if (!this.peer || !this.peer.instance) {
+      logger.error('Cannot restart ICE: no peer connection')
+      return
+    }
+
+    if (this._state !== State.Active && this._state !== State.Held) {
+      logger.warn('Cannot restart ICE: call is not active (state=' + this.state + ')')
+      return
+    }
+
+    logger.info('Initiating ICE restart for call ' + this.id)
+
+    // Reset ICE done flag so new candidates will trigger _onIceSdp
+    this._iceDone = false
+
+    // Clear any pending ICE timeout
+    if (this._iceTimeout) {
+      clearTimeout(this._iceTimeout)
+      this._iceTimeout = null
+    }
+
+    // Set peer type to Offer so startNegotiation creates an offer
+    this.peer.type = PeerType.Offer
+
+    // Reset negotiating flag to allow onnegotiationneeded to proceed
+    this.peer.resetNegotiating()
+
+    // Call restartIce() which marks the connection for ICE restart
+    // This triggers onnegotiationneeded which calls startNegotiation()
+    this.peer.instance.restartIce()
+  }
+
   hold() {
     const msg = new Modify({
       sessid: this.session.sessionid,
@@ -887,11 +924,11 @@ export default abstract class BaseCall implements IWebRTCCall {
       dialogParams: this.options,
     }
     // Check if this is an ICE restart (offer on an already active call)
-    const isIceRestart = type === PeerType.Offer && (this._state === State.Active || this._state === State.Held)
+    const needsRenegotiation = type === PeerType.Offer && (this._state === State.Active || this._state === State.Held)
 
     switch (type) {
       case PeerType.Offer:
-        if (isIceRestart) {
+        if (needsRenegotiation) {
           logger.info('location=_onIceSdp action=sendingModify (ICE restart) callState=' + this._state)
           const modifyParams = {
             sessid: this.session.sessionid,
@@ -925,7 +962,7 @@ export default abstract class BaseCall implements IWebRTCCall {
         logger.debug('location=_onIceSdp action=executeSuccess response=' + JSON.stringify(response))
         const { node_id = null } = response
         this._targetNodeId = node_id
-        if (isIceRestart) {
+        if (needsRenegotiation) {
           // For ICE restart, handle the response SDP if provided
           if (response.sdp) {
             logger.info('location=_onIceSdp action=settingRemoteDescription (ICE restart answer)')
@@ -943,7 +980,7 @@ export default abstract class BaseCall implements IWebRTCCall {
       .catch((error) => {
         logger.error('location=_onIceSdp action=executeError error=', error)
         // Don't hangup on ICE restart failure, just log
-        if (isIceRestart) {
+        if (needsRenegotiation) {
           logger.error('location=_onIceSdp ICE restart failed, call continues')
           return
         }

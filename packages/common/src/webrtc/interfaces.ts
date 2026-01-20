@@ -50,6 +50,7 @@ export interface IWebRTCCall {
   hangup: (params: any, execute: boolean) => void
   transfer: (destination: string) => void
   replace: (replaceCallID: string) => void
+  restartIce: () => void
   hold: () => void
   unhold: () => void
   toggleHold: () => void

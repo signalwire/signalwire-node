@@ -383,82 +383,9 @@
      * Restart ICE on the currentCall if present
     */
     function restartIce() {
-      if (currentCall && currentCall.peer && currentCall.peer.instance) {
-        var pc = currentCall.peer.instance;
-        console.log('=== RESTART ICE START ===');
-        console.log('callState:', currentCall.state);
-        console.log('peerType:', currentCall.peer.type);
-        console.log('signalingState:', pc.signalingState);
-        console.log('iceConnectionState:', pc.iceConnectionState);
-        console.log('iceGatheringState:', pc.iceGatheringState);
-
-        // Hook into events to trace what happens
-        var origOnnegotiationneeded = pc.onnegotiationneeded;
-        pc.onnegotiationneeded = function(event) {
-          console.log('>>> onnegotiationneeded fired! signalingState:', pc.signalingState);
-          if (origOnnegotiationneeded) origOnnegotiationneeded.call(pc, event);
-        };
-
-        var origOnicecandidate = pc.onicecandidate;
-        pc.onicecandidate = function(event) {
-          if (event.candidate) {
-            console.log('>>> onicecandidate:', event.candidate.type, event.candidate.address);
-          } else {
-            console.log('>>> onicecandidate: gathering complete (null candidate)');
-            console.log('>>> localDescription type:', pc.localDescription?.type);
-            console.log('>>> localDescription sdp (first 500 chars):', pc.localDescription?.sdp?.substring(0, 500));
-          }
-          console.log('>>> Calling original onicecandidate handler...');
-          var callStateBefore = currentCall.state;
-          if (origOnicecandidate) {
-            origOnicecandidate.call(pc, event);
-            console.log('>>> Original handler completed');
-            console.log('>>> Call state before:', callStateBefore, 'after:', currentCall.state);
-          } else {
-            console.log('>>> WARNING: No original onicecandidate handler!');
-          }
-
-          // After gathering complete, check what happens
-          if (!event.candidate) {
-            setTimeout(function() {
-              console.log('>>> [After 500ms] callState:', currentCall.state);
-              console.log('>>> [After 500ms] signalingState:', pc.signalingState);
-              console.log('>>> [After 500ms] iceConnectionState:', pc.iceConnectionState);
-            }, 500);
-            setTimeout(function() {
-              console.log('>>> [After 2s] callState:', currentCall.state);
-              console.log('>>> [After 2s] signalingState:', pc.signalingState);
-              console.log('>>> [After 2s] iceConnectionState:', pc.iceConnectionState);
-            }, 2000);
-          }
-        };
-
-        pc.onicegatheringstatechange = function() {
-          console.log('>>> iceGatheringState changed:', pc.iceGatheringState);
-        };
-
-        pc.oniceconnectionstatechange = function() {
-          console.log('>>> iceConnectionState changed:', pc.iceConnectionState);
-        };
-
-        pc.onsignalingstatechange = function() {
-          console.log('>>> signalingState changed:', pc.signalingState);
-        };
-
-        // Force peer type to 'offer' for ICE restart
-        var originalPeerType = currentCall.peer.type;
-        console.log('Forcing peer type from', originalPeerType, 'to "offer"');
-        currentCall.peer.type = 'offer';
-
-        // Reset _iceDone flag so SDK will process the new SDP
-        console.log('Resetting _iceDone from', currentCall._iceDone, 'to false');
-        currentCall._iceDone = false;
-
-        console.log('Calling restartIce()...');
-        pc.restartIce();
-        console.log('restartIce() called. Waiting for onnegotiationneeded...');
-      } else {
-        console.log('No active call or peer instance');
+      if (currentCall) {
+        console.log('Calling restartIce() on call', currentCall.id);
+        currentCall.restartIce();
       }
     }
 

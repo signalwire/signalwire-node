@@ -923,7 +923,7 @@ export default abstract class BaseCall implements IWebRTCCall {
       sdp,
       dialogParams: this.options,
     }
-    // Check if this is an ICE restart (offer on an already active call)
+    // Check if this is requires a new negotiation (offer on an already active call)
     const needsRenegotiation = type === PeerType.Offer && (this._state === State.Active || this._state === State.Held)
 
     switch (type) {
@@ -968,7 +968,7 @@ export default abstract class BaseCall implements IWebRTCCall {
             logger.info('location=_onIceSdp action=settingRemoteDescription (renegotiation answer)')
             const sessionDescr = sdpToJsonHack({ sdp: response.sdp, type: PeerType.Answer })
             this.peer.instance.setRemoteDescription(sessionDescr)
-              .then(() => logger.info('location=_onIceSdp ICE restart remote description set'))
+              .then(() => logger.info('location=_onIceSdp renegotiation remote description set'))
               .catch((err) => logger.error('location=_onIceSdp renegotiation setRemoteDescription error:', err))
           }
         } else {
@@ -979,9 +979,9 @@ export default abstract class BaseCall implements IWebRTCCall {
       })
       .catch((error) => {
         logger.error('location=_onIceSdp action=executeError error=', error)
-        // Don't hangup on ICE restart failure, just log
+        // Don't hangup on renegotiation failure, just log
         if (needsRenegotiation) {
-          logger.error('location=_onIceSdp ICE restart failed, call continues')
+          logger.error('location=_onIceSdp renegotiation failed, call continues')
           return
         }
         let causeCode

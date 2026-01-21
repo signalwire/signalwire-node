@@ -198,6 +198,43 @@ export default abstract class BaseCall implements IWebRTCCall {
     this._execute(msg)
   }
 
+  /**
+   * Initiates an ICE restart to refresh the ICE connection.
+   * This creates a new offer and sends it via verto.modify.
+   */
+  restartIce() {
+    if (!this.peer || !this.peer.instance) {
+      logger.error('Cannot restart ICE: no peer connection')
+      return
+    }
+
+    if (this._state !== State.Active && this._state !== State.Held) {
+      logger.warn('Cannot restart ICE: call is not active (state=' + this.state + ')')
+      return
+    }
+
+    logger.info('Initiating ICE restart for call ' + this.id)
+
+    // Reset ICE done flag so new candidates will trigger _onIceSdp
+    this._iceDone = false
+
+    // Clear any pending ICE timeout
+    if (this._iceTimeout) {
+      clearTimeout(this._iceTimeout)
+      this._iceTimeout = null
+    }
+
+    // Set peer type to Offer so startNegotiation creates an offer
+    this.peer.type = PeerType.Offer
+
+    // Reset negotiating flag to allow onnegotiationneeded to proceed
+    this.peer.resetNegotiating()
+
+    // Call restartIce() which marks the connection for ICE restart
+    // This triggers onnegotiationneeded which calls startNegotiation()
+    this.peer.instance.restartIce()
+  }
+
   hold() {
     const msg = new Modify({
       sessid: this.session.sessionid,
@@ -865,7 +902,7 @@ export default abstract class BaseCall implements IWebRTCCall {
   }
 
   private _onIceSdp(data: RTCSessionDescription) {
-    logger.debug('_onIceSdp')
+    logger.debug('location=_onIceSdp callState=' + this._state + ' sdpType=' + data?.type + ' hasCandidates=' + (data?.sdp?.indexOf('candidate') !== -1))
 
     if (this._iceTimeout) {
       clearTimeout(this._iceTimeout)
@@ -886,12 +923,29 @@ export default abstract class BaseCall implements IWebRTCCall {
       sdp,
       dialogParams: this.options,
     }
+    // Check if this is requires a new negotiation (offer on an already active call)
+    const needsRenegotiation = type === PeerType.Offer && (this._state === State.Active || this._state === State.Held)
+
     switch (type) {
       case PeerType.Offer:
-        this.setState(State.Requesting)
-        msg = new Invite(tmpParams)
+        if (needsRenegotiation) {
+          logger.info('location=_onIceSdp action=sendingModify (needs renegotiation) callState=' + this._state)
+          const modifyParams = {
+            sessid: this.session.sessionid,
+            action: 'updateMedia',
+            sdp,
+            dialogParams: this.options,
+          }
+          logger.debug('location=_onIceSdp modifyParams=' + JSON.stringify(modifyParams))
+          msg = new Modify(modifyParams)
+        } else {
+          logger.info('location=_onIceSdp action=sendingInvite callState=' + this._state)
+          this.setState(State.Requesting)
+          msg = new Invite(tmpParams)
+        }
         break
       case PeerType.Answer:
+        logger.debug('location=_onIceSdp action=sendingAnswer callState=' + this._state + ' attach=' + this.options.attach)
         this.setState(State.Answering)
         msg =
           this.options.attach === true
@@ -902,16 +956,34 @@ export default abstract class BaseCall implements IWebRTCCall {
         logger.error(`${this.id} - Unknown local SDP type:`, data)
         return this.hangup({}, false)
     }
+    logger.debug('location=_onIceSdp action=executing msgType=' + msg.toString())
     this._execute(msg)
       .then((response) => {
+        logger.debug('location=_onIceSdp action=executeSuccess response=' + JSON.stringify(response))
         const { node_id = null } = response
         this._targetNodeId = node_id
-        type === PeerType.Offer
-          ? this.setState(State.Trying)
-          : this.setState(State.Active)
+        if (needsRenegotiation) {
+          // For renegotiations, handle the response SDP if provided
+          if (response.sdp) {
+            logger.info('location=_onIceSdp action=settingRemoteDescription (renegotiation answer)')
+            const sessionDescr = sdpToJsonHack({ sdp: response.sdp, type: PeerType.Answer })
+            this.peer.instance.setRemoteDescription(sessionDescr)
+              .then(() => logger.info('location=_onIceSdp renegotiation remote description set'))
+              .catch((err) => logger.error('location=_onIceSdp renegotiation setRemoteDescription error:', err))
+          }
+        } else {
+          type === PeerType.Offer
+            ? this.setState(State.Trying)
+            : this.setState(State.Active)
+        }
       })
       .catch((error) => {
-        logger.error(`${this.id} - Sending ${type} error:`, error)
+        logger.error('location=_onIceSdp action=executeError error=', error)
+        // Don't hangup on renegotiation failure, just log
+        if (needsRenegotiation) {
+          logger.error('location=_onIceSdp renegotiation failed, call continues')
+          return
+        }
         let causeCode
         switch (msg.toSring()) {
           case VertoMethod.Answer:

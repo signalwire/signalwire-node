@@ -94,6 +94,7 @@
         </div>
         <button id="startCall" class="btn btn-primary px-5 mt-4" onClick="makeCall()" disabled="true">Call</button>
         <button id="hangupCall" class="btn btn-danger px-5 mt-4 d-none" onClick="hangup()" disabled="true">Hang up</button>
+        <button id="restartIceBtn" class="btn btn-warning px-3 mt-4 d-none" onClick="restartIce()">Restart ICE</button>
         <div class="form-group" id="dtmfKeys" hidden="false">
           <button id="dtmf_1" class="btn btn-primary px-2 mt-4" onClick="dtmf()">1</button>
           <button id="dtmf_2" class="btn btn-primary px-2 mt-4" onClick="dtmf()">2</button>
@@ -276,12 +277,14 @@
           startCall.classList.add('d-none');
           hangupCall.classList.remove('d-none');
           hangupCall.disabled = false;
+          restartIceBtn.classList.remove('d-none');
           dtmfKeys.hidden=false;
           break;
         case 'hangup': // Call is over
           startCall.classList.remove('d-none');
           hangupCall.classList.add('d-none');
           hangupCall.disabled = true;
+          restartIceBtn.classList.add('d-none');
           dtmfKeys.hidden=true;
           break;
         case 'destroy': // Call has been destroyed
@@ -372,6 +375,16 @@
     function hangup() {
       if (currentCall) {
         currentCall.hangup()
+      }
+    }
+
+    /**
+     * Restart ICE on the currentCall if present
+    */
+    function restartIce() {
+      if (currentCall) {
+        console.log('Calling restartIce() on call', currentCall.id);
+        currentCall.restartIce();
       }
     }
 

@@ -70,6 +70,7 @@ export default abstract class BaseCall implements IWebRTCCall {
   private _targetNodeId: string = null
   private _iceTimeout = null
   private _iceDone: boolean = false
+  private _iceRestartAttempts: number = 0
 
   constructor(protected session: BrowserSession, opts?: CallOptions) {
     const {
@@ -1022,6 +1023,36 @@ export default abstract class BaseCall implements IWebRTCCall {
         )
       } else {
         this._onIceSdp(instance.localDescription)
+      }
+    }
+
+    instance.oniceconnectionstatechange = () => {
+      const state = instance.iceConnectionState
+      logger.debug('ICE connection state changed:', state)
+
+      if (state === 'connected' || state === 'completed') {
+        // Reset restart attempts counter on successful connection
+        this._iceRestartAttempts = 0
+      } else if (state === 'failed') {
+        const { autoRestartIceOnFailure, maxIceRestartAttempts = 3 } = this.options
+
+        if (autoRestartIceOnFailure) {
+          if (this._iceRestartAttempts < maxIceRestartAttempts) {
+            this._iceRestartAttempts++
+            logger.warn(
+              'ICE connection failed, attempting restart (' +
+              this._iceRestartAttempts + '/' + maxIceRestartAttempts + ')'
+            )
+            this.restartIce()
+          } else {
+            logger.error(
+              'ICE connection failed, max restart attempts (' +
+              maxIceRestartAttempts + ') reached'
+            )
+          }
+        } else {
+          logger.warn('ICE connection failed (auto-restart disabled)')
+        }
       }
     }
 

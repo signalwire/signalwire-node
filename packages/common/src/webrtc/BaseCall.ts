@@ -57,7 +57,7 @@ export default abstract class BaseCall implements IWebRTCCall {
   public peer: Peer
   public options: CallOptions
   public cause: string
-  public causeCode: number
+  public causeCode: numberRe
   public channels: string[] = []
   public role: string = Role.Participant
   public extension: string = null

@@ -986,7 +986,7 @@ export default abstract class BaseCall implements IWebRTCCall {
           return
         }
         let causeCode
-        switch (msg.toSring()) {
+        switch (msg.toString()) {
           case VertoMethod.Answer:
             causeCode = EXECUTE_ANSWER_ERROR_CAUSE_CODE
           case VertoMethod.Attach:

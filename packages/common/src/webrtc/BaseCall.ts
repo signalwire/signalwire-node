@@ -311,10 +311,17 @@ export default abstract class BaseCall implements IWebRTCCall {
         audio: { deviceId: { exact: deviceId } },
       })
       const audioTrack = newStream.getAudioTracks()[0]
+
+      // Preserve the enabled state from the old audio track
+      const { localStream } = this.options
+      const oldAudioTracks = localStream.getAudioTracks()
+      if (oldAudioTracks.length > 0) {
+        audioTrack.enabled = oldAudioTracks[0].enabled
+      }
+
       sender.replaceTrack(audioTrack)
       this.options.micId = deviceId
 
-      const { localStream } = this.options
       localStream.getAudioTracks().forEach((t) => t.stop())
       localStream.getVideoTracks().forEach((t) => newStream.addTrack(t))
       this.options.localStream = newStream
@@ -344,8 +351,15 @@ export default abstract class BaseCall implements IWebRTCCall {
         video: { deviceId: { exact: deviceId } },
       })
       const videoTrack = newStream.getVideoTracks()[0]
-      sender.replaceTrack(videoTrack)
+
+      // Preserve the enabled state from the old video track
       const { localElement, localStream } = this.options
+      const oldVideoTracks = localStream.getVideoTracks()
+      if (oldVideoTracks.length > 0) {
+        videoTrack.enabled = oldVideoTracks[0].enabled
+      }
+
+      sender.replaceTrack(videoTrack)
       attachMediaStream(localElement, newStream)
       this.options.camId = deviceId
 

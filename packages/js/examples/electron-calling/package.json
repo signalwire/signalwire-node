@@ -21,7 +21,7 @@
     "css-loader": "^6.8.1",
     "electron": "^35.7.5",
     "style-loader": "^0.23.0",
-    "webpack": "^5.94.0",
+    "webpack": "^5.105.0",
     "webpack-cli": "^6.0.1",
     "webpack-dev-server": "^5.2.2"
   },

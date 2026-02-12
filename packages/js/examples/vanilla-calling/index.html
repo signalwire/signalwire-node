@@ -9,8 +9,8 @@
   <script type="text/javascript" src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
 
   <!-- Include the SignalWire Relay JS SDK -->
-  <script type="text/javascript" src="https://unpkg.com/@signalwire/js@^1"></script>
-  <!-- <script type="text/javascript" src="index.min.js"></script> -->
+  <!-- <script type="text/javascript" src="https://unpkg.com/@signalwire/js@^1"></script> -->
+  <script type="text/javascript" src="index.min.js"></script>
 
   <!-- To style up the demo a little -->
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" />
@@ -173,7 +173,7 @@
     */
       function connect() {
         client = new Relay({
-          // host: 'relay.swire.io',
+          host: 'relay.swire.io',
           project: document.getElementById('project').value,
           token: document.getElementById('token').value
         });
@@ -267,6 +267,7 @@
           }
           break;
         case 'ringing': // Someone is calling you
+          console.log('Inbound call userVariables:', call.options.userVariables);
           if (confirm('Pick up the call?')) {
             currentCall.answer();
           } else {

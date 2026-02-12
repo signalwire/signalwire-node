@@ -50,6 +50,7 @@ class VertoHandler {
         remoteCallerNumber: params.caller_id_number,
         callerName: params.callee_id_name,
         callerNumber: params.callee_id_number,
+        userVariables: params.userVariables || {},
         attach
       })
       call.nodeId = this.nodeId

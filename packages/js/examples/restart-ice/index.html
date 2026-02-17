@@ -181,19 +181,30 @@
     }
 
     async function generateToken() {
-        var space = document.getElementById('space').value.replace(/https?:\/\//, '').replace(/\/$/, '');
+        var space = document.getElementById('space').value.trim().replace(/^https?:\/\//i, '').replace(/\/+$/, '');
         var project = document.getElementById('project').value;
         var apiToken = document.getElementById('apiToken').value;
         var resource = document.getElementById('resource').value || 'test-client';
 
         if(!space || !project || !apiToken) return alert("Fill Space, Project, API Token");
-        if(!space.includes('signalwire.com')) space += '.signalwire.com';
+
+        var spaceHost = space.split('/')[0];
+        var tokenApiUrl;
+
+        if (spaceHost.includes('.') && !spaceHost.endsWith('.signalwire.com')) {
+            tokenApiUrl = `https://${spaceHost}/api/relay/rest/jwt`;
+            log(`Using custom domain for JWT: ${spaceHost}`);
+        } else {
+            spaceHost = spaceHost.replace(/\.signalwire\.com$/, '');
+            tokenApiUrl = `https://${spaceHost}.signalwire.com/api/relay/rest/jwt`;
+            log(`Using SignalWire domain for JWT: ${spaceHost}.signalwire.com`);
+        }
 
         log(`Generating token for: ${resource}...`);
         var auth = btoa(project + ':' + apiToken);
 
         try {
-            var res = await fetch(`https://${space}/api/relay/rest/jwt`, {
+            var res = await fetch(tokenApiUrl, {
                 method: 'POST',
                 headers: { 'Authorization': 'Basic ' + auth, 'Content-Type': 'application/json' },
                 body: JSON.stringify({ resource: resource, expires_in: 3600 })

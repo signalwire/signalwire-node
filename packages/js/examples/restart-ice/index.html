@@ -25,6 +25,8 @@
                     <input type="text" id="project" class="form-control mb-2" placeholder="Project ID">
                     <input type="text" id="apiToken" class="form-control mb-2" placeholder="API Token">
                     <input type="text" id="resource" class="form-control mb-2" placeholder="Resource Name" value="test-client">
+                    <input type="number" id="expiresIn" class="form-control mb-2" placeholder="Token Expires In (seconds)" value="3600" min="1">
+                    <input type="text" id="relayHost" class="form-control mb-2" placeholder="Relay Host (optional)">
                     
                     <button class="btn btn-info btn-block" onclick="generateToken()">Generate Token</button>
                     <hr>
@@ -57,7 +59,31 @@
                     </div>
 
                     <button id="startCall" class="btn btn-primary btn-block mt-3" onclick="makeCall()" disabled>Call</button>
+                    <button id="answerCall" class="btn btn-success btn-block mt-2 d-none" onclick="answerCall()">Answer</button>
                     <button id="hangupCall" class="btn btn-danger btn-block mt-2 d-none" onclick="hangup()">Hangup</button>
+                    <div id="dtmfPad" class="mt-3 d-none">
+                        <div class="small text-muted mb-1">DTMF</div>
+                        <div class="btn-group mb-1 w-100">
+                            <button class="btn btn-outline-primary" onclick="sendDtmf('1')">1</button>
+                            <button class="btn btn-outline-primary" onclick="sendDtmf('2')">2</button>
+                            <button class="btn btn-outline-primary" onclick="sendDtmf('3')">3</button>
+                        </div>
+                        <div class="btn-group mb-1 w-100">
+                            <button class="btn btn-outline-primary" onclick="sendDtmf('4')">4</button>
+                            <button class="btn btn-outline-primary" onclick="sendDtmf('5')">5</button>
+                            <button class="btn btn-outline-primary" onclick="sendDtmf('6')">6</button>
+                        </div>
+                        <div class="btn-group mb-1 w-100">
+                            <button class="btn btn-outline-primary" onclick="sendDtmf('7')">7</button>
+                            <button class="btn btn-outline-primary" onclick="sendDtmf('8')">8</button>
+                            <button class="btn btn-outline-primary" onclick="sendDtmf('9')">9</button>
+                        </div>
+                        <div class="btn-group w-100">
+                            <button class="btn btn-outline-primary" onclick="sendDtmf('*')">*</button>
+                            <button class="btn btn-outline-primary" onclick="sendDtmf('0')">0</button>
+                            <button class="btn btn-outline-primary" onclick="sendDtmf('#')">#</button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -95,8 +121,8 @@
     var pendingRestart = false;
     var STORAGE_PREFIX = 'relay.';
     var LEGACY_STORAGE_PREFIX = 'relay.example.';
-    var PERSISTED_FIELDS = ['space', 'project', 'resource', 'number', 'numberFrom', 'audio', 'video', 'autoAnswer', 'autoRestartIce'];
-    var LOADABLE_FIELDS = ['space', 'project', 'apiToken', 'resource', 'token', 'number', 'numberFrom', 'audio', 'video', 'autoAnswer', 'autoRestartIce'];
+    var PERSISTED_FIELDS = ['space', 'project', 'resource', 'number', 'numberFrom', 'audio', 'video', 'autoAnswer', 'autoRestartIce', 'expiresIn', 'relayHost'];
+    var LOADABLE_FIELDS = ['space', 'project', 'apiToken', 'resource', 'token', 'number', 'numberFrom', 'audio', 'video', 'autoAnswer', 'autoRestartIce', 'expiresIn', 'relayHost'];
     var SENSITIVE_FIELDS = ['apiToken', 'token'];
 
     function getStorageKey(prefix, id) {
@@ -146,6 +172,29 @@
         SENSITIVE_FIELDS.forEach(removeStoredField);
     }
 
+    function getAnswerParams() {
+        return {
+            audio: document.getElementById('audio').checked,
+            video: document.getElementById('video').checked ? { aspectRatio: 16/9 } : false
+        };
+    }
+
+    function setCallUiState(state) {
+        var startBtn = document.getElementById('startCall');
+        var answerBtn = document.getElementById('answerCall');
+        var hangupBtn = document.getElementById('hangupCall');
+        var restartBtn = document.getElementById('btnRestartIce');
+        var dtmfPad = document.getElementById('dtmfPad');
+        var inCall = state === 'active';
+        var inboundRinging = state === 'ringing';
+
+        startBtn.classList.toggle('d-none', inCall || inboundRinging);
+        answerBtn.classList.toggle('d-none', !inboundRinging);
+        hangupBtn.classList.toggle('d-none', !inCall && !inboundRinging);
+        restartBtn.disabled = !inCall;
+        dtmfPad.classList.toggle('d-none', !inCall);
+    }
+
     function loadState() {
         LOADABLE_FIELDS.forEach(function(id) {
             var val = readStoredValue(id);
@@ -154,6 +203,7 @@
         clearSensitiveStorage();
     }
     loadState();
+    setCallUiState('idle');
 
     function saveState(e) {
         if (!e || !e.target || !e.target.id) return;
@@ -185,8 +235,11 @@
         var project = document.getElementById('project').value;
         var apiToken = document.getElementById('apiToken').value;
         var resource = document.getElementById('resource').value || 'test-client';
+        var expiresInField = document.getElementById('expiresIn').value;
+        var expiresIn = parseInt(expiresInField, 10);
 
         if(!space || !project || !apiToken) return alert("Fill Space, Project, API Token");
+        if (Number.isNaN(expiresIn) || expiresIn <= 0) expiresIn = 3600;
 
         var spaceHost = space.split('/')[0];
         var tokenApiUrl;
@@ -207,7 +260,7 @@
             var res = await fetch(tokenApiUrl, {
                 method: 'POST',
                 headers: { 'Authorization': 'Basic ' + auth, 'Content-Type': 'application/json' },
-                body: JSON.stringify({ resource: resource, expires_in: 3600 })
+                body: JSON.stringify({ resource: resource, expires_in: expiresIn })
             });
             
             if(!res.ok) throw new Error(await res.text());
@@ -224,12 +277,19 @@
     function connect() {
         var p = document.getElementById('project').value;
         var t = document.getElementById('token').value;
+        var relayHost = document.getElementById('relayHost').value.trim();
         if(!p || !t) return alert("Project and Token required");
 
-        client = new Relay({ 
+        var relayConfig = {
             project: p, 
             token: t
-        });
+        };
+        if (relayHost) {
+            relayConfig.host = relayHost;
+            log("Using custom Relay host: " + relayHost);
+        }
+
+        client = new Relay(relayConfig);
 
         client.remoteElement = 'remoteVideo';
         client.localElement = 'localVideo';
@@ -273,6 +333,7 @@
     function disconnect() {
         if(client) client.disconnect();
         document.getElementById('connectStatus').innerText = "Disconnected";
+        setCallUiState('idle');
     }
 
     function makeCall() {
@@ -298,6 +359,25 @@
         if(currentCall) currentCall.hangup();
     }
 
+    function answerCall() {
+        if (!currentCall) return;
+        log("Answering incoming call...");
+        var p = currentCall.answer(getAnswerParams());
+        if (p && typeof p.catch === 'function') {
+            p.catch(function(e) { log("Answer Warning: " + e.message); });
+        }
+    }
+
+    function sendDtmf(tone) {
+        if (!currentCall) return log("No active call for DTMF.");
+        try {
+            currentCall.dtmf(tone);
+            log("DTMF sent: " + tone);
+        } catch (e) {
+            log("DTMF Error: " + e.message);
+        }
+    }
+
     function handleCallUpdate(call) {
         currentCall = call;
         log(`State Change: ${call.state}`);
@@ -305,21 +385,27 @@
         if (call.state === 'ringing') {
             if (document.getElementById('autoAnswer').checked) {
                 log("Auto-Answering...");
-                var answerParams = {
-                    audio: document.getElementById('audio').checked,
-                    video: document.getElementById('video').checked ? { aspectRatio: 16/9 } : false
-                };
-                
-                var p = currentCall.answer(answerParams);
-                if (p && typeof p.catch === 'function') {
-                    p.catch(e => log("Answer Warning: " + e.message));
+                answerCall();
+                setCallUiState('active');
+            } else {
+                log("Incoming call is ringing. Click Answer or Hangup.");
+                setCallUiState('ringing');
+            }
+        }
+        else if (call.state === 'recovering') {
+            if (window.confirm('Recover previous call session?')) {
+                log("Recovering previous call...");
+                var recoverPromise = currentCall.answer(getAnswerParams());
+                if (recoverPromise && typeof recoverPromise.catch === 'function') {
+                    recoverPromise.catch(function(e) { log("Recover Warning: " + e.message); });
                 }
+            } else {
+                log("Recovery declined. Hanging up recovered call.");
+                currentCall.hangup();
             }
         }
         else if (call.state === 'active') {
-            document.getElementById('startCall').classList.add('d-none');
-            document.getElementById('hangupCall').classList.remove('d-none');
-            document.getElementById('btnRestartIce').disabled = false;
+            setCallUiState('active');
             restartLock = false;
             pendingRestart = false;
             
@@ -349,9 +435,7 @@
             };
         }
         else if (call.state === 'hangup' || call.state === 'destroy') {
-            document.getElementById('startCall').classList.remove('d-none');
-            document.getElementById('hangupCall').classList.add('d-none');
-            document.getElementById('btnRestartIce').disabled = true;
+            setCallUiState('idle');
             restartLock = false;
             pendingRestart = false;
         }

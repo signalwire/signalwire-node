@@ -93,19 +93,84 @@
     var currentCall = null;
     var restartLock = false;
     var pendingRestart = false;
+    var STORAGE_PREFIX = 'relay.';
+    var LEGACY_STORAGE_PREFIX = 'relay.example.';
+    var PERSISTED_FIELDS = ['space', 'project', 'resource', 'number', 'numberFrom', 'audio', 'video', 'autoAnswer', 'autoRestartIce'];
+    var LOADABLE_FIELDS = ['space', 'project', 'apiToken', 'resource', 'token', 'number', 'numberFrom', 'audio', 'video', 'autoAnswer', 'autoRestartIce'];
+    var SENSITIVE_FIELDS = ['apiToken', 'token'];
+
+    function getStorageKey(prefix, id) {
+        return prefix + id;
+    }
+
+    function isSensitiveField(id) {
+        return SENSITIVE_FIELDS.indexOf(id) !== -1;
+    }
+
+    function isPersistedField(id) {
+        return PERSISTED_FIELDS.indexOf(id) !== -1;
+    }
+
+    function removeStoredField(id) {
+        localStorage.removeItem(getStorageKey(STORAGE_PREFIX, id));
+        localStorage.removeItem(getStorageKey(LEGACY_STORAGE_PREFIX, id));
+    }
+
+    function readStoredValue(id) {
+        var newKey = getStorageKey(STORAGE_PREFIX, id);
+        var legacyKey = getStorageKey(LEGACY_STORAGE_PREFIX, id);
+        var value = localStorage.getItem(newKey);
+
+        if (value !== null) return value;
+
+        value = localStorage.getItem(legacyKey);
+        if (value === null) return null;
+
+        if (isPersistedField(id)) {
+            localStorage.setItem(newKey, value);
+        }
+        localStorage.removeItem(legacyKey);
+        return value;
+    }
+
+    function setInputValue(el, value) {
+        if (!el || value === null) return;
+        if (el.type === 'checkbox') {
+            el.checked = value === '1' || value === 'true';
+            return;
+        }
+        el.value = value;
+    }
+
+    function clearSensitiveStorage() {
+        SENSITIVE_FIELDS.forEach(removeStoredField);
+    }
 
     function loadState() {
-        ['space', 'project', 'apiToken', 'resource', 'token', 'number', 'numberFrom'].forEach(id => {
-            var val = localStorage.getItem('relay.' + id);
-            if(val) document.getElementById(id).value = val;
+        LOADABLE_FIELDS.forEach(function(id) {
+            var val = readStoredValue(id);
+            setInputValue(document.getElementById(id), val);
         });
+        clearSensitiveStorage();
     }
     loadState();
 
     function saveState(e) {
-        if(e && e.target) localStorage.setItem('relay.' + e.target.id, e.target.value);
+        if (!e || !e.target || !e.target.id) return;
+
+        var fieldId = e.target.id;
+        if (!isPersistedField(fieldId)) {
+            if (isSensitiveField(fieldId)) {
+                removeStoredField(fieldId);
+            }
+            return;
+        }
+
+        var value = e.target.type === 'checkbox' ? (e.target.checked ? '1' : '0') : e.target.value;
+        localStorage.setItem(getStorageKey(STORAGE_PREFIX, fieldId), value);
+        localStorage.removeItem(getStorageKey(LEGACY_STORAGE_PREFIX, fieldId));
     }
-    document.querySelectorAll('input').forEach(el => el.onchange = saveState);
+    document.querySelectorAll('input').forEach(function(el) { el.onchange = saveState; });
 
     function log(msg) {
         var area = document.getElementById('logArea');
@@ -138,7 +203,7 @@
             var data = await res.json();
             
             document.getElementById('token').value = data.jwt_token;
-            localStorage.setItem('relay.token', data.jwt_token);
+            removeStoredField('token');
             log("Token Generated!");
         } catch(e) {
             log("Token Error: " + e.message);

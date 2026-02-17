@@ -295,6 +295,7 @@
         client.localElement = 'localVideo';
         client.disableTcpIceServers = true;  // use only UDP (no transport=tcp)
 
+        // Debug-only: __logger is an internal SDK API and may change without notice.
         if (client.__logger && client.__logger.setLevel && client.__logger.levels) {
             client.__logger.setLevel(client.__logger.levels.DEBUG);
             log("SDK logger set to DEBUG.");

@@ -388,8 +388,13 @@
                 answerCall();
                 setCallUiState('active');
             } else {
-                log("Incoming call is ringing. Click Answer or Hangup.");
-                setCallUiState('ringing');
+                if (window.confirm('Pick up the call?')) {
+                    answerCall();
+                    setCallUiState('active');
+                } else {
+                    log("Incoming call is ringing. Click Answer or Hangup.");
+                    setCallUiState('ringing');
+                }
             }
         }
         else if (call.state === 'recovering') {

@@ -339,18 +339,17 @@
 
     function makeCall() {
         var dest = document.getElementById('number').value;
-        var src = document.getElementById('numberFrom').value;
+        var src = document.getElementById('numberFrom').value.trim();
         var useVideo = document.getElementById('video').checked;
 
         if (!dest) return alert("Please enter a destination number");
-        if (!src) src = "1234567890"; 
 
         var params = {
             destinationNumber: dest,
-            callerNumber: src,
             audio: document.getElementById('audio').checked,
             video: useVideo ? { aspectRatio: 16/9 } : false
         };
+        if (src) params.callerNumber = src;
         
         log("Calling...");
         currentCall = client.newCall(params);

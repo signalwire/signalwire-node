@@ -201,4 +201,171 @@ describe('BaseCall', () => {
       expect(byeCallArgs.causeCode).toBe(16)
     })
   })
+
+  describe('auto ICE restart on failure', () => {
+    let mockPeerInstance
+    let restartIceSpy
+
+    beforeEach(() => {
+      mockPeerInstance = {
+        close: jest.fn(),
+        restartIce: jest.fn(),
+        iceConnectionState: 'new',
+        oniceconnectionstatechange: null,
+        onicecandidate: null,
+        addEventListener: jest.fn(),
+      }
+
+      call.peer = {
+        instance: mockPeerInstance,
+        type: 'offer',
+        resetNegotiating: jest.fn(),
+      }
+
+      // Spy on restartIce method
+      restartIceSpy = jest.spyOn(call, 'restartIce').mockImplementation(() => {})
+
+      // Set call to Active state so restartIce is allowed
+      call['_state'] = State.Active
+    })
+
+    afterEach(() => {
+      restartIceSpy.mockRestore()
+    })
+
+    it('should call restartIce when ICE fails and autoRestartIceOnFailure is enabled', () => {
+      call.options.autoRestartIceOnFailure = true
+
+      // Simulate _registerPeerEvents being called
+      call['_registerPeerEvents']()
+
+      // Simulate ICE connection state change to 'failed'
+      mockPeerInstance.iceConnectionState = 'failed'
+      mockPeerInstance.oniceconnectionstatechange()
+
+      expect(restartIceSpy).toHaveBeenCalledTimes(1)
+    })
+
+    it('should NOT call restartIce when ICE fails and autoRestartIceOnFailure is disabled', () => {
+      call.options.autoRestartIceOnFailure = false
+
+      call['_registerPeerEvents']()
+
+      mockPeerInstance.iceConnectionState = 'failed'
+      mockPeerInstance.oniceconnectionstatechange()
+
+      expect(restartIceSpy).not.toHaveBeenCalled()
+    })
+
+    it('should NOT call restartIce when ICE fails and autoRestartIceOnFailure is undefined (default)', () => {
+      call.options.autoRestartIceOnFailure = undefined
+
+      call['_registerPeerEvents']()
+
+      mockPeerInstance.iceConnectionState = 'failed'
+      mockPeerInstance.oniceconnectionstatechange()
+
+      expect(restartIceSpy).not.toHaveBeenCalled()
+    })
+
+    it('should respect maxIceRestartAttempts limit', () => {
+      call.options.autoRestartIceOnFailure = true
+      call.options.maxIceRestartAttempts = 2
+
+      call['_registerPeerEvents']()
+
+      // First failure - should restart
+      mockPeerInstance.iceConnectionState = 'failed'
+      mockPeerInstance.oniceconnectionstatechange()
+      expect(restartIceSpy).toHaveBeenCalledTimes(1)
+
+      // Second failure - should restart
+      mockPeerInstance.oniceconnectionstatechange()
+      expect(restartIceSpy).toHaveBeenCalledTimes(2)
+
+      // Third failure - should NOT restart (limit reached)
+      mockPeerInstance.oniceconnectionstatechange()
+      expect(restartIceSpy).toHaveBeenCalledTimes(2)
+    })
+
+    it('should use default maxIceRestartAttempts of 3 when not specified', () => {
+      call.options.autoRestartIceOnFailure = true
+      // maxIceRestartAttempts not set, should default to 3
+
+      call['_registerPeerEvents']()
+
+      mockPeerInstance.iceConnectionState = 'failed'
+
+      // Should allow 3 restarts
+      mockPeerInstance.oniceconnectionstatechange()
+      mockPeerInstance.oniceconnectionstatechange()
+      mockPeerInstance.oniceconnectionstatechange()
+      expect(restartIceSpy).toHaveBeenCalledTimes(3)
+
+      // Fourth failure - should NOT restart
+      mockPeerInstance.oniceconnectionstatechange()
+      expect(restartIceSpy).toHaveBeenCalledTimes(3)
+    })
+
+    it('should reset restart attempts counter when ICE state becomes connected', () => {
+      call.options.autoRestartIceOnFailure = true
+      call.options.maxIceRestartAttempts = 2
+
+      call['_registerPeerEvents']()
+
+      // Fail twice
+      mockPeerInstance.iceConnectionState = 'failed'
+      mockPeerInstance.oniceconnectionstatechange()
+      mockPeerInstance.oniceconnectionstatechange()
+      expect(restartIceSpy).toHaveBeenCalledTimes(2)
+
+      // Connection succeeds - should reset counter
+      mockPeerInstance.iceConnectionState = 'connected'
+      mockPeerInstance.oniceconnectionstatechange()
+
+      // Fail again - should restart since counter was reset
+      mockPeerInstance.iceConnectionState = 'failed'
+      mockPeerInstance.oniceconnectionstatechange()
+      expect(restartIceSpy).toHaveBeenCalledTimes(3)
+    })
+
+    it('should reset restart attempts counter when ICE state becomes completed', () => {
+      call.options.autoRestartIceOnFailure = true
+      call.options.maxIceRestartAttempts = 1
+
+      call['_registerPeerEvents']()
+
+      // Fail once (max)
+      mockPeerInstance.iceConnectionState = 'failed'
+      mockPeerInstance.oniceconnectionstatechange()
+      expect(restartIceSpy).toHaveBeenCalledTimes(1)
+
+      // Limit reached - no more restarts
+      mockPeerInstance.oniceconnectionstatechange()
+      expect(restartIceSpy).toHaveBeenCalledTimes(1)
+
+      // Connection completes - should reset counter
+      mockPeerInstance.iceConnectionState = 'completed'
+      mockPeerInstance.oniceconnectionstatechange()
+
+      // Fail again - should restart since counter was reset
+      mockPeerInstance.iceConnectionState = 'failed'
+      mockPeerInstance.oniceconnectionstatechange()
+      expect(restartIceSpy).toHaveBeenCalledTimes(2)
+    })
+
+    it('should not call restartIce for other ICE states', () => {
+      call.options.autoRestartIceOnFailure = true
+
+      call['_registerPeerEvents']()
+
+      const otherStates = ['new', 'checking', 'disconnected', 'closed']
+      otherStates.forEach(state => {
+        mockPeerInstance.iceConnectionState = state
+        mockPeerInstance.oniceconnectionstatechange()
+      })
+
+      expect(restartIceSpy).not.toHaveBeenCalled()
+    })
+  })
 })

@@ -93,6 +93,46 @@ The SDK now properly reports error causes when calls are terminated due to excep
 
 All error causes use the special error code `666` to distinguish them from standard telephony cause codes.
 
+## ICE Restart
+
+The SDK supports automatic ICE restart when the ICE connection fails. This feature is opt-in and can be enabled via call options.
+
+### Configuration Options
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `autoRestartIceOnFailure` | `boolean` | `false` | Enable automatic ICE restart when the connection fails |
+| `maxIceRestartAttempts` | `number` | `3` | Maximum number of restart attempts before giving up |
+
+### Usage Example
+
+```javascript
+const call = client.newCall({
+  destinationNumber: '+1234567890',
+  autoRestartIceOnFailure: true,
+  maxIceRestartAttempts: 5,
+})
+```
+
+### Behavior
+
+When `autoRestartIceOnFailure` is enabled:
+- The SDK monitors the ICE connection state
+- If the state changes to `failed`, it automatically triggers an ICE restart
+- The restart attempt counter increments with each failure
+- Once `maxIceRestartAttempts` is reached, no further automatic restarts occur
+- The counter resets when the connection succeeds (`connected` or `completed` state)
+
+### Manual ICE Restart
+
+You can also trigger an ICE restart manually on an active call:
+
+```javascript
+call.restartIce()
+```
+
+This is useful for implementing custom recovery logic or responding to network changes.
+
 ## License
 
-Copyright © 2018-2019 SignalWire. It is free software, and may be redistributed under the terms specified in the MIT-LICENSE file.
+Copyright © 2018-2026 SignalWire. It is free software, and may be redistributed under the terms specified in the MIT-LICENSE file.

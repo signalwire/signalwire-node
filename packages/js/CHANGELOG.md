@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+## [1.5.0] -
+- Add WebRTC overrides params (`RTCPeerConnection` `getUserMedia` `getDisplayMedia` `enumerateDevices` `getSupportedConstraints` `attachMediaStream` `streamIsValid`) to the client constructor
+
+## [1.4.0] - 2024-06-21
+### Added
+- Add support for `verto.mediaParams`
 
 ## [1.3.0] - 2023-10-17
 ### Added

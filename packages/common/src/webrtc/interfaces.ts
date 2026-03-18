@@ -30,6 +30,8 @@ export interface CallOptions {
   googleStartBitrate?: number
   iceTransportPolicy?: RTCConfiguration['iceTransportPolicy']
   disableUdpIceServers?: boolean
+  autoRestartIceOnFailure?: boolean
+  maxIceRestartAttempts?: number
 }
 
 export interface IWebRTCCall {
@@ -50,6 +52,7 @@ export interface IWebRTCCall {
   hangup: (params: any, execute: boolean) => void
   transfer: (destination: string) => void
   replace: (replaceCallID: string) => void
+  restartIce: () => void
   hold: () => void
   unhold: () => void
   toggleHold: () => void

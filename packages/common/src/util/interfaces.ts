@@ -1,18 +1,29 @@
-interface IMessageBase { jsonrpc: string, id: string }
+import { IWebRTCOverridesManager } from '../webrtc/WebRTC'
 
-type TBladeVersion = { major: number, minor: number, revision: number }
+interface IMessageBase {
+  jsonrpc: string
+  id: string
+}
+
+type TBladeVersion = { major: number; minor: number; revision: number }
 
 type SipCodec = 'PCMU' | 'PCMA' | 'OPUS' | 'G729' | 'G722' | 'VP8' | 'H264'
 
-export interface ISubscription { channel: string, protocol: string, subscribers: string[] }
+export interface ISubscription {
+  channel: string
+  protocol: string
+  subscribers: string[]
+}
 
-export interface IBladeResultError extends IMessageBase { error: { code: number, message: string } }
+export interface IBladeResultError extends IMessageBase {
+  error: { code: number; message: string }
+}
 
 export interface IBladeConnectRequest extends IMessageBase {
   method: string
   params: {
     version: TBladeVersion
-    authentication: { project: string, token?: string, jwt_token?: string }
+    authentication: { project: string; token?: string; jwt_token?: string }
     sessionid?: string
     agent?: string
   }
@@ -60,7 +71,7 @@ export interface IBladeSubscriptionRequest extends IMessageBase {
 }
 
 export interface ISignalWireOptions {
-  host?: string,
+  host?: string
   project?: string
   token?: string
   login?: string
@@ -68,6 +79,9 @@ export interface ISignalWireOptions {
   password?: string
   userVariables?: Object
 }
+
+export type ISignalWireBrowserOptions = ISignalWireOptions &
+  Partial<IWebRTCOverridesManager>
 
 export interface SubscribeParams {
   channels?: string[]
@@ -239,8 +253,10 @@ export type IMakeCallParams = MakePhoneCallParams | MakeSipCallParams
 //   new(any: any): T
 // }
 
-export interface StringTMap<T> { [key: string]: T }
-export interface StringStringMap extends StringTMap<string> { }
+export interface StringTMap<T> {
+  [key: string]: T
+}
+export interface StringStringMap extends StringTMap<string> {}
 
 interface IRelayCallingRecordAudio {
   beep?: boolean
@@ -308,7 +324,7 @@ export interface IRelayCallingCollect {
     max: number
     terminators?: string
     digit_timeout?: number
-  },
+  }
   speech?: {
     end_silence_timeout?: number
     speech_timeout?: number
@@ -408,7 +424,7 @@ export interface ICallingTapFlat {
   codec?: string
 }
 
-export interface DeepArray<T> extends Array<T | DeepArray<T>> { }
+export interface DeepArray<T> extends Array<T | DeepArray<T>> {}
 
 export interface IRelayConsumerParams {
   host?: string
@@ -436,7 +452,6 @@ export interface IMessage {
   media: string[]
   segments: number
 }
-
 
 export interface IMessageOptions {
   message_id: string

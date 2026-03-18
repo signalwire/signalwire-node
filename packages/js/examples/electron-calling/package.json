@@ -7,7 +7,7 @@
   "scripts": {
     "start:electron": "electron .",
     "start:react": "webpack-dev-server --mode development",
-    "build:react": "webpack -p",
+    "build:react": "webpack --mode production",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "SignalWire Team <open.source@signalwire.com>",
@@ -19,16 +19,15 @@
     "@babel/preset-react": "^7.0.0",
     "babel-loader": "^8.0.2",
     "css-loader": "^6.8.1",
-    "electron": "^22.3.25",
+    "electron": "^35.7.5",
     "style-loader": "^0.23.0",
-    "webpack": "^4.47.0",
-    "webpack-cli": "^3.1.1",
-    "webpack-dev-server": "^4.15.1"
+    "webpack": "^5.94.0",
+    "webpack-cli": "^6.0.1",
+    "webpack-dev-server": "^5.2.2"
   },
   "dependencies": {
     "@signalwire/js": "^1.1.2",
     "react": "^16.8.6",
-    "react-dom": "^16.8.6",
-    "react-hot-loader": "^4.12.10"
+    "react-dom": "^16.8.6"
   }
 }

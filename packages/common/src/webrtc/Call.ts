@@ -1,10 +1,9 @@
 import logger from '../util/logger'
 import BaseCall from './BaseCall'
 import { CallOptions } from './interfaces'
-import { getDisplayMedia, setMediaElementSinkId } from '../util/webrtc'
+import { getDisplayMedia, setMediaElementSinkId } from './WebRTC'
 
 export default class Call extends BaseCall {
-
   public screenShare: Call
 
   private _statsInterval: any = null
@@ -17,15 +16,16 @@ export default class Call extends BaseCall {
   }
 
   async startScreenShare(opts?: CallOptions) {
-    const displayStream: MediaStream = await getDisplayMedia({ video: true })
-    displayStream.getTracks().forEach(t => {
+    const displayStream: MediaStream = await getDisplayMedia({video: true})
+    displayStream.getTracks().forEach((t) => {
       t.addEventListener('ended', () => {
         if (this.screenShare) {
           this.screenShare.hangup()
         }
       })
     })
-    const { remoteCallerName, remoteCallerNumber, callerName, callerNumber } = this.options
+    const {remoteCallerName, remoteCallerNumber, callerName, callerNumber} =
+      this.options
     const options: CallOptions = {
       screenShare: true,
       localStream: displayStream,
@@ -34,7 +34,7 @@ export default class Call extends BaseCall {
       remoteCallerNumber: `${remoteCallerNumber}-screen`,
       callerName: `${callerName} (Screen)`,
       callerNumber: `${callerNumber} (Screen)`,
-      ...opts
+      ...opts,
     }
     this.screenShare = new Call(this.session, options)
     this.screenShare.invite()
@@ -49,7 +49,7 @@ export default class Call extends BaseCall {
 
   async setAudioOutDevice(deviceId: string): Promise<boolean> {
     this.options.speakerId = deviceId
-    const { remoteElement, speakerId } = this.options
+    const {remoteElement, speakerId} = this.options
     if (remoteElement && speakerId) {
       return setMediaElementSinkId(remoteElement, speakerId)
     }
@@ -70,14 +70,21 @@ export default class Call extends BaseCall {
     this._statsInterval = window.setInterval(async () => {
       const stats = await this.peer.instance.getStats(null)
       let statsOutput: string = ''
-      const invalidReport = ['certificate', 'codec', 'peer-connection', 'stream', 'local-candidate', 'remote-candidate']
+      const invalidReport = [
+        'certificate',
+        'codec',
+        'peer-connection',
+        'stream',
+        'local-candidate',
+        'remote-candidate',
+      ]
       const invalidStat = ['id', 'type', 'timestamp']
-      stats.forEach(report => {
+      stats.forEach((report) => {
         if (invalidReport.includes(report.type)) {
           return
         }
         statsOutput += `\n${report.type}\n`
-        Object.keys(report).forEach(statName => {
+        Object.keys(report).forEach((statName) => {
           if (!invalidStat.includes(statName)) {
             statsOutput += `\t${statName}: ${report[statName]}\n`
           }

@@ -9,7 +9,7 @@ The JavaScript SDK transforms your standard browser into a realtime media engine
 
 ## Getting Started
 
-Read the implementation documentation, guides and API Reference at the official [Relay SDK for JavaScript Documentation](https://docs.signalwire.com/topics/relay-sdk-js) site.
+Read the implementation documentation, guides and API Reference at the official [Relay SDK for JavaScript Documentation](https://developer.signalwire.com/sdks/browser-sdk/v2/) site.
 
 ---
 
@@ -37,5 +37,5 @@ Relay SDK for JavaScript follows Semantic Versioning 2.0 as defined at <http://s
 
 ## License
 
-Relay SDK for JavaScript is copyright © 2018-2019
+Relay SDK for JavaScript is copyright © 2018-2026
 [SignalWire](http://signalwire.com). It is free software, and may be redistributed under the terms specified in the [MIT-LICENSE](https://github.com//signalwire/signalwire-node/blob/master/LICENSE) file.

@@ -7,7 +7,7 @@ The Relay SDK for Node.js enables Node.js developers to connect and use SignalWi
 
 ## Getting Started
 
-Read the implementation documentation, guides and API Reference at the official [Relay SDK for Node.js Documentation](https://docs.signalwire.com/topics/relay-sdk-nodejs) site.
+Read the implementation documentation, guides and API Reference at the official [Relay SDK for Node.js Documentation](https://developer.signalwire.com/sdks/realtime-sdk/v2/language/nodejs) site.
 
 ---
 
@@ -35,5 +35,5 @@ Relay SDK for Node.js follows Semantic Versioning 2.0 as defined at <http://semv
 
 ## License
 
-Relay SDK for Node.js is copyright © 2018-2019
+Relay SDK for Node.js is copyright © 2018-2026
 [SignalWire](http://signalwire.com). It is free software, and may be redistributed under the terms specified in the [MIT-LICENSE](https://github.com//signalwire/signalwire-node/blob/master/LICENSE) file.

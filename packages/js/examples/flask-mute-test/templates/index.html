@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>SignalWire Audio Mute Fix Test</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <!-- Cross Browser WebRTC Adapter -->
+  <script type="text/javascript" src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
+
+  <!-- Include the SignalWire Relay JS SDK (Local Build with Mute Fix) -->
+  <script type="text/javascript" src="/static/signalwire.js"></script>
+
+  <!-- Bootstrap for styling -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" />
+  <link rel="shortcut icon" href="https://signalwire.com/assets/images/favicon.ico" />
+  
+  <style>
+    .status-connected { color: #28a745; }
+    .status-disconnected { color: #dc3545; }
+    .status-connecting { color: #ffc107; }
+    .test-step { 
+      background-color: #f8f9fa; 
+      border-left: 4px solid #007bff; 
+      padding: 15px; 
+      margin: 10px 0; 
+    }
+    .test-result { 
+      padding: 10px; 
+      border-radius: 5px; 
+      margin: 5px 0; 
+    }
+    .test-pass { background-color: #d4edda; color: #155724; }
+    .test-fail { background-color: #f8d7da; color: #721c24; }
+    .console-log { 
+      background-color: #343a40; 
+      color: #ffffff; 
+      padding: 10px; 
+      border-radius: 5px; 
+      font-family: monospace; 
+      max-height: 300px; 
+      overflow-y: auto; 
+    }
+  </style>
+</head>
+<body class="bg-light">
+  <div class="container">
+    <div class="row pt-5">
+      <div class="col-12 pb-3">
+        <h1>🎤 SignalWire Audio Mute Fix Test</h1>
+        <p class="lead">
+          Automated test for verifying that audio mute state is preserved when switching input devices.
+        </p>
+        <div class="alert alert-info">
+          <strong>Space:</strong> {{ space }}<br>
+          <strong>Project ID:</strong> {{ project_id }}<br>
+          <strong>JWT:</strong> <span id="tokenStatus">Loading...</span><br>
+          <strong>SDK:</strong> <span class="badge badge-success">Local Build with Mute Fix</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-12 col-md-4">
+        <!-- Connection Panel -->
+        <div class="card mb-3">
+          <div class="card-body">
+            <h5 class="card-title">Connection</h5>
+            <button id="btnConnect" class="btn btn-block btn-success" onclick="connect()">Connect to SignalWire</button>
+            <button id="btnDisconnect" class="btn btn-block btn-danger d-none" onclick="disconnect()">Disconnect</button>
+            <div class="text-center mt-3">
+              <small>Status: <span id="connectStatus" class="status-disconnected">Not Connected</span></small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Call Control Panel -->
+        <div class="card mb-3">
+          <div class="card-body">
+            <h5 class="card-title">Call Control</h5>
+            <div class="form-group">
+              <label for="number">Call To:</label>
+              <input type="text" class="form-control" id="number" placeholder="Enter number or SIP endpoint" value="+1234567890">
+            </div>
+            <div class="form-group">
+              <label for="numberFrom">Call From:</label>
+              <input type="text" class="form-control" id="numberFrom" placeholder="Your number" value="+1987654321">
+            </div>
+            <div class="form-check mb-3">
+              <input type="checkbox" id="audio" checked class="form-check-input">
+              <label class="form-check-label" for="audio">Enable Audio</label>
+            </div>
+            <div class="form-check mb-3">
+              <input type="checkbox" id="video" class="form-check-input">
+              <label class="form-check-label" for="video">Enable Video</label>
+            </div>
+            <button id="startCall" class="btn btn-primary btn-block" onClick="makeCall()" disabled="true">Start Call</button>
+            <button id="hangupCall" class="btn btn-danger btn-block d-none" onClick="hangup()" disabled="true">Hang Up</button>
+            <div class="text-center mt-2">
+              <small>Call Status: <span id="callStatus">None</span></small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Test Control Panel -->
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Automated Test</h5>
+            <button id="runTest" class="btn btn-warning btn-block" onclick="runAutomatedTest()" disabled="true">
+              🧪 Run Mute Fix Test
+            </button>
+            <div class="mt-2">
+              <small id="testStatus">Test not started</small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 col-md-8">
+        <!-- Video Elements -->
+        <div class="row mb-3">
+          <div class="col-6">
+            <h5>Local Video</h5>
+            <video id="localVideo" autoplay="true" muted class="w-100" style="background-color: #000; border: 1px solid #ccc; border-radius: 5px; height: 200px;"></video>
+          </div>
+          <div class="col-6">
+            <h5>Remote Video</h5>
+            <video id="remoteVideo" autoplay="true" class="w-100" playsinline style="background-color: #000; border: 1px solid #ccc; border-radius: 5px; height: 200px;"></video>
+          </div>
+        </div>
+
+        <!-- Manual Controls -->
+        <div class="card mb-3" id="manualControls" style="display: none;">
+          <div class="card-body">
+            <h5 class="card-title">Manual Controls</h5>
+            <div class="row">
+              <div class="col-md-6">
+                <button id="muteAudio" class="btn btn-warning btn-block mb-2" onClick="toggleMute()" disabled="true">Mute Audio</button>
+                <button id="muteVideo" class="btn btn-warning btn-block mb-2" onClick="toggleVideoMute()" disabled="true">Mute Video</button>
+              </div>
+              <div class="col-md-6">
+                <select id="audioInputSelect" class="form-control mb-2" onChange="switchAudioDevice()" disabled="true">
+                  <option value="">Select Audio Input</option>
+                </select>
+                <select id="videoInputSelect" class="form-control mb-2" onChange="switchVideoDevice()" disabled="true">
+                  <option value="">Select Video Input</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Test Results -->
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Test Results</h5>
+            <div id="testResults">
+              <p class="text-muted">No tests run yet. Click "Run Mute Fix Test" to start.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Console Log -->
+        <div class="card mt-3">
+          <div class="card-body">
+            <h5 class="card-title">Console Log</h5>
+            <div id="consoleLog" class="console-log">
+              <div>Waiting for connection...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="text/javascript">
+    // Global variables
+    var client;
+    var currentCall = null;
+    var testResults = [];
+    var audioDevices = [];
+    var videoDevices = [];
+
+    // Logging function
+    function log(message, type = 'info') {
+      const timestamp = new Date().toLocaleTimeString();
+      const consoleLog = document.getElementById('consoleLog');
+      const div = document.createElement('div');
+      div.innerHTML = `[${timestamp}] ${message}`;
+      if (type === 'error') div.style.color = '#ff6b6b';
+      if (type === 'success') div.style.color = '#51cf66';
+      if (type === 'warning') div.style.color = '#ffd43b';
+      consoleLog.appendChild(div);
+      consoleLog.scrollTop = consoleLog.scrollHeight;
+      console.log(message);
+    }
+
+    // Initialize the application
+    async function init() {
+      try {
+        log('Fetching JWT token from server...');
+        const tokenResponse = await fetch('/api/token');
+        const tokenData = await tokenResponse.json();
+        
+        if (tokenData.success) {
+          document.getElementById('tokenStatus').textContent = 'Generated ✓';
+          log('JWT token generated successfully', 'success');
+          window.jwtToken = tokenData.token;
+        } else {
+          throw new Error(tokenData.error);
+        }
+        
+        // Populate device lists
+        await populateDeviceSelectors();
+        
+      } catch (error) {
+        log(`Error initializing: ${error.message}`, 'error');
+        document.getElementById('tokenStatus').textContent = 'Failed ✗';
+      }
+    }
+
+    // Connect to SignalWire
+    function connect() {
+      if (!window.jwtToken) {
+        log('No JWT token available', 'error');
+        return;
+      }
+
+      log('Connecting to SignalWire...');
+      
+      client = new Relay({
+        project: '{{ project_id }}',
+        token: window.jwtToken
+      });
+
+      client.remoteElement = 'remoteVideo';
+      client.localElement = 'localVideo';
+      
+      if (document.getElementById('audio').checked) {
+        client.enableMicrophone();
+      } else {
+        client.disableMicrophone();
+      }
+      
+      if (document.getElementById('video').checked) {
+        client.enableWebcam();
+      } else {
+        client.disableWebcam();
+      }
+
+      client.on('signalwire.ready', function() {
+        log('Connected to SignalWire', 'success');
+        document.getElementById('btnConnect').classList.add('d-none');
+        document.getElementById('btnDisconnect').classList.remove('d-none');
+        document.getElementById('connectStatus').textContent = 'Connected';
+        document.getElementById('connectStatus').className = 'status-connected';
+        document.getElementById('startCall').disabled = false;
+      });
+
+      client.on('signalwire.socket.close', function() {
+        log('Disconnected from SignalWire', 'warning');
+        document.getElementById('btnConnect').classList.remove('d-none');
+        document.getElementById('btnDisconnect').classList.add('d-none');
+        document.getElementById('connectStatus').textContent = 'Disconnected';
+        document.getElementById('connectStatus').className = 'status-disconnected';
+      });
+
+      client.on('signalwire.error', function(error) {
+        log(`SignalWire error: ${error}`, 'error');
+      });
+
+      client.on('signalwire.notification', handleNotification);
+
+      document.getElementById('connectStatus').textContent = 'Connecting...';
+      document.getElementById('connectStatus').className = 'status-connecting';
+      client.connect();
+    }
+
+    // Disconnect from SignalWire
+    function disconnect() {
+      log('Disconnecting...');
+      client.disconnect();
+    }
+
+    // Handle notifications
+    function handleNotification(notification) {
+      log(`Notification: ${notification.type}`);
+      switch (notification.type) {
+        case 'callUpdate':
+          handleCallUpdate(notification.call);
+          break;
+        case 'userMediaError':
+          log('User media error - check permissions', 'error');
+          break;
+      }
+    }
+
+    // Handle call state updates
+    function handleCallUpdate(call) {
+      currentCall = call;
+      log(`Call state: ${call.prevState} -> ${call.state}`);
+      document.getElementById('callStatus').textContent = call.state;
+
+      switch (call.state) {
+        case 'trying':
+          document.getElementById('startCall').classList.add('d-none');
+          document.getElementById('hangupCall').classList.remove('d-none');
+          document.getElementById('hangupCall').disabled = false;
+          break;
+        case 'active':
+          log('Call is active - enabling controls', 'success');
+          document.getElementById('startCall').classList.add('d-none');
+          document.getElementById('hangupCall').classList.remove('d-none');
+          document.getElementById('hangupCall').disabled = false;
+          document.getElementById('manualControls').style.display = 'block';
+          
+          // Enable controls
+          document.getElementById('muteAudio').disabled = false;
+          document.getElementById('muteVideo').disabled = false;
+          document.getElementById('audioInputSelect').disabled = false;
+          document.getElementById('videoInputSelect').disabled = false;
+          document.getElementById('runTest').disabled = false;
+          
+          populateDeviceSelectors();
+          break;
+        case 'hangup':
+        case 'destroy':
+          document.getElementById('startCall').classList.remove('d-none');
+          document.getElementById('hangupCall').classList.add('d-none');
+          document.getElementById('hangupCall').disabled = true;
+          document.getElementById('manualControls').style.display = 'none';
+          document.getElementById('runTest').disabled = true;
+          
+          // Reset controls
+          document.getElementById('muteAudio').disabled = true;
+          document.getElementById('muteVideo').disabled = true;
+          document.getElementById('audioInputSelect').disabled = true;
+          document.getElementById('videoInputSelect').disabled = true;
+          
+          if (call.state === 'destroy') {
+            currentCall = null;
+          }
+          break;
+      }
+    }
+
+    // Make a call
+    function makeCall() {
+      const params = {
+        destinationNumber: document.getElementById('number').value,
+        callerNumber: document.getElementById('numberFrom').value,
+        audio: document.getElementById('audio').checked,
+        video: document.getElementById('video').checked ? { aspectRatio: 16/9 } : false,
+      };
+
+      log(`Making call to ${params.destinationNumber}`);
+      currentCall = client.newCall(params);
+    }
+
+    // Hang up the call
+    function hangup() {
+      if (currentCall) {
+        log('Hanging up call');
+        currentCall.hangup();
+      }
+    }
+
+    // Toggle audio mute
+    function toggleMute() {
+      if (currentCall) {
+        currentCall.toggleAudioMute();
+        updateMuteButtonState();
+      }
+    }
+
+    // Toggle video mute
+    function toggleVideoMute() {
+      if (currentCall) {
+        currentCall.toggleVideoMute();
+        updateVideoMuteButtonState();
+      }
+    }
+
+    // Switch audio device
+    function switchAudioDevice() {
+      if (currentCall) {
+        const select = document.getElementById('audioInputSelect');
+        const deviceId = select.value;
+        if (deviceId) {
+          log(`Switching to audio device: ${deviceId}`);
+          currentCall.setAudioInDevice(deviceId).then(() => {
+            log('Audio device switched successfully', 'success');
+            updateMuteButtonState();
+          }).catch(error => {
+            log(`Error switching audio device: ${error}`, 'error');
+          });
+        }
+      }
+    }
+
+    // Switch video device
+    function switchVideoDevice() {
+      if (currentCall) {
+        const select = document.getElementById('videoInputSelect');
+        const deviceId = select.value;
+        if (deviceId) {
+          log(`Switching to video device: ${deviceId}`);
+          currentCall.setVideoDevice(deviceId).then(() => {
+            log('Video device switched successfully', 'success');
+            updateVideoMuteButtonState();
+          }).catch(error => {
+            log(`Error switching video device: ${error}`, 'error');
+          });
+        }
+      }
+    }
+
+    // Update mute button state
+    function updateMuteButtonState() {
+      if (currentCall) {
+        const muteButton = document.getElementById('muteAudio');
+        const audioTracks = currentCall.localStream.getAudioTracks();
+        if (audioTracks.length > 0) {
+          const isMuted = !audioTracks[0].enabled;
+          muteButton.textContent = isMuted ? 'Unmute Audio' : 'Mute Audio';
+          muteButton.className = isMuted ? 'btn btn-success btn-block mb-2' : 'btn btn-warning btn-block mb-2';
+          log(`Audio mute state: ${isMuted}`);
+          return isMuted;
+        }
+      }
+      return false;
+    }
+
+    // Update video mute button state
+    function updateVideoMuteButtonState() {
+      if (currentCall) {
+        const muteButton = document.getElementById('muteVideo');
+        const videoTracks = currentCall.localStream.getVideoTracks();
+        if (videoTracks.length > 0) {
+          const isMuted = !videoTracks[0].enabled;
+          muteButton.textContent = isMuted ? 'Unmute Video' : 'Mute Video';
+          muteButton.className = isMuted ? 'btn btn-success btn-block mb-2' : 'btn btn-warning btn-block mb-2';
+          log(`Video mute state: ${isMuted}`);
+          return isMuted;
+        }
+      }
+      return false;
+    }
+
+    // Populate device selectors
+    async function populateDeviceSelectors() {
+      try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const audioInputSelect = document.getElementById('audioInputSelect');
+        const videoInputSelect = document.getElementById('videoInputSelect');
+        
+        // Clear existing options
+        audioInputSelect.innerHTML = '<option value="">Select Audio Input</option>';
+        videoInputSelect.innerHTML = '<option value="">Select Video Input</option>';
+        
+        audioDevices = [];
+        videoDevices = [];
+        
+        devices.forEach(device => {
+          if (device.kind === 'audioinput') {
+            audioDevices.push(device);
+            const option = document.createElement('option');
+            option.value = device.deviceId;
+            option.textContent = device.label || `Audio Input ${device.deviceId.substring(0, 8)}`;
+            audioInputSelect.appendChild(option);
+          } else if (device.kind === 'videoinput') {
+            videoDevices.push(device);
+            const option = document.createElement('option');
+            option.value = device.deviceId;
+            option.textContent = device.label || `Video Input ${device.deviceId.substring(0, 8)}`;
+            videoInputSelect.appendChild(option);
+          }
+        });
+        
+        log(`Found ${audioDevices.length} audio devices, ${videoDevices.length} video devices`);
+      } catch (error) {
+        log(`Error enumerating devices: ${error}`, 'error');
+      }
+    }
+
+    // Run automated test
+    async function runAutomatedTest() {
+      if (!currentCall || currentCall.state !== 'active') {
+        log('Call must be active to run test', 'error');
+        return;
+      }
+
+      if (audioDevices.length < 2) {
+        log('Need at least 2 audio devices to run test', 'error');
+        return;
+      }
+
+      log('🧪 Starting automated mute fix test...', 'warning');
+      document.getElementById('testStatus').textContent = 'Running test...';
+      testResults = [];
+
+      try {
+        // Test 1: Verify initial unmuted state
+        log('Test 1: Verifying initial unmuted state');
+        const initialMuted = updateMuteButtonState();
+        addTestResult('Initial State', !initialMuted, 'Audio should start unmuted');
+
+        // Test 2: Mute audio
+        log('Test 2: Muting audio');
+        currentCall.muteAudio();
+        await sleep(500);
+        const mutedState = updateMuteButtonState();
+        addTestResult('Mute Audio', mutedState, 'Audio should be muted');
+
+        // Test 3: Switch device while muted (THE FIX)
+        log('Test 3: Switching device while muted (testing the fix)');
+        const originalDevice = audioDevices[0].deviceId;
+        const newDevice = audioDevices[1].deviceId;
+        
+        await currentCall.setAudioInDevice(newDevice);
+        await sleep(500);
+        const mutedAfterSwitch = updateMuteButtonState();
+        addTestResult('Mute Preserved After Device Switch', mutedAfterSwitch, 'Audio should remain muted after device switch');
+
+        // Test 4: Unmute and verify
+        log('Test 4: Unmuting audio');
+        currentCall.unmuteAudio();
+        await sleep(500);
+        const unmutedState = updateMuteButtonState();
+        addTestResult('Unmute Audio', !unmutedState, 'Audio should be unmuted');
+
+        // Test 5: Switch device while unmuted
+        log('Test 5: Switching device while unmuted');
+        await currentCall.setAudioInDevice(originalDevice);
+        await sleep(500);
+        const unmutedAfterSwitch = updateMuteButtonState();
+        addTestResult('Unmute Preserved After Device Switch', !unmutedAfterSwitch, 'Audio should remain unmuted after device switch');
+
+        // Display results
+        displayTestResults();
+        
+        const passed = testResults.filter(r => r.passed).length;
+        const total = testResults.length;
+        
+        if (passed === total) {
+          log(`✅ All tests passed! (${passed}/${total})`, 'success');
+          document.getElementById('testStatus').textContent = `✅ All tests passed! (${passed}/${total})`;
+        } else {
+          log(`❌ Some tests failed (${passed}/${total})`, 'error');
+          document.getElementById('testStatus').textContent = `❌ Tests failed (${passed}/${total})`;
+        }
+
+      } catch (error) {
+        log(`Test error: ${error}`, 'error');
+        document.getElementById('testStatus').textContent = 'Test failed with error';
+      }
+    }
+
+    // Helper function to add test result
+    function addTestResult(testName, passed, description) {
+      testResults.push({
+        name: testName,
+        passed: passed,
+        description: description
+      });
+      log(`${passed ? '✅' : '❌'} ${testName}: ${description}`, passed ? 'success' : 'error');
+    }
+
+    // Helper function to display test results
+    function displayTestResults() {
+      const resultsDiv = document.getElementById('testResults');
+      resultsDiv.innerHTML = '';
+      
+      testResults.forEach(result => {
+        const div = document.createElement('div');
+        div.className = `test-result ${result.passed ? 'test-pass' : 'test-fail'}`;
+        div.innerHTML = `
+          <strong>${result.passed ? '✅' : '❌'} ${result.name}</strong><br>
+          <small>${result.description}</small>
+        `;
+        resultsDiv.appendChild(div);
+      });
+    }
+
+    // Helper function to sleep
+    function sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    // Initialize when page loads
+    window.addEventListener('load', init);
+  </script>
+</body>
+</html> 

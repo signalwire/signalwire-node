@@ -9,56 +9,105 @@ Visit [Relay SDK for JavaScript Documentation](https://docs.signalwire.com/topic
 ### Prerequisites
 
 1. A SignalWire account with a Space, Project ID, and API Token
-2. A web server (since the demo requires HTTP/HTTPS to work properly with localStorage and CORS)
+2. Node.js and npm (to build the SDK)
+3. A web server (since the demo requires HTTP/HTTPS to work properly with localStorage and CORS)
 
-### Running the Demo
+---
 
-1. **Navigate to the example directory:**
+## Tutorial: Building the SDK and indexing the build in this example
+
+The demo loads the Relay SDK from a local file `signalwire.min.js` in this directory. You need to build the SDK and make that build available to the example.
+
+### Step 1: Build the SDK
+
+From the **repository root** (`signalwire-node`):
+
+```sh
+cd packages/js
+npm install
+npm run build
+```
+
+This produces the bundle at `packages/js/dist/index.min.js`.
+
+### Step 2: Index the build in the example (use the built file)
+
+The `index.html` in this example references the SDK with:
+
+```html
+<script type="text/javascript" src="signalwire.min.js"></script>
+```
+
+You have two options to "index" (point the example to) the build:
+
+**Option A – Copy the build into the example folder (recommended)**
+
+From the repository root:
+
+- **Linux/macOS:**
+  ```sh
+  cp packages/js/dist/index.min.js packages/js/examples/restart-ice/signalwire.min.js
+  ```
+- **Windows (Command Prompt):**
+  ```cmd
+  copy packages\js\dist\index.min.js packages\js\examples\restart-ice\signalwire.min.js
+  ```
+- **Windows (PowerShell):**
+  ```powershell
+  Copy-Item packages\js\dist\index.min.js packages\js\examples\restart-ice\signalwire.min.js
+  ```
+
+After copying, `signalwire.min.js` in `packages/js/examples/restart-ice/` is the built SDK; no change to `index.html` is needed.
+
+**Option B – Use a path to the dist folder in index.html**
+
+If you prefer not to copy, you can change the script tag in `index.html` to point to the build output:
+
+```html
+<script type="text/javascript" src="../../dist/index.min.js"></script>
+```
+
+Then you must serve the app so that this relative path resolves correctly (e.g. run the web server from `packages/js` and open `examples/restart-ice/index.html`). Option A is simpler if you run the server from `packages/js/examples/restart-ice`.
+
+### Step 3: Run the application
+
+1. **Go to the example directory:**
    ```sh
    cd packages/js/examples/restart-ice
    ```
 
-2. **Start a local web server:**
+2. **Start a local web server** (run one of the options below in this directory):
 
-   **Option 1: Using Python (if installed)**
+   **Option 1: Python**
    
-   On Linux/Mac:
+   Linux/macOS:
    ```sh
    python3 -m http.server 8080 --bind localhost
    ```
    
-   On Windows:
+   Windows:
    ```sh
    python -m http.server 8080 --bind localhost
    ```
    
-   > **Note:** If `--bind localhost` doesn't work on your Python version, try: `python -m http.server 8080 --bind 127.0.0.1`
+   If `--bind localhost` is not supported, use:
+   ```sh
+   python -m http.server 8080 --bind 127.0.0.1
+   ```
 
-   **Option 2: Using Node.js (http-server)**
+   **Option 2: Node.js (http-server)**
    ```sh
    npx http-server -p 8080 -a localhost
    ```
 
-   **Option 3: Using PHP (if installed)**
+   **Option 3: PHP**
    ```sh
    php -S localhost:8080
    ```
 
 3. **Open the demo in your browser:**
-   
-   Use one of these addresses:
-   ```
-   http://localhost:8080
-   ```
-   or
-   ```
-   http://127.0.0.1:8080
-   ```
-   
-   > **Troubleshooting:** If you see `ERR_ADDRESS_INVALID` or the browser tries to access `http://[::]:8080/`, it means the server is listening on IPv6. Make sure you:
-   > 1. Use `--bind localhost` or `--bind 127.0.0.1` with Python
-   > 2. Use `-a localhost` with http-server
-   > 3. Access the page using `http://localhost:8080` or `http://127.0.0.1:8080` (not IPv6 addresses)
+   - `http://localhost:8080` or `http://127.0.0.1:8080`
+   - If you see `ERR_ADDRESS_INVALID` or `http://[::]:8080/`, the server may be bound to IPv6. Use `--bind localhost` or `-a localhost` as above and open `http://localhost:8080` or `http://127.0.0.1:8080`.
 
 4. **Configure your SignalWire credentials:**
    - Fill in your SignalWire Space name (e.g., `yourexample` or `yourexample.signalwire.com`)

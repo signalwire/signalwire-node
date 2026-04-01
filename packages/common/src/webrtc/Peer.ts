@@ -14,7 +14,7 @@ import {
   RTCPeerConnection,
   streamIsValid,
 } from './WebRTC'
-import {  isFunction } from '../util/helpers'
+import { isFunction } from '../util/helpers'
 import { CallOptions } from './interfaces'
 import { trigger } from '../services/Handler'
 import { filterIceServers } from './helpers'
@@ -87,7 +87,11 @@ export default class Peer {
         return null
       },
     )
-    const {localElement, localStream = null, screenShare = false} = this.options
+    const {
+      localElement,
+      localStream = null,
+      screenShare = false,
+    } = this.options
     if (streamIsValid(localStream)) {
       if (typeof this.instance.addTrack === 'function') {
         const tracks = localStream.getTracks()
@@ -123,7 +127,7 @@ export default class Peer {
     if (!this._isAnswer()) {
       return
     }
-    const {remoteSdp, useStereo} = this.options
+    const { remoteSdp, useStereo } = this.options
     const sdp = useStereo ? sdpStereoHack(remoteSdp) : remoteSdp
     const sessionDescr: RTCSessionDescription = sdpToJsonHack({
       sdp,
@@ -138,8 +142,12 @@ export default class Peer {
   }
 
   private _setLocalDescription(sessionDescription: RTCSessionDescriptionInit) {
-    const {useStereo, googleMaxBitrate, googleMinBitrate, googleStartBitrate} =
-      this.options
+    const {
+      useStereo,
+      googleMaxBitrate,
+      googleMinBitrate,
+      googleStartBitrate,
+    } = this.options
     if (useStereo) {
       sessionDescription.sdp = sdpStereoHack(sessionDescription.sdp)
     }
@@ -193,7 +201,7 @@ export default class Peer {
     // The most typical scenario is an offer with audio only: we
     // don't want to call getUserMedia with video in this case.
     if (this._isAnswer()) {
-      const {remoteSdp, useStereo} = this.options
+      const { remoteSdp, useStereo } = this.options
       const sdp = useStereo ? sdpStereoHack(remoteSdp) : remoteSdp
       const sessionDescr: RTCSessionDescription = sdpToJsonHack({
         sdp,
@@ -240,7 +248,7 @@ export default class Peer {
   private async _getSenderByKind(kind: string) {
     if (this.instance) {
       const senders = await this.instance.getSenders()
-      return senders.find(({track}) => track && track.kind === kind)
+      return senders.find(({ track }) => track && track.kind === kind)
     }
   }
 

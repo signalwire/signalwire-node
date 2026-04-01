@@ -5,7 +5,9 @@
   "description": "SignalWire monorepo root package.json. This package is not published to npm.",
   "author": "SignalWire Team <open.source@signalwire.com>",
   "scripts": {
-    "setup": "node .scripts/setup.js"
+    "setup": "node .scripts/setup.js",
+    "token": "node .scripts/get_token.js",
+    "playground": "node .scripts/playground.js"
   },
   "dependencies": {
     "uuid": "^7.0.3"

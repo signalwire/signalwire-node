@@ -39,6 +39,10 @@ export default class RelayClient extends BaseSession {
   }
 
   private _handleSignals(): void {
+    if (process.env.IGNORE_SIGNALS) {
+      return logger.info('Ignoring SIGINT/SIGTERM as requested.')
+    }
+
     const _gracefulDisconnect = async () => {
       logger.info('Disconnecting from Relay...')
       await this.disconnect()
